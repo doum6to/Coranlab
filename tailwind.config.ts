@@ -17,6 +17,11 @@ const config = {
         "2xl": "1400px",
       },
     },
+    fontFamily: {
+      sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+      heading: ["var(--font-heading)", "sans-serif"],
+      arabic: ["var(--font-arabic)", "sans-serif"],
+    },
     extend: {
       colors: {
         border: "hsl(var(--border))",
@@ -52,6 +57,19 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        brilliant: {
+          green: "#6967fb",
+          dark: "#1E1E1E",
+          surface: "#F5F5F5",
+          border: "#E8E8E8",
+          text: "#1A1A1A",
+          muted: "#999999",
+          success: "#E8F8E8",
+          blue: "#5B8DEE",
+          yellow: "#F5C842",
+          purple: "#6967fb",
+          orange: "#F5923A",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -71,6 +89,7 @@ const config = {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "shiny-sweep": "shinySweep 6s ease-in-out infinite",
       },
     },
   },

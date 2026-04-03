@@ -7,11 +7,10 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { ShinyButton } from "@/components/ui/shiny-button";
 import { usePracticeModal } from "@/store/use-practice-modal";
 
 export const PracticeModal = () => {
@@ -26,35 +25,31 @@ export const PracticeModal = () => {
 
   return (
     <Dialog open={isOpen} onOpenChange={close}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-sm rounded-2xl border-2 border-[#E0E0E0] bg-white p-6 sm:p-8">
         <DialogHeader>
-          <div className="flex items-center w-full justify-center mb-5">
+          <div className="flex items-center w-full justify-center mb-4">
             <Image
-              src="/heart.svg"
-              alt="Heart"
+              src="/mascot.svg"
+              alt="Mascotte"
               height={100}
               width={100}
             />
           </div>
-          <DialogTitle className="text-center font-bold text-2xl">
-            Practice lesson
+          <DialogTitle className="text-center font-bold text-xl sm:text-2xl text-brilliant-text">
+            Leçon de pratique
           </DialogTitle>
-          <DialogDescription className="text-center text-base">
-            Use practice lessons to regain hearts and points. You cannot loose hearts or points in practice lessons.
+          <DialogDescription className="text-center text-sm sm:text-base text-brilliant-muted mt-1">
+            Utilise les leçons de pratique pour regagner des cœurs et des points. Tu ne peux pas perdre de cœurs ou de points dans les leçons de pratique.
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="mb-4">
-          <div className="flex flex-col gap-y-4 w-full">
-            <Button
-              variant="primary" 
-              className="w-full" 
-              size="lg" 
-              onClick={close}
-            >
-              I understand
-            </Button>
-          </div>
-        </DialogFooter>
+        <div className="flex flex-col gap-y-3 w-full mt-4">
+          <ShinyButton
+            variant="green"
+            onClick={close}
+          >
+            J&apos;ai compris
+          </ShinyButton>
+        </div>
       </DialogContent>
     </Dialog>
   );

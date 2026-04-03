@@ -1,12 +1,15 @@
-import "dotenv/config";
-import { drizzle } from "drizzle-orm/neon-http";
-import { neon } from "@neondatabase/serverless";
+import { config } from "dotenv";
+config({ path: ".env.local" });
+import { Pool } from "pg";
+import { drizzle } from "drizzle-orm/node-postgres";
 
 import * as schema from "../db/schema";
 
-const sql = neon(process.env.DATABASE_URL!); 
-// @ts-ignore
-const db = drizzle(sql, { schema });
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL!,
+});
+
+const db = drizzle(pool, { schema });
 
 const main = async () => {
   try {
@@ -25,8 +28,9 @@ const main = async () => {
   } catch (error) {
     console.error(error);
     throw new Error("Failed to reset the database");
+  } finally {
+    await pool.end();
   }
 };
 
 main();
-

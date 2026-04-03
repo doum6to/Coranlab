@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 
 export const Promo = () => {
   return (
-    <div className="border-2 rounded-xl p-4 space-y-4">
+    <div className="border border-brilliant-border rounded-2xl p-4 space-y-4 bg-white">
       <div className="space-y-2">
         <div className="flex items-center gap-x-2">
           <Image
@@ -14,12 +14,12 @@ export const Promo = () => {
             height={26}
             width={26}
           />
-          <h3 className="font-bold text-lg">
-            Upgrade to Pro
+          <h3 className="font-bold text-lg text-brilliant-text">
+            Passer en Pro
           </h3>
         </div>
-        <p className="text-muted-foreground">
-          Get unlimited hearts and more!
+        <p className="text-brilliant-muted text-sm">
+          Clés illimitées + tous les cours débloqués !
         </p>
       </div>
       <Button
@@ -29,7 +29,7 @@ export const Promo = () => {
         size="lg"
       >
         <Link href="/shop">
-          Upgrade today
+          Améliorer aujourd&apos;hui
         </Link>
       </Button>
     </div>

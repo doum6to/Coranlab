@@ -11,17 +11,17 @@ type Props = {
 
 export const Quests = ({ points }: Props) => {
   return (
-    <div className="border-2 rounded-xl p-4 space-y-4">
+    <div className="border border-brilliant-border rounded-2xl p-4 space-y-4 bg-white">
       <div className="flex items-center justify-between w-full space-y-2">
-        <h3 className="font-bold text-lg">
-          Quests
+        <h3 className="font-bold text-lg text-brilliant-text">
+          Quêtes
         </h3>
         <Link href="/quests">
           <Button
             size="sm"
             variant="primaryOutline"
           >
-            View all
+            Voir tout
           </Button>
         </Link>
       </div>

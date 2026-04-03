@@ -3,12 +3,11 @@
 import { and, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { auth, currentUser } from "@clerk/nextjs";
+import { auth, currentUser } from "@/lib/supabase/server";
 
 import db from "@/db/drizzle";
-import { POINTS_TO_REFILL } from "@/constants";
 import { getCourseById, getUserProgress, getUserSubscription } from "@/db/queries";
-import { challengeProgress, challenges, userProgress } from "@/db/schema";
+import { challengeProgress, challenges, userProgress, unlockedLists } from "@/db/schema";
 
 export const upsertUserProgress = async (courseId: number) => {
   const { userId } = await auth();
@@ -54,7 +53,63 @@ export const upsertUserProgress = async (courseId: number) => {
   redirect("/learn");
 };
 
+// No-op for wrong answers — we no longer reduce hearts
+// The 90% threshold is checked on the client side at level completion
 export const reduceHearts = async (challengeId: number) => {
+  const { userId } = await auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const existingProgress = await db.query.challengeProgress.findFirst({
+    where: and(
+      eq(challengeProgress.userId, userId),
+      eq(challengeProgress.challengeId, challengeId),
+    ),
+  });
+
+  // Practice mode — no penalty
+  if (existingProgress) {
+    return { error: "practice" };
+  }
+
+  // No hearts to lose — just track wrong answer on client
+  return;
+};
+
+// Daily key claim
+export const claimDailyKey = async () => {
+  const { userId } = await auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const currentUserProgress = await getUserProgress();
+
+  if (!currentUserProgress) {
+    throw new Error("User progress not found");
+  }
+
+  const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+
+  if (currentUserProgress.lastKeyDate === today) {
+    throw new Error("Daily key already claimed");
+  }
+
+  await db.update(userProgress).set({
+    keys: currentUserProgress.keys + 1,
+    lastKeyDate: today,
+  }).where(eq(userProgress.userId, userId));
+
+  revalidatePath("/learn");
+  revalidatePath("/lecons");
+  revalidatePath("/shop");
+};
+
+// Use a key to unlock a list
+export const spendKey = async (listId: number) => {
   const { userId } = await auth();
 
   if (!userId) {
@@ -64,74 +119,48 @@ export const reduceHearts = async (challengeId: number) => {
   const currentUserProgress = await getUserProgress();
   const userSubscription = await getUserSubscription();
 
-  const challenge = await db.query.challenges.findFirst({
-    where: eq(challenges.id, challengeId),
-  });
-
-  if (!challenge) {
-    throw new Error("Challenge not found");
+  if (!currentUserProgress) {
+    throw new Error("User progress not found");
   }
 
-  const lessonId = challenge.lessonId;
+  // Pro users don't need keys
+  if (userSubscription?.isActive) {
+    return { success: true };
+  }
 
-  const existingChallengeProgress = await db.query.challengeProgress.findFirst({
+  // Check if already unlocked
+  const existing = await db.query.unlockedLists.findFirst({
     where: and(
-      eq(challengeProgress.userId, userId),
-      eq(challengeProgress.challengeId, challengeId),
+      eq(unlockedLists.userId, userId),
+      eq(unlockedLists.listId, listId),
     ),
   });
 
-  const isPractice = !!existingChallengeProgress;
-
-  if (isPractice) {
-    return { error: "practice" }; 
+  if (existing) {
+    return { success: true };
   }
 
-  if (!currentUserProgress) {
-    throw new Error("User progress not found");
-  }
-
-  if (userSubscription?.isActive) {
-    return { error: "subscription" };
-  }
-
-  if (currentUserProgress.hearts === 0) {
-    return { error: "hearts" };
+  if (currentUserProgress.keys <= 0) {
+    return { error: "no_keys" };
   }
 
   await db.update(userProgress).set({
-    hearts: Math.max(currentUserProgress.hearts - 1, 0),
+    keys: currentUserProgress.keys - 1,
   }).where(eq(userProgress.userId, userId));
 
-  revalidatePath("/shop");
+  await db.insert(unlockedLists).values({
+    userId,
+    listId,
+  });
+
   revalidatePath("/learn");
-  revalidatePath("/quests");
-  revalidatePath("/leaderboard");
-  revalidatePath(`/lesson/${lessonId}`);
+  revalidatePath("/lecons");
+  revalidatePath("/shop");
+
+  return { success: true };
 };
 
+// Legacy — keep for backward compat but does nothing meaningful
 export const refillHearts = async () => {
-  const currentUserProgress = await getUserProgress();
-
-  if (!currentUserProgress) {
-    throw new Error("User progress not found");
-  }
-
-  if (currentUserProgress.hearts === 5) {
-    throw new Error("Hearts are already full");
-  }
-
-  if (currentUserProgress.points < POINTS_TO_REFILL) {
-    throw new Error("Not enough points");
-  }
-
-  await db.update(userProgress).set({
-    hearts: 5,
-    points: currentUserProgress.points - POINTS_TO_REFILL,
-  }).where(eq(userProgress.userId, currentUserProgress.userId));
-
-  revalidatePath("/shop");
-  revalidatePath("/learn");
-  revalidatePath("/quests");
-  revalidatePath("/leaderboard");
+  return;
 };

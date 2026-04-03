@@ -35,13 +35,15 @@ const LessonIdPage = async ({
     .filter((challenge) => challenge.completed)
     .length / lesson.challenges.length * 100;
 
-  return ( 
+  return (
     <Quiz
       initialLessonId={lesson.id}
       initialLessonChallenges={lesson.challenges}
       initialHearts={userProgress.hearts}
       initialPercentage={initialPercentage}
       userSubscription={userSubscription}
+      listId={lesson.listId}
+      levelOrder={lesson.levelOrder}
     />
   );
 };

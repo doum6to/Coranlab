@@ -32,7 +32,7 @@ const QuestsPage = async () => {
       <StickyWrapper>
         <UserProgress
           activeCourse={userProgress.activeCourse}
-          hearts={userProgress.hearts}
+          keys={userProgress.keys}
           points={userProgress.points}
           hasActiveSubscription={isPro}
         />
@@ -49,10 +49,10 @@ const QuestsPage = async () => {
             width={90}
           />
           <h1 className="text-center font-bold text-neutral-800 text-2xl my-6">
-            Quests
+            Quêtes
           </h1>
           <p className="text-muted-foreground text-center text-lg mb-6">
-            Complete quests by earning points.
+            Complète les quêtes en gagnant des points.
           </p>
           <ul className="w-full">
             {quests.map((quest) => {

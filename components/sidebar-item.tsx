@@ -1,20 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 
 type Props = {
   label: string;
-  iconSrc: string;
   href: string;
+  icon: React.ComponentType<{ className?: string }>;
 };
 
 export const SidebarItem = ({
   label,
-  iconSrc,
+  icon: Icon,
   href,
 }: Props) => {
   const pathname = usePathname();
@@ -22,18 +21,12 @@ export const SidebarItem = ({
 
   return (
     <Button
-      variant={active ? "sidebarOutline"  : "sidebar"}
+      variant={active ? "sidebarOutline" : "sidebar"}
       className="justify-start h-[52px]"
       asChild
     >
       <Link href={href}>
-        <Image
-          src={iconSrc}
-          alt={label}
-          className="mr-5"
-          height={32}
-          width={32}
-        />
+        <Icon className="w-7 h-7 mr-5" />
         {label}
       </Link>
     </Button>

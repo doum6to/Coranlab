@@ -1,6 +1,6 @@
 "use server";
 
-import { auth, currentUser } from "@clerk/nextjs";
+import { auth, currentUser } from "@/lib/supabase/server";
 
 import { stripe } from "@/lib/stripe";
 import { absoluteUrl } from "@/lib/utils";
@@ -37,8 +37,8 @@ export const createStripeUrl = async () => {
         price_data: {
           currency: "USD",
           product_data: {
-            name: "Lingo Pro",
-            description: "Unlimited Hearts",
+            name: "Quranlab Pro",
+            description: "Cœurs illimités",
           },
           unit_amount: 2000, // $20.00 USD
           recurring: {

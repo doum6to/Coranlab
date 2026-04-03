@@ -5,7 +5,7 @@ import { isAdmin } from "@/lib/admin";
 import { units } from "@/db/schema";
 
 export const GET = async () => {
-  if (!isAdmin()) {
+  if (!(await isAdmin())) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
@@ -15,7 +15,7 @@ export const GET = async () => {
 };
 
 export const POST = async (req: Request) => {
-  if (!isAdmin()) {
+  if (!(await isAdmin())) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 

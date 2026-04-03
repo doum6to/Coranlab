@@ -45,15 +45,16 @@ export const Card = ({
     <div
       onClick={handleClick}
       className={cn(
-        "h-full border-2 rounded-xl border-b-4 hover:bg-black/5 p-4 lg:p-6 cursor-pointer active:border-b-2",
-        selected && "border-sky-300 bg-sky-100 hover:bg-sky-100",
-        selected && status === "correct" 
-          && "border-green-300 bg-green-100 hover:bg-green-100",
-        selected && status === "wrong" 
-          && "border-rose-300 bg-rose-100 hover:bg-rose-100",
+        "h-full border-2 border-[#E0E0E0] rounded-2xl hover:bg-gray-50 p-4 lg:p-6 cursor-pointer transition-all",
+        selected && "border-[#6967FB] bg-[#f0f0ff] hover:bg-[#f0f0ff]",
+        selected && status === "correct"
+          && "border-brilliant-green bg-brilliant-success hover:bg-brilliant-success",
+        selected && status === "wrong"
+          && "border-rose-400 bg-rose-50 hover:bg-rose-50",
         disabled && "pointer-events-none hover:bg-white",
-        type === "ASSIST" && "lg:p-3 w-full"
+        (type === "QCM" || type === "QCM_INVERSE" || type === "VRAI_FAUX") && "lg:p-3 w-full"
       )}
+      style={{ boxShadow: selected ? "none" : "0 4px 0 0 #D4D4D4" }}
     >
       {audio}
       {imageSrc && (
@@ -65,25 +66,25 @@ export const Card = ({
       )}
       <div className={cn(
         "flex items-center justify-between",
-        type === "ASSIST" && "flex-row-reverse",
+        (type === "QCM" || type === "QCM_INVERSE" || type === "VRAI_FAUX") && "flex-row-reverse",
       )}>
-        {type === "ASSIST" && <div />}
+        {(type === "QCM" || type === "QCM_INVERSE" || type === "VRAI_FAUX") && <div />}
         <p className={cn(
-          "text-neutral-600 text-sm lg:text-base",
-          selected && "text-sky-500",
-          selected && status === "correct" 
-            && "text-green-500",
-          selected && status === "wrong" 
+          "text-brilliant-text text-sm lg:text-base font-medium",
+          selected && "text-[#6967FB]",
+          selected && status === "correct"
+            && "text-brilliant-green",
+          selected && status === "wrong"
             && "text-rose-500",
         )}>
           {text}
         </p>
         <div className={cn(
-          "lg:w-[30px] lg:h-[30px] w-[20px] h-[20px] border-2 flex items-center justify-center rounded-lg text-neutral-400 lg:text-[15px] text-xs font-semibold",
-          selected && "border-sky-300 text-sky-500",
-          selected && status === "correct" 
-            && "border-green-500 text-green-500",
-          selected && status === "wrong" 
+          "lg:w-[30px] lg:h-[30px] w-[20px] h-[20px] border-2 border-[#E0E0E0] flex items-center justify-center rounded-lg text-brilliant-muted lg:text-[15px] text-xs font-semibold",
+          selected && "border-[#6967FB] text-[#6967FB]",
+          selected && status === "correct"
+            && "border-brilliant-green text-brilliant-green",
+          selected && status === "wrong"
             && "border-rose-500 text-rose-500",
         )}>
           {shortcut}

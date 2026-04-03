@@ -1,9 +1,33 @@
+import Image from "next/image";
+import Link from "next/link";
 import { MobileSidebar } from "./mobile-sidebar";
 
-export const MobileHeader = () => {
+type Props = {
+  streak?: number;
+  keys?: number;
+  isPro?: boolean;
+};
+
+export const MobileHeader = ({ streak, keys, isPro }: Props) => {
   return (
-    <nav className="lg:hidden px-6 h-[50px] flex items-center bg-green-500 border-b fixed top-0 w-full z-50">
+    <nav className="lg:hidden px-4 h-[50px] flex items-center justify-between bg-white border-b border-brilliant-border fixed top-0 w-full z-50">
       <MobileSidebar />
+
+      {/* Streak & Keys — right side */}
+      {streak !== undefined && (
+        <div className="flex items-center gap-x-3">
+          <div className="flex items-center gap-x-1 text-brilliant-orange">
+            <Image src="/points.svg" height={18} width={18} alt="Streak" />
+            <span className="text-xs font-bold">{streak}</span>
+          </div>
+          <Link href="/shop" className="flex items-center gap-x-1 text-yellow-500 hover:opacity-80 transition">
+            <Image src="/key.svg" height={16} width={16} alt="Clés" />
+            <span className="text-xs font-bold">
+              {isPro ? "∞" : (keys ?? 0)}
+            </span>
+          </Link>
+        </div>
+      )}
     </nav>
   );
 };

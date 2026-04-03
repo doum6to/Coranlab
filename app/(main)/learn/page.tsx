@@ -1,81 +1,59 @@
 import { redirect } from "next/navigation";
 
-import { Promo } from "@/components/promo";
-import { Quests } from "@/components/quests";
 import { FeedWrapper } from "@/components/feed-wrapper";
-import { UserProgress } from "@/components/user-progress";
-import { StickyWrapper } from "@/components/sticky-wrapper";
-import { lessons, units as unitsSchema } from "@/db/schema";
-import { 
-  getCourseProgress, 
-  getLessonPercentage, 
-  getUnits, 
+import {
+  getListsWithLevels,
   getUserProgress,
-  getUserSubscription
+  getUserSubscription,
+  getCourses,
 } from "@/db/queries";
+import { upsertUserProgress } from "@/actions/user-progress";
+import { auth } from "@/lib/supabase/server";
 
-import { Unit } from "./unit";
-import { Header } from "./header";
+import { UnitWithListsView } from "./unit-with-lists";
 
 const LearnPage = async () => {
-  const userProgressData = getUserProgress();
-  const courseProgressData = getCourseProgress();
-  const lessonPercentageData = getLessonPercentage();
-  const unitsData = getUnits();
-  const userSubscriptionData = getUserSubscription();
+  const { userId } = await auth();
 
-  const [
-    userProgress,
-    units,
-    courseProgress,
-    lessonPercentage,
-    userSubscription,
-  ] = await Promise.all([
-    userProgressData,
-    unitsData,
-    courseProgressData,
-    lessonPercentageData,
-    userSubscriptionData,
-  ]);
+  if (!userId) {
+    redirect("/auth/login");
+  }
+
+  let userProgress = await getUserProgress();
+  const userSubscription = await getUserSubscription();
+
+  // Auto-activate first course if none selected
+  if (!userProgress?.activeCourseId) {
+    const courses = await getCourses();
+    if (courses.length > 0) {
+      await upsertUserProgress(courses[0].id);
+      userProgress = await getUserProgress();
+    }
+  }
 
   if (!userProgress || !userProgress.activeCourse) {
-    redirect("/courses");
+    redirect("/auth/login");
   }
 
-  if (!courseProgress) {
-    redirect("/courses");
-  }
+  const listsData = await getListsWithLevels();
 
   const isPro = !!userSubscription?.isActive;
+  const userKeys = userProgress?.keys ?? 0;
 
   return (
-    <div className="flex flex-row-reverse gap-[48px] px-6">
-      <StickyWrapper>
-        <UserProgress
-          activeCourse={userProgress.activeCourse}
-          hearts={userProgress.hearts}
-          points={userProgress.points}
-          hasActiveSubscription={isPro}
-        />
-        {!isPro && (
-          <Promo />
-        )}
-        <Quests points={userProgress.points} />
-      </StickyWrapper>
+    <div className="flex flex-col px-0 sm:px-6 overflow-hidden">
       <FeedWrapper>
-        <Header title={userProgress.activeCourse.title} />
-        {units.map((unit) => (
+        {listsData.map((unit) => (
           <div key={unit.id} className="mb-10">
-            <Unit
+            <UnitWithListsView
               id={unit.id}
               order={unit.order}
-              description={unit.description}
               title={unit.title}
-              lessons={unit.lessons}
-              activeLesson={courseProgress.activeLesson as typeof lessons.$inferSelect & {
-                unit: typeof unitsSchema.$inferSelect;
-              } | undefined}
-              activeLessonPercentage={lessonPercentage}
+              description={unit.description}
+              lists={unit.lists}
+              keyLocked={unit.keyLocked && !isPro}
+              isPro={isPro}
+              userKeys={userKeys}
             />
           </div>
         ))}
@@ -83,5 +61,5 @@ const LearnPage = async () => {
     </div>
   );
 };
- 
+
 export default LearnPage;

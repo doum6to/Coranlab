@@ -23,8 +23,8 @@ export const Challenge = ({
   return (
     <div className={cn(
       "grid gap-2",
-      type === "ASSIST" && "grid-cols-1",
-      type === "SELECT" && "grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(0,1fr))]"
+      (type === "QCM" || type === "QCM_INVERSE" || type === "VRAI_FAUX") && "grid-cols-1",
+      (type === "FLASHCARD" || type === "MATCHING" || type === "ANAGRAM" || type === "DRAG_DROP") && "grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(0,1fr))]"
     )}>
       {options.map((option, i) => (
         <Card
