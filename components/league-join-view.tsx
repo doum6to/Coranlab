@@ -6,9 +6,35 @@ import type { LeagueTier } from "@/lib/league-utils";
 
 type Props = {
   weeklyXp: number;
+  isPending?: boolean;
+  pendingTier?: LeagueTier;
 };
 
-export const LeagueJoinView = ({ weeklyXp }: Props) => {
+export const LeagueJoinView = ({ weeklyXp, isPending, pendingTier }: Props) => {
+  // Returning player with PENDING status — just needs to earn any XP
+  if (isPending) {
+    return (
+      <div className="w-full flex flex-col items-center gap-6 py-4">
+        <LeagueTierBadge tier={pendingTier ?? "NIYYA"} size="lg" />
+
+        <div className="text-center">
+          <h2 className="text-xl sm:text-2xl font-bold text-brilliant-text mb-2">
+            Ligue {TIER_LABELS[pendingTier ?? "NIYYA"]}
+          </h2>
+          <p className="text-sm sm:text-base text-brilliant-muted max-w-sm">
+            Commence une leçon pour rejoindre ton groupe de la semaine !
+          </p>
+        </div>
+
+        <div className="text-center">
+          <p className="text-sm text-brilliant-muted">XP cette semaine</p>
+          <p className="text-2xl font-bold text-brilliant-text">{weeklyXp} XP</p>
+        </div>
+      </div>
+    );
+  }
+
+  // First-time player — needs 100 XP to unlock leagues
   const progress = Math.min((weeklyXp / MIN_XP_TO_JOIN) * 100, 100);
 
   return (

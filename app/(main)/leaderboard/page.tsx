@@ -64,7 +64,11 @@ const LeaderboardPage = async () => {
               isBottomTier={isBottomTier}
             />
           ) : (
-            <LeagueJoinView weeklyXp={weeklyXp} />
+            <LeagueJoinView
+              weeklyXp={weeklyXp}
+              isPending={userLeague?.groupId === "PENDING"}
+              pendingTier={(userLeague?.tier ?? "NIYYA") as LeagueTier}
+            />
           )}
         </div>
       </FeedWrapper>

@@ -23,19 +23,33 @@ export async function maybeJoinLeague(userId: string, weekStart: string) {
 
   if (existing && existing.groupId !== "PENDING") return;
 
-  // Check weekly XP threshold
-  const xpRow = await db.query.weeklyXp.findFirst({
-    where: and(
-      eq(weeklyXp.userId, userId),
-      eq(weeklyXp.weekStart, weekStart),
-    ),
-  });
+  const isReturningPlayer = !!existing; // Has PENDING entry from cron
 
-  if (!xpRow || xpRow.xp < MIN_XP_TO_JOIN) return;
+  // 100 XP threshold only for first-time players (never been in a league)
+  if (!isReturningPlayer) {
+    const prevWeek = getPreviousWeekStart(weekStart);
+    const prevEntry = await db.query.leagues.findFirst({
+      where: and(
+        eq(leagues.userId, userId),
+        eq(leagues.weekStart, prevWeek),
+      ),
+    });
+
+    if (!prevEntry) {
+      // True first-timer — need 100 XP to unlock leagues
+      const xpRow = await db.query.weeklyXp.findFirst({
+        where: and(
+          eq(weeklyXp.userId, userId),
+          eq(weeklyXp.weekStart, weekStart),
+        ),
+      });
+      if (!xpRow || xpRow.xp < MIN_XP_TO_JOIN) return;
+    }
+  }
 
   // Determine tier
   let tier: LeagueTier = "NIYYA";
-  if (existing) {
+  if (isReturningPlayer) {
     // Has a PENDING entry from cron (promotion/demotion already calculated)
     tier = existing.tier as LeagueTier;
   } else {
