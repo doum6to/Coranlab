@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 import { SidebarItem } from "./sidebar-item";
 import { UserButton } from "./user-button";
 import { KeyIndicator } from "./key-indicator";
+import { StreakCard } from "./streak-card";
+import type { StreakData } from "@/db/queries";
 import { createStripeUrl } from "@/actions/user-subscription";
 import {
   HomeIcon,
@@ -22,9 +24,10 @@ type Props = {
   keys?: number;
   isPro?: boolean;
   hasActiveSubscription?: boolean;
+  streakData?: StreakData;
 };
 
-export const Sidebar = ({ className, streak, keys, isPro, hasActiveSubscription }: Props) => {
+export const Sidebar = ({ className, streak, keys, isPro, hasActiveSubscription, streakData }: Props) => {
   const [pending, startTransition] = useTransition();
 
   const onUpgrade = () => {
@@ -84,6 +87,13 @@ export const Sidebar = ({ className, streak, keys, isPro, hasActiveSubscription 
           icon={LeaderboardIcon}
         />
       </div>
+
+      {/* Streak card */}
+      {streakData && (
+        <div className="px-2 pb-3">
+          <StreakCard data={streakData} />
+        </div>
+      )}
 
       {/* Passer en Premium */}
       {!isPro && (

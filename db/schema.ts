@@ -119,7 +119,16 @@ export const userProgress = pgTable("user_progress", {
   points: integer("points").notNull().default(0),
   streak: integer("streak").notNull().default(0),
   lastStreakDate: text("last_streak_date"),
+  streakCharges: integer("streak_charges").notNull().default(0),
 });
+
+export const streakActivity = pgTable("streak_activity", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  date: text("date").notNull(),
+}, (t) => ({
+  userDateIdx: uniqueIndex("streak_activity_user_date").on(t.userId, t.date),
+}));
 
 export const userProgressRelations = relations(userProgress, ({ one }) => ({
   activeCourse: one(courses, {

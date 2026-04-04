@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { and, eq, desc } from "drizzle-orm";
+import { and, eq, desc, inArray } from "drizzle-orm";
 import { auth } from "@/lib/supabase/server";
 
 import db from "@/db/drizzle";
@@ -13,8 +13,10 @@ import {
   userSubscription,
   unlockedLists,
   weeklyXp,
+  streakActivity,
 } from "@/db/schema";
 import { getCurrentWeekStart } from "@/lib/league-utils";
+import { getLast5Days, getToday, daysBetween } from "@/lib/streak-utils";
 
 export const getUserProgress = cache(async () => {
   const { userId } = await auth();
@@ -652,4 +654,79 @@ export const getLeagueGroup = cache(async (groupId: string): Promise<LeagueMembe
   result.forEach((m, i) => { m.rank = i + 1; });
 
   return result;
+});
+
+// Streak data for the sidebar card
+export type StreakData = {
+  streak: number;
+  charges: number;
+  days: { date: string; label: string; active: boolean; isToday: boolean }[];
+};
+
+export const getStreakData = cache(async (): Promise<StreakData> => {
+  const { userId } = await auth();
+  if (!userId) {
+    return { streak: 0, charges: 0, days: [] };
+  }
+
+  let up = await db.query.userProgress.findFirst({
+    where: eq(userProgress.userId, userId),
+  });
+
+  if (!up) {
+    return { streak: 0, charges: 0, days: [] };
+  }
+
+  const today = getToday();
+
+  // Lazy charge-apply: if user missed days since last activity, consume charges
+  if (up.lastStreakDate && up.streak > 0) {
+    const missed = daysBetween(up.lastStreakDate, today) - 1;
+    if (missed > 0) {
+      const currentCharges = up.streakCharges ?? 0;
+      const cover = Math.min(missed, currentCharges);
+      const newCharges = currentCharges - cover;
+      const streakBroken = missed - cover > 0;
+      const newStreak = streakBroken ? 0 : up.streak;
+      if (newStreak !== up.streak || newCharges !== currentCharges) {
+        await db.update(userProgress).set({
+          streak: newStreak,
+          streakCharges: newCharges,
+        }).where(eq(userProgress.userId, userId));
+        up = { ...up, streak: newStreak, streakCharges: newCharges };
+      }
+    }
+  }
+
+  const last5 = getLast5Days();
+
+  const activityRows = await db
+    .select()
+    .from(streakActivity)
+    .where(and(
+      eq(streakActivity.userId, userId),
+      inArray(streakActivity.date, last5),
+    ));
+  const activeDates = new Set(activityRows.map((r) => r.date));
+
+  // French 2-letter labels
+  const DAY_LABELS: Record<number, string> = {
+    0: "Di", 1: "Lu", 2: "Ma", 3: "Me", 4: "Je", 5: "Ve", 6: "Sa",
+  };
+
+  const days = last5.map((date) => {
+    const d = new Date(date + "T00:00:00Z");
+    return {
+      date,
+      label: DAY_LABELS[d.getUTCDay()],
+      active: activeDates.has(date),
+      isToday: date === today,
+    };
+  });
+
+  return {
+    streak: up.streak,
+    charges: up.streakCharges ?? 0,
+    days,
+  };
 });

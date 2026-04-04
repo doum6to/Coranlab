@@ -6,9 +6,10 @@ import { revalidatePath } from "next/cache";
 
 import db from "@/db/drizzle";
 import { getUserProgress } from "@/db/queries";
-import { challengeProgress, challenges, userProgress, weeklyXp } from "@/db/schema";
+import { challengeProgress, challenges, userProgress, weeklyXp, streakActivity } from "@/db/schema";
 import { getCurrentWeekStart } from "@/lib/league-utils";
 import { maybeJoinLeague } from "@/actions/league";
+import { MAX_STREAK_CHARGES, getToday, daysBetween } from "@/lib/streak-utils";
 
 // Batch complete all challenges at end of lesson
 export const completeLessonChallenges = async (challengeIds: number[]) => {
@@ -49,24 +50,55 @@ export const completeLessonChallenges = async (challengeIds: number[]) => {
     );
   }
 
-  // Calculate streak
-  const today = new Date().toISOString().split("T")[0];
+  // Calculate streak + charges
+  const today = getToday();
   const lastStreakDate = currentUserProgress.lastStreakDate;
   let newStreak = currentUserProgress.streak;
+  let newCharges = currentUserProgress.streakCharges ?? 0;
+  const alreadyActiveToday = lastStreakDate === today;
 
-  if (lastStreakDate !== today) {
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
-    newStreak = lastStreakDate === yesterday ? newStreak + 1 : 1;
+  if (!alreadyActiveToday) {
+    if (!lastStreakDate) {
+      // First ever lesson
+      newStreak = 1;
+    } else {
+      const missed = daysBetween(lastStreakDate, today) - 1;
+      if (missed <= 0) {
+        // Consecutive day
+        newStreak = newStreak + 1;
+      } else {
+        // Try to cover missed days with charges
+        const cover = Math.min(missed, newCharges);
+        newCharges -= cover;
+        if (missed - cover > 0) {
+          // Streak broken
+          newStreak = 1;
+        } else {
+          // Charges covered the gap, extend streak by 1 for today
+          newStreak = newStreak + 1;
+        }
+      }
+    }
   }
+
+  // Earn a charge for completing a lesson (capped at MAX)
+  newCharges = Math.min(newCharges + 1, MAX_STREAK_CHARGES);
+
+  // Record activity for today (idempotent)
+  await db
+    .insert(streakActivity)
+    .values({ userId, date: today })
+    .onConflictDoNothing();
 
   // Fix: only count NEW challenges for points (no XP for repeating)
   const pointsEarned = newChallengeIds.length * 10;
 
-  // Update points + streak in one query
+  // Update points + streak + charges in one query
   await db.update(userProgress).set({
     points: currentUserProgress.points + pointsEarned,
     streak: newStreak,
     lastStreakDate: today,
+    streakCharges: newCharges,
   }).where(eq(userProgress.userId, userId));
 
   // Track weekly XP (only for new challenges)

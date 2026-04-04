@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { Sidebar } from "@/components/sidebar";
 import { MobileHeader } from "@/components/mobile-header";
-import { getUserProgress, getUserSubscription } from "@/db/queries";
+import { getUserProgress, getUserSubscription, getStreakData } from "@/db/queries";
 import { auth } from "@/lib/supabase/server";
 import db from "@/db/drizzle";
 import { userProgress as userProgressTable } from "@/db/schema";
@@ -14,10 +14,11 @@ type Props = {
 const MainLayout = async ({
   children,
 }: Props) => {
-  const [{ userId }, userProgressData, userSubscription] = await Promise.all([
+  const [{ userId }, userProgressData, userSubscription, streakData] = await Promise.all([
     auth(),
     getUserProgress(),
     getUserSubscription(),
+    getStreakData(),
   ]);
   let userProgress = userProgressData;
   const isPro = !!userSubscription?.isActive;
@@ -48,6 +49,7 @@ const MainLayout = async ({
         keys={userProgress?.keys}
         isPro={isPro}
         hasActiveSubscription={isPro}
+        streakData={streakData}
       />
       <main className="lg:pl-[256px] h-full pt-[50px] lg:pt-0 bg-white">
         <div className="max-w-[1056px] mx-auto pt-4 sm:pt-6 h-full">
