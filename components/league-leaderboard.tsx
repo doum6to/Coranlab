@@ -12,39 +12,63 @@ import {
 } from "@/lib/league-utils";
 import type { LeagueMember } from "@/db/queries";
 
-const RANK_COLORS: Record<number, { bg: string; dark: string; light: string; text: string }> = {
-  1: { bg: "#FFD700", dark: "#B8960F", light: "#FFF0A0", text: "#7A5C00" },
-  2: { bg: "#C0C0C0", dark: "#888888", light: "#E8E8E8", text: "#505050" },
-  3: { bg: "#CD7F32", dark: "#8B5A1B", light: "#E8B87A", text: "#FFFFFF" },
+const RANK_COLORS: Record<number, { bg: string; shadow: string; text: string }> = {
+  1: { bg: "#FFD700", shadow: "#B8960F", text: "#7A5C00" },
+  2: { bg: "#C0C0C0", shadow: "#888888", text: "#505050" },
+  3: { bg: "#CD7F32", shadow: "#8B5A1B", text: "#FFFFFF" },
 };
+
+// Hexagon points for a 30x34 viewBox, centered at (15, 17)
+const HEX_PATH = "M15 1L27.5 8.5V23.5L15 31L2.5 23.5V8.5L15 1Z";
+const HEX_CLIP = "hex-clip";
 
 const RankBadge = ({ rank }: { rank: number }) => {
   const c = RANK_COLORS[rank];
+  const id = `rank-${rank}`;
   return (
-    <svg width="30" height="32" viewBox="0 0 30 32" fill="none">
-      {/* Pentagon shape */}
-      <path
-        d="M15 1L28 10L23 27H7L2 10L15 1Z"
-        fill={c.bg}
-        stroke={c.dark}
-        strokeWidth="1.5"
-      />
-      {/* Highlight reflet 1 - top left */}
-      <path
-        d="M15 4L8 9L10 13L17 10L15 4Z"
-        fill={c.light}
-        opacity="0.5"
-      />
-      {/* Highlight reflet 2 - bottom right */}
-      <path
-        d="M20 16L22 22H17L16 17L20 16Z"
-        fill={c.light}
-        opacity="0.35"
-      />
+    <svg width="30" height="34" viewBox="0 0 30 34" fill="none">
+      <defs>
+        <clipPath id={`${id}-clip`}>
+          <path d={HEX_PATH} />
+        </clipPath>
+        <linearGradient id={`${id}-g1`} x1="10" y1="-10" x2="10" y2="30" gradientUnits="userSpaceOnUse">
+          <stop offset="0.2" stopColor="white" stopOpacity="0.45" />
+          <stop offset="0.7" stopColor="white" stopOpacity="0" />
+        </linearGradient>
+        <linearGradient id={`${id}-g2`} x1="22" y1="-5" x2="22" y2="35" gradientUnits="userSpaceOnUse">
+          <stop offset="0.1" stopColor="white" stopOpacity="0.35" />
+          <stop offset="0.55" stopColor="white" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      {/* Hex shadow */}
+      <path d="M15 3L27.5 10.5V25.5L15 33L2.5 25.5V10.5L15 3Z" fill={c.shadow} />
+      {/* Hex body */}
+      <path d={HEX_PATH} fill={c.bg} />
+      {/* Shiny diagonal streaks like ShinyButton */}
+      <g clipPath={`url(#${id}-clip)`}>
+        <rect
+          opacity="0.5"
+          x="4"
+          y="-12"
+          width="12"
+          height="40"
+          transform="rotate(30 4 -12)"
+          fill={`url(#${id}-g1)`}
+        />
+        <rect
+          opacity="0.45"
+          x="16"
+          y="-8"
+          width="6"
+          height="40"
+          transform="rotate(30 16 -8)"
+          fill={`url(#${id}-g2)`}
+        />
+      </g>
       {/* Number */}
       <text
         x="15"
-        y="19"
+        y="20.5"
         textAnchor="middle"
         fontSize="13"
         fontWeight="bold"
