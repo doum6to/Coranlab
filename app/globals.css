@@ -7,6 +7,18 @@ body,
 :root {
   @apply h-full;
   letter-spacing: -0.02em;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Kill the grey tap highlight on iOS/Android and remove the 300ms delay
+   so that active:scale / active:translate animations feel snappy on touch */
+button,
+a,
+[role="button"],
+[onclick],
+.cursor-pointer {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 h1, h2, h3, h4, h5, h6 {

@@ -4,7 +4,7 @@ export const MobilePremiumButton = () => {
   return (
     <Link
       href="/premium"
-      className="rounded-lg px-3 py-1.5 text-[11px] font-bold text-white animate-premium-gradient"
+      className="rounded-lg px-3 py-1.5 text-[11px] font-bold text-white animate-premium-gradient transition-transform duration-100 active:scale-[0.95] active:translate-y-[1px] inline-block"
       style={{
         background:
           "linear-gradient(90deg, #050C38 0%, #6700A3 25%, #E02F75 50%, #FF5A57 75%, #050C38 100%)",

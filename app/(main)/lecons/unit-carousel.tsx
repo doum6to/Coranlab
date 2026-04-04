@@ -129,7 +129,7 @@ export const LeconsUnitCarousel = ({
         {canScrollLeft && (
           <button
             onClick={() => scroll("left")}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white border border-brilliant-border shadow-md items-center justify-center hover:bg-brilliant-surface transition hidden sm:flex"
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white border border-brilliant-border shadow-md items-center justify-center hover:bg-brilliant-surface transition-transform duration-100 active:scale-90 hidden sm:flex"
           >
             <ChevronLeft className="h-4 w-4 text-brilliant-text" />
           </button>
@@ -178,7 +178,7 @@ export const LeconsUnitCarousel = ({
         {canScrollRight && (
           <button
             onClick={() => scroll("right")}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white border border-brilliant-border shadow-md items-center justify-center hover:bg-brilliant-surface transition hidden sm:flex"
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white border border-brilliant-border shadow-md items-center justify-center hover:bg-brilliant-surface transition-transform duration-100 active:scale-90 hidden sm:flex"
           >
             <ChevronRight className="h-4 w-4 text-brilliant-text" />
           </button>

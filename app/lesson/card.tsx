@@ -45,7 +45,7 @@ export const Card = ({
     <div
       onClick={handleClick}
       className={cn(
-        "h-full border-2 border-[#E0E0E0] rounded-2xl hover:bg-gray-50 p-4 lg:p-6 cursor-pointer transition-all",
+        "h-full border-2 border-[#E0E0E0] rounded-2xl hover:bg-gray-50 p-4 lg:p-6 cursor-pointer transition-all active:scale-[0.97]",
         selected && "border-[#6967FB] bg-[#f0f0ff] hover:bg-[#f0f0ff]",
         selected && status === "correct"
           && "border-brilliant-green bg-brilliant-success hover:bg-brilliant-success",

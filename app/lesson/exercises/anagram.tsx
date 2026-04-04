@@ -108,7 +108,7 @@ export const Anagram = ({
             <button
               key={`sel-${idx}`}
               onClick={() => handleRemoveLetter(idx)}
-              className="h-10 sm:h-12 px-3 bg-[#6967FB] text-white rounded-xl font-arabic text-xl sm:text-2xl hover:bg-[#6967FB]/90 transition"
+              className="h-10 sm:h-12 px-3 bg-[#6967FB] text-white rounded-xl font-arabic text-xl sm:text-2xl hover:bg-[#6967FB]/90 transition-[transform,colors,box-shadow] duration-100 active:translate-y-[3px] active:!shadow-none"
               style={{ boxShadow: "0 3px 0 0 #4a48d4" }}
             >
               {letter?.letter}
@@ -125,9 +125,9 @@ export const Anagram = ({
             onClick={() => handleLetterClick(letter.id)}
             disabled={!availableLetters.includes(letter.id) || disabled || status !== "none"}
             className={cn(
-              "h-10 sm:h-12 px-3 sm:px-4 rounded-xl border-2 font-arabic text-xl sm:text-2xl transition",
+              "h-10 sm:h-12 px-3 sm:px-4 rounded-xl border-2 font-arabic text-xl sm:text-2xl transition-[transform,colors,box-shadow] duration-100",
               availableLetters.includes(letter.id)
-                ? "bg-white border-[#E0E0E0] hover:border-[#6967FB]/40 hover:bg-gray-50 text-brilliant-text"
+                ? "bg-white border-[#E0E0E0] hover:border-[#6967FB]/40 hover:bg-gray-50 text-brilliant-text active:translate-y-[3px] active:!shadow-none"
                 : "bg-[#F5F5F5] border-[#F5F5F5] text-transparent"
             )}
             style={{

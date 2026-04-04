@@ -10,8 +10,8 @@ const BENEFITS = [
 ];
 
 const CheckIcon = () => (
-  <div className="w-7 h-7 rounded-full bg-[#FFD6A5] flex items-center justify-center">
-    <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+  <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#FFD6A5] flex items-center justify-center">
+    <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
       <path
         d="M4 10.5l4 4 8-9"
         stroke="#0F172A"
@@ -24,8 +24,8 @@ const CheckIcon = () => (
 );
 
 const CrossIcon = () => (
-  <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center">
-    <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
+  <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gray-200 flex items-center justify-center">
+    <svg width="12" height="12" viewBox="0 0 20 20" fill="none">
       <path
         d="M5 5l10 10M15 5L5 15"
         stroke="#64748B"
@@ -53,9 +53,9 @@ export const PremiumView = () => {
         <X className="w-6 h-6 text-brilliant-text" />
       </Link>
 
-      <div className="max-w-3xl mx-auto px-6 pt-16 sm:pt-24 pb-12">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-16 sm:pt-24 pb-12">
         {/* Title */}
-        <h1 className="text-center text-4xl sm:text-5xl font-extrabold text-brilliant-text leading-tight font-heading">
+        <h1 className="text-center text-3xl sm:text-5xl font-extrabold text-brilliant-text leading-tight font-heading px-2">
           Passe à la vitesse supérieure avec{" "}
           <span
             className="bg-clip-text text-transparent"
@@ -68,52 +68,86 @@ export const PremiumView = () => {
           </span>
         </h1>
 
-        {/* Comparison */}
-        <div className="mt-14 sm:mt-20 relative">
-          {/* Premium column highlight (gradient frame) */}
-          <div
-            className="absolute top-0 bottom-0 rounded-3xl p-[3px] pointer-events-none"
-            style={{
-              right: "0.5rem",
-              width: "clamp(110px, 28%, 160px)",
-              background:
-                "linear-gradient(180deg, #F7C325 0%, #E350E3 25%, #874DE5 55%, #456DFF 100%)",
-            }}
-          >
-            <div className="w-full h-full rounded-3xl bg-white" />
-          </div>
+        {/* Comparison table */}
+        <div
+          className="mt-12 sm:mt-20 relative mx-auto"
+          style={
+            {
+              // CSS vars used by both the grid and the gradient frame so they always align
+              "--col-label": "1fr",
+              "--col-free": "72px",
+              "--col-premium": "88px",
+              "--col-gap": "8px",
+            } as React.CSSProperties
+          }
+        >
+          <style>{`
+            @media (min-width: 640px) {
+              .pv-compare { --col-free: 100px; --col-premium: 120px; --col-gap: 16px; }
+            }
+          `}</style>
 
-          <div className="relative">
-            {/* Header row */}
-            <div className="grid grid-cols-[1fr_auto_auto] gap-4 sm:gap-6 items-center pb-4 border-b border-gray-200">
-              <div className="font-bold text-brilliant-text text-base sm:text-lg">
-                Avantages
-              </div>
-              <div className="w-[70px] sm:w-[90px] text-center font-bold text-brilliant-muted text-sm sm:text-base">
-                Gratuit
-              </div>
-              <div className="w-[70px] sm:w-[90px] text-center font-bold text-brilliant-text text-sm sm:text-base">
-                Premium
-              </div>
+          <div className="pv-compare relative">
+            {/* Gradient frame over the Premium column */}
+            <div
+              aria-hidden
+              className="absolute top-0 bottom-0 rounded-3xl p-[3px] pointer-events-none"
+              style={{
+                right: 0,
+                width: "var(--col-premium)",
+                background:
+                  "linear-gradient(180deg, #F7C325 0%, #E350E3 25%, #874DE5 55%, #456DFF 100%)",
+              }}
+            >
+              <div className="w-full h-full rounded-[calc(1.5rem-3px)] bg-white" />
             </div>
 
-            {/* Benefit rows */}
-            {BENEFITS.map((b, i) => (
-              <div
-                key={i}
-                className="grid grid-cols-[1fr_auto_auto] gap-4 sm:gap-6 items-center py-4 border-b border-gray-200"
-              >
-                <div className="text-brilliant-text text-sm sm:text-base">
-                  {b.label}
-                </div>
-                <div className="w-[70px] sm:w-[90px] flex justify-center">
-                  {b.free ? <CheckIcon /> : <CrossIcon />}
-                </div>
-                <div className="w-[70px] sm:w-[90px] flex justify-center">
-                  {b.premium ? <CheckIcon /> : <CrossIcon />}
-                </div>
+            {/* Grid table */}
+            <div
+              className="relative"
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "var(--col-label) var(--col-free) var(--col-premium)",
+                columnGap: "var(--col-gap)",
+              }}
+            >
+              {/* Header row */}
+              <div className="font-bold text-brilliant-text text-base sm:text-lg py-4 pl-1 sm:pl-2 border-b border-gray-200">
+                Avantages
               </div>
-            ))}
+              <div className="flex items-center justify-center font-bold text-brilliant-muted text-sm sm:text-base py-4 border-b border-gray-200">
+                Gratuit
+              </div>
+              <div className="flex items-center justify-center font-bold text-brilliant-text text-sm sm:text-base py-4 border-b border-gray-200">
+                Premium
+              </div>
+
+              {/* Benefit rows */}
+              {BENEFITS.map((b, i) => {
+                const isLast = i === BENEFITS.length - 1;
+                const borderCls = isLast ? "" : "border-b border-gray-200";
+                return (
+                  <div key={i} className="contents">
+                    <div
+                      className={`text-brilliant-text text-sm sm:text-base py-4 pl-1 sm:pl-2 pr-2 ${borderCls}`}
+                    >
+                      {b.label}
+                    </div>
+                    <div
+                      className={`flex items-center justify-center py-4 ${borderCls}`}
+                    >
+                      {b.free ? <CheckIcon /> : <CrossIcon />}
+                    </div>
+                    <div
+                      className={`flex items-center justify-center py-4 ${borderCls}`}
+                    >
+                      {b.premium ? <CheckIcon /> : <CrossIcon />}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
 
@@ -121,7 +155,7 @@ export const PremiumView = () => {
         <div className="flex justify-center mt-12 sm:mt-16">
           <Link
             href="/premium/pricing"
-            className="rounded-full px-12 sm:px-16 py-4 text-white text-base sm:text-lg font-bold transition hover:opacity-90 hover:scale-[1.02] active:scale-[0.98]"
+            className="rounded-full px-10 sm:px-16 py-4 text-white text-base sm:text-lg font-bold transition hover:opacity-90 hover:scale-[1.02] active:scale-[0.98]"
             style={{
               background: "#0F172A",
               boxShadow: "0 4px 0 0 rgba(0, 0, 0, 0.25)",

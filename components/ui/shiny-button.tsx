@@ -6,6 +6,7 @@ type ShinyButtonProps = {
   className?: string;
   disabled?: boolean;
   onClick?: () => void;
+  type?: "button" | "submit" | "reset";
   variant?: "green" | "gray" | "outline-green" | "yellow" | "dark";
 };
 
@@ -14,38 +15,32 @@ export const ShinyButton = ({
   className,
   disabled,
   onClick,
+  type = "button",
   variant = "green",
 }: ShinyButtonProps) => {
   const uid = useId();
 
   return (
     <button
-      type="button"
+      type={type}
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "relative w-full font-bold text-sm overflow-hidden transition-all rounded-2xl",
-        variant === "green" && "text-white",
-        variant === "yellow" && "text-white",
-        variant === "dark" && "text-white",
-        variant === "gray" && "bg-[#D4D4D4] text-brilliant-muted cursor-not-allowed",
-        variant === "outline-green" && "text-brilliant-green",
+        "relative w-full font-bold text-sm overflow-hidden rounded-2xl transition-[transform,box-shadow] duration-100 will-change-transform",
+        !disabled && "active:translate-y-[4px] active:!shadow-none",
+        variant === "green" &&
+          "bg-[#6967fb] text-white shadow-[0_4px_0_0_#4a48d4]",
+        variant === "dark" &&
+          "bg-[#1E1E1E] text-white shadow-[0_4px_0_0_#0A0A0A]",
+        variant === "yellow" &&
+          "bg-[#EAB308] text-white shadow-[0_4px_0_0_#CA8A04]",
+        variant === "outline-green" &&
+          "bg-[#f0f0ff] text-brilliant-green border-2 border-[#6967fb] shadow-[0_4px_0_0_#c8c7f0]",
+        variant === "gray" &&
+          "bg-[#D4D4D4] text-brilliant-muted shadow-[0_4px_0_0_#ABABAB] cursor-not-allowed",
         disabled && "opacity-60 cursor-not-allowed",
         className
       )}
-      style={
-        variant === "green"
-          ? { background: "#6967fb", boxShadow: "0 4px 0 0 #4a48d4" }
-          : variant === "dark"
-            ? { background: "#1E1E1E", boxShadow: "0 4px 0 0 #0A0A0A" }
-            : variant === "yellow"
-              ? { background: "#EAB308", boxShadow: "0 4px 0 0 #CA8A04" }
-              : variant === "outline-green"
-              ? { background: "#f0f0ff", border: "2px solid #6967fb", boxShadow: "0 4px 0 0 #c8c7f0" }
-              : variant === "gray"
-                ? { boxShadow: "0 4px 0 0 #ABABAB" }
-                : undefined
-      }
     >
       {/* Text layer */}
       <div className="px-5 py-3">

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
+import { ShinyButton } from "@/components/ui/shiny-button";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -35,85 +35,64 @@ export default function LoginPage() {
     router.refresh();
   };
 
-  const handleOAuth = async (provider: "google" | "github") => {
-    const supabase = createClient();
-    await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-white">
       <div className="w-full max-w-md p-8 space-y-6">
         <div className="flex flex-col items-center gap-y-2">
           <Image src="/mascot.svg" height={50} width={50} alt="Mascot" />
-          <h1 className="text-2xl font-bold text-neutral-700">Bon retour !</h1>
-          <p className="text-muted-foreground text-sm">Connecte-toi pour continuer à apprendre</p>
+          <h1 className="text-2xl font-bold text-brilliant-text font-heading">
+            Bon retour !
+          </h1>
+          <p className="text-brilliant-muted text-sm text-center">
+            Connecte-toi pour continuer à apprendre
+          </p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="text-sm font-medium text-neutral-700" htmlFor="email">E-mail</label>
+            <label
+              className="text-sm font-medium text-brilliant-text"
+              htmlFor="email"
+            >
+              E-mail
+            </label>
             <input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full mt-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full mt-1 px-3 py-2 border border-brilliant-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6967fb] focus:border-transparent"
               required
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-neutral-700" htmlFor="password">Mot de passe</label>
+            <label
+              className="text-sm font-medium text-brilliant-text"
+              htmlFor="password"
+            >
+              Mot de passe
+            </label>
             <input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full mt-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full mt-1 px-3 py-2 border border-brilliant-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6967fb] focus:border-transparent"
               required
             />
           </div>
-          {error && <p className="text-sm text-red-500">{error}</p>}
-          <Button type="submit" className="w-full" size="lg" variant="secondary" disabled={loading}>
+          {error && <p className="text-sm text-rose-500">{error}</p>}
+          <ShinyButton type="submit" variant="green" disabled={loading}>
             {loading ? "Connexion..." : "Se connecter"}
-          </Button>
+          </ShinyButton>
         </form>
 
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="bg-white px-2 text-muted-foreground">ou</span>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Button
-            onClick={() => handleOAuth("github")}
-            variant="primaryOutline"
-            size="lg"
-            className="w-full"
-          >
-            Continuer avec GitHub
-          </Button>
-          <Button
-            onClick={() => handleOAuth("google")}
-            variant="primaryOutline"
-            size="lg"
-            className="w-full"
-          >
-            Continuer avec Google
-          </Button>
-        </div>
-
-        <p className="text-center text-sm text-muted-foreground">
+        <p className="text-center text-sm text-brilliant-muted">
           Pas encore de compte ?{" "}
-          <Link href="/auth/signup" className="text-green-600 hover:underline font-semibold">
+          <Link
+            href="/auth/signup"
+            className="text-[#6967fb] hover:underline font-semibold"
+          >
             S&apos;inscrire
           </Link>
         </p>

@@ -34,7 +34,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr">
-      <body className={`${inter.className} ${inter.variable} ${manrope.variable} ${ibmPlexArabic.variable}`}>
+      <body
+        className={`${inter.className} ${inter.variable} ${manrope.variable} ${ibmPlexArabic.variable}`}
+      >
+        {/* Enables :active pseudo-class on iOS Safari so that
+            active:scale / active:translate-y animations fire on tap */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `document.addEventListener('touchstart',function(){},{passive:true});`,
+          }}
+        />
         <Toaster />
         <ExitModal />
         <HeartsModal />
