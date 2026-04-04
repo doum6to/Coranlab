@@ -234,21 +234,22 @@ export const Quiz = ({
   const isSelfManaged = ["FLASHCARD", "MATCHING", "ANAGRAM"].includes(challenge.type);
 
   const renderExercise = () => {
+    const k = challenge.id;
     switch (challenge.type) {
       case "FLASHCARD":
-        return <Flashcard options={options} onComplete={handleSelfComplete} disabled={pending} />;
+        return <Flashcard key={k} options={options} onComplete={handleSelfComplete} disabled={pending} />;
       case "QCM":
-        return <QCM challenge={challenge} options={options} onSelect={onSelect} selectedOption={selectedOption} status={status} disabled={pending} />;
+        return <QCM key={k} challenge={challenge} options={options} onSelect={onSelect} selectedOption={selectedOption} status={status} disabled={pending} />;
       case "VRAI_FAUX":
-        return <VraiFaux challenge={challenge} options={options} onSelect={onSelect} selectedOption={selectedOption} status={status} disabled={pending} />;
+        return <VraiFaux key={k} challenge={challenge} options={options} onSelect={onSelect} selectedOption={selectedOption} status={status} disabled={pending} />;
       case "MATCHING":
-        return <Matching options={options} onComplete={handleSelfComplete} disabled={pending} />;
+        return <Matching key={k} options={options} onComplete={handleSelfComplete} disabled={pending} />;
       case "ANAGRAM":
-        return <Anagram challenge={challenge} options={options} onCorrect={handleSelfComplete} onWrong={handleSelfWrong} disabled={pending} />;
+        return <Anagram key={k} challenge={challenge} options={options} onCorrect={handleSelfComplete} onWrong={handleSelfWrong} disabled={pending} />;
       case "QCM_INVERSE":
-        return <QCMInverse challenge={challenge} options={options} onSelect={onSelect} selectedOption={selectedOption} status={status} disabled={pending} />;
+        return <QCMInverse key={k} challenge={challenge} options={options} onSelect={onSelect} selectedOption={selectedOption} status={status} disabled={pending} />;
       case "DRAG_DROP":
-        return <DragDrop challenge={challenge} options={options} onSelect={onSelect} selectedOption={selectedOption} status={status} disabled={pending} />;
+        return <DragDrop key={k} challenge={challenge} options={options} onSelect={onSelect} selectedOption={selectedOption} status={status} disabled={pending} />;
       default:
         return null;
     }
@@ -264,9 +265,9 @@ export const Quiz = ({
         hasActiveSubscription={!!userSubscription?.isActive}
       />
       <div className="flex-1 overflow-y-auto">
-        <div className="min-h-full flex items-center justify-center py-4 sm:py-6">
-          <div className="lg:min-h-[350px] w-full max-w-lg px-4 sm:px-6 lg:px-0 flex flex-col gap-y-6 sm:gap-y-8">
-            <h1 className="text-base sm:text-lg lg:text-2xl text-center font-bold text-brilliant-text">
+        <div className="min-h-full flex items-center justify-center py-2 sm:py-6">
+          <div className="lg:min-h-[350px] w-full max-w-lg px-4 sm:px-6 lg:px-0 flex flex-col gap-y-3 sm:gap-y-6 lg:gap-y-8">
+            <h1 className="text-sm sm:text-lg lg:text-2xl text-center font-bold text-brilliant-text">
               {challenge.question}
             </h1>
             <div>

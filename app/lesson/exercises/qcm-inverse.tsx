@@ -21,10 +21,10 @@ export const QCMInverse = ({
   disabled,
 }: Props) => {
   return (
-    <div className="flex flex-col items-center gap-6">
+    <div className="flex flex-col items-center gap-3 sm:gap-6">
       {/* French translation display */}
       <div
-        className="flex items-center justify-center p-5 sm:p-6 bg-[#f0f0ff] rounded-2xl border-2 border-[#6967FB]/30 w-full max-w-[280px]"
+        className="flex items-center justify-center p-3 sm:p-6 bg-[#f0f0ff] rounded-2xl border-2 border-[#6967FB]/30 w-full max-w-[280px]"
         style={{ boxShadow: "0 4px 0 0 #c8c7f0" }}
       >
         <span className="text-xl sm:text-2xl font-bold text-[#6967FB] text-center">
@@ -32,17 +32,17 @@ export const QCMInverse = ({
         </span>
       </div>
 
-      <p className="text-sm text-brilliant-muted">Trouvez le mot arabe correspondant</p>
+      <p className="text-xs sm:text-sm text-brilliant-muted">Trouvez le mot arabe correspondant</p>
 
       {/* Arabic options */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 w-full max-w-md">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-3 w-full max-w-md">
         {options.map((option, i) => (
           <button
             key={option.id}
             onClick={() => onSelect(option.id)}
             disabled={disabled}
             className={cn(
-              "h-14 sm:h-16 px-4 rounded-2xl border-2 transition flex items-center gap-3",
+              "h-12 sm:h-16 px-4 rounded-2xl border-2 transition flex items-center gap-3",
               selectedOption === option.id && status === "none" &&
                 "border-[#6967FB] bg-[#f0f0ff]",
               selectedOption === option.id && status === "correct" &&

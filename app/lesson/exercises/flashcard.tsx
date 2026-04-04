@@ -106,11 +106,11 @@ export const Flashcard = ({ options, onComplete, disabled }: Props) => {
 
   if (phase === "learn") {
     return (
-      <div className="flex flex-col items-center gap-6">
-        <p className="text-sm font-semibold text-brilliant-muted">
+      <div className="flex flex-col items-center gap-3 sm:gap-6">
+        <p className="text-xs sm:text-sm font-semibold text-brilliant-muted">
           Découvrez les mots ({chunkIndex + 1}/{chunks.length})
         </p>
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 w-full max-w-md">
+        <div className="grid grid-cols-2 gap-2 sm:gap-4 w-full max-w-md">
           {currentChunk.map((pair, idx) => (
             <div
               key={pair.id}
@@ -148,20 +148,20 @@ export const Flashcard = ({ options, onComplete, disabled }: Props) => {
 
   // Match phase
   return (
-    <div className="flex flex-col items-center gap-6">
-      <p className="text-sm font-semibold text-brilliant-muted">
+    <div className="flex flex-col items-center gap-3 sm:gap-6">
+      <p className="text-xs sm:text-sm font-semibold text-brilliant-muted">
         Reliez les paires ({chunkIndex + 1}/{chunks.length})
       </p>
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 w-full max-w-md">
+      <div className="grid grid-cols-2 gap-2 sm:gap-4 w-full max-w-md">
         {/* Left column: Arabic */}
-        <div className="flex flex-col gap-2 sm:gap-3">
+        <div className="flex flex-col gap-1.5 sm:gap-3">
           {currentChunk.map((pair) => (
             <button
               key={`ar-${pair.id}`}
               onClick={() => handleArabicClick(pair.pairIndex!)}
               disabled={matchedPairs.has(pair.pairIndex!)}
               className={cn(
-                "h-14 sm:h-16 flex items-center justify-center rounded-2xl border-2 transition",
+                "h-11 sm:h-16 flex items-center justify-center rounded-2xl border-2 transition",
                 matchedPairs.has(pair.pairIndex!)
                   ? "bg-brilliant-success border-brilliant-green/30 opacity-60"
                   : selectedArabic === pair.pairIndex
@@ -180,14 +180,14 @@ export const Flashcard = ({ options, onComplete, disabled }: Props) => {
           ))}
         </div>
         {/* Right column: French (shuffled once) */}
-        <div className="flex flex-col gap-2 sm:gap-3">
+        <div className="flex flex-col gap-1.5 sm:gap-3">
           {shuffledFrench.map((pair) => (
             <button
               key={`fr-${pair.id}`}
               onClick={() => handleFrenchClick(pair.pairIndex!)}
               disabled={matchedPairs.has(pair.pairIndex!)}
               className={cn(
-                "h-14 sm:h-16 flex items-center justify-center rounded-2xl border-2 transition px-2",
+                "h-11 sm:h-16 flex items-center justify-center rounded-2xl border-2 transition px-2",
                 matchedPairs.has(pair.pairIndex!)
                   ? "bg-brilliant-success border-brilliant-green/30 opacity-60"
                   : wrongMatch === pair.pairIndex

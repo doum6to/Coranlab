@@ -24,10 +24,10 @@ export const VraiFaux = ({
   const fauxOption = options.find((o) => o.text === "FAUX");
 
   return (
-    <div className="flex flex-col items-center gap-6">
+    <div className="flex flex-col items-center gap-3 sm:gap-6">
       {/* Arabic word */}
       <div
-        className="flex items-center justify-center p-5 sm:p-6 bg-white rounded-2xl border-2 border-[#E0E0E0] w-full max-w-[280px]"
+        className="flex items-center justify-center p-3 sm:p-6 bg-white rounded-2xl border-2 border-[#E0E0E0] w-full max-w-[280px]"
         style={{ boxShadow: "0 4px 0 0 #D4D4D4" }}
       >
         <span className="font-arabic text-3xl sm:text-4xl text-brilliant-text" dir="rtl">
@@ -45,16 +45,16 @@ export const VraiFaux = ({
         </span>
       </div>
 
-      <p className="text-sm text-brilliant-muted">Cette traduction est-elle correcte ?</p>
+      <p className="text-xs sm:text-sm text-brilliant-muted">Cette traduction est-elle correcte ?</p>
 
       {/* VRAI / FAUX buttons */}
-      <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 w-full max-w-sm">
         {vraiOption && (
           <button
             onClick={() => onSelect(vraiOption.id)}
             disabled={disabled}
             className={cn(
-              "h-16 sm:h-20 rounded-2xl border-2 font-bold text-lg sm:text-xl transition",
+              "h-14 sm:h-20 rounded-2xl border-2 font-bold text-lg sm:text-xl transition",
               selectedOption === vraiOption.id && status === "none" &&
                 "border-[#6967FB] bg-[#f0f0ff] text-[#6967FB]",
               selectedOption === vraiOption.id && status === "correct" &&
@@ -82,7 +82,7 @@ export const VraiFaux = ({
             onClick={() => onSelect(fauxOption.id)}
             disabled={disabled}
             className={cn(
-              "h-16 sm:h-20 rounded-2xl border-2 font-bold text-lg sm:text-xl transition",
+              "h-14 sm:h-20 rounded-2xl border-2 font-bold text-lg sm:text-xl transition",
               selectedOption === fauxOption.id && status === "none" &&
                 "border-[#6967FB] bg-[#f0f0ff] text-[#6967FB]",
               selectedOption === fauxOption.id && status === "correct" &&

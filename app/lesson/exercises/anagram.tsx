@@ -79,10 +79,10 @@ export const Anagram = ({
   };
 
   return (
-    <div className="flex flex-col items-center gap-6">
+    <div className="flex flex-col items-center gap-3 sm:gap-6">
       {/* French translation prompt */}
       <div
-        className="flex items-center justify-center p-4 sm:p-5 bg-[#f0f0ff] rounded-2xl border-2 border-[#6967FB]/30 w-full max-w-[280px]"
+        className="flex items-center justify-center p-3 sm:p-5 bg-[#f0f0ff] rounded-2xl border-2 border-[#6967FB]/30 w-full max-w-[280px]"
         style={{ boxShadow: "0 4px 0 0 #c8c7f0" }}
       >
         <span className="text-lg sm:text-xl font-bold text-[#6967FB] text-center">

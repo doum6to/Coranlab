@@ -21,7 +21,7 @@ export const Footer = ({
 
   return (
     <footer className={cn(
-      "lg:h-[140px] h-[100px] border-t border-[#E0E0E0]",
+      "lg:h-[140px] h-[80px] shrink-0 border-t border-[#E0E0E0]",
       status === "correct" && "border-transparent bg-brilliant-success",
       status === "wrong" && "border-transparent bg-rose-50",
     )}>

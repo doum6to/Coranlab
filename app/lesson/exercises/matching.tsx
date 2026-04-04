@@ -50,14 +50,14 @@ export const Matching = ({ options, onComplete, disabled }: Props) => {
   };
 
   return (
-    <div className="flex flex-col items-center gap-6">
-      <p className="text-sm font-semibold text-brilliant-muted">
+    <div className="flex flex-col items-center gap-3 sm:gap-6">
+      <p className="text-xs sm:text-sm font-semibold text-brilliant-muted">
         Reliez chaque mot à sa traduction
       </p>
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 w-full max-w-md">
+      <div className="grid grid-cols-2 gap-2 sm:gap-4 w-full max-w-md">
         {/* Left column: Arabic */}
-        <div className="flex flex-col gap-2 sm:gap-3">
-          <div className="text-[10px] text-brilliant-muted font-bold uppercase text-center mb-1">
+        <div className="flex flex-col gap-1.5 sm:gap-3">
+          <div className="text-[10px] text-brilliant-muted font-bold uppercase text-center mb-0.5">
             Arabe
           </div>
           {pairs.map((pair) => (
@@ -66,7 +66,7 @@ export const Matching = ({ options, onComplete, disabled }: Props) => {
               onClick={() => handleArabicClick(pair.pairIndex!)}
               disabled={matchedPairs.has(pair.pairIndex!) || disabled}
               className={cn(
-                "h-14 sm:h-16 flex items-center justify-center rounded-2xl border-2 transition",
+                "h-11 sm:h-16 flex items-center justify-center rounded-2xl border-2 transition",
                 matchedPairs.has(pair.pairIndex!)
                   ? "bg-brilliant-success border-brilliant-green/30 opacity-60"
                   : selectedArabic === pair.pairIndex
@@ -85,8 +85,8 @@ export const Matching = ({ options, onComplete, disabled }: Props) => {
           ))}
         </div>
         {/* Right column: French (shuffled once, stable) */}
-        <div className="flex flex-col gap-2 sm:gap-3">
-          <div className="text-[10px] text-brilliant-muted font-bold uppercase text-center mb-1">
+        <div className="flex flex-col gap-1.5 sm:gap-3">
+          <div className="text-[10px] text-brilliant-muted font-bold uppercase text-center mb-0.5">
             Français
           </div>
           {shuffledFrench.map((pair) => (
@@ -95,7 +95,7 @@ export const Matching = ({ options, onComplete, disabled }: Props) => {
               onClick={() => handleFrenchClick(pair.pairIndex!)}
               disabled={matchedPairs.has(pair.pairIndex!) || disabled}
               className={cn(
-                "h-14 sm:h-16 flex items-center justify-center rounded-2xl border-2 transition px-2",
+                "h-11 sm:h-16 flex items-center justify-center rounded-2xl border-2 transition px-2",
                 matchedPairs.has(pair.pairIndex!)
                   ? "bg-brilliant-success border-brilliant-green/30 opacity-60"
                   : wrongMatch === pair.pairIndex
