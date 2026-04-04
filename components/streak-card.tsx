@@ -43,7 +43,7 @@ export const StreakCard = ({ data }: Props) => {
   const { streak, charges, days } = data;
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+    <div className="rounded-2xl border border-gray-200 bg-white px-3 py-4 shadow-sm">
       {/* Top row: streak number + batteries */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-1">
@@ -61,11 +61,11 @@ export const StreakCard = ({ data }: Props) => {
       </div>
 
       {/* Days row */}
-      <div className="flex items-center justify-between gap-2 px-1">
+      <div className="flex items-center justify-between">
         {days.map((d) => {
           const isTodayPending = d.isToday && !d.active;
           return (
-            <div key={d.date} className="flex flex-col items-center gap-1.5 flex-1">
+            <div key={d.date} className="flex flex-col items-center gap-1.5">
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center ${
                   d.active
