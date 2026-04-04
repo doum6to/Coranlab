@@ -33,6 +33,8 @@ export const LeconsUnitCarousel = ({
 
   const activeListId = lists.find((l) => l.completedLevels < l.totalLevels)?.listId;
 
+  const rafRef = useRef<number>(0);
+
   const updateCardScales = useCallback(() => {
     const el = scrollRef.current;
     if (!el || !isMobile) return;
@@ -62,11 +64,14 @@ export const LeconsUnitCarousel = ({
   }, [isMobile]);
 
   const checkScroll = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    setCanScrollLeft(el.scrollLeft > 4);
-    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
-    updateCardScales();
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(() => {
+      const el = scrollRef.current;
+      if (!el) return;
+      setCanScrollLeft(el.scrollLeft > 4);
+      setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
+      updateCardScales();
+    });
   }, [updateCardScales]);
 
   useEffect(() => {
@@ -149,7 +154,7 @@ export const LeconsUnitCarousel = ({
             return (
               <div
                 key={list.listId}
-                className="snap-center sm:snap-start shrink-0 transition-all duration-300 ease-out"
+                className="snap-center sm:snap-start shrink-0 sm:transition-all sm:duration-300 sm:ease-out will-change-transform"
                 data-list-card
               >
                 <ListCard
