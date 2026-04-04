@@ -13,20 +13,24 @@ type Props = {
 const MainLayout = async ({
   children,
 }: Props) => {
-  const { userId } = await auth();
-  let userProgress = await getUserProgress();
-  const userSubscription = await getUserSubscription();
+  const [{ userId }, userProgressData, userSubscription] = await Promise.all([
+    auth(),
+    getUserProgress(),
+    getUserSubscription(),
+  ]);
+  let userProgress = userProgressData;
   const isPro = !!userSubscription?.isActive;
 
   // Auto-grant daily key for non-Pro users
   if (userProgress && userId && !isPro) {
     const today = new Date().toISOString().split("T")[0];
     if (userProgress.lastKeyDate !== today) {
+      const newKeys = userProgress.keys + 1;
       await db.update(userProgressTable).set({
-        keys: userProgress.keys + 1,
+        keys: newKeys,
         lastKeyDate: today,
       }).where(eq(userProgressTable.userId, userId));
-      userProgress = await getUserProgress();
+      userProgress = { ...userProgress, keys: newKeys, lastKeyDate: today };
     }
   }
 

@@ -104,8 +104,6 @@ export const claimDailyKey = async () => {
   }).where(eq(userProgress.userId, userId));
 
   revalidatePath("/learn");
-  revalidatePath("/lecons");
-  revalidatePath("/shop");
 };
 
 // Use a key to unlock a list
@@ -154,8 +152,6 @@ export const spendKey = async (listId: number) => {
   });
 
   revalidatePath("/learn");
-  revalidatePath("/lecons");
-  revalidatePath("/shop");
 
   return { success: true };
 };

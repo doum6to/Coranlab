@@ -19,8 +19,12 @@ const LearnPage = async () => {
     redirect("/auth/login");
   }
 
-  let userProgress = await getUserProgress();
-  const userSubscription = await getUserSubscription();
+  const [userProgressData, userSubscription, listsData] = await Promise.all([
+    getUserProgress(),
+    getUserSubscription(),
+    getListsWithLevels(),
+  ]);
+  let userProgress = userProgressData;
 
   // Auto-activate first course if none selected
   if (!userProgress?.activeCourseId) {
@@ -34,8 +38,6 @@ const LearnPage = async () => {
   if (!userProgress || !userProgress.activeCourse) {
     redirect("/auth/login");
   }
-
-  const listsData = await getListsWithLevels();
 
   const isPro = !!userSubscription?.isActive;
   const userKeys = userProgress?.keys ?? 0;
