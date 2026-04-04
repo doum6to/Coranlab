@@ -8,7 +8,29 @@ import { getUserSubscription } from "@/db/queries";
 
 const returnUrl = absoluteUrl("/learn");
 
-export const createStripeUrl = async () => {
+export type PremiumPlan = "monthly" | "annual";
+
+const PLAN_CONFIG: Record<PremiumPlan, {
+  name: string;
+  description: string;
+  unit_amount: number;
+  interval: "month" | "year";
+}> = {
+  monthly: {
+    name: "Quranlab Premium (Mensuel)",
+    description: "Accès illimité à tous les cours",
+    unit_amount: 1497, // 14.97 EUR
+    interval: "month",
+  },
+  annual: {
+    name: "Quranlab Premium (Annuel)",
+    description: "Accès illimité à tous les cours — facturé annuellement",
+    unit_amount: 11988, // 119.88 EUR = 9.99/mois
+    interval: "year",
+  },
+};
+
+export const createStripeUrl = async (plan: PremiumPlan = "monthly") => {
   const { userId } = await auth();
   const user = await currentUser();
 
@@ -27,6 +49,8 @@ export const createStripeUrl = async () => {
     return { data: stripeSession.url };
   }
 
+  const config = PLAN_CONFIG[plan];
+
   const stripeSession = await stripe.checkout.sessions.create({
     mode: "subscription",
     payment_method_types: ["card"],
@@ -35,20 +59,21 @@ export const createStripeUrl = async () => {
       {
         quantity: 1,
         price_data: {
-          currency: "USD",
+          currency: "EUR",
           product_data: {
-            name: "Quranlab Pro",
-            description: "Cœurs illimités",
+            name: config.name,
+            description: config.description,
           },
-          unit_amount: 2000, // $20.00 USD
+          unit_amount: config.unit_amount,
           recurring: {
-            interval: "month",
+            interval: config.interval,
           },
         },
       },
     ],
     metadata: {
       userId,
+      plan,
     },
     success_url: returnUrl,
     cancel_url: returnUrl,

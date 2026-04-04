@@ -2,8 +2,6 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useTransition } from "react";
-import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
 import { SidebarItem } from "./sidebar-item";
@@ -11,7 +9,6 @@ import { UserButton } from "./user-button";
 import { KeyIndicator } from "./key-indicator";
 import { StreakCard } from "./streak-card";
 import type { StreakData } from "@/db/queries";
-import { createStripeUrl } from "@/actions/user-subscription";
 import {
   HomeIcon,
   CoursIcon,
@@ -28,20 +25,6 @@ type Props = {
 };
 
 export const Sidebar = ({ className, streak, keys, isPro, hasActiveSubscription, streakData }: Props) => {
-  const [pending, startTransition] = useTransition();
-
-  const onUpgrade = () => {
-    startTransition(() => {
-      createStripeUrl()
-        .then((response) => {
-          if (response.data) {
-            window.location.href = response.data;
-          }
-        })
-        .catch(() => toast.error("Une erreur est survenue"));
-    });
-  };
-
   return (
     <div className={cn(
       "flex h-full lg:w-[256px] lg:fixed left-0 top-0 px-4 border-r border-brilliant-border flex-col bg-white",
@@ -109,18 +92,17 @@ export const Sidebar = ({ className, streak, keys, isPro, hasActiveSubscription,
             <p className="text-xs text-brilliant-muted leading-snug mb-3">
               <span className="font-bold text-brilliant-text">Débloque toutes les leçons avec Premium</span> pour être plus rapide et intelligent.
             </p>
-            <button
-              onClick={onUpgrade}
-              disabled={pending}
-              className="w-full rounded-xl py-2.5 text-xs font-bold text-white text-center block transition hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] animate-premium-gradient disabled:opacity-60"
+            <Link
+              href="/premium"
+              className="w-full rounded-xl py-2.5 text-xs font-bold text-white text-center block transition hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] animate-premium-gradient"
               style={{
                 background: "linear-gradient(90deg, #050C38 0%, #6700A3 25%, #E02F75 50%, #FF5A57 75%, #050C38 100%)",
                 backgroundSize: "400% 100%",
                 boxShadow: "0 3px 0 0 rgba(5, 12, 56, 0.4)",
               }}
             >
-              {pending ? "Chargement..." : "Découvrir Premium"}
-            </button>
+              Découvrir Premium
+            </Link>
           </div>
         </div>
       )}
