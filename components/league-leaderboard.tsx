@@ -1,7 +1,6 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { LeagueTierBadge } from "./league-tier-badge";
 import { LeagueCountdown } from "./league-countdown";
 import {
@@ -97,14 +96,6 @@ export const LeagueLeaderboard = ({ tier, members, isTopTier, isBottomTier }: Pr
                   </svg>
                 )}
               </div>
-
-              {/* Avatar */}
-              <Avatar className="h-9 w-9 mr-3 border bg-green-100 flex-shrink-0">
-                <AvatarImage
-                  className="object-cover"
-                  src={member.imageSrc}
-                />
-              </Avatar>
 
               {/* Name */}
               <p className={cn(
