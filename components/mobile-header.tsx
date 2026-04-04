@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { MobileSidebar } from "./mobile-sidebar";
 import { KeyIndicator } from "./key-indicator";
+import { MobilePremiumButton } from "./mobile-premium-button";
 
 type Props = {
   streak?: number;
@@ -13,7 +14,7 @@ export const MobileHeader = ({ streak, keys, isPro }: Props) => {
     <nav className="lg:hidden px-4 h-[50px] flex items-center justify-between bg-white border-b border-brilliant-border fixed top-0 w-full z-50">
       <MobileSidebar />
 
-      {/* Streak & Keys — right side */}
+      {/* Right side */}
       {streak !== undefined && (
         <div className="flex items-center gap-x-3">
           <div className="flex items-center gap-x-1 text-brilliant-orange">
@@ -24,6 +25,7 @@ export const MobileHeader = ({ streak, keys, isPro }: Props) => {
             count={isPro ? "∞" : (keys ?? 0)}
             size="sm"
           />
+          {!isPro && <MobilePremiumButton />}
         </div>
       )}
     </nav>
