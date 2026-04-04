@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { SidebarItem } from "./sidebar-item";
 import { UserButton } from "./user-button";
+import { KeyIndicator } from "./key-indicator";
 import { createStripeUrl } from "@/actions/user-subscription";
 import {
   HomeIcon,
@@ -59,12 +60,10 @@ export const Sidebar = ({ className, streak, keys, isPro, hasActiveSubscription 
             <span className="text-sm font-bold">{streak}</span>
           </div>
           <div className="w-px h-5 bg-gray-200" />
-          <div className="flex items-center gap-x-1.5 text-yellow-500">
-            <Image src="/key.svg" height={20} width={20} alt="Clés" />
-            <span className="text-sm font-bold">
-              {hasActiveSubscription ? "∞" : (keys ?? 0)}
-            </span>
-          </div>
+          <KeyIndicator
+            count={hasActiveSubscription ? "∞" : (keys ?? 0)}
+            size="md"
+          />
         </div>
       )}
 

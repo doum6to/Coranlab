@@ -106,6 +106,16 @@ export const LeagueLeaderboard = ({ tier, members, isTopTier, isBottomTier }: Pr
         </div>
       </div>
 
+      {/* Promotion info banner */}
+      {!isTopTier && (
+        <div className="rounded-xl bg-[#E8F8E8] border border-[#3CC922]/30 px-3 py-2 text-xs sm:text-sm text-[#1F7A1F] font-medium flex items-center gap-2">
+          <svg width="14" height="14" viewBox="0 0 10 10" fill="#3CC922">
+            <path d="M5 1L9 7H1L5 1Z" />
+          </svg>
+          <span>Les <b>{PROMOTE_COUNT} premiers</b> montent à la ligue supérieure !</span>
+        </div>
+      )}
+
       {/* Zone labels */}
       <div className="flex items-center gap-4 text-xs text-brilliant-muted px-2">
         {!isTopTier && (
@@ -117,7 +127,7 @@ export const LeagueLeaderboard = ({ tier, members, isTopTier, isBottomTier }: Pr
         {!isBottomTier && (
           <div className="flex items-center gap-1">
             <span className="inline-block w-2 h-2 rounded-full bg-[#F43F5E]" />
-            <span>Bottom {DEMOTE_COUNT} relégués</span>
+            <span>{DEMOTE_COUNT} derniers relégués</span>
           </div>
         )}
       </div>

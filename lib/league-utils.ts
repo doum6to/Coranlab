@@ -45,8 +45,8 @@ export const TIER_DESCRIPTIONS: Record<LeagueTier, string> = {
 };
 
 export const GROUP_SIZE = 30;
-export const PROMOTE_COUNT = 3;
-export const DEMOTE_COUNT = 3;
+export const PROMOTE_COUNT = 15;
+export const DEMOTE_COUNT = 15;
 export const MIN_XP_TO_JOIN = 100;
 
 // Week boundary: Sunday 20:00 PT = Monday 03:00 UTC

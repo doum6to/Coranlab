@@ -1,6 +1,6 @@
 import Image from "next/image";
-import Link from "next/link";
 import { MobileSidebar } from "./mobile-sidebar";
+import { KeyIndicator } from "./key-indicator";
 
 type Props = {
   streak?: number;
@@ -20,12 +20,10 @@ export const MobileHeader = ({ streak, keys, isPro }: Props) => {
             <Image src="/points.svg" height={18} width={18} alt="Streak" />
             <span className="text-xs font-bold">{streak}</span>
           </div>
-          <div className="flex items-center gap-x-1 text-yellow-500">
-            <Image src="/key.svg" height={16} width={16} alt="Clés" />
-            <span className="text-xs font-bold">
-              {isPro ? "∞" : (keys ?? 0)}
-            </span>
-          </div>
+          <KeyIndicator
+            count={isPro ? "∞" : (keys ?? 0)}
+            size="sm"
+          />
         </div>
       )}
     </nav>

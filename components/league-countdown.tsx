@@ -16,16 +16,14 @@ export const LeagueCountdown = () => {
         return;
       }
 
-      const days = Math.floor(diff / 86400000);
-      const hours = Math.floor((diff % 86400000) / 3600000);
-      const minutes = Math.floor((diff % 3600000) / 60000);
+      // Show days only (rounded up so the last day still shows "1j")
+      const days = Math.ceil(diff / 86400000);
 
-      const parts = [];
-      if (days > 0) parts.push(`${days}j`);
-      parts.push(`${hours}h`);
-      parts.push(`${minutes}m`);
-
-      setTimeLeft(parts.join(" "));
+      if (days <= 1) {
+        setTimeLeft("moins d'1 jour");
+      } else {
+        setTimeLeft(`${days} jours`);
+      }
     };
 
     update();
