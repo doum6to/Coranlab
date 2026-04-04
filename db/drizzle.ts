@@ -3,13 +3,24 @@ import { drizzle } from "drizzle-orm/node-postgres";
 
 import * as schema from "./schema";
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL!,
-  min: 2,
-  max: 10,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
-});
+// Prevent multiple pools during Next.js HMR in dev
+const globalForDb = globalThis as unknown as {
+  pgPool: Pool | undefined;
+};
+
+const pool =
+  globalForDb.pgPool ??
+  new Pool({
+    connectionString: process.env.DATABASE_URL!,
+    min: 1,
+    max: 5,
+    idleTimeoutMillis: 10000,
+    connectionTimeoutMillis: 5000,
+  });
+
+if (process.env.NODE_ENV !== "production") {
+  globalForDb.pgPool = pool;
+}
 
 const db = drizzle(pool, { schema });
 
