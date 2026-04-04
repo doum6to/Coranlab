@@ -31,7 +31,7 @@ export const MobilePremiumButton = () => {
         boxShadow: "0 2px 0 0 rgba(5, 12, 56, 0.4)",
       }}
     >
-      {pending ? "..." : "Premium"}
+      {pending ? "..." : "Devenir Premium"}
     </button>
   );
 };
