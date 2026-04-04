@@ -11,7 +11,6 @@ import {
   CoursIcon,
   LeaderboardIcon,
   QuestsIcon,
-  ShopIcon,
 } from "./sidebar-icons";
 
 type Props = {
@@ -68,11 +67,6 @@ export const Sidebar = ({ className, streak, keys, isPro, hasActiveSubscription 
           label="Classement"
           href="/leaderboard"
           icon={LeaderboardIcon}
-        />
-        <SidebarItem
-          label="Boutique"
-          href="/shop"
-          icon={ShopIcon}
         />
       </div>
 
