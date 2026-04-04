@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { boolean, integer, pgEnum, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, integer, pgEnum, pgTable, serial, text, timestamp, uniqueIndex, index, type PgTableExtraConfig } from "drizzle-orm/pg-core";
 
 export const courses = pgTable("courses", {
   id: serial("id").primaryKey(),
@@ -133,6 +133,35 @@ export const unlockedLists = pgTable("unlocked_lists", {
   userId: text("user_id").notNull(),
   listId: integer("list_id").notNull(),
 });
+
+// League system
+export const leagueTierEnum = pgEnum("league_tier", [
+  "NIYYA", "IQRA", "TALIB", "TARTIL", "TAJWID",
+  "QARI", "TADABBUR", "HAFIZ", "MUTQIN", "FIRDAUS",
+]);
+
+export const weeklyXp = pgTable("weekly_xp", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  weekStart: text("week_start").notNull(),
+  xp: integer("xp").notNull().default(0),
+}, (t) => ({
+  userWeekIdx: uniqueIndex("weekly_xp_user_week").on(t.userId, t.weekStart),
+}));
+
+export const leagues = pgTable("leagues", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  groupId: text("group_id").notNull(),
+  tier: leagueTierEnum("tier").notNull().default("NIYYA"),
+  weekStart: text("week_start").notNull(),
+  isBot: boolean("is_bot").notNull().default(false),
+  botName: text("bot_name"),
+  botImageSrc: text("bot_image_src"),
+}, (t) => ({
+  userWeekIdx: uniqueIndex("leagues_user_week").on(t.userId, t.weekStart),
+  groupIdx: index("leagues_group").on(t.groupId),
+}));
 
 export const userSubscription = pgTable("user_subscription", {
   id: serial("id").primaryKey(),

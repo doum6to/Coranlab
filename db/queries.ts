@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { eq } from "drizzle-orm";
+import { and, eq, desc } from "drizzle-orm";
 import { auth } from "@/lib/supabase/server";
 
 import db from "@/db/drizzle";
@@ -7,11 +7,14 @@ import {
   challengeProgress,
   courses,
   lessons,
+  leagues,
   units,
   userProgress,
   userSubscription,
   unlockedLists,
+  weeklyXp,
 } from "@/db/schema";
+import { getCurrentWeekStart } from "@/lib/league-utils";
 
 export const getUserProgress = cache(async () => {
   const { userId } = await auth();
@@ -540,4 +543,113 @@ export const getTopTenUsers = cache(async () => {
   });
 
   return data;
+});
+
+// League queries
+
+export const getUserLeague = cache(async () => {
+  const { userId } = await auth();
+  if (!userId) return null;
+
+  const weekStart = getCurrentWeekStart();
+  const data = await db.query.leagues.findFirst({
+    where: and(
+      eq(leagues.userId, userId),
+      eq(leagues.weekStart, weekStart),
+    ),
+  });
+
+  return data ?? null;
+});
+
+export const getUserWeeklyXp = cache(async () => {
+  const { userId } = await auth();
+  if (!userId) return 0;
+
+  const weekStart = getCurrentWeekStart();
+  const data = await db.query.weeklyXp.findFirst({
+    where: and(
+      eq(weeklyXp.userId, userId),
+      eq(weeklyXp.weekStart, weekStart),
+    ),
+  });
+
+  return data?.xp ?? 0;
+});
+
+export type LeagueMember = {
+  rank: number;
+  userId: string;
+  name: string;
+  imageSrc: string;
+  weeklyXp: number;
+  isBot: boolean;
+  isCurrentUser: boolean;
+};
+
+export const getLeagueGroup = cache(async (groupId: string): Promise<LeagueMember[]> => {
+  const { userId } = await auth();
+  if (!userId || !groupId || groupId === "PENDING") return [];
+
+  const weekStart = getCurrentWeekStart();
+
+  // Get all members of this group
+  const members = await db
+    .select()
+    .from(leagues)
+    .where(eq(leagues.groupId, groupId));
+
+  if (members.length === 0) return [];
+
+  // Get weekly XP for all members
+  const memberIds = members.map((m) => m.userId);
+  const xpData = await db
+    .select()
+    .from(weeklyXp)
+    .where(eq(weeklyXp.weekStart, weekStart));
+
+  const xpMap = new Map<string, number>();
+  for (const row of xpData) {
+    if (memberIds.includes(row.userId)) {
+      xpMap.set(row.userId, row.xp);
+    }
+  }
+
+  // Get real user names
+  const realUserIds = members.filter((m) => !m.isBot).map((m) => m.userId);
+  const realUsers = new Map<string, { name: string; imageSrc: string }>();
+
+  if (realUserIds.length > 0) {
+    const userData = await db.query.userProgress.findMany({
+      columns: {
+        userId: true,
+        userName: true,
+        userImageSrc: true,
+      },
+    });
+    for (const u of userData) {
+      if (realUserIds.includes(u.userId)) {
+        realUsers.set(u.userId, { name: u.userName, imageSrc: u.userImageSrc });
+      }
+    }
+  }
+
+  // Build sorted member list
+  const result: LeagueMember[] = members.map((m) => ({
+    rank: 0,
+    userId: m.userId,
+    name: m.isBot ? (m.botName ?? "Joueur") : (realUsers.get(m.userId)?.name ?? "Joueur"),
+    imageSrc: m.isBot ? (m.botImageSrc ?? "/mascot.svg") : (realUsers.get(m.userId)?.imageSrc ?? "/mascot.svg"),
+    weeklyXp: xpMap.get(m.userId) ?? 0,
+    isBot: m.isBot,
+    isCurrentUser: m.userId === userId,
+  }));
+
+  // Sort by XP descending
+  result.sort((a, b) => b.weeklyXp - a.weeklyXp);
+
+  // Assign ranks
+  result.forEach((m, i) => { m.rank = i + 1; });
+
+  return result;
 });
