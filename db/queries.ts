@@ -679,6 +679,23 @@ export const getStreakData = cache(async (): Promise<StreakData> => {
 
   const today = getToday();
 
+  // Backfill streak_activity for historical streak (idempotent via unique index)
+  if (up.lastStreakDate && up.streak > 0) {
+    const backfillDates: string[] = [];
+    const end = new Date(up.lastStreakDate + "T00:00:00Z");
+    for (let i = 0; i < up.streak; i++) {
+      const d = new Date(end);
+      d.setUTCDate(end.getUTCDate() - i);
+      backfillDates.push(d.toISOString().split("T")[0]);
+    }
+    if (backfillDates.length > 0) {
+      await db
+        .insert(streakActivity)
+        .values(backfillDates.map((date) => ({ userId, date })))
+        .onConflictDoNothing();
+    }
+  }
+
   // Lazy charge-apply: if user missed days since last activity, consume charges
   if (up.lastStreakDate && up.streak > 0) {
     const missed = daysBetween(up.lastStreakDate, today) - 1;
