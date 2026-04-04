@@ -12,25 +12,47 @@ import {
 } from "@/lib/league-utils";
 import type { LeagueMember } from "@/db/queries";
 
-const RANK_COLORS: Record<number, { bg: string; border: string; text: string }> = {
-  1: { bg: "#FFD700", border: "#DAA520", text: "#7A5C00" }, // Gold
-  2: { bg: "#C0C0C0", border: "#A0A0A0", text: "#505050" }, // Silver
-  3: { bg: "#CD7F32", border: "#A0622E", text: "#FFFFFF" }, // Bronze
+const RANK_COLORS: Record<number, { bg: string; dark: string; light: string; text: string }> = {
+  1: { bg: "#FFD700", dark: "#B8960F", light: "#FFF0A0", text: "#7A5C00" },
+  2: { bg: "#C0C0C0", dark: "#888888", light: "#E8E8E8", text: "#505050" },
+  3: { bg: "#CD7F32", dark: "#8B5A1B", light: "#E8B87A", text: "#FFFFFF" },
 };
 
 const RankBadge = ({ rank }: { rank: number }) => {
   const c = RANK_COLORS[rank];
   return (
-    <div
-      className="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-sm"
-      style={{
-        background: `linear-gradient(135deg, ${c.bg}, ${c.border})`,
-        boxShadow: `0 2px 0 0 ${c.border}`,
-        color: c.text,
-      }}
-    >
-      {rank}
-    </div>
+    <svg width="30" height="32" viewBox="0 0 30 32" fill="none">
+      {/* Pentagon shape */}
+      <path
+        d="M15 1L28 10L23 27H7L2 10L15 1Z"
+        fill={c.bg}
+        stroke={c.dark}
+        strokeWidth="1.5"
+      />
+      {/* Highlight reflet 1 - top left */}
+      <path
+        d="M15 4L8 9L10 13L17 10L15 4Z"
+        fill={c.light}
+        opacity="0.5"
+      />
+      {/* Highlight reflet 2 - bottom right */}
+      <path
+        d="M20 16L22 22H17L16 17L20 16Z"
+        fill={c.light}
+        opacity="0.35"
+      />
+      {/* Number */}
+      <text
+        x="15"
+        y="19"
+        textAnchor="middle"
+        fontSize="13"
+        fontWeight="bold"
+        fill={c.text}
+      >
+        {rank}
+      </text>
+    </svg>
   );
 };
 
