@@ -61,13 +61,13 @@ export const StreakCard = ({ data }: Props) => {
       </div>
 
       {/* Days row */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2 px-1">
         {days.map((d) => {
           const isTodayPending = d.isToday && !d.active;
           return (
-            <div key={d.date} className="flex flex-col items-center gap-1">
+            <div key={d.date} className="flex flex-col items-center gap-1.5 flex-1">
               <div
-                className={`w-9 h-9 rounded-full flex items-center justify-center ${
+                className={`w-8 h-8 rounded-full flex items-center justify-center ${
                   d.active
                     ? ""
                     : isTodayPending
@@ -76,7 +76,7 @@ export const StreakCard = ({ data }: Props) => {
                 }`}
                 style={d.active ? { backgroundColor: LIME } : undefined}
               >
-                {d.active ? <BoltSolid size={18} /> : <BoltOutline size={18} />}
+                {d.active ? <BoltSolid size={16} /> : <BoltOutline size={16} />}
               </div>
               <span
                 className={`text-[11px] ${
