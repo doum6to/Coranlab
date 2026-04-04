@@ -5,10 +5,9 @@ import { auth, currentUser } from "@/lib/supabase/server";
 import { stripe } from "@/lib/stripe";
 import { absoluteUrl } from "@/lib/utils";
 import { getUserSubscription } from "@/db/queries";
+import type { PremiumPlan } from "@/lib/premium";
 
 const returnUrl = absoluteUrl("/learn");
-
-export type PremiumPlan = "monthly" | "annual";
 
 const PLAN_CONFIG: Record<PremiumPlan, {
   name: string;

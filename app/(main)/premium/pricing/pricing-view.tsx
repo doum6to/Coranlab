@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { X } from "lucide-react";
-import { createStripeUrl, type PremiumPlan } from "@/actions/user-subscription";
+import { createStripeUrl } from "@/actions/user-subscription";
+import type { PremiumPlan } from "@/lib/premium";
 
 export const PricingView = () => {
   const [selected, setSelected] = useState<PremiumPlan>("annual");
