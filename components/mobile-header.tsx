@@ -17,6 +17,7 @@ export const MobileHeader = ({ streak, keys, isPro }: Props) => {
       {/* Right side */}
       {streak !== undefined && (
         <div className="flex items-center gap-x-3">
+          {!isPro && <MobilePremiumButton />}
           <div className="flex items-center gap-x-1 text-brilliant-orange">
             <Image src="/points.svg" height={18} width={18} alt="Streak" />
             <span className="text-xs font-bold">{streak}</span>
@@ -25,7 +26,6 @@ export const MobileHeader = ({ streak, keys, isPro }: Props) => {
             count={isPro ? "∞" : (keys ?? 0)}
             size="sm"
           />
-          {!isPro && <MobilePremiumButton />}
         </div>
       )}
     </nav>
