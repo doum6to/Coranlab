@@ -8,6 +8,7 @@ import { useAudio, useWindowSize } from "react-use";
 
 import { challengeOptions, challenges, userSubscription } from "@/db/schema";
 import { completeLessonChallenges } from "@/actions/challenge-progress";
+import { useExitModal } from "@/store/use-exit-modal";
 
 import { Header } from "./header";
 import { Footer } from "./footer";
@@ -71,9 +72,11 @@ export const Quiz = ({
   const [totalAnswered, setTotalAnswered] = useState(0);
   const [hadMistakeOnCurrent, setHadMistakeOnCurrent] = useState(false);
 
-  // Track completed challenge IDs locally (no server calls during lesson)
+  // Track completed challenge IDs locally
   const completedIdsRef = useRef<number[]>([]);
+  const savedIdsRef = useRef<Set<number>>(new Set());
   const [saving, setSaving] = useState(false);
+  const { setPendingSaveIds } = useExitModal();
 
   const isFinished = activeIndex >= challengesList.length;
   const challenge = challengesList[activeIndex];
@@ -82,12 +85,29 @@ export const Quiz = ({
   const scorePercentage = totalAnswered > 0 ? Math.round((correctFirstAttempt / totalAnswered) * 100) : 100;
   const passed = scorePercentage >= 90;
 
-  // Save all progress in one batch when lesson finishes
+  // Save a single challenge in background (fire-and-forget)
+  const saveInBackground = useCallback((challengeId: number) => {
+    if (savedIdsRef.current.has(challengeId)) return;
+    savedIdsRef.current.add(challengeId);
+    // Fire and forget — don't await, don't block UI
+    completeLessonChallenges([challengeId]).catch(() => {
+      savedIdsRef.current.delete(challengeId);
+    });
+  }, []);
+
+  // Keep exit modal informed of unsaved IDs
+  useEffect(() => {
+    setPendingSaveIds(completedIdsRef.current);
+  });
+
+  // Save remaining progress when lesson finishes
   const saveProgress = useCallback(async () => {
-    if (completedIdsRef.current.length === 0) return;
+    const unsaved = completedIdsRef.current.filter((id) => !savedIdsRef.current.has(id));
+    if (unsaved.length === 0) return;
     setSaving(true);
     try {
-      await completeLessonChallenges(completedIdsRef.current);
+      await completeLessonChallenges(unsaved);
+      unsaved.forEach((id) => savedIdsRef.current.add(id));
     } catch {
       console.error("Failed to save progress");
     } finally {
@@ -116,9 +136,10 @@ export const Quiz = ({
     setSelectedOption(id);
   };
 
-  // Handle correct answer for self-managing exercises (instant, no server call)
+  // Handle correct answer for self-managing exercises (instant, save in background)
   const handleSelfComplete = () => {
     completedIdsRef.current.push(challenge.id);
+    saveInBackground(challenge.id);
     correctControls.play();
     setPercentage((prev) => prev + 100 / challengesList.length);
     if (!hadMistakeOnCurrent) {
@@ -156,6 +177,7 @@ export const Quiz = ({
 
     if (correctOption.id === selectedOption) {
       completedIdsRef.current.push(challenge.id);
+      saveInBackground(challenge.id);
       correctControls.play();
       setStatus("correct");
       setPercentage((prev) => prev + 100 / challengesList.length);

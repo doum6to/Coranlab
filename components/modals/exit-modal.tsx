@@ -12,10 +12,11 @@ import {
 } from "@/components/ui/dialog";
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { useExitModal } from "@/store/use-exit-modal";
+import { completeLessonChallenges } from "@/actions/challenge-progress";
 
 export const ExitModal = () => {
   const [isClient, setIsClient] = useState(false);
-  const { isOpen, close } = useExitModal();
+  const { isOpen, close, pendingSaveIds } = useExitModal();
 
   useEffect(() => setIsClient(true), []);
 
@@ -51,8 +52,14 @@ export const ExitModal = () => {
           </ShinyButton>
           <ShinyButton
             variant="outline-green"
-            onClick={() => {
+            onClick={async () => {
               close();
+              // Save any progress before leaving
+              if (pendingSaveIds.length > 0) {
+                try {
+                  await completeLessonChallenges(pendingSaveIds);
+                } catch {}
+              }
               window.location.href = "/learn";
             }}
           >
