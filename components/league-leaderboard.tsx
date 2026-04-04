@@ -142,11 +142,7 @@ export const LeagueLeaderboard = ({ tier, members, isTopTier, isBottomTier }: Pr
             <div
               key={member.userId}
               className={cn(
-                "flex items-center w-full py-2.5 px-3 rounded-xl transition-colors",
-                member.isCurrentUser && "bg-[#f0f0ff] border border-[#6967FB]",
-                isPromoted && !member.isCurrentUser && "bg-[#E8F8E8]",
-                isDemoted && !member.isCurrentUser && "bg-red-50",
-                !isPromoted && !isDemoted && !member.isCurrentUser && "hover:bg-gray-50",
+                "flex items-center w-full py-2.5 px-3 rounded-xl transition-colors hover:bg-gray-50",
               )}
             >
               {/* Rank */}
