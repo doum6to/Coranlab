@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { and, eq, desc, inArray } from "drizzle-orm";
 import { auth } from "@/lib/supabase/server";
 
@@ -295,28 +296,34 @@ export const getUnits = cache(async () => {
   return normalizedData;
 });
 
-export const getCourses = cache(async () => {
-  const data = await db.query.courses.findMany();
-  return data;
-});
+// Cached across requests (1 hour) — courses rarely change
+export const getCourses = unstable_cache(
+  async () => {
+    return await db.query.courses.findMany();
+  },
+  ["courses-all"],
+  { revalidate: 3600, tags: ["courses"] }
+);
 
-export const getCourseById = cache(async (courseId: number) => {
-  const data = await db.query.courses.findFirst({
-    where: eq(courses.id, courseId),
-    with: {
-      units: {
-        orderBy: (units, { asc }) => [asc(units.order)],
-        with: {
-          lessons: {
-            orderBy: (lessons, { asc }) => [asc(lessons.order)],
+export const getCourseById = unstable_cache(
+  async (courseId: number) => {
+    return await db.query.courses.findFirst({
+      where: eq(courses.id, courseId),
+      with: {
+        units: {
+          orderBy: (units, { asc }) => [asc(units.order)],
+          with: {
+            lessons: {
+              orderBy: (lessons, { asc }) => [asc(lessons.order)],
+            },
           },
         },
       },
-    },
-  });
-
-  return data;
-});
+    });
+  },
+  ["course-by-id"],
+  { revalidate: 3600, tags: ["courses"] }
+);
 
 export const getCourseProgress = cache(async () => {
   const { userId } = await auth();
