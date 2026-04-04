@@ -12,6 +12,28 @@ import {
 } from "@/lib/league-utils";
 import type { LeagueMember } from "@/db/queries";
 
+const RANK_COLORS: Record<number, { bg: string; border: string; text: string }> = {
+  1: { bg: "#FFD700", border: "#DAA520", text: "#7A5C00" }, // Gold
+  2: { bg: "#C0C0C0", border: "#A0A0A0", text: "#505050" }, // Silver
+  3: { bg: "#CD7F32", border: "#A0622E", text: "#FFFFFF" }, // Bronze
+};
+
+const RankBadge = ({ rank }: { rank: number }) => {
+  const c = RANK_COLORS[rank];
+  return (
+    <div
+      className="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-sm"
+      style={{
+        background: `linear-gradient(135deg, ${c.bg}, ${c.border})`,
+        boxShadow: `0 2px 0 0 ${c.border}`,
+        color: c.text,
+      }}
+    >
+      {rank}
+    </div>
+  );
+};
+
 type Props = {
   tier: LeagueTier;
   members: LeagueMember[];
@@ -72,15 +94,14 @@ export const LeagueLeaderboard = ({ tier, members, isTopTier, isBottomTier }: Pr
               )}
             >
               {/* Rank */}
-              <div className="w-8 flex-shrink-0">
-                <span
-                  className={cn(
-                    "text-sm font-bold",
-                    member.rank <= 3 ? "text-[#F59E0B]" : "text-brilliant-muted",
-                  )}
-                >
-                  {member.rank}
-                </span>
+              <div className="w-8 flex-shrink-0 flex items-center justify-center">
+                {member.rank <= 3 ? (
+                  <RankBadge rank={member.rank} />
+                ) : (
+                  <span className="text-sm font-bold text-brilliant-muted">
+                    {member.rank}
+                  </span>
+                )}
               </div>
 
               {/* Zone indicator */}
