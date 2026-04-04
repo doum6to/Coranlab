@@ -3,13 +3,11 @@
 import { toast } from "sonner";
 import Image from "next/image";
 import Confetti from "react-confetti";
-import { useRouter } from "next/navigation";
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, useRef, useCallback } from "react";
 import { useAudio, useWindowSize } from "react-use";
 
 import { challengeOptions, challenges, userSubscription } from "@/db/schema";
-
-import { upsertChallengeProgress } from "@/actions/challenge-progress";
+import { completeLessonChallenges } from "@/actions/challenge-progress";
 
 import { Header } from "./header";
 import { Footer } from "./footer";
@@ -68,27 +66,45 @@ export const Quiz = ({
   const [selectedOption, setSelectedOption] = useState<number>();
   const [status, setStatus] = useState<"correct" | "wrong" | "none">("none");
 
-  // Track correct answers on first attempt (no mistakes on that question)
+  // Track correct answers on first attempt
   const [correctFirstAttempt, setCorrectFirstAttempt] = useState(0);
   const [totalAnswered, setTotalAnswered] = useState(0);
   const [hadMistakeOnCurrent, setHadMistakeOnCurrent] = useState(false);
+
+  // Track completed challenge IDs locally (no server calls during lesson)
+  const completedIdsRef = useRef<number[]>([]);
+  const [saving, setSaving] = useState(false);
 
   const isFinished = activeIndex >= challengesList.length;
   const challenge = challengesList[activeIndex];
   const options = challenge?.challengeOptions ?? [];
 
-  // Calculate score percentage
   const scorePercentage = totalAnswered > 0 ? Math.round((correctFirstAttempt / totalAnswered) * 100) : 100;
   const passed = scorePercentage >= 90;
 
+  // Save all progress in one batch when lesson finishes
+  const saveProgress = useCallback(async () => {
+    if (completedIdsRef.current.length === 0) return;
+    setSaving(true);
+    try {
+      await completeLessonChallenges(completedIdsRef.current);
+    } catch {
+      console.error("Failed to save progress");
+    } finally {
+      setSaving(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (isFinished) {
+      saveProgress();
       try {
         const audio = new Audio(passed ? "/finish.mp3" : "/incorrect.wav");
         audio.play().catch(() => {});
       } catch {}
     }
-  }, [isFinished, passed]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFinished]);
 
   const onNext = () => {
     setActiveIndex((current) => current + 1);
@@ -100,23 +116,18 @@ export const Quiz = ({
     setSelectedOption(id);
   };
 
-  // Handle correct answer for self-managing exercises
+  // Handle correct answer for self-managing exercises (instant, no server call)
   const handleSelfComplete = () => {
-    startTransition(() => {
-      upsertChallengeProgress(challenge.id)
-        .then(() => {
-          correctControls.play();
-          setPercentage((prev) => prev + 100 / challengesList.length);
-          if (!hadMistakeOnCurrent) {
-            setCorrectFirstAttempt((prev) => prev + 1);
-          }
-          setTotalAnswered((prev) => prev + 1);
-          onNext();
-          setStatus("none");
-          setSelectedOption(undefined);
-        })
-        .catch(() => toast.error("Une erreur est survenue. Veuillez réessayer."));
-    });
+    completedIdsRef.current.push(challenge.id);
+    correctControls.play();
+    setPercentage((prev) => prev + 100 / challengesList.length);
+    if (!hadMistakeOnCurrent) {
+      setCorrectFirstAttempt((prev) => prev + 1);
+    }
+    setTotalAnswered((prev) => prev + 1);
+    onNext();
+    setStatus("none");
+    setSelectedOption(undefined);
   };
 
   const handleSelfWrong = () => {
@@ -144,19 +155,14 @@ export const Quiz = ({
     if (!correctOption) return;
 
     if (correctOption.id === selectedOption) {
-      startTransition(() => {
-        upsertChallengeProgress(challenge.id)
-          .then(() => {
-            correctControls.play();
-            setStatus("correct");
-            setPercentage((prev) => prev + 100 / challengesList.length);
-            if (!hadMistakeOnCurrent) {
-              setCorrectFirstAttempt((prev) => prev + 1);
-            }
-            setTotalAnswered((prev) => prev + 1);
-          })
-          .catch(() => toast.error("Une erreur est survenue. Veuillez réessayer."));
-      });
+      completedIdsRef.current.push(challenge.id);
+      correctControls.play();
+      setStatus("correct");
+      setPercentage((prev) => prev + 100 / challengesList.length);
+      if (!hadMistakeOnCurrent) {
+        setCorrectFirstAttempt((prev) => prev + 1);
+      }
+      setTotalAnswered((prev) => prev + 1);
     } else {
       incorrectControls.play();
       setStatus("wrong");
@@ -212,6 +218,9 @@ export const Quiz = ({
             <ResultCard variant="points" value={challengesList.length * 10} />
             <ResultCard variant="score" value={scorePercentage} />
           </div>
+          {saving && (
+            <p className="text-sm text-gray-400 animate-pulse">Sauvegarde en cours...</p>
+          )}
         </div>
         <Footer
           lessonId={lessonId}

@@ -1,44 +1,53 @@
 "use server";
 
 import { auth } from "@/lib/supabase/server";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import db from "@/db/drizzle";
 import { getUserProgress } from "@/db/queries";
 import { challengeProgress, challenges, userProgress } from "@/db/schema";
 
-export const upsertChallengeProgress = async (challengeId: number) => {
+// Batch complete all challenges at end of lesson
+export const completeLessonChallenges = async (challengeIds: number[]) => {
   const { userId } = await auth();
 
   if (!userId) {
     throw new Error("Unauthorized");
   }
 
-  const currentUserProgress = await getUserProgress();
+  if (!challengeIds.length) return;
+
+  const [currentUserProgress, existingProgress] = await Promise.all([
+    getUserProgress(),
+    db.query.challengeProgress.findMany({
+      where: and(
+        eq(challengeProgress.userId, userId),
+        inArray(challengeProgress.challengeId, challengeIds),
+      ),
+    }),
+  ]);
 
   if (!currentUserProgress) {
     throw new Error("User progress not found");
   }
 
-  const challenge = await db.query.challenges.findFirst({
-    where: eq(challenges.id, challengeId)
-  });
+  // Filter out already completed challenges
+  const existingIds = new Set(existingProgress.map((p) => p.challengeId));
+  const newChallengeIds = challengeIds.filter((id) => !existingIds.has(id));
 
-  if (!challenge) {
-    throw new Error("Challenge not found");
+  // Insert new progress entries in batch
+  if (newChallengeIds.length > 0) {
+    await db.insert(challengeProgress).values(
+      newChallengeIds.map((challengeId) => ({
+        challengeId,
+        userId,
+        completed: true,
+      }))
+    );
   }
 
-  const lessonId = challenge.lessonId;
-
-  const existingChallengeProgress = await db.query.challengeProgress.findFirst({
-    where: and(
-      eq(challengeProgress.userId, userId),
-      eq(challengeProgress.challengeId, challengeId),
-    ),
-  });
-
-  // Calculate streak update
+  // Calculate streak
   const today = new Date().toISOString().split("T")[0];
   const lastStreakDate = currentUserProgress.lastStreakDate;
   let newStreak = currentUserProgress.streak;
@@ -48,37 +57,19 @@ export const upsertChallengeProgress = async (challengeId: number) => {
     newStreak = lastStreakDate === yesterday ? newStreak + 1 : 1;
   }
 
-  const isPractice = !!existingChallengeProgress;
-
-  if (isPractice) {
-    await db.update(challengeProgress).set({
-      completed: true,
-    })
-    .where(
-      eq(challengeProgress.id, existingChallengeProgress.id)
-    );
-
-    await db.update(userProgress).set({
-      points: currentUserProgress.points + 10,
-      streak: newStreak,
-      lastStreakDate: today,
-    }).where(eq(userProgress.userId, userId));
-
-    revalidatePath(`/lesson/${lessonId}`);
-    return;
-  }
-
-  await db.insert(challengeProgress).values({
-    challengeId,
-    userId,
-    completed: true,
-  });
-
+  // Update points + streak in one query
+  const pointsEarned = challengeIds.length * 10;
   await db.update(userProgress).set({
-    points: currentUserProgress.points + 10,
+    points: currentUserProgress.points + pointsEarned,
     streak: newStreak,
     lastStreakDate: today,
   }).where(eq(userProgress.userId, userId));
 
-  revalidatePath(`/lesson/${lessonId}`);
+  revalidatePath("/learn");
+};
+
+// Keep single challenge progress for backward compat (unused now)
+export const upsertChallengeProgress = async (challengeId: number) => {
+  // No-op on server - progress is saved in batch at end of lesson
+  return;
 };
