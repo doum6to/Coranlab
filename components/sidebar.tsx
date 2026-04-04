@@ -2,15 +2,17 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useTransition } from "react";
+import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
 import { SidebarItem } from "./sidebar-item";
 import { UserButton } from "./user-button";
+import { createStripeUrl } from "@/actions/user-subscription";
 import {
   HomeIcon,
   CoursIcon,
   LeaderboardIcon,
-  QuestsIcon,
 } from "./sidebar-icons";
 
 type Props = {
@@ -22,6 +24,20 @@ type Props = {
 };
 
 export const Sidebar = ({ className, streak, keys, isPro, hasActiveSubscription }: Props) => {
+  const [pending, startTransition] = useTransition();
+
+  const onUpgrade = () => {
+    startTransition(() => {
+      createStripeUrl()
+        .then((response) => {
+          if (response.data) {
+            window.location.href = response.data;
+          }
+        })
+        .catch(() => toast.error("Une erreur est survenue"));
+    });
+  };
+
   return (
     <div className={cn(
       "flex h-full lg:w-[256px] lg:fixed left-0 top-0 px-4 border-r border-brilliant-border flex-col bg-white",
@@ -43,12 +59,12 @@ export const Sidebar = ({ className, streak, keys, isPro, hasActiveSubscription 
             <span className="text-sm font-bold">{streak}</span>
           </div>
           <div className="w-px h-5 bg-gray-200" />
-          <Link href="/shop" className="flex items-center gap-x-1.5 text-yellow-500 hover:opacity-80 transition">
+          <div className="flex items-center gap-x-1.5 text-yellow-500">
             <Image src="/key.svg" height={20} width={20} alt="Clés" />
             <span className="text-sm font-bold">
               {hasActiveSubscription ? "∞" : (keys ?? 0)}
             </span>
-          </Link>
+          </div>
         </div>
       )}
 
@@ -84,17 +100,18 @@ export const Sidebar = ({ className, streak, keys, isPro, hasActiveSubscription 
             <p className="text-xs text-brilliant-muted leading-snug mb-3">
               <span className="font-bold text-brilliant-text">Débloque toutes les leçons avec Premium</span> pour être plus rapide et intelligent.
             </p>
-            <Link
-              href="/shop"
-              className="w-full rounded-xl py-2.5 text-xs font-bold text-white text-center block transition hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] animate-premium-gradient"
+            <button
+              onClick={onUpgrade}
+              disabled={pending}
+              className="w-full rounded-xl py-2.5 text-xs font-bold text-white text-center block transition hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] animate-premium-gradient disabled:opacity-60"
               style={{
                 background: "linear-gradient(90deg, #050C38 0%, #6700A3 25%, #E02F75 50%, #FF5A57 75%, #050C38 100%)",
                 backgroundSize: "400% 100%",
                 boxShadow: "0 3px 0 0 rgba(5, 12, 56, 0.4)",
               }}
             >
-              Découvrir Premium
-            </Link>
+              {pending ? "Chargement..." : "Découvrir Premium"}
+            </button>
           </div>
         </div>
       )}

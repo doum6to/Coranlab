@@ -5,6 +5,7 @@ import { getUserProgress, getUserSubscription } from "@/db/queries";
 import { auth } from "@/lib/supabase/server";
 import db from "@/db/drizzle";
 import { userProgress as userProgressTable } from "@/db/schema";
+import { getCurrentWeekStart } from "@/lib/league-utils";
 
 type Props = {
   children: React.ReactNode;
@@ -21,16 +22,16 @@ const MainLayout = async ({
   let userProgress = userProgressData;
   const isPro = !!userSubscription?.isActive;
 
-  // Auto-grant daily key for non-Pro users
+  // Auto-grant weekly key for non-Pro users
   if (userProgress && userId && !isPro) {
-    const today = new Date().toISOString().split("T")[0];
-    if (userProgress.lastKeyDate !== today) {
+    const weekStart = getCurrentWeekStart();
+    if (userProgress.lastKeyDate !== weekStart) {
       const newKeys = userProgress.keys + 1;
       await db.update(userProgressTable).set({
         keys: newKeys,
-        lastKeyDate: today,
+        lastKeyDate: weekStart,
       }).where(eq(userProgressTable.userId, userId));
-      userProgress = { ...userProgress, keys: newKeys, lastKeyDate: today };
+      userProgress = { ...userProgress, keys: newKeys, lastKeyDate: weekStart };
     }
   }
 

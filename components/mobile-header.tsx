@@ -20,12 +20,12 @@ export const MobileHeader = ({ streak, keys, isPro }: Props) => {
             <Image src="/points.svg" height={18} width={18} alt="Streak" />
             <span className="text-xs font-bold">{streak}</span>
           </div>
-          <Link href="/shop" className="flex items-center gap-x-1 text-yellow-500 hover:opacity-80 transition">
+          <div className="flex items-center gap-x-1 text-yellow-500">
             <Image src="/key.svg" height={16} width={16} alt="Clés" />
             <span className="text-xs font-bold">
               {isPro ? "∞" : (keys ?? 0)}
             </span>
-          </Link>
+          </div>
         </div>
       )}
     </nav>
