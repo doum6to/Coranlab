@@ -125,6 +125,22 @@ const MascotInstance = ({
 
     const restart = () => {
       try {
+        // A one-shot animation that has already reached its end needs
+        // to be rewound to frame 0 before `play()` will do anything —
+        // otherwise Rive just "plays" the final frame and stops
+        // immediately. We try scrub(name, 0) first, then fall back to
+        // stop()+play() which also forces a full replay.
+        const withApi = rive as unknown as {
+          animationNames?: string[];
+          scrub?: (name: string, value: number) => void;
+          stop?: () => void;
+        };
+        const names = withApi.animationNames;
+        if (names && names.length > 0 && typeof withApi.scrub === "function") {
+          withApi.scrub(names[0], 0);
+        } else if (typeof withApi.stop === "function") {
+          withApi.stop();
+        }
         rive.play();
       } catch {
         /* ignore */
