@@ -56,14 +56,14 @@ export const OnboardingMascot = ({ className }: { className?: string }) => {
         src="/animations/mascot_hi.riv"
         onFinish={() => setHiDone(true)}
         className={cn(
-          "absolute inset-0 transition-opacity duration-150",
+          "absolute inset-0",
           hiDone && "pointer-events-none opacity-0"
         )}
       />
       <MascotInstance
         src="/animations/mascot_breath.riv"
         className={cn(
-          "absolute inset-0 transition-opacity duration-150",
+          "absolute inset-0",
           !hiDone && "pointer-events-none opacity-0"
         )}
       />
