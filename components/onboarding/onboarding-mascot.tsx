@@ -217,6 +217,7 @@ export const OnboardingMascot = ({ className }: { className?: string }) => {
     <div className={cn("relative h-full w-full", className)}>
       <MascotInstance
         src="/animations/mascot_hi.riv"
+        useStateMachine
         onFinish={() => setHiDone(true)}
         className={cn(
           "absolute inset-0",
