@@ -4,10 +4,7 @@ import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
-import {
-  OnboardingMascot,
-  resetOnboardingMascot,
-} from "@/components/onboarding/onboarding-mascot";
+import { OnboardingMascot } from "@/components/onboarding/onboarding-mascot";
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { cn } from "@/lib/utils";
 
@@ -103,7 +100,6 @@ const OnboardingPage = () => {
       } catch {
         /* ignore */
       }
-      resetOnboardingMascot();
       router.push("/auth/signup");
       return;
     }

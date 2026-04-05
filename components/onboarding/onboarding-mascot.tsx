@@ -11,8 +11,6 @@ import { useEffect, useState } from "react";
 
 import { cn } from "@/lib/utils";
 
-const HI_DONE_KEY = "onboarding_mascot_hi_done";
-
 type MascotInstanceProps = {
   src: string;
   onFinish?: () => void;
@@ -44,16 +42,14 @@ const MascotInstance = ({ src, onFinish, className }: MascotInstanceProps) => {
 };
 
 /**
- * Plays `mascot_hi.riv` once on first mount, then immediately transitions
- * to `mascot_breath.riv` looping. Uses sessionStorage so the state survives
- * remounts (when the onboarding layout changes between intro and question
- * steps) — the mascot never replays the "hi" animation twice in a session.
+ * Plays `mascot_hi.riv` once on mount, then immediately switches to
+ * `mascot_breath.riv` looping. Because this component stays mounted for
+ * the whole onboarding flow (the parent only swaps CSS classes around it),
+ * plain React state is enough — no sessionStorage persistence needed, and
+ * every fresh visit to /onboarding replays the greeting.
  */
 export const OnboardingMascot = ({ className }: { className?: string }) => {
-  const [phase, setPhase] = useState<"hi" | "breath">(() => {
-    if (typeof window === "undefined") return "hi";
-    return sessionStorage.getItem(HI_DONE_KEY) === "1" ? "breath" : "hi";
-  });
+  const [phase, setPhase] = useState<"hi" | "breath">("hi");
 
   if (phase === "hi") {
     return (
@@ -61,14 +57,7 @@ export const OnboardingMascot = ({ className }: { className?: string }) => {
         key="hi"
         src="/animations/mascot_hi.riv"
         className={className}
-        onFinish={() => {
-          try {
-            sessionStorage.setItem(HI_DONE_KEY, "1");
-          } catch {
-            /* ignore */
-          }
-          setPhase("breath");
-        }}
+        onFinish={() => setPhase("breath")}
       />
     );
   }
@@ -80,13 +69,4 @@ export const OnboardingMascot = ({ className }: { className?: string }) => {
       className={className}
     />
   );
-};
-
-/** Call this once the user finishes (or leaves) the onboarding flow. */
-export const resetOnboardingMascot = () => {
-  try {
-    sessionStorage.removeItem(HI_DONE_KEY);
-  } catch {
-    /* ignore */
-  }
 };
