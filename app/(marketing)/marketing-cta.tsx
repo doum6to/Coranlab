@@ -27,7 +27,7 @@ export const MarketingCTA = () => {
 
   return (
     <>
-      <Link href="/auth/signup" className="w-full">
+      <Link href="/onboarding" className="w-full">
         <ShinyButton variant="green">Commencer</ShinyButton>
       </Link>
       <Link href="/auth/login" className="w-full">
