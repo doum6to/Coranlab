@@ -10,8 +10,8 @@ const BENEFITS = [
 ];
 
 const CheckIcon = () => (
-  <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#FFD6A5] flex items-center justify-center">
-    <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
+  <div className="w-5 h-5 sm:w-7 sm:h-7 rounded-full bg-[#FFD6A5] flex items-center justify-center">
+    <svg width="12" height="12" viewBox="0 0 20 20" fill="none">
       <path
         d="M4 10.5l4 4 8-9"
         stroke="#0F172A"
@@ -24,8 +24,8 @@ const CheckIcon = () => (
 );
 
 const CrossIcon = () => (
-  <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gray-200 flex items-center justify-center">
-    <svg width="12" height="12" viewBox="0 0 20 20" fill="none">
+  <div className="w-5 h-5 sm:w-7 sm:h-7 rounded-full bg-gray-200 flex items-center justify-center">
+    <svg width="10" height="10" viewBox="0 0 20 20" fill="none">
       <path
         d="M5 5l10 10M15 5L5 15"
         stroke="#64748B"
@@ -39,7 +39,7 @@ const CrossIcon = () => (
 export const PremiumView = () => {
   return (
     <div
-      className="min-h-screen w-full relative overflow-hidden"
+      className="h-[100dvh] w-full relative overflow-hidden flex flex-col"
       style={{
         background:
           "radial-gradient(circle at 10% 0%, #F3D5FF 0%, transparent 40%), radial-gradient(circle at 90% 0%, #FFF0C4 0%, transparent 45%), radial-gradient(circle at 50% 100%, #FFE2E2 0%, transparent 50%), #FFF9F0",
@@ -48,14 +48,14 @@ export const PremiumView = () => {
       {/* Close */}
       <Link
         href="/learn"
-        className="absolute top-6 right-6 w-10 h-10 rounded-full flex items-center justify-center hover:bg-black/5 transition z-10"
+        className="absolute top-3 right-3 sm:top-6 sm:right-6 w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center hover:bg-black/5 transition z-10"
       >
-        <X className="w-6 h-6 text-brilliant-text" />
+        <X className="w-5 h-5 sm:w-6 sm:h-6 text-brilliant-text" />
       </Link>
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-16 sm:pt-24 pb-12">
+      <div className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 pt-10 sm:pt-20 pb-6 sm:pb-12 flex flex-col justify-between">
         {/* Title */}
-        <h1 className="text-center text-3xl sm:text-5xl font-extrabold text-brilliant-text leading-tight font-heading px-2">
+        <h1 className="text-center text-[22px] leading-[1.15] sm:text-5xl font-extrabold text-brilliant-text font-heading px-2 shrink-0">
           Passe à la vitesse supérieure avec{" "}
           <span
             className="bg-clip-text text-transparent"
@@ -70,14 +70,13 @@ export const PremiumView = () => {
 
         {/* Comparison table */}
         <div
-          className="mt-12 sm:mt-20 relative mx-auto"
+          className="relative mx-auto w-full my-4 sm:my-0 sm:mt-16"
           style={
             {
-              // CSS vars used by both the grid and the gradient frame so they always align
               "--col-label": "1fr",
-              "--col-free": "72px",
-              "--col-premium": "88px",
-              "--col-gap": "8px",
+              "--col-free": "64px",
+              "--col-premium": "80px",
+              "--col-gap": "6px",
             } as React.CSSProperties
           }
         >
@@ -91,7 +90,7 @@ export const PremiumView = () => {
             {/* Gradient frame over the Premium column */}
             <div
               aria-hidden
-              className="absolute top-0 bottom-0 rounded-3xl p-[3px] pointer-events-none"
+              className="absolute top-0 bottom-0 rounded-2xl sm:rounded-3xl p-[3px] pointer-events-none"
               style={{
                 right: 0,
                 width: "var(--col-premium)",
@@ -99,7 +98,7 @@ export const PremiumView = () => {
                   "linear-gradient(180deg, #F7C325 0%, #E350E3 25%, #874DE5 55%, #456DFF 100%)",
               }}
             >
-              <div className="w-full h-full rounded-[calc(1.5rem-3px)] bg-white" />
+              <div className="w-full h-full rounded-[calc(1rem-3px)] sm:rounded-[calc(1.5rem-3px)] bg-white" />
             </div>
 
             {/* Grid table */}
@@ -113,13 +112,13 @@ export const PremiumView = () => {
               }}
             >
               {/* Header row */}
-              <div className="font-bold text-brilliant-text text-base sm:text-lg py-4 pl-1 sm:pl-2 border-b border-gray-200">
+              <div className="font-bold text-brilliant-text text-sm sm:text-lg py-2.5 sm:py-4 pl-1 sm:pl-2 border-b border-gray-200">
                 Avantages
               </div>
-              <div className="flex items-center justify-center font-bold text-brilliant-muted text-sm sm:text-base py-4 border-b border-gray-200">
+              <div className="flex items-center justify-center font-bold text-brilliant-muted text-xs sm:text-base py-2.5 sm:py-4 border-b border-gray-200">
                 Gratuit
               </div>
-              <div className="flex items-center justify-center font-bold text-brilliant-text text-sm sm:text-base py-4 border-b border-gray-200">
+              <div className="flex items-center justify-center font-bold text-brilliant-text text-xs sm:text-base py-2.5 sm:py-4 border-b border-gray-200">
                 Premium
               </div>
 
@@ -130,17 +129,17 @@ export const PremiumView = () => {
                 return (
                   <div key={i} className="contents">
                     <div
-                      className={`text-brilliant-text text-sm sm:text-base py-4 pl-1 sm:pl-2 pr-2 ${borderCls}`}
+                      className={`text-brilliant-text text-xs sm:text-base py-2.5 sm:py-4 pl-1 sm:pl-2 pr-2 ${borderCls}`}
                     >
                       {b.label}
                     </div>
                     <div
-                      className={`flex items-center justify-center py-4 ${borderCls}`}
+                      className={`flex items-center justify-center py-2.5 sm:py-4 ${borderCls}`}
                     >
                       {b.free ? <CheckIcon /> : <CrossIcon />}
                     </div>
                     <div
-                      className={`flex items-center justify-center py-4 ${borderCls}`}
+                      className={`flex items-center justify-center py-2.5 sm:py-4 ${borderCls}`}
                     >
                       {b.premium ? <CheckIcon /> : <CrossIcon />}
                     </div>
@@ -152,10 +151,10 @@ export const PremiumView = () => {
         </div>
 
         {/* Subscribe button */}
-        <div className="flex justify-center mt-12 sm:mt-16">
+        <div className="flex justify-center shrink-0">
           <Link
             href="/premium/pricing"
-            className="rounded-full px-10 sm:px-16 py-4 text-white text-base sm:text-lg font-bold transition hover:opacity-90 hover:scale-[1.02] active:scale-[0.98]"
+            className="rounded-full px-8 sm:px-16 py-3 sm:py-4 text-white text-sm sm:text-lg font-bold transition-transform duration-100 hover:opacity-90 hover:scale-[1.02] active:translate-y-[3px] active:!shadow-none"
             style={{
               background: "#0F172A",
               boxShadow: "0 4px 0 0 rgba(0, 0, 0, 0.25)",
