@@ -5,22 +5,19 @@ const Loading = () => {
     <div className="flex flex-col px-0 sm:px-6">
       {[0, 1].map((unit) => (
         <div key={unit} className="mb-10">
-          {/* Unit header */}
           <div className="px-4 sm:px-0 pb-4">
             <Skeleton className="h-7 w-56 mb-2" />
             <Skeleton className="h-4 w-80" />
           </div>
-
-          {/* List cards grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 px-4 sm:px-0">
-            {Array.from({ length: 8 }).map((_, i) => (
+          {/* Horizontal carousel of cards */}
+          <div className="flex gap-3 overflow-hidden px-4 sm:px-0 pb-2">
+            {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
-                className="rounded-2xl border-2 border-brilliant-border bg-white p-3 sm:p-4"
+                className="shrink-0 w-[180px] sm:w-[200px] rounded-2xl border-2 border-brilliant-border bg-white p-4"
               >
                 <Skeleton className="aspect-square w-full rounded-xl mb-3" />
                 <Skeleton className="h-4 w-3/4 mb-2" />
-                <Skeleton className="h-3 w-1/2 mb-3" />
                 <Skeleton className="h-9 w-full rounded-xl" />
               </div>
             ))}

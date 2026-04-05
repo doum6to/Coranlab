@@ -3,6 +3,7 @@
 import { toast } from "sonner";
 import Image from "next/image";
 import Confetti from "react-confetti";
+import { useRouter } from "next/navigation";
 import { useState, useTransition, useEffect, useRef } from "react";
 import { useAudio, useWindowSize } from "react-use";
 
@@ -48,7 +49,15 @@ export const Quiz = ({
   levelOrder,
 }: Props) => {
 
+  const router = useRouter();
   const { width, height } = useWindowSize();
+
+  // Prefetch the return destination as soon as the quiz mounts so the
+  // transition after "Continuer" feels instant.
+  useEffect(() => {
+    const target = listId ? `/learn/list/${listId}` : "/learn";
+    router.prefetch(target);
+  }, [router, listId]);
 
   const [correctAudio, _c, correctControls] = useAudio({ src: "/correct.wav" });
   const [incorrectAudio, _i, incorrectControls] = useAudio({ src: "/incorrect.wav" });
@@ -165,7 +174,7 @@ export const Quiz = ({
 
   const handleFinishContinue = () => {
     const target = listId ? `/learn/list/${listId}` : "/learn";
-    window.location.href = target;
+    router.push(target);
   };
 
   const handlePracticeAgain = () => {

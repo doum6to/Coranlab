@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Manrope, IBM_Plex_Sans_Arabic } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
-import { ExitModal } from "@/components/modals/exit-modal";
-import { HeartsModal } from "@/components/modals/hearts-modal";
+import { ModalsProvider } from "@/components/modals/modals-provider";
 
 import "./globals.css";
 
@@ -45,8 +44,7 @@ export default function RootLayout({
           }}
         />
         <Toaster />
-        <ExitModal />
-        <HeartsModal />
+        <ModalsProvider />
 
         {children}
       </body>

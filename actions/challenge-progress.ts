@@ -2,7 +2,7 @@
 
 import { auth } from "@/lib/supabase/server";
 import { and, eq, inArray } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 import db from "@/db/drizzle";
 import { getUserProgress } from "@/db/queries";
@@ -129,6 +129,7 @@ export const completeLessonChallenges = async (challengeIds: number[]) => {
 
   revalidatePath("/learn");
   revalidatePath("/leaderboard");
+  revalidateTag("leaderboard");
 };
 
 // Keep single challenge progress for backward compat (unused now)

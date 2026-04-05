@@ -74,32 +74,44 @@ export const getListsWithLevels = cache(async (): Promise<UnitWithLists[]> => {
     return [];
   }
 
-  // Fetch user's unlocked lists
-  const userUnlockedLists = await db
-    .select({ listId: unlockedLists.listId })
-    .from(unlockedLists)
-    .where(eq(unlockedLists.userId, userId));
-  const unlockedListIds = new Set(userUnlockedLists.map((u) => u.listId));
-
-  const data = await db.query.units.findMany({
-    orderBy: (units, { asc }) => [asc(units.order)],
-    where: eq(units.courseId, userProgressData.activeCourseId),
-    with: {
-      lessons: {
-        orderBy: (lessons, { asc }) => [asc(lessons.order)],
-        with: {
-          challenges: {
-            orderBy: (challenges, { asc }) => [asc(challenges.order)],
-            with: {
-              challengeProgress: {
-                where: eq(challengeProgress.userId, userId),
+  // Parallelize unlocked lists fetch with the main query
+  const [userUnlockedLists, data] = await Promise.all([
+    db
+      .select({ listId: unlockedLists.listId })
+      .from(unlockedLists)
+      .where(eq(unlockedLists.userId, userId)),
+    db.query.units.findMany({
+      orderBy: (units, { asc }) => [asc(units.order)],
+      where: eq(units.courseId, userProgressData.activeCourseId),
+      // Only columns we actually read downstream
+      columns: { id: true, title: true, description: true, order: true },
+      with: {
+        lessons: {
+          orderBy: (lessons, { asc }) => [asc(lessons.order)],
+          columns: {
+            id: true,
+            title: true,
+            listId: true,
+            listTitle: true,
+            levelOrder: true,
+          },
+          with: {
+            challenges: {
+              orderBy: (challenges, { asc }) => [asc(challenges.order)],
+              columns: { id: true },
+              with: {
+                challengeProgress: {
+                  where: eq(challengeProgress.userId, userId),
+                  columns: { completed: true },
+                },
               },
             },
           },
         },
       },
-    },
-  });
+    }),
+  ]);
+  const unlockedListIds = new Set(userUnlockedLists.map((u) => u.listId));
 
   return data.map((unit) => {
     // Group lessons by listId
@@ -258,15 +270,19 @@ export const getUnits = cache(async () => {
   const data = await db.query.units.findMany({
     orderBy: (units, { asc }) => [asc(units.order)],
     where: eq(units.courseId, userProgressData.activeCourseId),
+    columns: { id: true, title: true, description: true, order: true, courseId: true },
     with: {
       lessons: {
         orderBy: (lessons, { asc }) => [asc(lessons.order)],
+        columns: { id: true, title: true, order: true, unitId: true },
         with: {
           challenges: {
             orderBy: (challenges, { asc }) => [asc(challenges.order)],
+            columns: { id: true },
             with: {
               challengeProgress: {
                 where: eq(challengeProgress.userId, userId),
+                columns: { completed: true },
               },
             },
           },
@@ -336,15 +352,19 @@ export const getCourseProgress = cache(async () => {
   const unitsInActiveCourse = await db.query.units.findMany({
     orderBy: (units, { asc }) => [asc(units.order)],
     where: eq(units.courseId, userProgressData.activeCourseId),
+    columns: { id: true, order: true },
     with: {
       lessons: {
         orderBy: (lessons, { asc }) => [asc(lessons.order)],
+        columns: { id: true, title: true, order: true, unitId: true },
         with: {
-          unit: true,
+          unit: { columns: { id: true, title: true } },
           challenges: {
+            columns: { id: true },
             with: {
               challengeProgress: {
                 where: eq(challengeProgress.userId, userId),
+                columns: { completed: true },
               },
             },
           },
@@ -472,14 +492,18 @@ export const getUnlockedLessons = cache(async () => {
   const unitsData = await db.query.units.findMany({
     orderBy: (units, { asc }) => [asc(units.order)],
     where: eq(units.courseId, userProgressData.activeCourseId),
+    columns: { id: true, title: true },
     with: {
       lessons: {
         orderBy: (lessons, { asc }) => [asc(lessons.order)],
+        columns: { id: true, title: true, listId: true, listTitle: true },
         with: {
           challenges: {
+            columns: { id: true },
             with: {
               challengeProgress: {
                 where: eq(challengeProgress.userId, userId),
+                columns: { completed: true },
               },
             },
           },
@@ -533,25 +557,29 @@ export const getUnlockedLessons = cache(async () => {
   return Array.from(listMap.values()).filter((l) => l.hasProgress);
 });
 
+// Cached across requests for 60s — the top 10 changes slowly.
+// Invalidated via revalidateTag("leaderboard") in challenge-progress.ts
+const _getTopTenUsersCached = unstable_cache(
+  async () => {
+    return await db.query.userProgress.findMany({
+      orderBy: (userProgress, { desc }) => [desc(userProgress.points)],
+      limit: 10,
+      columns: {
+        userId: true,
+        userName: true,
+        userImageSrc: true,
+        points: true,
+      },
+    });
+  },
+  ["top-ten-users"],
+  { revalidate: 60, tags: ["leaderboard"] }
+);
+
 export const getTopTenUsers = cache(async () => {
   const { userId } = await auth();
-
-  if (!userId) {
-    return [];
-  }
-
-  const data = await db.query.userProgress.findMany({
-    orderBy: (userProgress, { desc }) => [desc(userProgress.points)],
-    limit: 10,
-    columns: {
-      userId: true,
-      userName: true,
-      userImageSrc: true,
-      points: true,
-    },
-  });
-
-  return data;
+  if (!userId) return [];
+  return await _getTopTenUsersCached();
 });
 
 // League queries

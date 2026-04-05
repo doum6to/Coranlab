@@ -118,7 +118,8 @@ export const ListCard = ({
           alt={listTitle}
           width={480}
           height={480}
-          quality={90}
+          quality={80}
+          sizes="(max-width: 640px) 160px, (max-width: 1024px) 200px, 240px"
           className={cn(
             "w-full h-full object-cover mix-blend-darken",
             locked && "grayscale opacity-50"
