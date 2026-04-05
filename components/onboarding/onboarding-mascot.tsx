@@ -42,31 +42,31 @@ const MascotInstance = ({ src, onFinish, className }: MascotInstanceProps) => {
 };
 
 /**
- * Plays `mascot_hi.riv` once on mount, then immediately switches to
- * `mascot_breath.riv` looping. Because this component stays mounted for
- * the whole onboarding flow (the parent only swaps CSS classes around it),
- * plain React state is enough — no sessionStorage persistence needed, and
- * every fresh visit to /onboarding replays the greeting.
+ * Plays `mascot_hi.riv` once then transitions to `mascot_breath.riv` on
+ * loop. Both Rive instances are mounted from the start and stacked in an
+ * absolute layer, so the swap is a zero-flash opacity toggle (the canvas
+ * never leaves the DOM between the two animations).
  */
 export const OnboardingMascot = ({ className }: { className?: string }) => {
-  const [phase, setPhase] = useState<"hi" | "breath">("hi");
-
-  if (phase === "hi") {
-    return (
-      <MascotInstance
-        key="hi"
-        src="/animations/mascot_hi.riv"
-        className={className}
-        onFinish={() => setPhase("breath")}
-      />
-    );
-  }
+  const [hiDone, setHiDone] = useState(false);
 
   return (
-    <MascotInstance
-      key="breath"
-      src="/animations/mascot_breath.riv"
-      className={className}
-    />
+    <div className={cn("relative", className)}>
+      <MascotInstance
+        src="/animations/mascot_hi.riv"
+        onFinish={() => setHiDone(true)}
+        className={cn(
+          "absolute inset-0 transition-opacity duration-150",
+          hiDone && "pointer-events-none opacity-0"
+        )}
+      />
+      <MascotInstance
+        src="/animations/mascot_breath.riv"
+        className={cn(
+          "absolute inset-0 transition-opacity duration-150",
+          !hiDone && "pointer-events-none opacity-0"
+        )}
+      />
+    </div>
   );
 };
