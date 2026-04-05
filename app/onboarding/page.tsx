@@ -303,7 +303,7 @@ const OnboardingPage = () => {
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={`/svg/timer/timer-${option.id}.svg`}
+                      src={`/svg/timer/timer-${option.id}.svg?v=2`}
                       alt=""
                       aria-hidden
                       className="relative z-10 h-14 w-14 sm:h-16 sm:w-16"
