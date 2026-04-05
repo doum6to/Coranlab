@@ -2,7 +2,7 @@
 
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { OnboardingMascot } from "@/components/onboarding/onboarding-mascot";
 import { ShinyButton } from "@/components/ui/shiny-button";
@@ -70,6 +70,10 @@ const OnboardingPage = () => {
   const router = useRouter();
   const [stepIndex, setStepIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  /** Flips to true 1.36s after entering the first intro step, in sync
+   *  with the mascot_hi_ok animation beat. Used to swap the greeting
+   *  from "Salam, je suis Koji !" to "Créons ensemble ton parcours !". */
+  const [greetingBeat, setGreetingBeat] = useState(false);
 
   const step = STEPS[stepIndex];
   const isIntro = step.kind === "intro";
@@ -79,10 +83,26 @@ const OnboardingPage = () => {
 
   const canContinue = isIntro || !!currentAnswer;
 
+  // Schedule the greeting title swap while the user is on the very
+  // first step. Reset if they navigate away and back.
+  useEffect(() => {
+    if (stepIndex !== 0) {
+      setGreetingBeat(false);
+      return;
+    }
+    const timer = setTimeout(() => setGreetingBeat(true), 1360);
+    return () => clearTimeout(timer);
+  }, [stepIndex]);
+
   const title = useMemo(() => {
-    if (isIntro) return step.title;
+    if (isIntro) {
+      if (stepIndex === 0 && greetingBeat) {
+        return "Créons ensemble ton parcours !";
+      }
+      return step.title;
+    }
     return currentAnswer ? step.afterTitle : step.title;
-  }, [step, isIntro, currentAnswer]);
+  }, [step, isIntro, currentAnswer, stepIndex, greetingBeat]);
 
   const progress = ((stepIndex + 1) / STEPS.length) * 100;
 

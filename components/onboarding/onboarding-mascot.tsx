@@ -59,7 +59,7 @@ export const OnboardingMascot = ({ className }: { className?: string }) => {
   return (
     <div className={cn("relative h-full w-full", className)}>
       <MascotInstance
-        src="/animations/mascot_hi_loop.riv"
+        src="/animations/hi_ok.riv"
         useStateMachine
         className="absolute inset-0"
       />
