@@ -65,17 +65,16 @@ const MascotInstance = ({
     };
   }, [rive, useStateMachine]);
 
-  // "onFinish" detection for the greeting — robust against both plain
-  // timelines and state machines (which may chain several animations):
-  // we watch the Advance event (fires every frame the runtime is
-  // actively playing something) and consider the animation done once
-  // Advance hasn't fired for 500ms. A 30s ceiling guarantees we never
-  // get stuck even if Advance never starts.
+  // "onFinish" detection for the greeting. `Advance` keeps firing every
+  // frame even after the state machine reaches Exit (the runtime still
+  // renders the canvas), so we can't rely on Advance going silent.
+  // Instead, watch `rive.isPlaying`: it flips to true when the state
+  // machine starts advancing and back to false once it settles in its
+  // terminal state. Fire onFinish on that true → false transition.
   useEffect(() => {
     if (!rive || !onFinish) return;
     let done = false;
     let started = false;
-    let lastAdvance = 0;
 
     const fire = () => {
       if (done) return;
@@ -83,23 +82,14 @@ const MascotInstance = ({
       onFinish();
     };
 
-    const onAdvance = () => {
-      started = true;
-      lastAdvance = Date.now();
-    };
-
-    // Cast to unknown first because EventType.Advance exists at runtime
-    // but isn't in every version of the TS typings.
-    const EType = EventType as unknown as { Advance: string };
-    rive.on(EType.Advance as unknown as EventType, onAdvance);
-
     const checker = setInterval(() => {
       if (done) return;
-      if (!started) return; // wait for the first frame to fire
-      // 50ms is the tightest practical threshold: at 60fps frames are
-      // ~16.67ms apart, so any value below ~33ms would false-positive
-      // between two consecutive frames.
-      if (Date.now() - lastAdvance > 50) {
+      const playing = (rive as unknown as { isPlaying?: boolean }).isPlaying;
+      if (playing === true) {
+        started = true;
+        return;
+      }
+      if (started && playing === false) {
         clearInterval(checker);
         fire();
       }
@@ -108,11 +98,6 @@ const MascotInstance = ({
     const ceiling = setTimeout(fire, 30_000);
 
     return () => {
-      try {
-        rive.off(EType.Advance as unknown as EventType, onAdvance);
-      } catch {
-        /* ignore */
-      }
       clearInterval(checker);
       clearTimeout(ceiling);
     };
