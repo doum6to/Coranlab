@@ -18,6 +18,9 @@ type MascotInstanceProps = {
   /** Force the animation to restart on stop — useful when the .riv file
    *  isn't marked as Loop in the Rive editor. */
   forceLoop?: boolean;
+  /** If the .riv file uses a state machine instead of a direct timeline,
+   *  auto-detect and start it on load. */
+  useStateMachine?: boolean;
   className?: string;
 };
 
@@ -25,6 +28,7 @@ const MascotInstance = ({
   src,
   onFinish,
   forceLoop,
+  useStateMachine,
   className,
 }: MascotInstanceProps) => {
   const { rive, RiveComponent } = useRive({
@@ -32,6 +36,34 @@ const MascotInstance = ({
     autoplay: true,
     layout: new Layout({ fit: Fit.Contain, alignment: Alignment.Center }),
   });
+
+  // Auto-detect and play the first state machine in the file. Required
+  // when the mascot uses a state machine (e.g. "Any State → Timeline
+  // (loop)") rather than a plain timeline — otherwise Rive loads the
+  // artboard but doesn't know what to play, and the canvas sits static.
+  useEffect(() => {
+    if (!rive || !useStateMachine) return;
+
+    const playSM = () => {
+      try {
+        const smNames = (
+          rive as unknown as { stateMachineNames?: string[] }
+        ).stateMachineNames;
+        if (smNames && smNames.length > 0) {
+          rive.play(smNames[0]);
+        }
+      } catch {
+        /* ignore */
+      }
+    };
+
+    playSM();
+    const handler = () => playSM();
+    rive.on(EventType.Load, handler);
+    return () => {
+      rive.off(EventType.Load, handler);
+    };
+  }, [rive, useStateMachine]);
 
   // Duration-based "onFinish" timer for the greeting animation.
   useEffect(() => {
@@ -193,6 +225,7 @@ export const OnboardingMascot = ({ className }: { className?: string }) => {
       />
       <MascotInstance
         src="/animations/mascot_breath.riv"
+        useStateMachine
         forceLoop
         className={cn(
           "absolute inset-0",
