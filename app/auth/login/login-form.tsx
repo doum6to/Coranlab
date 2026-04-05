@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { RiveMascot } from "@/components/rive-mascot";
 import { ShinyButton } from "@/components/ui/shiny-button";
 
 export function LoginForm() {
@@ -39,7 +39,9 @@ export function LoginForm() {
     <div className="min-h-screen flex items-center justify-center bg-white">
       <div className="w-full max-w-md p-8 space-y-6">
         <div className="flex flex-col items-center gap-y-2">
-          <Image src="/mascot.svg" height={50} width={50} alt="Mascot" />
+          <div className="h-60 w-60">
+            <RiveMascot src="/animations/eyes_down.riv" />
+          </div>
           <h1 className="text-2xl font-bold text-brilliant-text font-heading">
             Bon retour !
           </h1>

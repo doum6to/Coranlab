@@ -2,6 +2,7 @@
 
 import { useId } from "react";
 import Link from "next/link";
+import { RiveMascot } from "@/components/rive-mascot";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -15,63 +16,6 @@ type Props = {
   percentage: number;
   isLast: boolean;
 };
-
-// Mascot SVG — exact original paths with animated eyes
-const MascotSVG = () => (
-  <svg viewBox="30 20 565 500" className="w-full h-full">
-    {/* Head shape */}
-    <path fill="#3DCF56" d="M389.852844,504.888855 C364.741180,506.888824 340.090424,510.094788 315.391174,510.525787 C270.187225,511.314575 225.408157,506.256073 181.569901,494.881409 C153.585205,487.620209 128.738876,473.977173 107.136436,454.665802 C78.789856,429.325531 59.632896,398.222870 50.496487,361.353882 C47.480453,349.183014 45.460442,336.460693 45.282066,323.957733 C44.959530,301.349762 45.496872,278.649261 47.260319,256.111420 C49.645596,225.626389 54.710518,195.478943 62.481781,165.815994 C68.870003,141.432114 76.912491,117.699806 88.450317,95.248138 C98.130714,76.410889 110.093948,59.282845 127.242180,46.411530 C138.683960,37.823418 151.464066,33.213882 166.069824,32.708382 C200.711304,31.509445 229.660538,44.114994 254.825989,67.126114 C262.921051,74.528175 271.117981,81.966141 280.057953,88.267334 C301.105560,103.102409 324.053406,102.311157 344.224274,86.331413 C356.731506,76.422928 368.400635,65.448250 381.001099,55.667362 C405.371979,36.749943 433.587921,30.351248 463.774109,33.301785 C478.170929,34.708996 490.454254,42.211338 501.197266,51.933865 C518.090454,67.222351 529.397705,86.373352 538.724487,106.785057 C553.904236,140.006149 563.125671,175.095108 568.491028,211.027191 C572.288086,236.455948 574.223267,262.206726 575.953491,287.883575 C576.990295,303.269409 577.029602,318.872650 575.749939,334.230927 C573.540894,360.744019 565.396545,385.687408 551.840942,408.691772 C524.942932,454.338470 485.604584,483.516388 434.297516,496.291473 C419.816925,499.897064 404.970490,502.033295 389.852844,504.888855z" />
-
-    {/* Left eye white */}
-    <path fill="#FCFDFB" d="M287.261780,229.735535 C297.821533,269.067047 272.473602,311.767731 228.399200,317.612610 C185.623383,323.285278 152.819962,292.035706 148.927170,256.223389 C144.651306,216.886581 170.582397,182.757172 210.141205,177.519699 C245.539581,172.833069 277.979950,195.073563 287.261780,229.735535z" />
-
-    {/* Right eye white */}
-    <path fill="#FCFDFA" d="M417.304260,178.637329 C450.076874,185.854752 472.448425,213.776108 473.068115,246.746246 C473.722626,281.570679 448.270813,312.985992 412.108917,317.637146 C372.847260,322.687012 339.612885,296.890137 333.132416,260.350952 C325.906860,219.610901 353.436829,182.495758 394.585785,177.471771 C401.876617,176.581604 409.460419,178.091019 417.304260,178.637329z" />
-
-    {/* Smile */}
-    <path fill="#2E411B" d="M346.264954,339.172302 C328.142975,362.286163 294.773071,361.437805 279.258118,337.775146 C275.377716,331.856934 276.179077,325.126495 281.158752,321.811798 C286.366302,318.345398 292.138733,319.915924 296.516510,325.990234 C305.033020,337.807129 320.899780,338.316132 329.147095,327.036987 C334.385132,319.873383 340.036346,318.043457 345.398376,321.774597 C350.950745,325.638336 351.308990,331.358734 346.264954,339.172302z" />
-
-    {/* Left pupil — with translate animation for look direction */}
-    <g>
-      <animateTransform
-        attributeName="transform" type="translate"
-        keyTimes="0;0.331;0.344;0.375;0.394;0.406;0.738;0.75;0.788;0.8;0.813;0.906;0.919;0.956;0.969;1"
-        values="0,0;0,0;-15,0;-15,0;0,0;0,0;0,0;15,0;15,0;0,0;0,0;0,0;0,-15;0,-15;0,0;0,0"
-        dur="16s" repeatCount="indefinite"
-      />
-      <path fill="#2F401C" d="M224.544540,298.686981 C198.641571,296.071198 181.657883,276.139221 178.567276,255.715881 C174.393906,228.137466 192.038452,202.877914 219.429932,197.351120 C245.952438,191.999649 272.080841,208.638504 278.932434,235.243042 C286.421417,264.322418 266.635559,293.966217 236.884140,298.089752 C232.960358,298.633606 228.951248,298.561768 224.544540,298.686981z" />
-      {/* Blink: green overlay that appears briefly to hide the pupil */}
-      <ellipse cx="218" cy="248" rx="60" ry="62" fill="#3DCF56" opacity="0">
-        <animate
-          attributeName="opacity"
-          keyTimes="0;0.154;0.158;0.168;0.172;0.176;0.561;0.565;0.575;0.579;0.583;1"
-          values="0;0;1;1;1;0;0;1;1;1;0;0"
-          dur="16s" repeatCount="indefinite"
-        />
-      </ellipse>
-    </g>
-
-    {/* Right pupil — with translate animation */}
-    <g>
-      <animateTransform
-        attributeName="transform" type="translate"
-        keyTimes="0;0.331;0.344;0.375;0.394;0.406;0.738;0.75;0.788;0.8;0.813;0.906;0.919;0.956;0.969;1"
-        values="0,0;0,0;-15,0;-15,0;0,0;0,0;0,0;15,0;15,0;0,0;0,0;0,0;0,-15;0,-15;0,0;0,0"
-        dur="16s" repeatCount="indefinite"
-      />
-      <path fill="#2F3F1C" d="M348.202515,219.267914 C356.398376,207.562454 367.007324,199.922821 380.823914,197.514587 C411.122650,192.233536 437.007477,210.719162 441.594635,240.279160 C446.100372,269.314606 424.981842,294.835175 398.392822,298.181549 C376.769653,300.902924 359.504547,293.293365 347.856659,275.174957 C336.178802,257.009979 336.878021,238.077057 348.202515,219.267914z" />
-      {/* Blink overlay */}
-      <ellipse cx="403" cy="248" rx="60" ry="62" fill="#3DCF56" opacity="0">
-        <animate
-          attributeName="opacity"
-          keyTimes="0;0.154;0.158;0.168;0.172;0.176;0.561;0.565;0.575;0.579;0.583;1"
-          values="0;0;1;1;1;0;0;1;1;1;0;0"
-          dur="16s" repeatCount="indefinite"
-        />
-      </ellipse>
-    </g>
-  </svg>
-);
 
 // ─── Brilliant-style 3D isometric disc node ───
 const DiscNodeSVG = ({ state }: { state: "active" | "completed" | "locked" }) => {
@@ -289,7 +233,7 @@ export const LevelCard = ({
   const state = completed ? "completed" : active ? "active" : "locked";
 
   const content = (
-    <div className="flex items-center gap-3 sm:gap-5 w-full group">
+    <div className="flex items-center justify-center gap-3 sm:gap-5 w-full group">
       <div className="flex flex-col items-center shrink-0" style={{ overflow: "visible" }}>
         <div className={cn(
           "relative w-[100px] sm:w-[120px]",
@@ -299,21 +243,29 @@ export const LevelCard = ({
 
           {active && (
             <>
-              {/* Mascot */}
+              {/* Mascot — tripled size vs. the original SVG mascot */}
               <div
                 className={cn(
-                  "absolute z-10",
+                  "absolute z-10 pointer-events-none",
                   isLast
-                    ? "w-12 h-10 sm:w-14 sm:h-12"
-                    : "w-14 h-12 sm:w-16 sm:h-14"
+                    ? "w-[9rem] h-[7.5rem] sm:w-[10.5rem] sm:h-[9rem]"
+                    : "w-[10.5rem] h-[9rem] sm:w-[12rem] sm:h-[10.5rem]"
                 )}
                 style={{
-                  top: isLast ? "-8px" : "-6px",
+                  // Position the mascot so its feet visually rest on
+                  // the platform disc. The box is tall (x3 vs. the
+                  // original) but the figure is concentrated in the
+                  // upper portion, so we pull `top` down until the
+                  // body sits right on top of the disc.
+                  top: isLast ? "-55px" : "-65px",
                   left: "50%",
                   animation: "mascotFloat 2.5s ease-in-out infinite",
                 }}
               >
-                <MascotSVG />
+                <RiveMascot
+                  src="/animations/mascot_breath.riv"
+                  animationName="breath loop"
+                />
               </div>
 
               {/* White glow — same width as disc center, touches bottom of mascot */}
@@ -336,7 +288,7 @@ export const LevelCard = ({
         </div>
       </div>
 
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0 max-w-[14rem]">
         <p className={cn(
           "text-base sm:text-lg font-bold leading-tight",
           completed && "text-brilliant-text",
