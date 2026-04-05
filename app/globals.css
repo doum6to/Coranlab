@@ -151,6 +151,15 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+@keyframes shinySweepOnce {
+  0% {
+    transform: translateX(-130%);
+  }
+  100% {
+    transform: translateX(130%);
+  }
+}
+
 @keyframes premiumGradient {
   0% { background-position: 0% 50%; }
   100% { background-position: 300% 50%; }

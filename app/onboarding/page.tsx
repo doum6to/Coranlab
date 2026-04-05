@@ -30,25 +30,28 @@ type QuestionStep = {
 
 type Step = IntroStep | QuestionStep;
 
+// \u00A0 is a non-breaking space — we put one before every "!" and "?" so
+// that French punctuation is never orphaned on its own line on narrow
+// (mobile) viewports.
 const STEPS: Step[] = [
   {
     kind: "intro",
-    title: "Salam, je suis Koji !",
+    title: "Salam alaykoum, je suis Koji\u00A0!",
   },
   {
     kind: "question",
     id: "focus",
-    title: "Sur quoi veux-tu te concentrer ?",
+    title: "Sur quoi veux-tu te concentrer\u00A0?",
     options: [
       {
         id: "vocab",
         label: "Apprendre le vocabulaire du Coran",
-        response: "Excellent choix, on s'y met !",
+        response: "Excellent choix, on s'y met\u00A0!",
       },
       {
         id: "memorize",
         label: "Mémoriser des sourates",
-        response: "Superbe objectif, allons-y !",
+        response: "Superbe objectif, allons-y\u00A0!",
       },
       {
         id: "arabic",
@@ -70,7 +73,7 @@ const STEPS: Step[] = [
   {
     kind: "question",
     id: "time",
-    title: "Combien de temps par jour ?",
+    title: "Combien de temps par jour\u00A0?",
     options: [
       {
         id: "5",
@@ -80,7 +83,7 @@ const STEPS: Step[] = [
       {
         id: "10",
         label: "10 minutes par jour",
-        response: "Top, le rythme idéal !",
+        response: "Top, le rythme idéal\u00A0!",
       },
       {
         id: "15",
@@ -90,13 +93,13 @@ const STEPS: Step[] = [
       {
         id: "20",
         label: "20 minutes ou plus par jour",
-        response: "Impressionnant, tu iras loin !",
+        response: "Impressionnant, tu iras loin\u00A0!",
       },
     ],
   },
   {
     kind: "intro",
-    title: "Tout est prêt ! Créons ton compte.",
+    title: "Tout est prêt\u00A0! Créons ton compte.",
   },
 ];
 
@@ -250,7 +253,7 @@ const OnboardingPage = () => {
             "absolute transition-all duration-500 ease-out",
             isIntro
               ? "left-1/2 top-[18%] h-56 w-56 -translate-x-1/2 sm:h-64 sm:w-64"
-              : "left-4 top-2 h-36 w-36 sm:h-40 sm:w-40"
+              : "left-4 top-2 h-36 w-36 sm:left-[calc(50%-14rem)] sm:top-4 sm:h-40 sm:w-40"
           )}
         >
           <OnboardingMascot
@@ -269,8 +272,8 @@ const OnboardingPage = () => {
           className={cn(
             "absolute font-heading font-bold text-brilliant-text transition-all duration-500 ease-out",
             isIntro
-              ? "left-1/2 top-[calc(18%+15rem)] max-w-[18rem] -translate-x-1/2 px-4 text-center text-xl leading-snug sm:top-[calc(18%+17rem)] sm:max-w-[22rem] sm:text-2xl"
-              : "left-40 right-4 top-2 flex h-36 items-center text-base leading-snug sm:left-44 sm:h-40 sm:text-lg"
+              ? "left-1/2 top-[calc(18%+15rem)] w-[92vw] max-w-[22rem] -translate-x-1/2 px-4 text-center text-lg leading-snug sm:top-[calc(18%+17rem)] sm:max-w-[26rem] sm:text-2xl"
+              : "left-40 right-4 top-2 flex h-36 items-center text-lg leading-snug sm:left-[calc(50%-3rem)] sm:right-auto sm:top-4 sm:h-40 sm:w-[18rem] sm:text-xl"
           )}
         >
           {title}
@@ -280,7 +283,14 @@ const OnboardingPage = () => {
             label (inline-flex + centred column), no click-scale, and
             the selected one gets the Brilliant shiny sweep overlay. */}
         {!isIntro && (
-          <div className="absolute inset-x-0 bottom-0 top-44 flex flex-col items-center justify-center gap-3 px-6 sm:top-48">
+          <div className="absolute inset-x-0 bottom-0 top-40 px-6 sm:top-48">
+            {/* On mobile the column fills the available width and is
+                left-aligned against the screen edge. On sm+ the column
+                shrink-wraps to its content (`w-fit`) and is centered on
+                the page via `mx-auto`, so the buttons remain
+                left-aligned relative to each other but the group sits
+                under the centered mascot + title. */}
+            <div className="flex flex-col items-start gap-3 sm:mx-auto sm:w-fit">
             {step.options.map((option) => {
               const selected = currentAnswer === option.id;
               const hasSelection = !!currentAnswer;
@@ -304,8 +314,12 @@ const OnboardingPage = () => {
                   <span className="relative z-10">{option.label}</span>
                   {selected && (
                     <span
+                      // Keying on okokReplayKey forces a remount (and
+                      // replay of the sweep) on every click, even when
+                      // the same option is re-selected.
+                      key={`shiny-${okokReplayKey}`}
                       aria-hidden
-                      className="pointer-events-none absolute inset-0 z-[1] animate-shiny-sweep"
+                      className="pointer-events-none absolute inset-0 z-[1] animate-shiny-sweep-once"
                     >
                       <svg
                         viewBox="0 0 150 56"
@@ -382,6 +396,7 @@ const OnboardingPage = () => {
                 </button>
               );
             })}
+            </div>
           </div>
         )}
       </section>

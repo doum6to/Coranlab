@@ -143,10 +143,16 @@ export const OnboardingMascot = ({
           !showHi && "pointer-events-none opacity-0"
         )}
       />
+      {/* Full remount (via React key) on every replayKey bump. This is
+          the most reliable way to guarantee a clean play from frame 0
+          for state-machine-driven .riv files — stop+reset+play on an
+          already-finished SM is flaky across Rive runtime versions.
+          okok.riv is preloaded in the root layout so remounting only
+          hits the browser cache. */}
       <MascotInstance
+        key={`okok-${replayKey ?? 0}`}
         src="/animations/okok.riv"
         useStateMachine
-        replayTrigger={replayKey}
         className={cn(
           "absolute inset-0",
           showHi && "pointer-events-none opacity-0"

@@ -90,6 +90,7 @@ const config = {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "shiny-sweep": "shinySweep 6s ease-in-out infinite",
+        "shiny-sweep-once": "shinySweepOnce 1s ease-out 1",
       },
     },
   },
