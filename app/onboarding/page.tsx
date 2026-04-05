@@ -160,10 +160,18 @@ const OnboardingPage = () => {
     }, 1500);
   }, [stepIndex]);
 
-  const title = useMemo(() => {
+  const title = useMemo<React.ReactNode>(() => {
     if (isIntro) {
       if (stepIndex === 0 && greetingBeat) {
-        return "Créons ensemble un parcours d'apprentissage personnalisé.";
+        return (
+          <>
+            Créons ensemble
+            <br />
+            un parcours d&apos;apprentissage
+            <br />
+            personnalisé !
+          </>
+        );
       }
       return step.title;
     }
@@ -272,7 +280,7 @@ const OnboardingPage = () => {
             label (inline-flex + centred column), no click-scale, and
             the selected one gets the Brilliant shiny sweep overlay. */}
         {!isIntro && (
-          <div className="absolute inset-x-0 top-44 flex flex-col items-center gap-3 px-6 sm:top-48">
+          <div className="absolute inset-x-0 bottom-0 top-44 flex flex-col items-center justify-center gap-3 px-6 sm:top-48">
             {step.options.map((option) => {
               const selected = currentAnswer === option.id;
               const hasSelection = !!currentAnswer;
