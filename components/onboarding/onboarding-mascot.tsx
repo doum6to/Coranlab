@@ -41,17 +41,30 @@ const MascotInstance = ({
     layout: new Layout({ fit: Fit.Contain, alignment: Alignment.Center }),
   });
 
-  // Auto-detect and play the first state machine in the file. Without
-  // this, Rive loads the artboard but doesn't know what to play and
-  // the canvas sits static.
+  // Auto-detect and play the first state machine in the file, then
+  // fire any trigger inputs on it. Without firing the triggers,
+  // files like okok.riv — whose celebration is gated by a "Trigger 1"
+  // input — sit on their idle state and look identical to the
+  // hi_ok breath loop.
   useEffect(() => {
     if (!rive || !useStateMachine) return;
     try {
-      const smNames = (
-        rive as unknown as { stateMachineNames?: string[] }
-      ).stateMachineNames;
+      const api = rive as unknown as {
+        stateMachineNames?: string[];
+        play: (name: string) => void;
+        stateMachineInputs?: (
+          name: string
+        ) => Array<{ name: string; type: number; fire?: () => void }> | undefined;
+      };
+      const smNames = api.stateMachineNames;
       if (smNames && smNames.length > 0) {
-        rive.play(smNames[0]);
+        api.play(smNames[0]);
+        const inputs = api.stateMachineInputs?.(smNames[0]) || [];
+        for (const input of inputs) {
+          if (typeof input.fire === "function") {
+            input.fire();
+          }
+        }
       }
     } catch {
       /* ignore */
