@@ -15,6 +15,10 @@ type MascotInstanceProps = {
   src: string;
   /** If provided, called once the animation's full duration has elapsed. */
   onFinish?: () => void;
+  /** Exact length of the animation in milliseconds. Used to schedule the
+   *  onFinish callback deterministically — no runtime duration detection
+   *  needed (which is unreliable with chained-state state machines). */
+  durationMs?: number;
   /** Force the animation to restart on stop — useful when the .riv file
    *  isn't marked as Loop in the Rive editor. */
   forceLoop?: boolean;
@@ -27,6 +31,7 @@ type MascotInstanceProps = {
 const MascotInstance = ({
   src,
   onFinish,
+  durationMs,
   forceLoop,
   useStateMachine,
   className,
@@ -65,43 +70,17 @@ const MascotInstance = ({
     };
   }, [rive, useStateMachine]);
 
-  // "onFinish" detection for the greeting. `Advance` keeps firing every
-  // frame even after the state machine reaches Exit (the runtime still
-  // renders the canvas), so we can't rely on Advance going silent.
-  // Instead, watch `rive.isPlaying`: it flips to true when the state
-  // machine starts advancing and back to false once it settles in its
-  // terminal state. Fire onFinish on that true → false transition.
+  // Deterministic onFinish: schedule a setTimeout at exactly durationMs
+  // after the instance is ready. Runtime-based detection (Advance idle,
+  // isPlaying flip, StateChange) all proved unreliable with chained-
+  // state state machines — the Rive runtime keeps rendering the canvas
+  // indefinitely even once Exit is reached, so we just use the exact
+  // animation length supplied by the caller.
   useEffect(() => {
-    if (!rive || !onFinish) return;
-    let done = false;
-    let started = false;
-
-    const fire = () => {
-      if (done) return;
-      done = true;
-      onFinish();
-    };
-
-    const checker = setInterval(() => {
-      if (done) return;
-      const playing = (rive as unknown as { isPlaying?: boolean }).isPlaying;
-      if (playing === true) {
-        started = true;
-        return;
-      }
-      if (started && playing === false) {
-        clearInterval(checker);
-        fire();
-      }
-    }, 16);
-
-    const ceiling = setTimeout(fire, 30_000);
-
-    return () => {
-      clearInterval(checker);
-      clearTimeout(ceiling);
-    };
-  }, [rive, onFinish]);
+    if (!rive || !onFinish || !durationMs || durationMs <= 0) return;
+    const timer = setTimeout(onFinish, durationMs);
+    return () => clearTimeout(timer);
+  }, [rive, onFinish, durationMs]);
 
   // Force loop behaviour for the breath animation — if the .riv isn't
   // set to Loop in the editor, Rive will Stop it on the last frame.
@@ -174,6 +153,9 @@ export const OnboardingMascot = ({ className }: { className?: string }) => {
       <MascotInstance
         src="/animations/mascot_hi.riv"
         useStateMachine
+        // Exact duration of the mascot_hi state machine in ms. If you
+        // re-export the .riv with a different length, update this.
+        durationMs={5330}
         onFinish={() => setHiDone(true)}
         className={cn(
           "absolute inset-0",
