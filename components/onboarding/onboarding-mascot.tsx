@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Alignment,
-  EventType,
-  Fit,
-  Layout,
-  useRive,
-} from "@rive-app/react-canvas";
+import { Alignment, Fit, Layout, useRive } from "@rive-app/react-canvas";
 import { useEffect, useState } from "react";
 
 import { cn } from "@/lib/utils";
@@ -27,27 +21,72 @@ const MascotInstance = ({ src, onFinish, className }: MascotInstanceProps) => {
   useEffect(() => {
     if (!rive || !onFinish) return;
     let timer: ReturnType<typeof setTimeout> | null = null;
+    let poll: ReturnType<typeof setInterval> | null = null;
+    let done = false;
 
-    const schedule = () => {
-      // durationSec is exposed by the canvas runtime but typed as unknown
-      // on the React wrapper, so we cast to read it.
-      const seconds = (rive as unknown as { durationSec?: number }).durationSec;
-      if (!seconds || seconds <= 0) return;
-      if (timer) clearTimeout(timer);
-      timer = setTimeout(onFinish, seconds * 1000);
+    // Read the animation duration from whichever API the Rive runtime
+    // exposes. durationSec is the newer direct accessor; older builds
+    // only expose per-animation objects via animationByName, where the
+    // duration is stored in frames and has to be divided by fps.
+    const getDurationMs = (): number | null => {
+      try {
+        const withDurationSec = rive as unknown as { durationSec?: number };
+        if (
+          typeof withDurationSec.durationSec === "number" &&
+          withDurationSec.durationSec > 0
+        ) {
+          return withDurationSec.durationSec * 1000;
+        }
+
+        const withAnims = rive as unknown as {
+          animationNames?: string[];
+          animationByName?: (
+            name: string
+          ) => { duration?: number; fps?: number } | undefined;
+        };
+        const names = withAnims.animationNames;
+        if (names && names.length > 0 && withAnims.animationByName) {
+          const anim = withAnims.animationByName(names[0]);
+          if (
+            anim &&
+            typeof anim.duration === "number" &&
+            typeof anim.fps === "number" &&
+            anim.fps > 0
+          ) {
+            return (anim.duration / anim.fps) * 1000;
+          }
+        }
+      } catch {
+        /* ignore — fall through to polling */
+      }
+      return null;
     };
 
-    // Try right away in case the file is already loaded
-    schedule();
+    const tryStart = (): boolean => {
+      if (done) return true;
+      const ms = getDurationMs();
+      if (ms === null || ms <= 0) return false;
+      done = true;
+      timer = setTimeout(onFinish, ms);
+      return true;
+    };
 
-    // Also schedule once the file finishes loading (first call might be
-    // too early, before the artboard duration is available).
-    const handleLoad = () => schedule();
-    rive.on(EventType.Load, handleLoad);
+    // First shot — the file may already be fully loaded by the time this
+    // effect runs (which also means the Load event has already fired and
+    // an .on(Load) listener would miss it).
+    if (!tryStart()) {
+      let attempts = 0;
+      poll = setInterval(() => {
+        attempts += 1;
+        if (tryStart() || attempts > 40) {
+          if (poll) clearInterval(poll);
+        }
+      }, 50);
+    }
 
     return () => {
-      rive.off(EventType.Load, handleLoad);
       if (timer) clearTimeout(timer);
+      if (poll) clearInterval(poll);
     };
   }, [rive, onFinish]);
 
