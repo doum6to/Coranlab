@@ -26,10 +26,28 @@ const MascotInstance = ({ src, onFinish, className }: MascotInstanceProps) => {
 
   useEffect(() => {
     if (!rive || !onFinish) return;
-    const handler = () => onFinish();
-    rive.on(EventType.Stop, handler);
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    const schedule = () => {
+      // durationSec is exposed by the canvas runtime but typed as unknown
+      // on the React wrapper, so we cast to read it.
+      const seconds = (rive as unknown as { durationSec?: number }).durationSec;
+      if (!seconds || seconds <= 0) return;
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(onFinish, seconds * 1000);
+    };
+
+    // Try right away in case the file is already loaded
+    schedule();
+
+    // Also schedule once the file finishes loading (first call might be
+    // too early, before the artboard duration is available).
+    const handleLoad = () => schedule();
+    rive.on(EventType.Load, handleLoad);
+
     return () => {
-      rive.off(EventType.Stop, handler);
+      rive.off(EventType.Load, handleLoad);
+      if (timer) clearTimeout(timer);
     };
   }, [rive, onFinish]);
 
