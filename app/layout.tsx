@@ -33,6 +33,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr">
+      <head>
+        {/* Preload the onboarding intro mascot animation so it's already
+            in the browser cache by the time the user lands on /onboarding.
+            Without this, the .riv file starts downloading only when the
+            Rive runtime mounts, which delays the first frame and breaks
+            the sync with timed UI (e.g. the title beat at 1.36s). */}
+        <link
+          rel="preload"
+          href="/animations/hi_ok.riv"
+          as="fetch"
+          crossOrigin="anonymous"
+          type="application/octet-stream"
+        />
+      </head>
       <body
         className={`${inter.className} ${inter.variable} ${manrope.variable} ${ibmPlexArabic.variable}`}
       >

@@ -2,7 +2,7 @@
 
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { OnboardingMascot } from "@/components/onboarding/onboarding-mascot";
 import { ShinyButton } from "@/components/ui/shiny-button";
@@ -70,10 +70,14 @@ const OnboardingPage = () => {
   const router = useRouter();
   const [stepIndex, setStepIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  /** Flips to true 1.36s after entering the first intro step, in sync
-   *  with the mascot_hi_ok animation beat. Used to swap the greeting
-   *  from "Salam, je suis Koji !" to "Créons ensemble ton parcours !". */
+  /** Flips to true 1.36s after the mascot animation actually starts
+   *  playing (not when React mounts — the .riv file may still be
+   *  loading). Used to swap the greeting from "Salam, je suis Koji !"
+   *  to "Créons ensemble ton parcours !" in sync with the beat. */
   const [greetingBeat, setGreetingBeat] = useState(false);
+  const greetingBeatTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
 
   const step = STEPS[stepIndex];
   const isIntro = step.kind === "intro";
@@ -83,15 +87,38 @@ const OnboardingPage = () => {
 
   const canContinue = isIntro || !!currentAnswer;
 
-  // Schedule the greeting title swap while the user is on the very
-  // first step. Reset if they navigate away and back.
+  // Reset the greeting title whenever the user leaves step 0. The
+  // timer itself is armed by the mascot's onPlayStart callback so
+  // it stays in sync with the real animation start.
   useEffect(() => {
     if (stepIndex !== 0) {
       setGreetingBeat(false);
-      return;
+      if (greetingBeatTimerRef.current) {
+        clearTimeout(greetingBeatTimerRef.current);
+        greetingBeatTimerRef.current = null;
+      }
     }
-    const timer = setTimeout(() => setGreetingBeat(true), 1360);
-    return () => clearTimeout(timer);
+  }, [stepIndex]);
+
+  // Clean up any pending timer on unmount.
+  useEffect(() => {
+    return () => {
+      if (greetingBeatTimerRef.current) {
+        clearTimeout(greetingBeatTimerRef.current);
+      }
+    };
+  }, []);
+
+  const handleMascotPlayStart = useCallback(() => {
+    // Only arm the beat timer during the first intro step, and only
+    // the first time the animation starts (ignore re-triggers from
+    // HMR or subsequent Rive Advance events).
+    if (stepIndex !== 0) return;
+    if (greetingBeatTimerRef.current) return;
+    greetingBeatTimerRef.current = setTimeout(() => {
+      setGreetingBeat(true);
+      greetingBeatTimerRef.current = null;
+    }, 1360);
   }, [stepIndex]);
 
   const title = useMemo(() => {
@@ -168,7 +195,7 @@ const OnboardingPage = () => {
               : "left-6 top-4 h-14 w-14 sm:h-16 sm:w-16"
           )}
         >
-          <OnboardingMascot />
+          <OnboardingMascot onPlayStart={handleMascotPlayStart} />
         </div>
 
         {/* Title — position & size animate with the mascot */}
