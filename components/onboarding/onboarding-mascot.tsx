@@ -82,31 +82,43 @@ const MascotInstance = ({
 
     const getDurationMs = (): number | null => {
       try {
-        const withDurationSec = rive as unknown as { durationSec?: number };
-        if (
-          typeof withDurationSec.durationSec === "number" &&
-          withDurationSec.durationSec > 0
-        ) {
-          return withDurationSec.durationSec * 1000;
-        }
-
         const withAnims = rive as unknown as {
           animationNames?: string[];
           animationByName?: (
             name: string
           ) => { duration?: number; fps?: number } | undefined;
+          durationSec?: number;
         };
+
+        // Prefer scanning every animation in the file and taking the
+        // longest one. With state machines the first animation name
+        // isn't necessarily the one that plays, and durationSec only
+        // reflects the currently active timeline (which may be an
+        // intermediate state shorter than the full playthrough).
         const names = withAnims.animationNames;
         if (names && names.length > 0 && withAnims.animationByName) {
-          const anim = withAnims.animationByName(names[0]);
-          if (
-            anim &&
-            typeof anim.duration === "number" &&
-            typeof anim.fps === "number" &&
-            anim.fps > 0
-          ) {
-            return (anim.duration / anim.fps) * 1000;
+          let maxMs = 0;
+          for (const name of names) {
+            const anim = withAnims.animationByName(name);
+            if (
+              anim &&
+              typeof anim.duration === "number" &&
+              typeof anim.fps === "number" &&
+              anim.fps > 0
+            ) {
+              const ms = (anim.duration / anim.fps) * 1000;
+              if (ms > maxMs) maxMs = ms;
+            }
           }
+          if (maxMs > 0) return maxMs;
+        }
+
+        // Fallback: durationSec of the currently playing animation.
+        if (
+          typeof withAnims.durationSec === "number" &&
+          withAnims.durationSec > 0
+        ) {
+          return withAnims.durationSec * 1000;
         }
       } catch {
         /* ignore */
@@ -137,8 +149,8 @@ const MascotInstance = ({
       }, 50);
     }
 
-    // Ultimate ceiling: no matter what, advance after 10 seconds.
-    const ceiling = setTimeout(fire, 10_000);
+    // Ultimate ceiling: no matter what, advance after 30 seconds.
+    const ceiling = setTimeout(fire, 30_000);
 
     return () => {
       if (timer) clearTimeout(timer);
