@@ -96,11 +96,14 @@ const MascotInstance = ({
     const checker = setInterval(() => {
       if (done) return;
       if (!started) return; // wait for the first frame to fire
-      if (Date.now() - lastAdvance > 500) {
+      // 50ms is the tightest practical threshold: at 60fps frames are
+      // ~16.67ms apart, so any value below ~33ms would false-positive
+      // between two consecutive frames.
+      if (Date.now() - lastAdvance > 50) {
         clearInterval(checker);
         fire();
       }
-    }, 100);
+    }, 16);
 
     const ceiling = setTimeout(fire, 30_000);
 
