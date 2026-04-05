@@ -41,32 +41,32 @@ const STEPS: Step[] = [
   {
     kind: "question",
     id: "focus",
-    title: "Sur quoi veux-tu te concentrer\u00A0?",
+    title: "Pourquoi veux-tu apprendre les mots du Coran\u00A0?",
     options: [
       {
+        id: "prayer",
+        label: "Comprendre le sens pendant la prière",
+        response: "Magnifique, chaque mot prendra vie\u00A0!",
+      },
+      {
+        id: "read",
+        label: "Lire le Coran sans traduction",
+        response: "Bravo, un objectif puissant\u00A0!",
+      },
+      {
+        id: "faith",
+        label: "Approfondir ma foi",
+        response: "Superbe intention, on avance ensemble.",
+      },
+      {
         id: "vocab",
-        label: "Apprendre le vocabulaire du Coran",
-        response: "Excellent choix, on s'y met\u00A0!",
+        label: "Enrichir mon vocabulaire arabe",
+        response: "Excellent, on construit mot à mot\u00A0!",
       },
       {
-        id: "memorize",
-        label: "Mémoriser des sourates",
-        response: "Superbe objectif, allons-y\u00A0!",
-      },
-      {
-        id: "arabic",
-        label: "Comprendre l'arabe",
-        response: "Bravo, pas à pas ensemble.",
-      },
-      {
-        id: "basics",
-        label: "Revoir les bases",
-        response: "Très bien, on repart en douceur.",
-      },
-      {
-        id: "other",
-        label: "Autre chose",
-        response: "Pas de souci, on s'adapte.",
+        id: "curious",
+        label: "Par simple curiosité",
+        response: "Parfait, la curiosité est un cadeau.",
       },
     ],
   },
