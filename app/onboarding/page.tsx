@@ -214,11 +214,10 @@ const OnboardingPage = () => {
     setOkokReplayKey((k) => k + 1);
   };
 
-  // Show the okok celebration animation whenever the user has picked
-  // an answer on the current question step; fall back to hi_ok (the
-  // breathing idle) the rest of the time.
-  const mascotVariant: "hi_ok" | "okok" =
-    !isIntro && currentAnswer ? "okok" : "hi_ok";
+  // Use okok.riv on every question step (from the moment we land on
+  // it), so that clicking an option plays only okok — no hi_ok
+  // launching first. hi_ok is reserved for the intro greeting.
+  const mascotVariant: "hi_ok" | "okok" = isIntro ? "hi_ok" : "okok";
 
   return (
     <main className="relative flex h-[100dvh] flex-col bg-white">
