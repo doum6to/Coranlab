@@ -65,96 +65,52 @@ const MascotInstance = ({
     };
   }, [rive, useStateMachine]);
 
-  // Duration-based "onFinish" timer for the greeting animation.
+  // "onFinish" detection for the greeting — robust against both plain
+  // timelines and state machines (which may chain several animations):
+  // we watch the Advance event (fires every frame the runtime is
+  // actively playing something) and consider the animation done once
+  // Advance hasn't fired for 500ms. A 30s ceiling guarantees we never
+  // get stuck even if Advance never starts.
   useEffect(() => {
     if (!rive || !onFinish) return;
-    let timer: ReturnType<typeof setTimeout> | null = null;
-    let poll: ReturnType<typeof setInterval> | null = null;
     let done = false;
+    let started = false;
+    let lastAdvance = 0;
 
     const fire = () => {
       if (done) return;
       done = true;
-      if (timer) clearTimeout(timer);
-      if (poll) clearInterval(poll);
       onFinish();
     };
 
-    const getDurationMs = (): number | null => {
-      try {
-        const withAnims = rive as unknown as {
-          animationNames?: string[];
-          animationByName?: (
-            name: string
-          ) => { duration?: number; fps?: number } | undefined;
-          durationSec?: number;
-        };
+    const onAdvance = () => {
+      started = true;
+      lastAdvance = Date.now();
+    };
 
-        // Prefer scanning every animation in the file and taking the
-        // longest one. With state machines the first animation name
-        // isn't necessarily the one that plays, and durationSec only
-        // reflects the currently active timeline (which may be an
-        // intermediate state shorter than the full playthrough).
-        const names = withAnims.animationNames;
-        if (names && names.length > 0 && withAnims.animationByName) {
-          let maxMs = 0;
-          for (const name of names) {
-            const anim = withAnims.animationByName(name);
-            if (
-              anim &&
-              typeof anim.duration === "number" &&
-              typeof anim.fps === "number" &&
-              anim.fps > 0
-            ) {
-              const ms = (anim.duration / anim.fps) * 1000;
-              if (ms > maxMs) maxMs = ms;
-            }
-          }
-          if (maxMs > 0) return maxMs;
-        }
+    // Cast to unknown first because EventType.Advance exists at runtime
+    // but isn't in every version of the TS typings.
+    const EType = EventType as unknown as { Advance: string };
+    rive.on(EType.Advance as unknown as EventType, onAdvance);
 
-        // Fallback: durationSec of the currently playing animation.
-        if (
-          typeof withAnims.durationSec === "number" &&
-          withAnims.durationSec > 0
-        ) {
-          return withAnims.durationSec * 1000;
-        }
-      } catch {
-        /* ignore */
+    const checker = setInterval(() => {
+      if (done) return;
+      if (!started) return; // wait for the first frame to fire
+      if (Date.now() - lastAdvance > 500) {
+        clearInterval(checker);
+        fire();
       }
-      return null;
-    };
+    }, 100);
 
-    const trySchedule = (): boolean => {
-      if (done) return true;
-      const ms = getDurationMs();
-      if (ms === null || ms <= 0) return false;
-      timer = setTimeout(fire, ms);
-      return true;
-    };
-
-    if (!trySchedule()) {
-      let attempts = 0;
-      poll = setInterval(() => {
-        attempts += 1;
-        if (trySchedule() || attempts > 40) {
-          if (poll) clearInterval(poll);
-          // Hard safety net: if after 2s we still couldn't read the
-          // duration, just advance anyway so the flow never gets stuck.
-          if (!done && attempts > 40) {
-            fire();
-          }
-        }
-      }, 50);
-    }
-
-    // Ultimate ceiling: no matter what, advance after 30 seconds.
     const ceiling = setTimeout(fire, 30_000);
 
     return () => {
-      if (timer) clearTimeout(timer);
-      if (poll) clearInterval(poll);
+      try {
+        rive.off(EType.Advance as unknown as EventType, onAdvance);
+      } catch {
+        /* ignore */
+      }
+      clearInterval(checker);
       clearTimeout(ceiling);
     };
   }, [rive, onFinish]);
