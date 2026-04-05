@@ -51,7 +51,7 @@ export const OnboardingMascot = ({ className }: { className?: string }) => {
   const [hiDone, setHiDone] = useState(false);
 
   return (
-    <div className={cn("relative", className)}>
+    <div className={cn("relative h-full w-full", className)}>
       <MascotInstance
         src="/animations/mascot_hi.riv"
         onFinish={() => setHiDone(true)}
