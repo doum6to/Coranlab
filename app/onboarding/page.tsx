@@ -43,28 +43,27 @@ const STEPS: Step[] = [
       {
         id: "vocab",
         label: "Apprendre le vocabulaire du Coran",
-        response:
-          "Excellent ! Comprendre les mots, c'est ouvrir la porte du sens.",
+        response: "Excellent choix, on s'y met !",
       },
       {
         id: "memorize",
         label: "Mémoriser des sourates",
-        response: "Superbe objectif, je vais t'aider à graver ça dans ton cœur.",
+        response: "Superbe objectif, allons-y !",
       },
       {
         id: "arabic",
         label: "Comprendre l'arabe",
-        response: "Bravo, on va construire ta compréhension pas à pas.",
+        response: "Bravo, pas à pas ensemble.",
       },
       {
         id: "basics",
         label: "Revoir les bases",
-        response: "Très bien, on repart sur des fondations solides ensemble.",
+        response: "Très bien, on repart en douceur.",
       },
       {
         id: "other",
         label: "Autre chose",
-        response: "Pas de souci, je m'adapte à ton objectif personnel.",
+        response: "Pas de souci, on s'adapte.",
       },
     ],
   },
@@ -76,22 +75,22 @@ const STEPS: Step[] = [
       {
         id: "5",
         label: "5 minutes par jour",
-        response: "Parfait, 5 minutes suffisent pour avancer chaque jour.",
+        response: "Parfait, on avance chaque jour.",
       },
       {
         id: "10",
         label: "10 minutes par jour",
-        response: "Top, 10 minutes c'est le rythme idéal pour progresser.",
+        response: "Top, le rythme idéal !",
       },
       {
         id: "15",
         label: "15 minutes par jour",
-        response: "Bravo, tu vas voir des résultats rapidement avec ça.",
+        response: "Bravo, tu vas vite progresser.",
       },
       {
         id: "20",
         label: "20 minutes ou plus par jour",
-        response: "Impressionnant ! Avec cet engagement tu iras loin.",
+        response: "Impressionnant, tu iras loin !",
       },
     ],
   },
@@ -242,7 +241,7 @@ const OnboardingPage = () => {
           className={cn(
             "absolute transition-all duration-500 ease-out",
             isIntro
-              ? "left-1/2 top-[34%] h-32 w-32 -translate-x-1/2 sm:h-36 sm:w-36"
+              ? "left-1/2 top-[18%] h-56 w-56 -translate-x-1/2 sm:h-64 sm:w-64"
               : "left-4 top-2 h-36 w-36 sm:h-40 sm:w-40"
           )}
         >
@@ -253,23 +252,27 @@ const OnboardingPage = () => {
           />
         </div>
 
-        {/* Title — position & size animate with the mascot. On question
-            steps the title is vertically centered against the mascot
-            (same top + matching height so items-center works). */}
+        {/* Title — position & size animate with the mascot. On intro
+            steps the title is constrained to a narrow max-width so the
+            longer "Créons ensemble…" copy wraps over ≥2 lines. On
+            question steps the title is vertically centered against the
+            mascot (same top + matching height so items-center works). */}
         <h1
           className={cn(
             "absolute font-heading font-bold text-brilliant-text transition-all duration-500 ease-out",
             isIntro
-              ? "left-0 right-0 top-[calc(34%+9rem)] px-6 text-center text-lg leading-snug sm:top-[calc(34%+10rem)] sm:text-xl"
+              ? "left-1/2 top-[calc(18%+15rem)] max-w-[18rem] -translate-x-1/2 px-4 text-center text-xl leading-snug sm:top-[calc(18%+17rem)] sm:max-w-[22rem] sm:text-2xl"
               : "left-40 right-4 top-2 flex h-36 items-center text-base leading-snug sm:left-44 sm:h-40 sm:text-lg"
           )}
         >
           {title}
         </h1>
 
-        {/* Options (only for question steps) */}
+        {/* Options (only for question steps). Each button sizes to its
+            label (inline-flex + centred column), no click-scale, and
+            the selected one gets the Brilliant shiny sweep overlay. */}
         {!isIntro && (
-          <div className="absolute inset-x-0 top-44 space-y-3 px-6 sm:top-48">
+          <div className="absolute inset-x-0 top-44 flex flex-col items-center gap-3 px-6 sm:top-48">
             {step.options.map((option) => {
               const selected = currentAnswer === option.id;
               const hasSelection = !!currentAnswer;
@@ -279,8 +282,7 @@ const OnboardingPage = () => {
                   type="button"
                   onClick={() => handleSelectOption(option.id)}
                   className={cn(
-                    "w-full rounded-full px-5 py-3 text-left text-sm font-bold transition-all duration-200",
-                    "active:scale-[0.98]",
+                    "relative overflow-hidden rounded-full px-6 py-3 text-sm font-bold transition-colors duration-200",
                     selected &&
                       "bg-gradient-to-r from-[#f0f0ff] to-[#d9bbff] text-brilliant-text shadow-[0_2px_0_0_#c8c7f0]",
                     !selected &&
@@ -291,7 +293,84 @@ const OnboardingPage = () => {
                       "bg-gray-100 text-brilliant-text hover:bg-gray-200"
                   )}
                 >
-                  {option.label}
+                  <span className="relative z-10">{option.label}</span>
+                  {selected && (
+                    <span
+                      aria-hidden
+                      className="pointer-events-none absolute inset-0 z-[1] animate-shiny-sweep"
+                    >
+                      <svg
+                        viewBox="0 0 150 56"
+                        className="h-full w-full"
+                        xmlns="http://www.w3.org/2000/svg"
+                        preserveAspectRatio="none"
+                      >
+                        <defs>
+                          <linearGradient
+                            id={`opt-g1-${option.id}`}
+                            x1="100.5"
+                            y1="-58.63"
+                            x2="100.5"
+                            y2="91.37"
+                            gradientUnits="userSpaceOnUse"
+                          >
+                            <stop
+                              offset="0.27"
+                              stopColor="white"
+                              stopOpacity="0.55"
+                            />
+                            <stop
+                              offset="0.71"
+                              stopColor="white"
+                              stopOpacity="0"
+                            />
+                          </linearGradient>
+                          <linearGradient
+                            id={`opt-g2-${option.id}`}
+                            x1="140.83"
+                            y1="-28.13"
+                            x2="140.83"
+                            y2="121.87"
+                            gradientUnits="userSpaceOnUse"
+                          >
+                            <stop
+                              offset="0.08"
+                              stopColor="white"
+                              stopOpacity="0.45"
+                            />
+                            <stop
+                              offset="0.57"
+                              stopColor="white"
+                              stopOpacity="0"
+                            />
+                          </linearGradient>
+                          <clipPath id={`opt-clip-${option.id}`}>
+                            <rect width="150" height="56" fill="white" />
+                          </clipPath>
+                        </defs>
+                        <g clipPath={`url(#opt-clip-${option.id})`}>
+                          <rect
+                            opacity="0.5"
+                            x="75"
+                            y="-58.63"
+                            width="51"
+                            height="150"
+                            transform="rotate(30 75 -58.63)"
+                            fill={`url(#opt-g1-${option.id})`}
+                          />
+                          <rect
+                            opacity="0.5"
+                            x="127.83"
+                            y="-28.13"
+                            width="26"
+                            height="150"
+                            transform="rotate(30 127.83 -28.13)"
+                            fill={`url(#opt-g2-${option.id})`}
+                          />
+                        </g>
+                      </svg>
+                    </span>
+                  )}
                 </button>
               );
             })}
