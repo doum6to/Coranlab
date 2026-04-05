@@ -118,13 +118,13 @@ const OnboardingPage = () => {
     greetingBeatTimerRef.current = setTimeout(() => {
       setGreetingBeat(true);
       greetingBeatTimerRef.current = null;
-    }, 1360);
+    }, 1500);
   }, [stepIndex]);
 
   const title = useMemo(() => {
     if (isIntro) {
       if (stepIndex === 0 && greetingBeat) {
-        return "Créons ensemble ton parcours !";
+        return "Créons ensemble un parcours d'apprentissage personnalisé.";
       }
       return step.title;
     }
@@ -191,7 +191,7 @@ const OnboardingPage = () => {
           className={cn(
             "absolute transition-all duration-500 ease-out",
             isIntro
-              ? "left-1/2 top-[18%] h-40 w-40 -translate-x-1/2 sm:h-48 sm:w-48"
+              ? "left-1/2 top-[34%] h-32 w-32 -translate-x-1/2 sm:h-36 sm:w-36"
               : "left-6 top-4 h-14 w-14 sm:h-16 sm:w-16"
           )}
         >
@@ -203,7 +203,7 @@ const OnboardingPage = () => {
           className={cn(
             "absolute font-heading font-bold text-brilliant-text transition-all duration-500 ease-out",
             isIntro
-              ? "left-0 right-0 top-[calc(18%+11rem)] px-6 text-center text-2xl leading-snug sm:top-[calc(18%+13rem)] sm:text-3xl"
+              ? "left-0 right-0 top-[calc(34%+9rem)] px-6 text-center text-lg leading-snug sm:top-[calc(34%+10rem)] sm:text-xl"
               : "left-24 right-6 top-6 text-lg leading-snug sm:left-28 sm:text-xl"
           )}
         >
