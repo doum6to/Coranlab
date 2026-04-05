@@ -257,7 +257,7 @@ export const LevelCard = ({
                   // original) but the figure is concentrated in the
                   // upper portion, so we pull `top` down until the
                   // body sits right on top of the disc.
-                  top: isLast ? "-55px" : "-65px",
+                  top: isLast ? "-30px" : "-35px",
                   left: "50%",
                   animation: "mascotFloat 2.5s ease-in-out infinite",
                 }}

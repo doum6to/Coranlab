@@ -214,14 +214,14 @@ const OnboardingPage = () => {
     setOkokReplayKey((k) => k + 1);
   };
 
-  // hi_ok plays on intro AND on question steps until the user picks an
-  // option. okok (the celebration "full one" timeline) only mounts once
-  // an option is selected — on click, hi_ok unmounts, okok mounts fresh
-  // and plays the celebration from frame 0. Re-clicking any option
-  // bumps okokReplayKey, which re-remounts okok via its `key` prop and
-  // replays the celebration.
-  const mascotVariant: "hi_ok" | "okok" =
-    !isIntro && currentAnswer ? "okok" : "hi_ok";
+  // phase="question" pre-mounts okok (alongside hi_ok) so the
+  // celebration is ready to play with zero delay on the first click.
+  // showOkok flips to true as soon as an option is picked, which
+  // opacity-swaps from hi_ok to okok and triggers a replayKey-driven
+  // in-place reset of okok's "yup" timeline — no remount, no white
+  // frame flash.
+  const mascotPhase: "intro" | "question" = isIntro ? "intro" : "question";
+  const showOkok = !isIntro && !!currentAnswer;
 
   return (
     <main className="relative flex h-[100dvh] flex-col bg-white">
@@ -260,7 +260,8 @@ const OnboardingPage = () => {
           )}
         >
           <OnboardingMascot
-            variant={mascotVariant}
+            phase={mascotPhase}
+            showOkok={showOkok}
             replayKey={okokReplayKey}
             onPlayStart={handleMascotPlayStart}
           />
