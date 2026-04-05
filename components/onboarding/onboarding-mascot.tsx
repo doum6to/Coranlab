@@ -16,6 +16,11 @@ type MascotInstanceProps = {
   /** If the .riv file uses a state machine instead of a direct timeline,
    *  auto-detect and start it on load. */
   useStateMachine?: boolean;
+  /** Explicit animation timeline to play instead of the state machine.
+   *  Used for okok.riv where we want to jump straight into "full one"
+   *  (the celebration timeline) without passing through the state
+   *  machine's idle state (which visually resembles hi_ok). */
+  animationName?: string;
   /** Fired the first time the Rive runtime actually starts playing the
    *  animation (after fetch + parse + first frame). Used to sync timed
    *  UI — starting a timer at React mount is unreliable because the
@@ -27,12 +32,14 @@ type MascotInstanceProps = {
 const MascotInstance = ({
   src,
   useStateMachine,
+  animationName,
   onPlayStart,
   className,
 }: MascotInstanceProps) => {
   const { rive, RiveComponent } = useRive({
     src,
     autoplay: true,
+    animations: animationName ? [animationName] : undefined,
     layout: new Layout({ fit: Fit.Contain, alignment: Alignment.Center }),
   });
 
@@ -42,7 +49,18 @@ const MascotInstance = ({
   // input — sit on their idle state and look identical to the
   // hi_ok breath loop.
   useEffect(() => {
-    if (!rive || !useStateMachine) return;
+    if (!rive) return;
+    if (animationName) {
+      try {
+        (rive as unknown as { play: (name: string) => void }).play(
+          animationName
+        );
+      } catch {
+        /* ignore */
+      }
+      return;
+    }
+    if (!useStateMachine) return;
     try {
       const api = rive as unknown as {
         stateMachineNames?: string[];
@@ -64,7 +82,7 @@ const MascotInstance = ({
     } catch {
       /* ignore */
     }
-  }, [rive, useStateMachine]);
+  }, [rive, useStateMachine, animationName]);
 
   // Fire onPlayStart exactly once — on the first Advance event, which
   // means the runtime has rendered at least one frame. Using Play alone
@@ -135,7 +153,14 @@ export const OnboardingMascot = ({
         <MascotInstance
           key={`okok-${replayKey ?? 0}`}
           src="/animations/okok.riv"
-          useStateMachine
+          // Play the "yup" celebration timeline directly, bypassing
+          // the state machine. Going through the state machine would
+          // start on its idle state ("breath loop"), which is visually
+          // indistinguishable from hi_ok — the user would briefly see
+          // hi_ok-looking frames before the celebration transition
+          // fires. Playing the timeline directly jumps straight into
+          // the celebration from frame 0.
+          animationName="yup"
           className="absolute inset-0"
         />
       )}

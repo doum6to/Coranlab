@@ -214,10 +214,14 @@ const OnboardingPage = () => {
     setOkokReplayKey((k) => k + 1);
   };
 
-  // Use okok.riv on every question step (from the moment we land on
-  // it), so that clicking an option plays only okok — no hi_ok
-  // launching first. hi_ok is reserved for the intro greeting.
-  const mascotVariant: "hi_ok" | "okok" = isIntro ? "hi_ok" : "okok";
+  // hi_ok plays on intro AND on question steps until the user picks an
+  // option. okok (the celebration "full one" timeline) only mounts once
+  // an option is selected — on click, hi_ok unmounts, okok mounts fresh
+  // and plays the celebration from frame 0. Re-clicking any option
+  // bumps okokReplayKey, which re-remounts okok via its `key` prop and
+  // replays the celebration.
+  const mascotVariant: "hi_ok" | "okok" =
+    !isIntro && currentAnswer ? "okok" : "hi_ok";
 
   return (
     <main className="relative flex h-[100dvh] flex-col bg-white">
