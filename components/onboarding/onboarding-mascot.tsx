@@ -117,18 +117,34 @@ const MascotInstance = ({
 
   // Force loop behaviour for the breath animation — if the .riv isn't
   // set to Loop in the editor, Rive will Stop it on the last frame.
+  // We listen on Stop (event-driven restart) AND poll isPlaying every
+  // 500ms as a safety net in case the Stop event isn't fired for this
+  // particular runtime build.
   useEffect(() => {
     if (!rive || !forceLoop) return;
-    const handler = () => {
+
+    const restart = () => {
       try {
         rive.play();
       } catch {
         /* ignore */
       }
     };
-    rive.on(EventType.Stop, handler);
+
+    rive.on(EventType.Stop, restart);
+
+    const interval = setInterval(() => {
+      try {
+        const withPlaying = rive as unknown as { isPlaying?: boolean };
+        if (withPlaying.isPlaying === false) restart();
+      } catch {
+        /* ignore */
+      }
+    }, 500);
+
     return () => {
-      rive.off(EventType.Stop, handler);
+      rive.off(EventType.Stop, restart);
+      clearInterval(interval);
     };
   }, [rive, forceLoop]);
 
