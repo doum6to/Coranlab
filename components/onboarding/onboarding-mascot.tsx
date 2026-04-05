@@ -21,6 +21,10 @@ type MascotInstanceProps = {
    *  UI — starting a timer at React mount is unreliable because the
    *  .riv file may still be loading. */
   onPlayStart?: () => void;
+  /** Monotonically-increasing number. When it changes, the instance
+   *  resets its state machine back to frame 0 and plays from the start.
+   *  Pass `undefined` (or never change it) to disable replay. */
+  replayTrigger?: number;
   className?: string;
 };
 
@@ -28,6 +32,7 @@ const MascotInstance = ({
   src,
   useStateMachine,
   onPlayStart,
+  replayTrigger,
   className,
 }: MascotInstanceProps) => {
   const { rive, RiveComponent } = useRive({
@@ -70,6 +75,30 @@ const MascotInstance = ({
     };
   }, [rive, onPlayStart]);
 
+  // Replay on external trigger — stop + reset the state machine, then
+  // play again from frame 0. Used to re-trigger `okok.riv` every time
+  // the user picks a new option in the onboarding question steps.
+  useEffect(() => {
+    if (!rive || replayTrigger === undefined) return;
+    try {
+      const withApi = rive as unknown as {
+        stop?: () => void;
+        reset?: (args?: { stateMachines?: string[] }) => void;
+        stateMachineNames?: string[];
+      };
+      const smNames = withApi.stateMachineNames;
+      if (typeof withApi.stop === "function") withApi.stop();
+      if (smNames && smNames.length > 0 && typeof withApi.reset === "function") {
+        withApi.reset({ stateMachines: [smNames[0]] });
+        rive.play(smNames[0]);
+      } else {
+        rive.play();
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [rive, replayTrigger]);
+
   return (
     <RiveComponent
       className={cn("h-full w-full", className)}
@@ -78,26 +107,50 @@ const MascotInstance = ({
   );
 };
 
+type MascotVariant = "hi_ok" | "okok";
+
 /**
- * Plays `hi_ok.riv` — a single file whose state machine chains the
- * "hi" one-shot into a looping breath. The transition is handled
- * entirely by the Rive state machine, so no React-side timers or
- * file swaps are needed.
+ * Onboarding mascot with two stackable animations:
+ *   - `hi_ok.riv`: greeting → breath loop (default, plays from first
+ *     mount and keeps looping).
+ *   - `okok.riv`: celebratory reaction, triggered each time the user
+ *     picks a new option during question steps.
+ *
+ * Both instances are mounted from the start (absolute inset-0) so the
+ * swap is a zero-flash opacity toggle. `okok` is re-triggered via its
+ * `replayTrigger` prop whenever `replayKey` changes.
  */
 export const OnboardingMascot = ({
   className,
+  variant = "hi_ok",
+  replayKey,
   onPlayStart,
 }: {
   className?: string;
+  variant?: MascotVariant;
+  replayKey?: number;
   onPlayStart?: () => void;
 }) => {
+  const showHi = variant === "hi_ok";
   return (
     <div className={cn("relative h-full w-full", className)}>
       <MascotInstance
         src="/animations/hi_ok.riv"
         useStateMachine
         onPlayStart={onPlayStart}
-        className="absolute inset-0"
+        className={cn(
+          "absolute inset-0",
+          !showHi && "pointer-events-none opacity-0"
+        )}
+      />
+      <MascotInstance
+        src="/animations/okok.riv"
+        useStateMachine
+        replayTrigger={replayKey}
+        className={cn(
+          "absolute inset-0",
+          showHi && "pointer-events-none opacity-0"
+        )}
       />
     </div>
   );

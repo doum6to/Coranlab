@@ -78,6 +78,9 @@ const OnboardingPage = () => {
   const greetingBeatTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
     null
   );
+  /** Monotonically-increasing counter bumped each time the user picks
+   *  an option on a question step. Drives the okok.riv replay. */
+  const [okokReplayKey, setOkokReplayKey] = useState(0);
 
   const step = STEPS[stepIndex];
   const isIntro = step.kind === "intro";
@@ -157,7 +160,14 @@ const OnboardingPage = () => {
   const handleSelectOption = (optionId: string) => {
     if (isIntro) return;
     setAnswers((prev) => ({ ...prev, [step.id]: optionId }));
+    setOkokReplayKey((k) => k + 1);
   };
+
+  // Show the okok celebration animation whenever the user has picked
+  // an answer on the current question step; fall back to hi_ok (the
+  // breathing idle) the rest of the time.
+  const mascotVariant: "hi_ok" | "okok" =
+    !isIntro && currentAnswer ? "okok" : "hi_ok";
 
   return (
     <main className="relative flex h-[100dvh] flex-col bg-white">
@@ -192,10 +202,14 @@ const OnboardingPage = () => {
             "absolute transition-all duration-500 ease-out",
             isIntro
               ? "left-1/2 top-[34%] h-32 w-32 -translate-x-1/2 sm:h-36 sm:w-36"
-              : "left-6 top-4 h-14 w-14 sm:h-16 sm:w-16"
+              : "left-4 top-2 h-24 w-24 sm:h-28 sm:w-28"
           )}
         >
-          <OnboardingMascot onPlayStart={handleMascotPlayStart} />
+          <OnboardingMascot
+            variant={mascotVariant}
+            replayKey={okokReplayKey}
+            onPlayStart={handleMascotPlayStart}
+          />
         </div>
 
         {/* Title — position & size animate with the mascot */}
@@ -204,7 +218,7 @@ const OnboardingPage = () => {
             "absolute font-heading font-bold text-brilliant-text transition-all duration-500 ease-out",
             isIntro
               ? "left-0 right-0 top-[calc(34%+9rem)] px-6 text-center text-lg leading-snug sm:top-[calc(34%+10rem)] sm:text-xl"
-              : "left-24 right-6 top-6 text-lg leading-snug sm:left-28 sm:text-xl"
+              : "left-28 right-6 top-8 text-lg leading-snug sm:left-32 sm:text-xl"
           )}
         >
           {title}
