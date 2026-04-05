@@ -76,23 +76,23 @@ const STEPS: Step[] = [
     title: "Combien de temps par jour\u00A0?",
     options: [
       {
-        id: "5",
-        label: "5 minutes par jour",
+        id: "10",
+        label: "10 min",
         response: "Parfait, on avance chaque jour.",
       },
       {
-        id: "10",
-        label: "10 minutes par jour",
+        id: "20",
+        label: "20 min",
         response: "Top, le rythme idéal\u00A0!",
       },
       {
-        id: "15",
-        label: "15 minutes par jour",
+        id: "30",
+        label: "30 min",
         response: "Bravo, tu vas vite progresser.",
       },
       {
-        id: "20",
-        label: "20 minutes ou plus par jour",
+        id: "60",
+        label: "60 min",
         response: "Impressionnant, tu iras loin\u00A0!",
       },
     ],
@@ -277,8 +277,93 @@ const OnboardingPage = () => {
 
         {/* Options (only for question steps). Each button sizes to its
             label (inline-flex + centred column), no click-scale, and
-            the selected one gets the Brilliant shiny sweep overlay. */}
-        {!isIntro && (
+            the selected one gets the Brilliant shiny sweep overlay.
+            The "time" question uses a dedicated icon-card grid that
+            matches Brilliant's native time-selection screen — same
+            style on mobile and desktop. */}
+        {!isIntro && step.id === "time" && (
+          <div className="absolute inset-x-0 bottom-0 top-40 px-6 sm:top-48">
+            {/* 2-column grid on mobile, 4-column row on sm+. Cards are
+                square, sit centred under the mascot, and each holds an
+                SVG timer icon above its label. */}
+            <div className="mx-auto grid w-full max-w-sm grid-cols-2 gap-4 sm:max-w-2xl sm:grid-cols-4">
+              {step.options.map((option) => {
+                const selected = currentAnswer === option.id;
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => handleSelectOption(option.id)}
+                    className={cn(
+                      "relative flex aspect-square flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl transition-colors duration-200",
+                      selected
+                        ? "bg-gradient-to-br from-[#f0f0ff] to-[#d9bbff] text-brilliant-text shadow-[0_2px_0_0_#c8c7f0]"
+                        : "bg-gray-100 text-brilliant-text hover:bg-gray-200"
+                    )}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`/svg/timer/timer-${option.id}.svg`}
+                      alt=""
+                      aria-hidden
+                      className="relative z-10 h-14 w-14 sm:h-16 sm:w-16"
+                    />
+                    <span className="relative z-10 text-sm font-bold sm:text-base">
+                      {option.label}
+                    </span>
+                    {selected && (
+                      <span
+                        key={`shiny-${okokReplayKey}`}
+                        aria-hidden
+                        className="pointer-events-none absolute inset-0 z-[1] animate-shiny-sweep-once"
+                      >
+                        <svg
+                          viewBox="0 0 150 150"
+                          className="h-full w-full"
+                          xmlns="http://www.w3.org/2000/svg"
+                          preserveAspectRatio="none"
+                        >
+                          <defs>
+                            <linearGradient
+                              id={`opt-tg1-${option.id}`}
+                              x1="100.5"
+                              y1="-58.63"
+                              x2="100.5"
+                              y2="91.37"
+                              gradientUnits="userSpaceOnUse"
+                            >
+                              <stop
+                                offset="0.27"
+                                stopColor="white"
+                                stopOpacity="0.55"
+                              />
+                              <stop
+                                offset="0.71"
+                                stopColor="white"
+                                stopOpacity="0"
+                              />
+                            </linearGradient>
+                          </defs>
+                          <rect
+                            opacity="0.5"
+                            x="75"
+                            y="-58.63"
+                            width="51"
+                            height="250"
+                            transform="rotate(30 75 -58.63)"
+                            fill={`url(#opt-tg1-${option.id})`}
+                          />
+                        </svg>
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {!isIntro && step.id !== "time" && (
           <div className="absolute inset-x-0 bottom-0 top-40 px-6 sm:top-48">
             {/* On mobile the column fills the available width and is
                 left-aligned against the screen edge. On sm+ the column
