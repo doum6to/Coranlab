@@ -13,13 +13,19 @@ type IntroStep = {
   title: string;
 };
 
+type QuestionOption = {
+  id: string;
+  label: string;
+  /** Personal response shown when this specific option is selected, so
+   *  the user feels spoken to directly. */
+  response: string;
+};
+
 type QuestionStep = {
   kind: "question";
   id: string;
   title: string;
-  /** Title shown once an option has been selected. */
-  afterTitle: string;
-  options: { id: string; label: string }[];
+  options: QuestionOption[];
 };
 
 type Step = IntroStep | QuestionStep;
@@ -30,32 +36,63 @@ const STEPS: Step[] = [
     title: "Salam, je suis Koji !",
   },
   {
-    kind: "intro",
-    title: "Créons un parcours d'apprentissage rien que pour toi.",
-  },
-  {
     kind: "question",
     id: "focus",
     title: "Sur quoi veux-tu te concentrer ?",
-    afterTitle: "Excellent choix, on s'y met !",
     options: [
-      { id: "vocab", label: "Apprendre le vocabulaire du Coran" },
-      { id: "memorize", label: "Mémoriser des sourates" },
-      { id: "arabic", label: "Comprendre l'arabe" },
-      { id: "basics", label: "Revoir les bases" },
-      { id: "other", label: "Autre chose" },
+      {
+        id: "vocab",
+        label: "Apprendre le vocabulaire du Coran",
+        response:
+          "Excellent ! Comprendre les mots, c'est ouvrir la porte du sens.",
+      },
+      {
+        id: "memorize",
+        label: "Mémoriser des sourates",
+        response: "Superbe objectif, je vais t'aider à graver ça dans ton cœur.",
+      },
+      {
+        id: "arabic",
+        label: "Comprendre l'arabe",
+        response: "Bravo, on va construire ta compréhension pas à pas.",
+      },
+      {
+        id: "basics",
+        label: "Revoir les bases",
+        response: "Très bien, on repart sur des fondations solides ensemble.",
+      },
+      {
+        id: "other",
+        label: "Autre chose",
+        response: "Pas de souci, je m'adapte à ton objectif personnel.",
+      },
     ],
   },
   {
     kind: "question",
     id: "time",
     title: "Combien de temps par jour ?",
-    afterTitle: "Objectif noté, on va y arriver !",
     options: [
-      { id: "5", label: "5 minutes par jour" },
-      { id: "10", label: "10 minutes par jour" },
-      { id: "15", label: "15 minutes par jour" },
-      { id: "20", label: "20 minutes ou plus par jour" },
+      {
+        id: "5",
+        label: "5 minutes par jour",
+        response: "Parfait, 5 minutes suffisent pour avancer chaque jour.",
+      },
+      {
+        id: "10",
+        label: "10 minutes par jour",
+        response: "Top, 10 minutes c'est le rythme idéal pour progresser.",
+      },
+      {
+        id: "15",
+        label: "15 minutes par jour",
+        response: "Bravo, tu vas voir des résultats rapidement avec ça.",
+      },
+      {
+        id: "20",
+        label: "20 minutes ou plus par jour",
+        response: "Impressionnant ! Avec cet engagement tu iras loin.",
+      },
     ],
   },
   {
@@ -131,7 +168,11 @@ const OnboardingPage = () => {
       }
       return step.title;
     }
-    return currentAnswer ? step.afterTitle : step.title;
+    if (currentAnswer) {
+      const selected = step.options.find((o) => o.id === currentAnswer);
+      if (selected) return selected.response;
+    }
+    return step.title;
   }, [step, isIntro, currentAnswer, stepIndex, greetingBeat]);
 
   const progress = ((stepIndex + 1) / STEPS.length) * 100;
@@ -202,7 +243,7 @@ const OnboardingPage = () => {
             "absolute transition-all duration-500 ease-out",
             isIntro
               ? "left-1/2 top-[34%] h-32 w-32 -translate-x-1/2 sm:h-36 sm:w-36"
-              : "left-4 top-2 h-24 w-24 sm:h-28 sm:w-28"
+              : "left-4 top-2 h-36 w-36 sm:h-40 sm:w-40"
           )}
         >
           <OnboardingMascot
@@ -212,13 +253,15 @@ const OnboardingPage = () => {
           />
         </div>
 
-        {/* Title — position & size animate with the mascot */}
+        {/* Title — position & size animate with the mascot. On question
+            steps the title is vertically centered against the mascot
+            (same top + matching height so items-center works). */}
         <h1
           className={cn(
             "absolute font-heading font-bold text-brilliant-text transition-all duration-500 ease-out",
             isIntro
               ? "left-0 right-0 top-[calc(34%+9rem)] px-6 text-center text-lg leading-snug sm:top-[calc(34%+10rem)] sm:text-xl"
-              : "left-28 right-6 top-8 text-lg leading-snug sm:left-32 sm:text-xl"
+              : "left-40 right-4 top-2 flex h-36 items-center text-base leading-snug sm:left-44 sm:h-40 sm:text-lg"
           )}
         >
           {title}
@@ -226,7 +269,7 @@ const OnboardingPage = () => {
 
         {/* Options (only for question steps) */}
         {!isIntro && (
-          <div className="absolute inset-x-0 top-32 space-y-3 px-6 sm:top-36">
+          <div className="absolute inset-x-0 top-44 space-y-3 px-6 sm:top-48">
             {step.options.map((option) => {
               const selected = currentAnswer === option.id;
               const hasSelection = !!currentAnswer;
