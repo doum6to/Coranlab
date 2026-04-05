@@ -1,33 +1,53 @@
 "use client";
 
-import { Alignment, Fit, Layout, useRive } from "@rive-app/react-canvas";
+import {
+  Alignment,
+  EventType,
+  Fit,
+  Layout,
+  useRive,
+} from "@rive-app/react-canvas";
 import { useEffect, useState } from "react";
 
 import { cn } from "@/lib/utils";
 
 type MascotInstanceProps = {
   src: string;
+  /** If provided, called once the animation's full duration has elapsed. */
   onFinish?: () => void;
+  /** Force the animation to restart on stop — useful when the .riv file
+   *  isn't marked as Loop in the Rive editor. */
+  forceLoop?: boolean;
   className?: string;
 };
 
-const MascotInstance = ({ src, onFinish, className }: MascotInstanceProps) => {
+const MascotInstance = ({
+  src,
+  onFinish,
+  forceLoop,
+  className,
+}: MascotInstanceProps) => {
   const { rive, RiveComponent } = useRive({
     src,
     autoplay: true,
     layout: new Layout({ fit: Fit.Contain, alignment: Alignment.Center }),
   });
 
+  // Duration-based "onFinish" timer for the greeting animation.
   useEffect(() => {
     if (!rive || !onFinish) return;
     let timer: ReturnType<typeof setTimeout> | null = null;
     let poll: ReturnType<typeof setInterval> | null = null;
     let done = false;
 
-    // Read the animation duration from whichever API the Rive runtime
-    // exposes. durationSec is the newer direct accessor; older builds
-    // only expose per-animation objects via animationByName, where the
-    // duration is stored in frames and has to be divided by fps.
+    const fire = () => {
+      if (done) return;
+      done = true;
+      if (timer) clearTimeout(timer);
+      if (poll) clearInterval(poll);
+      onFinish();
+    };
+
     const getDurationMs = (): number | null => {
       try {
         const withDurationSec = rive as unknown as { durationSec?: number };
@@ -57,38 +77,60 @@ const MascotInstance = ({ src, onFinish, className }: MascotInstanceProps) => {
           }
         }
       } catch {
-        /* ignore — fall through to polling */
+        /* ignore */
       }
       return null;
     };
 
-    const tryStart = (): boolean => {
+    const trySchedule = (): boolean => {
       if (done) return true;
       const ms = getDurationMs();
       if (ms === null || ms <= 0) return false;
-      done = true;
-      timer = setTimeout(onFinish, ms);
+      timer = setTimeout(fire, ms);
       return true;
     };
 
-    // First shot — the file may already be fully loaded by the time this
-    // effect runs (which also means the Load event has already fired and
-    // an .on(Load) listener would miss it).
-    if (!tryStart()) {
+    if (!trySchedule()) {
       let attempts = 0;
       poll = setInterval(() => {
         attempts += 1;
-        if (tryStart() || attempts > 40) {
+        if (trySchedule() || attempts > 40) {
           if (poll) clearInterval(poll);
+          // Hard safety net: if after 2s we still couldn't read the
+          // duration, just advance anyway so the flow never gets stuck.
+          if (!done && attempts > 40) {
+            fire();
+          }
         }
       }, 50);
     }
 
+    // Ultimate ceiling: no matter what, advance after 10 seconds.
+    const ceiling = setTimeout(fire, 10_000);
+
     return () => {
       if (timer) clearTimeout(timer);
       if (poll) clearInterval(poll);
+      clearTimeout(ceiling);
     };
   }, [rive, onFinish]);
+
+  // Force loop behaviour for the breath animation — if the .riv isn't
+  // set to Loop in the editor, Rive will Stop it on the last frame.
+  useEffect(() => {
+    if (!rive || !forceLoop) return;
+    const handler = () => {
+      try {
+        rive.play();
+      } catch {
+        /* ignore */
+      }
+    };
+    rive.on(EventType.Stop, handler);
+    return () => {
+      rive.off(EventType.Stop, handler);
+    };
+  }, [rive, forceLoop]);
 
   return (
     <RiveComponent
@@ -99,10 +141,10 @@ const MascotInstance = ({ src, onFinish, className }: MascotInstanceProps) => {
 };
 
 /**
- * Plays `mascot_hi.riv` once then transitions to `mascot_breath.riv` on
- * loop. Both Rive instances are mounted from the start and stacked in an
- * absolute layer, so the swap is a zero-flash opacity toggle (the canvas
- * never leaves the DOM between the two animations).
+ * Plays `mascot_hi.riv` once then swaps to `mascot_breath.riv` looping.
+ * Both Rive instances are mounted from the start and stacked with
+ * `position: absolute`, so the transition is a zero-flash opacity toggle
+ * (the canvas never leaves the DOM between the two animations).
  */
 export const OnboardingMascot = ({ className }: { className?: string }) => {
   const [hiDone, setHiDone] = useState(false);
@@ -119,6 +161,7 @@ export const OnboardingMascot = ({ className }: { className?: string }) => {
       />
       <MascotInstance
         src="/animations/mascot_breath.riv"
+        forceLoop
         className={cn(
           "absolute inset-0",
           !hiDone && "pointer-events-none opacity-0"
