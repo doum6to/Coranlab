@@ -21,10 +21,6 @@ type MascotInstanceProps = {
    *  UI — starting a timer at React mount is unreliable because the
    *  .riv file may still be loading. */
   onPlayStart?: () => void;
-  /** Monotonically-increasing number. When it changes, the instance
-   *  resets its state machine back to frame 0 and plays from the start.
-   *  Pass `undefined` (or never change it) to disable replay. */
-  replayTrigger?: number;
   className?: string;
 };
 
@@ -32,7 +28,6 @@ const MascotInstance = ({
   src,
   useStateMachine,
   onPlayStart,
-  replayTrigger,
   className,
 }: MascotInstanceProps) => {
   const { rive, RiveComponent } = useRive({
@@ -88,30 +83,6 @@ const MascotInstance = ({
     };
   }, [rive, onPlayStart]);
 
-  // Replay on external trigger — stop + reset the state machine, then
-  // play again from frame 0. Used to re-trigger `okok.riv` every time
-  // the user picks a new option in the onboarding question steps.
-  useEffect(() => {
-    if (!rive || replayTrigger === undefined) return;
-    try {
-      const withApi = rive as unknown as {
-        stop?: () => void;
-        reset?: (args?: { stateMachines?: string[] }) => void;
-        stateMachineNames?: string[];
-      };
-      const smNames = withApi.stateMachineNames;
-      if (typeof withApi.stop === "function") withApi.stop();
-      if (smNames && smNames.length > 0 && typeof withApi.reset === "function") {
-        withApi.reset({ stateMachines: [smNames[0]] });
-        rive.play(smNames[0]);
-      } else {
-        rive.play();
-      }
-    } catch {
-      /* ignore */
-    }
-  }, [rive, replayTrigger]);
-
   return (
     <RiveComponent
       className={cn("h-full w-full", className)}
@@ -123,15 +94,22 @@ const MascotInstance = ({
 type MascotVariant = "hi_ok" | "okok";
 
 /**
- * Onboarding mascot with two stackable animations:
- *   - `hi_ok.riv`: greeting → breath loop (default, plays from first
- *     mount and keeps looping).
- *   - `okok.riv`: celebratory reaction, triggered each time the user
- *     picks a new option during question steps.
+ * Onboarding mascot — only ONE MascotInstance is mounted at a time,
+ * matching the current `variant`. This is intentional: previously both
+ * instances were mounted from the intro step with an opacity toggle,
+ * but `okok.riv`'s celebration state-machine trigger was fired as soon
+ * as the instance initialised (see the MascotInstance play effect),
+ * so the celebration played invisibly on the intro step and was stuck
+ * on its post-celebration frame by the time the user reached a
+ * question. That made it look like hi_ok was showing first, then okok
+ * "launching" on click.
  *
- * Both instances are mounted from the start (absolute inset-0) so the
- * swap is a zero-flash opacity toggle. `okok` is re-triggered via its
- * `replayTrigger` prop whenever `replayKey` changes.
+ * Mounting only the active variant ensures the trigger fires exactly
+ * when the user sees the mascot. `okok.riv` is preloaded in the root
+ * layout so the fresh mount on question-step entry is instantaneous
+ * (cached fetch, cached wasm). The `replayKey`-driven `key` on the
+ * okok instance forces a full remount on each option click so the
+ * celebration replays from frame 0.
  */
 export const OnboardingMascot = ({
   className,
@@ -144,33 +122,23 @@ export const OnboardingMascot = ({
   replayKey?: number;
   onPlayStart?: () => void;
 }) => {
-  const showHi = variant === "hi_ok";
   return (
     <div className={cn("relative h-full w-full", className)}>
-      <MascotInstance
-        src="/animations/hi_ok.riv"
-        useStateMachine
-        onPlayStart={onPlayStart}
-        className={cn(
-          "absolute inset-0",
-          !showHi && "pointer-events-none opacity-0"
-        )}
-      />
-      {/* Full remount (via React key) on every replayKey bump. This is
-          the most reliable way to guarantee a clean play from frame 0
-          for state-machine-driven .riv files — stop+reset+play on an
-          already-finished SM is flaky across Rive runtime versions.
-          okok.riv is preloaded in the root layout so remounting only
-          hits the browser cache. */}
-      <MascotInstance
-        key={`okok-${replayKey ?? 0}`}
-        src="/animations/okok.riv"
-        useStateMachine
-        className={cn(
-          "absolute inset-0",
-          showHi && "pointer-events-none opacity-0"
-        )}
-      />
+      {variant === "hi_ok" ? (
+        <MascotInstance
+          src="/animations/hi_ok.riv"
+          useStateMachine
+          onPlayStart={onPlayStart}
+          className="absolute inset-0"
+        />
+      ) : (
+        <MascotInstance
+          key={`okok-${replayKey ?? 0}`}
+          src="/animations/okok.riv"
+          useStateMachine
+          className="absolute inset-0"
+        />
+      )}
     </div>
   );
 };
