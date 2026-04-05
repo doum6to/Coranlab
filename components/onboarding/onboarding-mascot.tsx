@@ -7,29 +7,25 @@ import {
   Layout,
   useRive,
 } from "@rive-app/react-canvas";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { cn } from "@/lib/utils";
 
 type MascotInstanceProps = {
   src: string;
-  /** If the .riv file uses a state machine instead of a direct timeline,
-   *  auto-detect and start it on load. */
+  /** If the .riv file uses a state machine, start it on load. */
   useStateMachine?: boolean;
-  /** Explicit animation timeline to play instead of the state machine.
-   *  Used for okok.riv where we want to jump straight into "yup"
-   *  (the celebration timeline) without passing through the state
-   *  machine's idle state (which visually resembles hi_ok). */
+  /** Primary timeline animation to play on mount and on every
+   *  replayKey change, bypassing the state machine. */
   animationName?: string;
-  /** Monotonic counter — when it changes, the current animation is
-   *  stopped, reset to frame 0, and replayed. Used instead of a React
-   *  `key`-driven remount so we don't get a white frame while the
-   *  Rive runtime re-inits. */
+  /** Optional looping animation to play after `animationName`
+   *  finishes. Used on okok.riv: "yup" plays as the one-shot
+   *  celebration, then "breath loop" takes over as idle. */
+  idleAnimationName?: string;
+  /** Monotonic counter — each time it changes, the timeline animation
+   *  is stopped and replayed from frame 0. */
   replayKey?: number;
-  /** Fired the first time the Rive runtime actually starts playing the
-   *  animation (after fetch + parse + first frame). Used to sync timed
-   *  UI — starting a timer at React mount is unreliable because the
-   *  .riv file may still be loading. */
+  /** Fired the first time the Rive runtime actually starts playing. */
   onPlayStart?: () => void;
   className?: string;
 };
@@ -38,6 +34,7 @@ const MascotInstance = ({
   src,
   useStateMachine,
   animationName,
+  idleAnimationName,
   replayKey,
   onPlayStart,
   className,
@@ -45,77 +42,86 @@ const MascotInstance = ({
   const { rive, RiveComponent } = useRive({
     src,
     autoplay: true,
+    // Explicit timeline animation takes priority over state machine.
     animations: animationName ? [animationName] : undefined,
+    stateMachines:
+      !animationName && useStateMachine ? "State Machine 1" : undefined,
     layout: new Layout({ fit: Fit.Contain, alignment: Alignment.Center }),
   });
 
-  // Auto-detect and play the first state machine in the file, then
-  // fire any trigger inputs on it. Without firing the triggers,
-  // files like okok.riv — whose celebration is gated by a "Trigger 1"
-  // input — sit on their idle state and look identical to the
-  // hi_ok breath loop.
+  // Kick the animation into playing state as soon as rive is ready.
+  // useRive's `autoplay: true` isn't always honored when `animations`
+  // is set and the .riv comes from cache.
   useEffect(() => {
-    if (!rive) return;
-    if (animationName) {
-      try {
-        (rive as unknown as { play: (name: string) => void }).play(
-          animationName
-        );
-      } catch {
-        /* ignore */
-      }
-      return;
-    }
-    if (!useStateMachine) return;
+    if (!rive || !animationName) return;
     try {
-      const api = rive as unknown as {
-        stateMachineNames?: string[];
-        play: (name: string) => void;
-        stateMachineInputs?: (
-          name: string
-        ) => Array<{ name: string; type: number; fire?: () => void }> | undefined;
-      };
-      const smNames = api.stateMachineNames;
-      if (smNames && smNames.length > 0) {
-        api.play(smNames[0]);
-        const inputs = api.stateMachineInputs?.(smNames[0]) || [];
-        for (const input of inputs) {
-          if (typeof input.fire === "function") {
-            input.fire();
+      (rive as unknown as { play: (name: string) => void }).play(
+        animationName
+      );
+    } catch {
+      /* ignore */
+    }
+  }, [rive, animationName]);
+
+  // Replay the timeline animation from frame 0 whenever replayKey
+  // changes — this is how okok.riv replays its celebration on each
+  // option click.
+  useEffect(() => {
+    if (!rive || replayKey === undefined) return;
+    try {
+      if (animationName) {
+        const api = rive as unknown as {
+          stop: (name?: string | string[]) => void;
+          play: (name?: string | string[]) => void;
+        };
+        api.stop(animationName);
+        api.play(animationName);
+      } else if (useStateMachine) {
+        // Fire every trigger input on the state machine — this is
+        // what makes okok.riv replay "yup" and then transition back
+        // to "breath loop" on each click.
+        const api = rive as unknown as {
+          stateMachineNames?: string[];
+          stateMachineInputs?: (
+            name: string
+          ) => Array<{ name: string; fire?: () => void }> | undefined;
+        };
+        const smNames = api.stateMachineNames;
+        if (smNames && smNames.length > 0) {
+          const inputs = api.stateMachineInputs?.(smNames[0]) || [];
+          for (const input of inputs) {
+            if (typeof input.fire === "function") input.fire();
           }
         }
       }
     } catch {
       /* ignore */
     }
-  }, [rive, useStateMachine, animationName]);
+  }, [rive, animationName, useStateMachine, replayKey]);
 
-  // Replay the animation in-place when replayKey changes — reset the
-  // timeline to frame 0 and start playing again. Keeping the same Rive
-  // instance alive avoids the white flash that a React `key`-driven
-  // remount would cause while the runtime re-initialises.
+  // When `animationName` finishes (Stop event), switch to the idle
+  // looping animation. This gives the sequence: "yup" one-shot on
+  // mount / on each replayKey bump → "breath loop" while idle.
   useEffect(() => {
-    if (!rive || !animationName || replayKey === undefined) return;
-    try {
-      const api = rive as unknown as {
-        stop: (name?: string | string[]) => void;
-        reset: (options?: { animations?: string[]; autoplay?: boolean }) => void;
-        play: (name?: string | string[]) => void;
-      };
-      if (typeof api.reset === "function") {
-        api.reset({ animations: [animationName], autoplay: true });
-      } else {
-        api.stop(animationName);
-        api.play(animationName);
+    if (!rive || !animationName || !idleAnimationName) return;
+    const handler = () => {
+      try {
+        const api = rive as unknown as {
+          play: (name: string) => void;
+        };
+        api.play(idleAnimationName);
+      } catch {
+        /* ignore */
       }
-    } catch {
-      /* ignore */
-    }
-  }, [rive, animationName, replayKey]);
+    };
+    rive.on(EventType.Stop, handler);
+    return () => {
+      rive.off(EventType.Stop, handler);
+    };
+  }, [rive, animationName, idleAnimationName]);
 
   // Fire onPlayStart exactly once — on the first Advance event, which
-  // means the runtime has rendered at least one frame. Using Play alone
-  // isn't enough because it can fire before the first paint.
+  // means the runtime has rendered at least one frame.
   useEffect(() => {
     if (!rive || !onPlayStart) return;
     let fired = false;
@@ -141,71 +147,70 @@ const MascotInstance = ({
 type MascotPhase = "intro" | "question";
 
 /**
- * Onboarding mascot — two layers stacked in the same box:
- *  - hi_ok.riv (the greeting / idle) — always mounted while we're in
- *    the onboarding, so switching from intro to question doesn't cost
- *    a fresh Rive init.
- *  - okok.riv (the "yup" celebration) — mounted only once we reach
- *    the question phase, and kept alive from that point on. The
- *    instance is never unmounted between option clicks: instead we
- *    call reset+play via the `replayKey` effect in MascotInstance,
- *    which eliminates the white frame flash a React `key`-driven
- *    remount would cause while the Rive runtime re-initialises.
+ * Onboarding mascot — swaps between two .riv files based on phase:
+ *  - intro  → hi_ok.riv  (Koji greeting via its state machine,
+ *              including the "créons ensemble" beat at ~1.5s)
+ *  - question → okok.riv (state machine: fires "yup" celebration
+ *              trigger on each option click, rests on breath_loop
+ *              idle between clicks)
  *
- * Visibility is a pure opacity toggle. okok's "yup" timeline is
- * one-shot, so when no option has been selected yet it sits paused
- * on its final frame underneath hi_ok — invisible, and ready to
- * replay instantly on the first click.
+ * okok is kept mounted across clicks — `replayKey` changes re-fire
+ * the "yup" trigger on the live Rive instance, so there is no remount
+ * and no white flash between celebrations.
  */
-export const OnboardingMascot = ({
-  className,
-  phase = "intro",
-  showOkok = false,
-  replayKey,
-  onPlayStart,
-}: {
+type OnboardingMascotProps = {
   className?: string;
   phase?: MascotPhase;
-  showOkok?: boolean;
   replayKey?: number;
   onPlayStart?: () => void;
-}) => {
+};
+
+const OnboardingMascotInner = ({
+  className,
+  phase = "intro",
+  replayKey,
+  onPlayStart,
+}: OnboardingMascotProps) => {
   return (
     <div className={cn("relative h-full w-full", className)}>
-      <div
-        className={cn(
-          "absolute inset-0 transition-opacity duration-150",
-          showOkok ? "opacity-0" : "opacity-100"
-        )}
-      >
+      {phase === "intro" ? (
         <MascotInstance
+          key="hi_ok"
           src="/animations/hi_ok.riv"
           useStateMachine
           onPlayStart={onPlayStart}
           className="absolute inset-0"
         />
-      </div>
-
-      {phase === "question" && (
-        <div
-          className={cn(
-            "absolute inset-0 transition-opacity duration-150",
-            showOkok ? "opacity-100" : "opacity-0"
-          )}
-        >
-          <MascotInstance
-            src="/animations/okok.riv"
-            // Play the "yup" celebration timeline directly, bypassing
-            // the state machine (whose idle state "breath loop" is
-            // visually indistinguishable from hi_ok).
-            animationName="yup"
-            // Resets and replays the timeline in-place whenever
-            // replayKey changes — no remount, no white flash.
-            replayKey={replayKey}
-            className="absolute inset-0"
-          />
-        </div>
+      ) : (
+        // okok.riv: run its built-in state machine, which handles
+        // entry → yup → breath_loop natively. Remount on every
+        // replayKey change so the SM restarts from entry and the
+        // yup celebration plays from frame 0. The .riv file is
+        // preloaded in the root layout so the remount is instant.
+        <MascotInstance
+          key={`okok-${replayKey ?? 0}`}
+          src="/animations/okok.riv"
+          useStateMachine
+          className="absolute inset-0"
+        />
       )}
     </div>
   );
+};
+
+// Client-only wrapper: useRive renders a <canvas> that can't exist
+// during SSR, so we gate the whole subtree on a post-mount flag.
+// Server HTML and the first client render both produce the same empty
+// div — the Rive canvas only appears on the second client render.
+export const OnboardingMascot = (props: OnboardingMascotProps) => {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  if (!mounted) {
+    return (
+      <div className={cn("relative h-full w-full", props.className)} />
+    );
+  }
+  return <OnboardingMascotInner {...props} />;
 };

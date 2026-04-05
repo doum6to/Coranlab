@@ -7,7 +7,7 @@ import {
   Layout,
   useRive,
 } from "@rive-app/react-canvas";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -33,6 +33,14 @@ export const RiveMascot = ({
   animationName,
   className,
 }: RiveMascotProps) => {
+  // Avoid SSR hydration mismatch: useRive renders a <canvas> that can
+  // only exist on the client, so we delay mounting it until after the
+  // first client render.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const { rive, RiveComponent } = useRive({
     src,
     autoplay: true,
@@ -61,6 +69,10 @@ export const RiveMascot = ({
       rive.off(EventType.Load, tryPlay);
     };
   }, [rive, animationName]);
+
+  if (!mounted) {
+    return <div className={cn("h-full w-full", className)} aria-hidden />;
+  }
 
   return (
     <RiveComponent
