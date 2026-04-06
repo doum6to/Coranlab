@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useState } from "react";
+import { useRive, Layout, Fit, Alignment } from "@rive-app/react-canvas";
 
 import {
   Dialog,
@@ -28,12 +28,7 @@ export const ExitModal = () => {
       <DialogContent className="max-w-sm rounded-2xl border-2 border-[#E0E0E0] bg-white p-6 sm:p-8">
         <DialogHeader>
           <div className="flex items-center w-full justify-center mb-4">
-            <Image
-              src="/mascot_sad.svg"
-              alt="Mascotte"
-              height={120}
-              width={120}
-            />
+            <ExitMascot />
           </div>
           <DialogTitle className="text-center font-bold text-xl sm:text-2xl text-brilliant-text">
             Attends, ne pars pas !
@@ -63,3 +58,18 @@ export const ExitModal = () => {
     </Dialog>
   );
 };
+
+function ExitMascot() {
+  const { RiveComponent } = useRive({
+    src: "/animations/mascot_breath.riv",
+    stateMachines: "breath loop",
+    autoplay: true,
+    layout: new Layout({ fit: Fit.Contain, alignment: Alignment.Center }),
+  });
+
+  return (
+    <div className="h-[120px] w-[120px]">
+      <RiveComponent className="h-full w-full" aria-label="Mascotte" />
+    </div>
+  );
+}
