@@ -30,9 +30,6 @@ export const Opposite = ({
         <span className="font-arabic text-3xl sm:text-4xl text-brilliant-text" dir="rtl">
           {challenge.arabicWord}
         </span>
-        <span className="text-xs text-gray-400">
-          = {challenge.frenchTranslation}
-        </span>
       </div>
 
       {/* Instruction */}
