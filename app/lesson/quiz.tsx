@@ -11,6 +11,7 @@ import { useRive, Layout, Fit, Alignment } from "@rive-app/react-canvas";
 import { challengeOptions, challenges, userSubscription } from "@/db/schema";
 import { completeLessonChallenges } from "@/actions/challenge-progress";
 
+import { ShinyButton } from "@/components/ui/shiny-button";
 import { Header } from "./header";
 import { Footer } from "./footer";
 import { ResultCard } from "./result-card";
@@ -385,10 +386,10 @@ function CompletionRive() {
     layout: new Layout({ fit: Fit.Contain, alignment: Alignment.Center }),
   });
 
-  if (!mounted) return <div className="h-[120px] sm:h-[260px]" />;
+  if (!mounted) return <div className="h-[270px] sm:h-[390px]" />;
 
   return (
-    <div className="relative mx-auto h-[120px] w-[160px] sm:h-[260px] sm:w-[340px]">
+    <div className="relative mx-auto h-[270px] w-[360px] sm:h-[390px] sm:w-[510px]">
       <RiveComponent className="h-full w-full" aria-label="Animation de complétion" />
     </div>
   );
@@ -407,10 +408,10 @@ function FailedRive() {
     layout: new Layout({ fit: Fit.Contain, alignment: Alignment.Center }),
   });
 
-  if (!mounted) return <div className="h-[120px] sm:h-[260px]" />;
+  if (!mounted) return <div className="h-[270px] sm:h-[390px]" />;
 
   return (
-    <div className="relative mx-auto h-[120px] w-[160px] sm:h-[260px] sm:w-[340px]">
+    <div className="relative mx-auto h-[270px] w-[360px] sm:h-[390px] sm:w-[510px]">
       <RiveComponent className="h-full w-full" aria-label="Animation d'échec" />
     </div>
   );
@@ -454,7 +455,7 @@ function FinishedScreen({
   }, []);
 
   return (
-    <div className="flex h-[100dvh] flex-col">
+    <div className="flex h-[100dvh] flex-col items-center justify-center px-4 sm:px-6">
       {passed && width > 0 && height > 0 && (
         <Confetti
           width={width}
@@ -465,100 +466,111 @@ function FinishedScreen({
         />
       )}
 
-      <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden px-4 sm:px-6">
-        {/* Rive animation */}
-        <div className="animate-fade-in-up shrink-0" style={{ animationDelay: "0s" }}>
-          {passed ? <CompletionRive /> : <FailedRive />}
-        </div>
-
-        {/* Title */}
-        <h1
-          className="animate-fade-in-up mt-1 text-center text-lg font-bold text-brilliant-text sm:mt-4 sm:text-3xl lg:text-4xl"
-          style={{ animationDelay: "0.3s" }}
-        >
-          {passed ? (
-            <>
-              {levelOrder ? `Niveau ${levelOrder}` : "Leçon"}
-              <br />
-              terminée !
-            </>
-          ) : (
-            <>
-              Pas encore...
-              <br />
-              Tu as obtenu {scorePercentage}%.
-            </>
-          )}
-        </h1>
-
-        {/* Stats row: XP + Score side by side */}
-        <div
-          className="animate-fade-in-up mt-2 flex items-start justify-center gap-8 sm:mt-8 sm:gap-14"
-          style={{ animationDelay: "0.6s" }}
-        >
-          {/* XP counter with star explosion */}
-          <div className="relative">
-            <p className="text-center text-[10px] font-semibold uppercase tracking-widest text-gray-400 sm:text-xs">
-              Total XP
-            </p>
-            <div className="relative mt-1 flex items-center justify-center">
-              <StarBurst visible={burstFired} />
-              <TwinkleStars />
-              <span
-                className="animate-xp-pop text-3xl font-extrabold sm:text-6xl lg:text-7xl transition-colors duration-500"
-                style={{
-                  animationDelay: "0.8s",
-                  color: xpDone ? "#1A1A1A" : "#6967FB",
-                }}
-              >
-                {animatedXP}
-              </span>
-            </div>
-          </div>
-
-          {/* Score percentage with its own star burst */}
-          <div className="relative">
-            <p className="text-center text-[10px] font-semibold uppercase tracking-widest text-gray-400 sm:text-xs">
-              Score
-            </p>
-            <div className="relative mt-1 flex items-center justify-center">
-              <StarBurst visible={scoreBurstFired} />
-              <TwinkleStars />
-              <span
-                className="animate-xp-pop text-3xl font-extrabold sm:text-6xl lg:text-7xl transition-colors duration-500"
-                style={{
-                  animationDelay: "1s",
-                  color: scoreDone ? "#1A1A1A" : "#6967FB",
-                }}
-              >
-                {animatedScore}<span className="text-sm sm:text-2xl lg:text-3xl">%</span>
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {!passed && (
-          <p className="animate-fade-in-up mt-2 text-center text-xs text-gray-500 sm:mt-3 sm:text-sm"
-            style={{ animationDelay: "0.7s" }}
-          >
-            Il faut atteindre 90% de bonnes réponses
-            <br />
-            pour valider ce niveau.
-          </p>
-        )}
-
-        {saving && (
-          <p className="mt-2 text-xs text-gray-400 animate-pulse sm:mt-3 sm:text-sm">
-            Sauvegarde en cours...
-          </p>
-        )}
+      {/* Rive animation */}
+      <div className="animate-fade-in-up" style={{ animationDelay: "0s" }}>
+        {passed ? <CompletionRive /> : <FailedRive />}
       </div>
 
-      <Footer
-        lessonId={lessonId}
-        status="completed"
-        onCheck={onContinue}
-      />
+      {/* Title */}
+      <h1
+        className="animate-fade-in-up mt-2 text-center text-xl font-bold text-brilliant-text sm:mt-4 sm:text-3xl lg:text-4xl"
+        style={{ animationDelay: "0.3s" }}
+      >
+        {passed ? (
+          <>
+            {levelOrder ? `Niveau ${levelOrder}` : "Leçon"}
+            <br />
+            terminée !
+          </>
+        ) : (
+          <>
+            Pas encore...
+            <br />
+            Tu as obtenu {scorePercentage}%.
+          </>
+        )}
+      </h1>
+
+      {/* Stats row: XP + Score side by side */}
+      <div
+        className="animate-fade-in-up mt-4 flex items-start justify-center gap-8 sm:mt-8 sm:gap-14"
+        style={{ animationDelay: "0.6s" }}
+      >
+        {/* XP counter with star explosion */}
+        <div className="relative">
+          <p className="text-center text-xs font-semibold uppercase tracking-widest text-gray-400">
+            Total XP
+          </p>
+          <div className="relative mt-1 flex items-center justify-center">
+            <StarBurst visible={burstFired} />
+            <TwinkleStars />
+            <span
+              className="animate-xp-pop text-4xl font-extrabold sm:text-6xl lg:text-7xl transition-colors duration-500"
+              style={{
+                animationDelay: "0.8s",
+                color: xpDone ? "#1A1A1A" : "#6967FB",
+              }}
+            >
+              {animatedXP}
+            </span>
+          </div>
+        </div>
+
+        {/* Score percentage with its own star burst */}
+        <div className="relative">
+          <p className="text-center text-xs font-semibold uppercase tracking-widest text-gray-400">
+            Score
+          </p>
+          <div className="relative mt-1 flex items-center justify-center">
+            <StarBurst visible={scoreBurstFired} />
+            <TwinkleStars />
+            <span
+              className="animate-xp-pop text-4xl font-extrabold sm:text-6xl lg:text-7xl transition-colors duration-500"
+              style={{
+                animationDelay: "1s",
+                color: scoreDone ? "#1A1A1A" : "#6967FB",
+              }}
+            >
+              {animatedScore}<span className="text-lg sm:text-2xl lg:text-3xl">%</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {!passed && (
+        <p className="animate-fade-in-up mt-3 text-center text-sm text-gray-500"
+          style={{ animationDelay: "0.7s" }}
+        >
+          Il faut atteindre 90% de bonnes réponses
+          <br />
+          pour valider ce niveau.
+        </p>
+      )}
+
+      {saving && (
+        <p className="mt-3 text-sm text-gray-400 animate-pulse">
+          Sauvegarde en cours...
+        </p>
+      )}
+
+      {/* Inline buttons instead of fixed footer */}
+      <div
+        className="animate-fade-in-up mt-6 flex w-full max-w-md gap-3 sm:mt-10"
+        style={{ animationDelay: "0.9s" }}
+      >
+        <ShinyButton
+          variant="outline-green"
+          onClick={() => window.location.href = `/lesson/${lessonId}`}
+        >
+          Pratiquer à nouveau
+        </ShinyButton>
+        <ShinyButton
+          variant="green"
+          onClick={onContinue}
+        >
+          Continuer
+        </ShinyButton>
+      </div>
     </div>
   );
 }
