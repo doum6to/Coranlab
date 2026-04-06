@@ -24,6 +24,10 @@ import {
   Anagram,
   QCMInverse,
   DragDrop,
+  FlashRecall,
+  ConfidenceBet,
+  Opposite,
+  SpotTheError,
 } from "./exercises";
 
 type Props = {
@@ -197,7 +201,7 @@ export const Quiz = ({
     );
   }
 
-  const isSelfManaged = ["FLASHCARD", "MATCHING", "ANAGRAM"].includes(challenge.type);
+  const isSelfManaged = ["FLASHCARD", "MATCHING", "ANAGRAM", "SPOT_THE_ERROR"].includes(challenge.type);
 
   const renderExercise = () => {
     const k = challenge.id;
@@ -216,6 +220,14 @@ export const Quiz = ({
         return <QCMInverse key={k} challenge={challenge} options={options} onSelect={onSelect} selectedOption={selectedOption} status={status} disabled={pending} />;
       case "DRAG_DROP":
         return <DragDrop key={k} challenge={challenge} options={options} onSelect={onSelect} selectedOption={selectedOption} status={status} disabled={pending} />;
+      case "FLASH_RECALL":
+        return <FlashRecall key={k} challenge={challenge} options={options} onSelect={onSelect} selectedOption={selectedOption} status={status} disabled={pending} />;
+      case "CONFIDENCE_BET":
+        return <ConfidenceBet key={k} challenge={challenge} options={options} onSelect={onSelect} selectedOption={selectedOption} status={status} disabled={pending} />;
+      case "OPPOSITE":
+        return <Opposite key={k} challenge={challenge} options={options} onSelect={onSelect} selectedOption={selectedOption} status={status} disabled={pending} />;
+      case "SPOT_THE_ERROR":
+        return <SpotTheError key={k} challenge={challenge} options={options} onCorrect={handleSelfComplete} onWrong={handleSelfWrong} disabled={pending} />;
       default:
         return null;
     }

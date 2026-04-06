@@ -53,6 +53,10 @@ const MIXED_TYPES = [
   "ANAGRAM",
   "QCM_INVERSE",
   "DRAG_DROP",
+  "FLASH_RECALL",
+  "CONFIDENCE_BET",
+  "OPPOSITE",
+  "SPOT_THE_ERROR",
 ] as const;
 
 type MixedType = (typeof MIXED_TYPES)[number];
@@ -417,6 +421,14 @@ const main = async () => {
         return seedOneQCMInverse(lessonId, order, word, allWords);
       case "DRAG_DROP":
         return seedOneDragDrop(lessonId, order, word, allWords);
+      case "FLASH_RECALL":
+        return seedOneFlashRecall(lessonId, order, word, allWords);
+      case "CONFIDENCE_BET":
+        return seedOneConfidenceBet(lessonId, order, word, allWords);
+      case "OPPOSITE":
+        return seedOneOpposite(lessonId, order, word, allWords);
+      case "SPOT_THE_ERROR":
+        return seedOneSpotTheError(lessonId, order, allWords);
       case "MATCHING":
         // For single-challenge matching, use a small subset
         return seedMatchingRound(
@@ -603,6 +615,201 @@ const main = async () => {
         text: opt.text,
         correct: opt.correct,
         frenchText: opt.frenchText,
+      }))
+    );
+  }
+
+  // ─── FLASH_RECALL: word shown briefly, then pick translation ───
+  async function seedOneFlashRecall(
+    lessonId: number,
+    order: number,
+    word: VocabWord,
+    allWords: VocabWord[]
+  ) {
+    totalChallengesCount++;
+    const distractorCount = Math.min(3, allWords.length - 1);
+    const wrongWords = pickRandom(allWords, distractorCount, [word]).map((w) => w.french);
+    const options = shuffle([
+      { text: word.french, correct: true, frenchText: word.french },
+      ...wrongWords.map((w) => ({ text: w, correct: false, frenchText: w })),
+    ]);
+
+    const [challenge] = await db
+      .insert(schema.challenges)
+      .values({
+        lessonId,
+        type: "FLASH_RECALL",
+        question: "Mémorise le mot puis choisis sa traduction",
+        order,
+        arabicWord: word.arabic,
+      })
+      .returning();
+
+    await db.insert(schema.challengeOptions).values(
+      options.map((opt) => ({
+        challengeId: challenge.id,
+        text: opt.text,
+        correct: opt.correct,
+        frenchText: opt.frenchText,
+      }))
+    );
+  }
+
+  // ─── CONFIDENCE_BET: bet on confidence then answer ───
+  async function seedOneConfidenceBet(
+    lessonId: number,
+    order: number,
+    word: VocabWord,
+    allWords: VocabWord[]
+  ) {
+    totalChallengesCount++;
+    const distractorCount = Math.min(3, allWords.length - 1);
+    const wrongWords = pickRandom(allWords, distractorCount, [word]).map((w) => w.french);
+    const options = shuffle([
+      { text: word.french, correct: true, frenchText: word.french },
+      ...wrongWords.map((w) => ({ text: w, correct: false, frenchText: w })),
+    ]);
+
+    const [challenge] = await db
+      .insert(schema.challenges)
+      .values({
+        lessonId,
+        type: "CONFIDENCE_BET",
+        question: "Parie sur ta confiance !",
+        order,
+        arabicWord: word.arabic,
+      })
+      .returning();
+
+    await db.insert(schema.challengeOptions).values(
+      options.map((opt) => ({
+        challengeId: challenge.id,
+        text: opt.text,
+        correct: opt.correct,
+        frenchText: opt.frenchText,
+      }))
+    );
+  }
+
+  // ─── OPPOSITE: find the translation of the opposite word ───
+  // Pairs words within the same list that form natural opposites
+  // (e.g. "ceci" ↔ "cela", "oui" ↔ "non"). If no opposite exists,
+  // falls back to a random different word from the list.
+  function findOpposite(word: VocabWord, allWords: VocabWord[]): VocabWord | null {
+    const oppositePairs: Record<string, string[]> = {
+      // Demonstratives
+      "Ceci (Masculin)": ["Cela / Celui-là (Masculin)"],
+      "Cela / Celui-là (Masculin)": ["Ceci (Masculin)"],
+      "Celle-ci (Féminin)": ["Celle-là (Féminin)"],
+      "Celle-là (Féminin)": ["Celle-ci (Féminin)"],
+      "Ceux-ci / Celles-ci (Pluriel)": ["Ceux-là / Celles-là (Pluriel)"],
+      "Ceux-là / Celles-là (Pluriel)": ["Ceux-ci / Celles-ci (Pluriel)"],
+      "Celui qui (Masculin)": ["Celle qui (Féminin)"],
+      "Celle qui (Féminin)": ["Celui qui (Masculin)"],
+      // Negations
+      "Oui": ["Absolument pas"],
+      "Absolument pas": ["Oui"],
+      "Bien sûr / Si": ["Absolument pas"],
+      // Interrogatives
+      "Est-ce que": ["Oui"],
+    };
+
+    const candidates = oppositePairs[word.french];
+    if (candidates) {
+      for (const c of candidates) {
+        const found = allWords.find((w) => w.french === c);
+        if (found) return found;
+      }
+    }
+    // Fallback: pick a random different word
+    const others = allWords.filter((w) => w.arabic !== word.arabic);
+    return others.length > 0 ? others[Math.floor(Math.random() * others.length)] : null;
+  }
+
+  async function seedOneOpposite(
+    lessonId: number,
+    order: number,
+    word: VocabWord,
+    allWords: VocabWord[]
+  ) {
+    const opposite = findOpposite(word, allWords);
+    if (!opposite) {
+      // Fallback to QCM if no opposite found
+      return seedOneQCM(lessonId, order, word, allWords);
+    }
+
+    totalChallengesCount++;
+    const distractorCount = Math.min(3, allWords.length - 1);
+    const wrongWords = pickRandom(allWords, distractorCount, [opposite]).map((w) => w.french);
+    const options = shuffle([
+      { text: opposite.french, correct: true, frenchText: opposite.french },
+      ...wrongWords.map((w) => ({ text: w, correct: false, frenchText: w })),
+    ]);
+
+    const [challenge] = await db
+      .insert(schema.challenges)
+      .values({
+        lessonId,
+        type: "OPPOSITE",
+        question: "Trouve la traduction du contraire",
+        order,
+        arabicWord: word.arabic,
+        frenchTranslation: word.french,
+      })
+      .returning();
+
+    await db.insert(schema.challengeOptions).values(
+      options.map((opt) => ({
+        challengeId: challenge.id,
+        text: opt.text,
+        correct: opt.correct,
+        frenchText: opt.frenchText,
+      }))
+    );
+  }
+
+  // ─── SPOT_THE_ERROR: find the wrong pair among 4-5 ───
+  async function seedOneSpotTheError(
+    lessonId: number,
+    order: number,
+    allWords: VocabWord[]
+  ) {
+    if (allWords.length < 3) {
+      // Not enough words, fallback to QCM with the first word
+      return seedOneQCM(lessonId, order, allWords[0], allWords);
+    }
+
+    totalChallengesCount++;
+    const pairCount = Math.min(5, allWords.length);
+    const selectedWords = shuffle(allWords).slice(0, pairCount);
+
+    // Pick one word to give a wrong translation
+    const errorIdx = Math.floor(Math.random() * selectedWords.length);
+    const errorWord = selectedWords[errorIdx];
+    const otherWords = allWords.filter((w) => w.arabic !== errorWord.arabic);
+    const wrongTranslation =
+      otherWords.length > 0
+        ? otherWords[Math.floor(Math.random() * otherWords.length)].french
+        : "???";
+
+    const [challenge] = await db
+      .insert(schema.challenges)
+      .values({
+        lessonId,
+        type: "SPOT_THE_ERROR",
+        question: "Trouve la paire incorrecte",
+        order,
+      })
+      .returning();
+
+    await db.insert(schema.challengeOptions).values(
+      selectedWords.map((word, idx) => ({
+        challengeId: challenge.id,
+        text: `${word.arabic} = ${idx === errorIdx ? wrongTranslation : word.french}`,
+        correct: idx !== errorIdx, // correct=true means the pair IS correct; the wrong pair has correct=false
+        arabicText: word.arabic,
+        frenchText: idx === errorIdx ? wrongTranslation : word.french,
+        pairIndex: idx,
       }))
     );
   }

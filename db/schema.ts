@@ -54,6 +54,10 @@ export const challengesEnum = pgEnum("type", [
   "ANAGRAM",
   "QCM_INVERSE",
   "DRAG_DROP",
+  "FLASH_RECALL",
+  "CONFIDENCE_BET",
+  "OPPOSITE",
+  "SPOT_THE_ERROR",
 ]);
 
 export const challenges = pgTable("challenges", {

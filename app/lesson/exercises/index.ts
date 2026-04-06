@@ -5,3 +5,7 @@ export { Matching } from "./matching";
 export { Anagram } from "./anagram";
 export { QCMInverse } from "./qcm-inverse";
 export { DragDrop } from "./drag-drop";
+export { FlashRecall } from "./flash-recall";
+export { ConfidenceBet } from "./confidence-bet";
+export { Opposite } from "./opposite";
+export { SpotTheError } from "./spot-the-error";
