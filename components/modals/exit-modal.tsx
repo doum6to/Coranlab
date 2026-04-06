@@ -68,7 +68,7 @@ function ExitMascot() {
   });
 
   return (
-    <div className="h-[120px] w-[120px]">
+    <div className="h-[180px] w-[180px]">
       <RiveComponent className="h-full w-full" aria-label="Mascotte" />
     </div>
   );
