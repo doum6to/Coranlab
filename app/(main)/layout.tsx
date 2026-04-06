@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { Sidebar } from "@/components/sidebar";
 import { MobileHeader } from "@/components/mobile-header";
+import { PageReveal } from "@/components/ui/page-reveal";
 import { getUserProgress, getUserSubscription, getStreakData } from "@/db/queries";
 import { auth } from "@/lib/supabase/server";
 import db from "@/db/drizzle";
@@ -53,7 +54,7 @@ const MainLayout = async ({
       />
       <main className="lg:pl-[256px] h-full pt-[50px] lg:pt-0 bg-white">
         <div className="max-w-[1056px] mx-auto pt-4 sm:pt-6 h-full">
-          {children}
+          <PageReveal>{children}</PageReveal>
         </div>
       </main>
     </>

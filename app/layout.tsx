@@ -67,6 +67,20 @@ export default function RootLayout({
           crossOrigin="anonymous"
           type="application/octet-stream"
         />
+        <link
+          rel="preload"
+          href="/animations/completed_lvl.riv"
+          as="fetch"
+          crossOrigin="anonymous"
+          type="application/octet-stream"
+        />
+        <link
+          rel="preload"
+          href="/animations/loading.riv"
+          as="fetch"
+          crossOrigin="anonymous"
+          type="application/octet-stream"
+        />
       </head>
       <body
         className={`${inter.className} ${inter.variable} ${manrope.variable} ${ibmPlexArabic.variable}`}

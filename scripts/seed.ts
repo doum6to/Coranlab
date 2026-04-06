@@ -45,8 +45,8 @@ function splitArabicLetters(word: string): string[] {
   return letters;
 }
 
-const LEVEL_TYPES = [
-  "FLASHCARD",
+/** Exercise types used in mixed levels (everything except FLASHCARD). */
+const MIXED_TYPES = [
   "QCM",
   "VRAI_FAUX",
   "MATCHING",
@@ -55,15 +55,7 @@ const LEVEL_TYPES = [
   "DRAG_DROP",
 ] as const;
 
-const LEVEL_NAMES = [
-  "Flashcards",
-  "QCM",
-  "Vrai ou Faux",
-  "Correspondance",
-  "Anagramme",
-  "QCM Inversé",
-  "Glisser-Déposer",
-];
+type MixedType = (typeof MIXED_TYPES)[number];
 
 let totalChallengesCount = 0;
 
@@ -84,10 +76,13 @@ const main = async () => {
     console.log("Cleaned existing data.");
 
     // Create single course
-    const [course] = await db.insert(schema.courses).values({
-      title: "Vocabulaire du Coran",
-      imageSrc: "/quran.svg",
-    }).returning();
+    const [course] = await db
+      .insert(schema.courses)
+      .values({
+        title: "Vocabulaire du Coran",
+        imageSrc: "/quran.svg",
+      })
+      .returning();
 
     console.log(`Created course: ${course.title} (id: ${course.id})`);
 
@@ -97,12 +92,15 @@ const main = async () => {
     for (let unitIdx = 0; unitIdx < vocabularyData.length; unitIdx++) {
       const unitData = vocabularyData[unitIdx];
 
-      const [unit] = await db.insert(schema.units).values({
-        courseId: course.id,
-        title: unitData.title,
-        description: unitData.description,
-        order: unitIdx + 1,
-      }).returning();
+      const [unit] = await db
+        .insert(schema.units)
+        .values({
+          courseId: course.id,
+          title: unitData.title,
+          description: unitData.description,
+          order: unitIdx + 1,
+        })
+        .returning();
 
       console.log(`  Created unit: ${unit.title}`);
 
@@ -111,51 +109,81 @@ const main = async () => {
       for (let listIdx = 0; listIdx < unitData.lists.length; listIdx++) {
         const list = unitData.lists[listIdx];
         globalListId++;
-        const words = list.words;
+        const allWords = list.words;
 
-        console.log(`    List "${list.title}" (${words.length} words) → 7 levels`);
+        // ── Split words into chunks of 3-4 for the middle levels ──
+        const CHUNK_SIZE = allWords.length <= 6 ? 3 : 4;
+        const chunks: VocabWord[][] = [];
+        for (let i = 0; i < allWords.length; i += CHUNK_SIZE) {
+          chunks.push(allWords.slice(i, i + CHUNK_SIZE));
+        }
+        // If the last chunk has only 1 word, merge it into the previous one
+        if (chunks.length > 1 && chunks[chunks.length - 1].length === 1) {
+          const last = chunks.pop()!;
+          chunks[chunks.length - 1] = [...chunks[chunks.length - 1], ...last];
+        }
 
-        // Create 7 lessons (levels) for this list
-        for (let levelIdx = 0; levelIdx < 7; levelIdx++) {
-          lessonOrderInUnit++;
-          totalLessons++;
-          const levelType = LEVEL_TYPES[levelIdx];
-          const levelName = LEVEL_NAMES[levelIdx];
+        const totalLevels = 1 + chunks.length + 1; // flashcard + middle + review
+        console.log(
+          `    List "${list.title}" (${allWords.length} words) → ${totalLevels} levels ` +
+            `(1 flashcard + ${chunks.length} practice + 1 review)`
+        );
 
-          const [lesson] = await db.insert(schema.lessons).values({
+        // ── Level 1: FLASHCARD (all words, unchanged) ──
+        lessonOrderInUnit++;
+        totalLessons++;
+        const [flashcardLesson] = await db
+          .insert(schema.lessons)
+          .values({
             unitId: unit.id,
-            title: `${list.title} - ${levelName}`,
+            title: `${list.title} - Flashcards`,
             order: lessonOrderInUnit,
             listId: globalListId,
             listTitle: list.title,
-            levelOrder: levelIdx + 1,
-          }).returning();
+            levelOrder: 1,
+          })
+          .returning();
 
-          // Generate challenges for this level (single type)
-          switch (levelType) {
-            case "FLASHCARD":
-              await seedFlashcard(lesson.id, words);
-              break;
-            case "QCM":
-              await seedQCM(lesson.id, words);
-              break;
-            case "VRAI_FAUX":
-              await seedVraiFaux(lesson.id, words);
-              break;
-            case "MATCHING":
-              await seedMatching(lesson.id, words);
-              break;
-            case "ANAGRAM":
-              await seedAnagram(lesson.id, words);
-              break;
-            case "QCM_INVERSE":
-              await seedQCMInverse(lesson.id, words);
-              break;
-            case "DRAG_DROP":
-              await seedDragDrop(lesson.id, words);
-              break;
-          }
+        await seedFlashcard(flashcardLesson.id, allWords);
+
+        // ── Middle levels: each chunk with MIXED exercise types ──
+        for (let ci = 0; ci < chunks.length; ci++) {
+          lessonOrderInUnit++;
+          totalLessons++;
+          const chunkWords = chunks[ci];
+          const levelOrder = ci + 2; // starts at 2
+
+          const [lesson] = await db
+            .insert(schema.lessons)
+            .values({
+              unitId: unit.id,
+              title: `${list.title} - Pratique ${ci + 1}`,
+              order: lessonOrderInUnit,
+              listId: globalListId,
+              listTitle: list.title,
+              levelOrder,
+            })
+            .returning();
+
+          await seedMixedLevel(lesson.id, chunkWords, allWords);
         }
+
+        // ── Last level: REVIEW with ALL words, mixed types ──
+        lessonOrderInUnit++;
+        totalLessons++;
+        const [reviewLesson] = await db
+          .insert(schema.lessons)
+          .values({
+            unitId: unit.id,
+            title: `${list.title} - Révision`,
+            order: lessonOrderInUnit,
+            listId: globalListId,
+            listTitle: list.title,
+            levelOrder: 1 + chunks.length + 1,
+          })
+          .returning();
+
+        await seedMixedLevel(reviewLesson.id, allWords, allWords);
       }
     }
 
@@ -170,11 +198,18 @@ const main = async () => {
     await pool.end();
   }
 
-  // === LEVEL SEED FUNCTIONS ===
-  // All distractors come ONLY from the same list's words
+  // ═══════════════════════════════════════════════════════════
+  //  LEVEL SEED FUNCTIONS
+  //  All distractors come ONLY from the same list's words
+  // ═══════════════════════════════════════════════════════════
 
+  /**
+   * Level 1 — FLASHCARD: unchanged from previous logic.
+   * Groups words into chunks of 3-4, shows flash cards then a
+   * matching exercise for each group, finishes with a comprehensive
+   * matching round.
+   */
   async function seedFlashcard(lessonId: number, words: VocabWord[]) {
-    // Split words into groups of 3-4, then add matching exercises after each group
     const groupSize = Math.min(4, words.length);
     const groups: VocabWord[][] = [];
     for (let i = 0; i < words.length; i += groupSize) {
@@ -184,15 +219,13 @@ const main = async () => {
     let order = 0;
 
     for (const group of groups) {
-      // Flashcard discovery for this group
+      // Flashcard discovery
       order++;
       totalChallengesCount++;
-      const [challenge] = await db.insert(schema.challenges).values({
-        lessonId,
-        type: "FLASHCARD",
-        question: "Découvrez les mots",
-        order,
-      }).returning();
+      const [challenge] = await db
+        .insert(schema.challenges)
+        .values({ lessonId, type: "FLASHCARD", question: "Découvrez les mots", order })
+        .returning();
 
       await db.insert(schema.challengeOptions).values(
         group.map((word, idx) => ({
@@ -205,16 +238,19 @@ const main = async () => {
         }))
       );
 
-      // Add a matching exercise after each group to reinforce
+      // Matching reinforcement
       if (group.length >= 2) {
         order++;
         totalChallengesCount++;
-        const [matchChallenge] = await db.insert(schema.challenges).values({
-          lessonId,
-          type: "MATCHING",
-          question: "Reliez chaque mot arabe à sa traduction",
-          order,
-        }).returning();
+        const [matchChallenge] = await db
+          .insert(schema.challenges)
+          .values({
+            lessonId,
+            type: "MATCHING",
+            question: "Reliez chaque mot arabe à sa traduction",
+            order,
+          })
+          .returning();
 
         await db.insert(schema.challengeOptions).values(
           group.map((word, idx) => ({
@@ -229,15 +265,18 @@ const main = async () => {
       }
     }
 
-    // Final comprehensive matching with all words
+    // Final comprehensive matching
     order++;
     totalChallengesCount++;
-    const [finalMatch] = await db.insert(schema.challenges).values({
-      lessonId,
-      type: "MATCHING",
-      question: "Reliez chaque mot arabe à sa traduction",
-      order,
-    }).returning();
+    const [finalMatch] = await db
+      .insert(schema.challenges)
+      .values({
+        lessonId,
+        type: "MATCHING",
+        question: "Reliez chaque mot arabe à sa traduction",
+        order,
+      })
+      .returning();
 
     const matchWords = words.slice(0, Math.min(6, words.length));
     await db.insert(schema.challengeOptions).values(
@@ -252,196 +291,327 @@ const main = async () => {
     );
   }
 
-  async function seedQCM(lessonId: number, words: VocabWord[]) {
-    const targetCount = 18;
-    for (let i = 0; i < targetCount; i++) {
-      totalChallengesCount++;
-      const word = words[i % words.length];
-      const distractorCount = Math.min(3, words.length - 1);
-      const wrongWords = pickRandom(words, distractorCount, [word]).map((w) => w.french);
-      const options = shuffle([
-        { text: word.french, correct: true, frenchText: word.french },
-        ...wrongWords.map((w) => ({ text: w, correct: false, frenchText: w })),
-      ]);
+  /**
+   * Mixed level — generates challenges of varied exercise types for a
+   * subset of words. Each word gets cycled through multiple exercise
+   * types so the level never feels repetitive.
+   *
+   * @param lessonId  - the lesson to populate
+   * @param levelWords - the words this level is focused on (subset or all)
+   * @param allWords  - the full list of words (used for distractors)
+   */
+  async function seedMixedLevel(
+    lessonId: number,
+    levelWords: VocabWord[],
+    allWords: VocabWord[]
+  ) {
+    // Pick how many exercises per word — more types for fewer words so
+    // the level doesn't feel too short.
+    const typesPerWord = levelWords.length <= 4 ? 4 : 3;
 
-      const [challenge] = await db.insert(schema.challenges).values({
+    // Build a flat list of (word, exerciseType) pairs, cycling through
+    // exercise types so consecutive challenges differ in type.
+    const plan: { word: VocabWord; type: MixedType }[] = [];
+
+    for (let pass = 0; pass < typesPerWord; pass++) {
+      const typePool = shuffle([...MIXED_TYPES]);
+      for (let wi = 0; wi < levelWords.length; wi++) {
+        plan.push({
+          word: levelWords[wi],
+          type: typePool[(wi + pass) % typePool.length],
+        });
+      }
+    }
+
+    // Shuffle so that same-word challenges are spread out, but ensure
+    // no two consecutive challenges share the same type.
+    const shuffled = spreadByType(shuffle(plan));
+
+    // Intersperse a MATCHING round after every ~6 challenges
+    const MATCH_EVERY = 6;
+    let order = 0;
+
+    for (let i = 0; i < shuffled.length; i++) {
+      const { word, type } = shuffled[i];
+      order++;
+      await seedSingleChallenge(lessonId, order, type, word, allWords);
+
+      // Insert a matching round periodically
+      if ((i + 1) % MATCH_EVERY === 0) {
+        const matchSubset = shuffle(levelWords).slice(
+          0,
+          Math.min(5, levelWords.length)
+        );
+        order++;
+        await seedMatchingRound(lessonId, order, matchSubset);
+      }
+    }
+
+    // Final matching with all level words
+    order++;
+    await seedMatchingRound(
+      lessonId,
+      order,
+      shuffle(levelWords).slice(0, Math.min(6, levelWords.length))
+    );
+  }
+
+  /** Spread challenges so no two consecutive ones share the same type. */
+  function spreadByType(
+    items: { word: VocabWord; type: MixedType }[]
+  ): { word: VocabWord; type: MixedType }[] {
+    const result: { word: VocabWord; type: MixedType }[] = [];
+    const remaining = [...items];
+
+    while (remaining.length > 0) {
+      const lastType = result.length > 0 ? result[result.length - 1].type : null;
+      const idx = remaining.findIndex((item) => item.type !== lastType);
+      if (idx >= 0) {
+        result.push(remaining.splice(idx, 1)[0]);
+      } else {
+        // No choice, just take the first one
+        result.push(remaining.shift()!);
+      }
+    }
+    return result;
+  }
+
+  // ─── Single challenge generators (one challenge per call) ───
+
+  async function seedSingleChallenge(
+    lessonId: number,
+    order: number,
+    type: MixedType,
+    word: VocabWord,
+    allWords: VocabWord[]
+  ) {
+    switch (type) {
+      case "QCM":
+        return seedOneQCM(lessonId, order, word, allWords);
+      case "VRAI_FAUX":
+        return seedOneVraiFaux(lessonId, order, word, allWords);
+      case "ANAGRAM":
+        return seedOneAnagram(lessonId, order, word);
+      case "QCM_INVERSE":
+        return seedOneQCMInverse(lessonId, order, word, allWords);
+      case "DRAG_DROP":
+        return seedOneDragDrop(lessonId, order, word, allWords);
+      case "MATCHING":
+        // For single-challenge matching, use a small subset
+        return seedMatchingRound(
+          lessonId,
+          order,
+          shuffle(allWords).slice(0, Math.min(4, allWords.length))
+        );
+    }
+  }
+
+  async function seedOneQCM(
+    lessonId: number,
+    order: number,
+    word: VocabWord,
+    allWords: VocabWord[]
+  ) {
+    totalChallengesCount++;
+    const distractorCount = Math.min(3, allWords.length - 1);
+    const wrongWords = pickRandom(allWords, distractorCount, [word]).map((w) => w.french);
+    const options = shuffle([
+      { text: word.french, correct: true, frenchText: word.french },
+      ...wrongWords.map((w) => ({ text: w, correct: false, frenchText: w })),
+    ]);
+
+    const [challenge] = await db
+      .insert(schema.challenges)
+      .values({
         lessonId,
         type: "QCM",
         question: "Quelle est la traduction de ce mot ?",
-        order: i + 1,
+        order,
         arabicWord: word.arabic,
-      }).returning();
+      })
+      .returning();
 
-      await db.insert(schema.challengeOptions).values(
-        options.map((opt) => ({
-          challengeId: challenge.id,
-          text: opt.text,
-          correct: opt.correct,
-          frenchText: opt.frenchText,
-        }))
-      );
-    }
+    await db.insert(schema.challengeOptions).values(
+      options.map((opt) => ({
+        challengeId: challenge.id,
+        text: opt.text,
+        correct: opt.correct,
+        frenchText: opt.frenchText,
+      }))
+    );
   }
 
-  async function seedVraiFaux(lessonId: number, words: VocabWord[]) {
-    const targetCount = 16;
-    for (let i = 0; i < targetCount; i++) {
-      totalChallengesCount++;
-      const word = words[i % words.length];
-      // Alternate: even iterations show correct, odd show incorrect
-      const isCorrect = i % 2 === 0;
-      const otherWords = words.filter((w) => w !== word);
-      const proposedTranslation = isCorrect
-        ? word.french
-        : otherWords.length > 0
-          ? otherWords[Math.floor(Math.random() * otherWords.length)].french
-          : word.french;
+  async function seedOneVraiFaux(
+    lessonId: number,
+    order: number,
+    word: VocabWord,
+    allWords: VocabWord[]
+  ) {
+    totalChallengesCount++;
+    const isCorrect = Math.random() < 0.5;
+    const otherWords = allWords.filter((w) => w !== word);
+    const proposedTranslation = isCorrect
+      ? word.french
+      : otherWords.length > 0
+        ? otherWords[Math.floor(Math.random() * otherWords.length)].french
+        : word.french;
 
-      const [challenge] = await db.insert(schema.challenges).values({
+    const [challenge] = await db
+      .insert(schema.challenges)
+      .values({
         lessonId,
         type: "VRAI_FAUX",
         question: "Cette traduction est-elle correcte ?",
-        order: i + 1,
+        order,
         arabicWord: word.arabic,
         frenchTranslation: proposedTranslation,
-      }).returning();
+      })
+      .returning();
 
-      const actualCorrect = proposedTranslation === word.french;
-      await db.insert(schema.challengeOptions).values([
-        {
-          challengeId: challenge.id,
-          text: "VRAI",
-          correct: actualCorrect,
-          frenchText: "VRAI",
-        },
-        {
-          challengeId: challenge.id,
-          text: "FAUX",
-          correct: !actualCorrect,
-          frenchText: "FAUX",
-        },
-      ]);
-    }
+    const actualCorrect = proposedTranslation === word.french;
+    await db.insert(schema.challengeOptions).values([
+      {
+        challengeId: challenge.id,
+        text: "VRAI",
+        correct: actualCorrect,
+        frenchText: "VRAI",
+      },
+      {
+        challengeId: challenge.id,
+        text: "FAUX",
+        correct: !actualCorrect,
+        frenchText: "FAUX",
+      },
+    ]);
   }
 
-  async function seedMatching(lessonId: number, words: VocabWord[]) {
-    // Create multiple matching rounds with different word subsets
-    const pairSize = Math.min(5, words.length);
-    const targetRounds = 15;
+  async function seedOneAnagram(
+    lessonId: number,
+    order: number,
+    word: VocabWord
+  ) {
+    totalChallengesCount++;
+    const letters = splitArabicLetters(word.arabic);
 
-    for (let round = 0; round < targetRounds; round++) {
-      totalChallengesCount++;
-      // Shuffle and pick different subsets each round
-      const roundWords = shuffle(words).slice(0, pairSize);
-
-      const [challenge] = await db.insert(schema.challenges).values({
-        lessonId,
-        type: "MATCHING",
-        question: "Reliez chaque mot arabe à sa traduction",
-        order: round + 1,
-      }).returning();
-
-      await db.insert(schema.challengeOptions).values(
-        roundWords.map((word, idx) => ({
-          challengeId: challenge.id,
-          text: `${word.arabic} = ${word.french}`,
-          correct: true,
-          arabicText: word.arabic,
-          frenchText: word.french,
-          pairIndex: idx,
-        }))
-      );
-    }
-  }
-
-  async function seedAnagram(lessonId: number, words: VocabWord[]) {
-    const targetCount = 16;
-    for (let i = 0; i < targetCount; i++) {
-      totalChallengesCount++;
-      const word = words[i % words.length];
-      const letters = splitArabicLetters(word.arabic);
-
-      const [challenge] = await db.insert(schema.challenges).values({
+    const [challenge] = await db
+      .insert(schema.challenges)
+      .values({
         lessonId,
         type: "ANAGRAM",
         question: "Reconstituez le mot arabe",
-        order: i + 1,
+        order,
         arabicWord: word.arabic,
         frenchTranslation: word.french,
-      }).returning();
+      })
+      .returning();
 
-      await db.insert(schema.challengeOptions).values(
-        shuffle(letters).map((letter, idx) => ({
-          challengeId: challenge.id,
-          text: letter,
-          correct: true,
-          arabicText: letter,
-          pairIndex: idx,
-        }))
-      );
-    }
+    await db.insert(schema.challengeOptions).values(
+      shuffle(letters).map((letter, idx) => ({
+        challengeId: challenge.id,
+        text: letter,
+        correct: true,
+        arabicText: letter,
+        pairIndex: idx,
+      }))
+    );
   }
 
-  async function seedQCMInverse(lessonId: number, words: VocabWord[]) {
-    const targetCount = 18;
-    for (let i = 0; i < targetCount; i++) {
-      totalChallengesCount++;
-      const word = words[i % words.length];
-      const distractorCount = Math.min(3, words.length - 1);
-      const wrongWords = pickRandom(words, distractorCount, [word]).map((w) => w.arabic);
-      const options = shuffle([
-        { text: word.arabic, correct: true, arabicText: word.arabic },
-        ...wrongWords.map((w) => ({ text: w, correct: false, arabicText: w })),
-      ]);
+  async function seedOneQCMInverse(
+    lessonId: number,
+    order: number,
+    word: VocabWord,
+    allWords: VocabWord[]
+  ) {
+    totalChallengesCount++;
+    const distractorCount = Math.min(3, allWords.length - 1);
+    const wrongWords = pickRandom(allWords, distractorCount, [word]).map((w) => w.arabic);
+    const options = shuffle([
+      { text: word.arabic, correct: true, arabicText: word.arabic },
+      ...wrongWords.map((w) => ({ text: w, correct: false, arabicText: w })),
+    ]);
 
-      const [challenge] = await db.insert(schema.challenges).values({
+    const [challenge] = await db
+      .insert(schema.challenges)
+      .values({
         lessonId,
         type: "QCM_INVERSE",
         question: "Trouvez le mot arabe correspondant",
-        order: i + 1,
+        order,
         frenchTranslation: word.french,
-      }).returning();
+      })
+      .returning();
 
-      await db.insert(schema.challengeOptions).values(
-        options.map((opt) => ({
-          challengeId: challenge.id,
-          text: opt.text,
-          correct: opt.correct,
-          arabicText: opt.arabicText,
-        }))
-      );
-    }
+    await db.insert(schema.challengeOptions).values(
+      options.map((opt) => ({
+        challengeId: challenge.id,
+        text: opt.text,
+        correct: opt.correct,
+        arabicText: opt.arabicText,
+      }))
+    );
   }
 
-  async function seedDragDrop(lessonId: number, words: VocabWord[]) {
-    const targetCount = 16;
-    for (let i = 0; i < targetCount; i++) {
-      totalChallengesCount++;
-      const word = words[i % words.length];
-      const distractorCount = Math.min(2, words.length - 1);
-      const wrongWords = pickRandom(words, distractorCount, [word]).map((w) => w.french);
-      const options = shuffle([
-        { text: word.french, correct: true, frenchText: word.french },
-        ...wrongWords.map((w) => ({ text: w, correct: false, frenchText: w })),
-      ]);
+  async function seedOneDragDrop(
+    lessonId: number,
+    order: number,
+    word: VocabWord,
+    allWords: VocabWord[]
+  ) {
+    totalChallengesCount++;
+    const distractorCount = Math.min(2, allWords.length - 1);
+    const wrongWords = pickRandom(allWords, distractorCount, [word]).map((w) => w.french);
+    const options = shuffle([
+      { text: word.french, correct: true, frenchText: word.french },
+      ...wrongWords.map((w) => ({ text: w, correct: false, frenchText: w })),
+    ]);
 
-      const [challenge] = await db.insert(schema.challenges).values({
+    const [challenge] = await db
+      .insert(schema.challenges)
+      .values({
         lessonId,
         type: "DRAG_DROP",
         question: "Envoyez le mot dans la bonne boîte",
-        order: i + 1,
+        order,
         arabicWord: word.arabic,
-      }).returning();
+      })
+      .returning();
 
-      await db.insert(schema.challengeOptions).values(
-        options.map((opt) => ({
-          challengeId: challenge.id,
-          text: opt.text,
-          correct: opt.correct,
-          frenchText: opt.frenchText,
-        }))
-      );
-    }
+    await db.insert(schema.challengeOptions).values(
+      options.map((opt) => ({
+        challengeId: challenge.id,
+        text: opt.text,
+        correct: opt.correct,
+        frenchText: opt.frenchText,
+      }))
+    );
+  }
+
+  async function seedMatchingRound(
+    lessonId: number,
+    order: number,
+    roundWords: VocabWord[]
+  ) {
+    totalChallengesCount++;
+    const [challenge] = await db
+      .insert(schema.challenges)
+      .values({
+        lessonId,
+        type: "MATCHING",
+        question: "Reliez chaque mot arabe à sa traduction",
+        order,
+      })
+      .returning();
+
+    await db.insert(schema.challengeOptions).values(
+      roundWords.map((word, idx) => ({
+        challengeId: challenge.id,
+        text: `${word.arabic} = ${word.french}`,
+        correct: true,
+        arabicText: word.arabic,
+        frenchText: word.french,
+        pairIndex: idx,
+      }))
+    );
   }
 };
 
