@@ -1,7 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
-import Image from "next/image";
+
 import Confetti from "react-confetti";
 import { useRouter } from "next/navigation";
 import { useState, useTransition, useEffect, useRef } from "react";
@@ -76,10 +76,10 @@ export const Quiz = ({
   const [selectedOption, setSelectedOption] = useState<number>();
   const [status, setStatus] = useState<"correct" | "wrong" | "none">("none");
 
-  // Track correct answers on first attempt
-  const [correctFirstAttempt, setCorrectFirstAttempt] = useState(0);
-  const [totalAnswered, setTotalAnswered] = useState(0);
-  const [hadMistakeOnCurrent, setHadMistakeOnCurrent] = useState(false);
+  // Track every attempt: each correct or wrong click counts.
+  // scorePercentage = totalCorrect / totalAttempts × 100
+  const [totalCorrect, setTotalCorrect] = useState(0);
+  const [totalAttempts, setTotalAttempts] = useState(0);
 
   // Track completed challenge IDs locally — only saved if level is passed
   const completedIdsRef = useRef<number[]>([]);
@@ -89,12 +89,16 @@ export const Quiz = ({
   const challenge = challengesList[activeIndex];
   const options = challenge?.challengeOptions ?? [];
 
-  const scorePercentage = totalAnswered > 0 ? Math.round((correctFirstAttempt / totalAnswered) * 100) : 100;
+  const scorePercentage = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 100;
   const passed = scorePercentage >= 90;
 
-  // Only save progress if level is completed AND passed (≥90%)
+  // Save progress IMMEDIATELY when the level is finished AND passed.
+  // This ensures progress is saved even if the user closes the tab
+  // before clicking "Continuer".
+  const savedRef = useRef(false);
   useEffect(() => {
-    if (isFinished && passed && completedIdsRef.current.length > 0) {
+    if (isFinished && passed && !savedRef.current && completedIdsRef.current.length > 0) {
+      savedRef.current = true;
       setSaving(true);
       completeLessonChallenges(completedIdsRef.current)
         .catch(() => console.error("Failed to save progress"))
@@ -111,7 +115,6 @@ export const Quiz = ({
 
   const onNext = () => {
     setActiveIndex((current) => current + 1);
-    setHadMistakeOnCurrent(false);
   };
 
   const onSelect = (id: number) => {
@@ -124,10 +127,8 @@ export const Quiz = ({
     completedIdsRef.current.push(challenge.id);
     correctControls.play();
     setPercentage((prev) => prev + 100 / challengesList.length);
-    if (!hadMistakeOnCurrent) {
-      setCorrectFirstAttempt((prev) => prev + 1);
-    }
-    setTotalAnswered((prev) => prev + 1);
+    setTotalCorrect((prev) => prev + 1);
+    setTotalAttempts((prev) => prev + 1);
     onNext();
     setStatus("none");
     setSelectedOption(undefined);
@@ -135,7 +136,7 @@ export const Quiz = ({
 
   const handleSelfWrong = () => {
     incorrectControls.play();
-    setHadMistakeOnCurrent(true);
+    setTotalAttempts((prev) => prev + 1);
   };
 
   const onContinue = () => {
@@ -162,14 +163,12 @@ export const Quiz = ({
       correctControls.play();
       setStatus("correct");
       setPercentage((prev) => prev + 100 / challengesList.length);
-      if (!hadMistakeOnCurrent) {
-        setCorrectFirstAttempt((prev) => prev + 1);
-      }
-      setTotalAnswered((prev) => prev + 1);
+      setTotalCorrect((prev) => prev + 1);
+      setTotalAttempts((prev) => prev + 1);
     } else {
       incorrectControls.play();
       setStatus("wrong");
-      setHadMistakeOnCurrent(true);
+      setTotalAttempts((prev) => prev + 1);
     }
   };
 
@@ -386,11 +385,33 @@ function CompletionRive() {
     layout: new Layout({ fit: Fit.Contain, alignment: Alignment.Center }),
   });
 
-  if (!mounted) return <div className="h-[200px] sm:h-[260px]" />;
+  if (!mounted) return <div className="h-[140px] sm:h-[260px]" />;
 
   return (
-    <div className="relative mx-auto h-[200px] w-[260px] sm:h-[260px] sm:w-[340px]">
+    <div className="relative mx-auto h-[140px] w-[200px] sm:h-[260px] sm:w-[340px]">
       <RiveComponent className="h-full w-full" aria-label="Animation de complétion" />
+    </div>
+  );
+}
+
+/* ─────────────────── Rive failed animation ──────────────────── */
+
+function FailedRive() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  const { RiveComponent } = useRive({
+    src: "/animations/bad.riv",
+    stateMachines: "State Machine bad",
+    autoplay: true,
+    layout: new Layout({ fit: Fit.Contain, alignment: Alignment.Center }),
+  });
+
+  if (!mounted) return <div className="h-[140px] sm:h-[260px]" />;
+
+  return (
+    <div className="relative mx-auto h-[140px] w-[200px] sm:h-[260px] sm:w-[340px]">
+      <RiveComponent className="h-full w-full" aria-label="Animation d'échec" />
     </div>
   );
 }
@@ -433,7 +454,7 @@ function FinishedScreen({
   }, []);
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex h-[100dvh] flex-col">
       {passed && width > 0 && height > 0 && (
         <Confetti
           width={width}
@@ -444,25 +465,15 @@ function FinishedScreen({
         />
       )}
 
-      <div className="flex flex-1 flex-col items-center justify-center px-4 sm:px-6 py-8">
-        {/* Rive animation (passed) or sad mascot (failed) */}
-        <div className="animate-fade-in-up" style={{ animationDelay: "0s" }}>
-          {passed ? (
-            <CompletionRive />
-          ) : (
-            <Image
-              src="/mascot_bad.svg"
-              alt="Échoué"
-              height={120}
-              width={120}
-              className="mx-auto"
-            />
-          )}
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-4 sm:px-6">
+        {/* Rive animation */}
+        <div className="animate-fade-in-up shrink" style={{ animationDelay: "0s" }}>
+          {passed ? <CompletionRive /> : <FailedRive />}
         </div>
 
         {/* Title */}
         <h1
-          className="animate-fade-in-up mt-4 text-center text-2xl font-bold text-brilliant-text sm:text-3xl lg:text-4xl"
+          className="animate-fade-in-up mt-2 text-center text-xl font-bold text-brilliant-text sm:mt-4 sm:text-3xl lg:text-4xl"
           style={{ animationDelay: "0.3s" }}
         >
           {passed ? (
@@ -473,7 +484,7 @@ function FinishedScreen({
             </>
           ) : (
             <>
-              Dommage !
+              Pas encore...
               <br />
               Tu as obtenu {scorePercentage}%.
             </>
@@ -482,7 +493,7 @@ function FinishedScreen({
 
         {/* Stats row: XP + Score side by side */}
         <div
-          className="animate-fade-in-up mt-8 flex items-start justify-center gap-10 sm:gap-14"
+          className="animate-fade-in-up mt-4 flex items-start justify-center gap-8 sm:mt-8 sm:gap-14"
           style={{ animationDelay: "0.6s" }}
         >
           {/* XP counter with star explosion */}
@@ -494,7 +505,7 @@ function FinishedScreen({
               <StarBurst visible={burstFired} />
               <TwinkleStars />
               <span
-                className="animate-xp-pop text-5xl font-extrabold sm:text-6xl lg:text-7xl transition-colors duration-500"
+                className="animate-xp-pop text-4xl font-extrabold sm:text-6xl lg:text-7xl transition-colors duration-500"
                 style={{
                   animationDelay: "0.8s",
                   color: xpDone ? "#1A1A1A" : "#6967FB",
@@ -514,28 +525,30 @@ function FinishedScreen({
               <StarBurst visible={scoreBurstFired} />
               <TwinkleStars />
               <span
-                className="animate-xp-pop text-5xl font-extrabold sm:text-6xl lg:text-7xl transition-colors duration-500"
+                className="animate-xp-pop text-4xl font-extrabold sm:text-6xl lg:text-7xl transition-colors duration-500"
                 style={{
                   animationDelay: "1s",
                   color: scoreDone ? "#1A1A1A" : "#6967FB",
                 }}
               >
-                {animatedScore}<span className="text-xl sm:text-2xl lg:text-3xl">%</span>
+                {animatedScore}<span className="text-lg sm:text-2xl lg:text-3xl">%</span>
               </span>
             </div>
           </div>
         </div>
 
         {!passed && (
-          <p className="animate-fade-in-up mt-4 text-sm text-gray-500"
+          <p className="animate-fade-in-up mt-3 text-center text-sm text-gray-500"
             style={{ animationDelay: "0.7s" }}
           >
-            Il faut 90% pour valider.
+            Il faut atteindre 90% de bonnes réponses
+            <br />
+            pour valider ce niveau.
           </p>
         )}
 
         {saving && (
-          <p className="mt-4 text-sm text-gray-400 animate-pulse">
+          <p className="mt-3 text-sm text-gray-400 animate-pulse">
             Sauvegarde en cours...
           </p>
         )}

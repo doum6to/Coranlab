@@ -305,38 +305,48 @@ const main = async () => {
     levelWords: VocabWord[],
     allWords: VocabWord[]
   ) {
-    // Pick how many exercises per word — more types for fewer words so
-    // the level doesn't feel too short.
-    const typesPerWord = levelWords.length <= 4 ? 4 : 3;
+    // Each word gets 2 exercises max (different types). For large sets
+    // (review levels with 10+ words) only 1 per word to keep it short.
+    const typesPerWord = levelWords.length >= 10 ? 1 : 2;
 
-    // Build a flat list of (word, exerciseType) pairs, cycling through
-    // exercise types so consecutive challenges differ in type.
+    // Build a flat list of (word, exerciseType) pairs. Each pass
+    // assigns a different shuffled type pool so a word never gets
+    // the same exercise type twice.
     const plan: { word: VocabWord; type: MixedType }[] = [];
+    const usedTypes = new Map<string, Set<MixedType>>();
 
     for (let pass = 0; pass < typesPerWord; pass++) {
       const typePool = shuffle([...MIXED_TYPES]);
       for (let wi = 0; wi < levelWords.length; wi++) {
-        plan.push({
-          word: levelWords[wi],
-          type: typePool[(wi + pass) % typePool.length],
-        });
+        const word = levelWords[wi];
+        const key = word.arabic;
+        if (!usedTypes.has(key)) usedTypes.set(key, new Set());
+        const used = usedTypes.get(key)!;
+
+        // Pick a type this word hasn't seen yet
+        let type = typePool[(wi + pass) % typePool.length];
+        if (used.has(type)) {
+          const alt = MIXED_TYPES.find((t) => !used.has(t));
+          if (alt) type = alt;
+        }
+        used.add(type);
+        plan.push({ word, type });
       }
     }
 
-    // Shuffle so that same-word challenges are spread out, but ensure
-    // no two consecutive challenges share the same type.
-    const shuffled = spreadByType(shuffle(plan));
+    // Spread so no two consecutive challenges share the same type
+    // OR the same word.
+    const spread = spreadByTypeAndWord(shuffle(plan));
 
-    // Intersperse a MATCHING round after every ~6 challenges
-    const MATCH_EVERY = 6;
+    // Intersperse a MATCHING round after every ~8 challenges
+    const MATCH_EVERY = 8;
     let order = 0;
 
-    for (let i = 0; i < shuffled.length; i++) {
-      const { word, type } = shuffled[i];
+    for (let i = 0; i < spread.length; i++) {
+      const { word, type } = spread[i];
       order++;
       await seedSingleChallenge(lessonId, order, type, word, allWords);
 
-      // Insert a matching round periodically
       if ((i + 1) % MATCH_EVERY === 0) {
         const matchSubset = shuffle(levelWords).slice(
           0,
@@ -356,8 +366,8 @@ const main = async () => {
     );
   }
 
-  /** Spread challenges so no two consecutive ones share the same type. */
-  function spreadByType(
+  /** Spread challenges so no two consecutive ones share the same type OR word. */
+  function spreadByTypeAndWord(
     items: { word: VocabWord; type: MixedType }[]
   ): { word: VocabWord; type: MixedType }[] {
     const result: { word: VocabWord; type: MixedType }[] = [];
@@ -365,13 +375,24 @@ const main = async () => {
 
     while (remaining.length > 0) {
       const lastType = result.length > 0 ? result[result.length - 1].type : null;
-      const idx = remaining.findIndex((item) => item.type !== lastType);
-      if (idx >= 0) {
-        result.push(remaining.splice(idx, 1)[0]);
-      } else {
-        // No choice, just take the first one
-        result.push(remaining.shift()!);
+      const lastWord = result.length > 0 ? result[result.length - 1].word.arabic : null;
+
+      // Best: different type AND different word
+      let idx = remaining.findIndex(
+        (item) => item.type !== lastType && item.word.arabic !== lastWord
+      );
+      // Fallback: at least different word
+      if (idx < 0) {
+        idx = remaining.findIndex((item) => item.word.arabic !== lastWord);
       }
+      // Fallback: at least different type
+      if (idx < 0) {
+        idx = remaining.findIndex((item) => item.type !== lastType);
+      }
+      // Last resort: just take whatever is left
+      if (idx < 0) idx = 0;
+
+      result.push(remaining.splice(idx, 1)[0]);
     }
     return result;
   }
