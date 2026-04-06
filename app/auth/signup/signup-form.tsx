@@ -20,19 +20,30 @@ export function SignUpForm() {
     setLoading(true);
     setError("");
 
-    const supabase = createClient();
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: name,
-        },
-      },
+    // 1. Create user server-side (auto-confirmed, no email verification)
+    const res = await fetch("/api/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, name }),
     });
 
-    if (error) {
-      setError(error.message);
+    const body = await res.json();
+
+    if (!res.ok) {
+      setError(body.error || "Erreur lors de la création du compte.");
+      setLoading(false);
+      return;
+    }
+
+    // 2. Sign in client-side to get a session cookie
+    const supabase = createClient();
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (signInError) {
+      setError(signInError.message);
       setLoading(false);
       return;
     }
