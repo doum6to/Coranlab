@@ -385,10 +385,10 @@ function CompletionRive() {
     layout: new Layout({ fit: Fit.Contain, alignment: Alignment.Center }),
   });
 
-  if (!mounted) return <div className="h-[140px] sm:h-[260px]" />;
+  if (!mounted) return <div className="h-[120px] sm:h-[260px]" />;
 
   return (
-    <div className="relative mx-auto h-[140px] w-[200px] sm:h-[260px] sm:w-[340px]">
+    <div className="relative mx-auto h-[120px] w-[160px] sm:h-[260px] sm:w-[340px]">
       <RiveComponent className="h-full w-full" aria-label="Animation de complétion" />
     </div>
   );
@@ -407,10 +407,10 @@ function FailedRive() {
     layout: new Layout({ fit: Fit.Contain, alignment: Alignment.Center }),
   });
 
-  if (!mounted) return <div className="h-[140px] sm:h-[260px]" />;
+  if (!mounted) return <div className="h-[120px] sm:h-[260px]" />;
 
   return (
-    <div className="relative mx-auto h-[140px] w-[200px] sm:h-[260px] sm:w-[340px]">
+    <div className="relative mx-auto h-[120px] w-[160px] sm:h-[260px] sm:w-[340px]">
       <RiveComponent className="h-full w-full" aria-label="Animation d'échec" />
     </div>
   );
@@ -465,15 +465,15 @@ function FinishedScreen({
         />
       )}
 
-      <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-4 sm:px-6">
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden px-4 sm:px-6">
         {/* Rive animation */}
-        <div className="animate-fade-in-up shrink" style={{ animationDelay: "0s" }}>
+        <div className="animate-fade-in-up shrink-0" style={{ animationDelay: "0s" }}>
           {passed ? <CompletionRive /> : <FailedRive />}
         </div>
 
         {/* Title */}
         <h1
-          className="animate-fade-in-up mt-2 text-center text-xl font-bold text-brilliant-text sm:mt-4 sm:text-3xl lg:text-4xl"
+          className="animate-fade-in-up mt-1 text-center text-lg font-bold text-brilliant-text sm:mt-4 sm:text-3xl lg:text-4xl"
           style={{ animationDelay: "0.3s" }}
         >
           {passed ? (
@@ -493,19 +493,19 @@ function FinishedScreen({
 
         {/* Stats row: XP + Score side by side */}
         <div
-          className="animate-fade-in-up mt-4 flex items-start justify-center gap-8 sm:mt-8 sm:gap-14"
+          className="animate-fade-in-up mt-2 flex items-start justify-center gap-8 sm:mt-8 sm:gap-14"
           style={{ animationDelay: "0.6s" }}
         >
           {/* XP counter with star explosion */}
           <div className="relative">
-            <p className="text-center text-xs font-semibold uppercase tracking-widest text-gray-400">
+            <p className="text-center text-[10px] font-semibold uppercase tracking-widest text-gray-400 sm:text-xs">
               Total XP
             </p>
             <div className="relative mt-1 flex items-center justify-center">
               <StarBurst visible={burstFired} />
               <TwinkleStars />
               <span
-                className="animate-xp-pop text-4xl font-extrabold sm:text-6xl lg:text-7xl transition-colors duration-500"
+                className="animate-xp-pop text-3xl font-extrabold sm:text-6xl lg:text-7xl transition-colors duration-500"
                 style={{
                   animationDelay: "0.8s",
                   color: xpDone ? "#1A1A1A" : "#6967FB",
@@ -518,27 +518,27 @@ function FinishedScreen({
 
           {/* Score percentage with its own star burst */}
           <div className="relative">
-            <p className="text-center text-xs font-semibold uppercase tracking-widest text-gray-400">
+            <p className="text-center text-[10px] font-semibold uppercase tracking-widest text-gray-400 sm:text-xs">
               Score
             </p>
             <div className="relative mt-1 flex items-center justify-center">
               <StarBurst visible={scoreBurstFired} />
               <TwinkleStars />
               <span
-                className="animate-xp-pop text-4xl font-extrabold sm:text-6xl lg:text-7xl transition-colors duration-500"
+                className="animate-xp-pop text-3xl font-extrabold sm:text-6xl lg:text-7xl transition-colors duration-500"
                 style={{
                   animationDelay: "1s",
                   color: scoreDone ? "#1A1A1A" : "#6967FB",
                 }}
               >
-                {animatedScore}<span className="text-lg sm:text-2xl lg:text-3xl">%</span>
+                {animatedScore}<span className="text-sm sm:text-2xl lg:text-3xl">%</span>
               </span>
             </div>
           </div>
         </div>
 
         {!passed && (
-          <p className="animate-fade-in-up mt-3 text-center text-sm text-gray-500"
+          <p className="animate-fade-in-up mt-2 text-center text-xs text-gray-500 sm:mt-3 sm:text-sm"
             style={{ animationDelay: "0.7s" }}
           >
             Il faut atteindre 90% de bonnes réponses
@@ -548,7 +548,7 @@ function FinishedScreen({
         )}
 
         {saving && (
-          <p className="mt-3 text-sm text-gray-400 animate-pulse">
+          <p className="mt-2 text-xs text-gray-400 animate-pulse sm:mt-3 sm:text-sm">
             Sauvegarde en cours...
           </p>
         )}
