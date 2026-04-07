@@ -16,12 +16,13 @@ export const PricingView = () => {
     startTransition(() => {
       createStripeUrl(selected)
         .then((response) => {
-          if (response.data) {
+          if ("error" in response) {
+            toast.error(response.error);
+          } else if (response.data) {
             window.location.href = response.data;
           }
         })
         .catch((err) => {
-          console.error("[Stripe client]", err);
           toast.error(err?.message || "Une erreur est survenue");
         });
     });

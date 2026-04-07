@@ -83,8 +83,8 @@ export const createStripeUrl = async (plan: PremiumPlan = "monthly") => {
     });
 
     return { data: stripeSession.url };
-  } catch (error) {
+  } catch (error: any) {
     console.error("[Stripe] Error creating checkout:", error);
-    throw error;
+    return { error: error?.message || "Unknown error" };
   }
 };
