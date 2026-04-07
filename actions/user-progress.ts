@@ -160,3 +160,14 @@ export const spendKey = async (listId: number) => {
 export const refillHearts = async () => {
   return;
 };
+
+export const markTutorialDone = async () => {
+  const { userId } = await auth();
+  if (!userId) return;
+
+  await db.update(userProgress).set({
+    tutorialDone: true,
+  }).where(eq(userProgress.userId, userId));
+
+  revalidatePath("/learn");
+};

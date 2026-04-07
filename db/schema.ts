@@ -124,6 +124,7 @@ export const userProgress = pgTable("user_progress", {
   streak: integer("streak").notNull().default(0),
   lastStreakDate: text("last_streak_date"),
   streakCharges: integer("streak_charges").notNull().default(0),
+  tutorialDone: boolean("tutorial_done").notNull().default(false),
 });
 
 export const streakActivity = pgTable("streak_activity", {

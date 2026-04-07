@@ -11,6 +11,7 @@ import { upsertUserProgress } from "@/actions/user-progress";
 import { auth } from "@/lib/supabase/server";
 
 import { UnitWithListsView } from "./unit-with-lists";
+import { WelcomeTutorial } from "@/components/welcome-tutorial";
 
 const LearnPage = async () => {
   const { userId } = await auth();
@@ -41,9 +42,11 @@ const LearnPage = async () => {
 
   const isPro = !!userSubscription?.isActive;
   const userKeys = userProgress?.keys ?? 0;
+  const showTutorial = !userProgress?.tutorialDone;
 
   return (
     <div className="flex flex-col px-0 sm:px-6 overflow-hidden">
+      {showTutorial && <WelcomeTutorial />}
       <FeedWrapper>
         {listsData.map((unit) => (
           <div key={unit.id} className="mb-10">
