@@ -110,11 +110,19 @@ export const Flashcard = ({ options, onComplete, disabled }: Props) => {
         <p className="text-xs sm:text-sm font-semibold text-brilliant-muted">
           Découvrez les mots ({chunkIndex + 1}/{chunks.length})
         </p>
-        <div className="grid grid-cols-2 gap-2 sm:gap-4 w-full max-w-md">
+        <div className={cn(
+          "gap-2 sm:gap-4 w-full max-w-md",
+          currentChunk.length === 1
+            ? "flex justify-center"
+            : "grid grid-cols-2"
+        )}>
           {currentChunk.map((pair, idx) => (
             <div
               key={pair.id}
-              className="card-flip aspect-[4/3] cursor-pointer"
+              className={cn(
+                "card-flip aspect-[4/3] cursor-pointer",
+                currentChunk.length === 1 && "w-1/2"
+              )}
               onClick={() => toggleFlip(idx)}
             >
               <div className={cn(
