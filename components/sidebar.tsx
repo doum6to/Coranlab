@@ -32,9 +32,8 @@ export const Sidebar = ({ className, streak, keys, isPro, hasActiveSubscription,
     )}>
       <Link href="/learn">
         <div className="pt-8 pl-4 pb-7 flex items-center gap-x-2">
-          <h1 className="text-2xl font-extrabold text-brilliant-text tracking-wide font-heading">
-            Quranlab
-          </h1>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/quranlab-logo.svg" alt="Quranlab" className="h-7" />
         </div>
       </Link>
 
