@@ -148,6 +148,8 @@ export const Quiz = ({
     if (!selectedOption) return;
 
     if (status === "wrong") {
+      // Move to the next exercise (don't retry)
+      onNext();
       setStatus("none");
       setSelectedOption(undefined);
       return;
@@ -259,6 +261,13 @@ export const Quiz = ({
           disabled={pending || !selectedOption}
           status={status}
           onCheck={onContinue}
+          correctAnswer={
+            status === "wrong"
+              ? options.find((o) => o.correct)?.frenchText
+                || options.find((o) => o.correct)?.arabicText
+                || options.find((o) => o.correct)?.text
+              : undefined
+          }
         />
       )}
     </>
