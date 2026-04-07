@@ -45,7 +45,6 @@ export const VraiFaux = ({
         </span>
       </div>
 
-      <p className="text-xs sm:text-sm text-brilliant-muted">Cette traduction est-elle correcte ?</p>
 
       {/* VRAI / FAUX buttons */}
       <div className="grid grid-cols-2 gap-2 sm:gap-3 w-full max-w-sm">

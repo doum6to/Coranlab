@@ -613,7 +613,7 @@ const main = async () => {
     allWords: VocabWord[]
   ) {
     totalChallengesCount++;
-    const distractorCount = Math.min(2, allWords.length - 1);
+    const distractorCount = Math.min(3, allWords.length - 1);
     const wrongWords = pickRandom(allWords, distractorCount, [word]).map((w) => w.french);
     const options = shuffle([
       { text: word.french, correct: true, frenchText: word.french },
@@ -625,7 +625,7 @@ const main = async () => {
       .values({
         lessonId,
         type: "DRAG_DROP",
-        question: "Envoyez le mot dans la bonne boîte",
+        question: "Choisissez la bonne traduction",
         order,
         arabicWord: word.arabic,
       })

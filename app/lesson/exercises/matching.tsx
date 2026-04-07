@@ -51,9 +51,6 @@ export const Matching = ({ options, onComplete, disabled }: Props) => {
 
   return (
     <div className="flex flex-col items-center gap-3 sm:gap-6">
-      <p className="text-xs sm:text-sm font-semibold text-brilliant-muted">
-        Reliez chaque mot à sa traduction
-      </p>
       <div className="grid grid-cols-2 gap-2 sm:gap-4 w-full max-w-md">
         {/* Left column: Arabic */}
         <div className="flex flex-col gap-1.5 sm:gap-3">

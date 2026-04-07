@@ -32,7 +32,6 @@ export const DragDrop = ({
         </span>
       </div>
 
-      <p className="text-xs sm:text-sm text-brilliant-muted">Choisissez la bonne traduction</p>
 
       {/* Translation boxes */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-3 w-full max-w-md">

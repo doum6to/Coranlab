@@ -90,7 +90,6 @@ export const Anagram = ({
         </span>
       </div>
 
-      <p className="text-sm text-brilliant-muted">Reconstituez le mot arabe</p>
 
       {/* Answer zone */}
       <div className={cn(
