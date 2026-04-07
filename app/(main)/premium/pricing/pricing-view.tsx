@@ -20,7 +20,10 @@ export const PricingView = () => {
             window.location.href = response.data;
           }
         })
-        .catch(() => toast.error("Une erreur est survenue"));
+        .catch((err) => {
+          console.error("[Stripe client]", err);
+          toast.error(err?.message || "Une erreur est survenue");
+        });
     });
   };
 
