@@ -10,6 +10,7 @@ import {
 } from "@/db/queries";
 import { LeagueJoinView } from "@/components/league-join-view";
 import { LeagueLeaderboard } from "@/components/league-leaderboard";
+import { LeagueTiersList } from "@/components/league-tiers-list";
 import { LEAGUE_TIERS, type LeagueTier } from "@/lib/league-utils";
 
 const LeaderboardPage = async () => {
@@ -52,6 +53,11 @@ const LeaderboardPage = async () => {
               pendingTier={(userLeague?.tier ?? "NIYYA") as LeagueTier}
             />
           )}
+
+          {/* Liste des ligues avec toggle */}
+          <LeagueTiersList
+            currentTier={hasActiveGroup ? tier : null}
+          />
         </div>
       </FeedWrapper>
     </div>
