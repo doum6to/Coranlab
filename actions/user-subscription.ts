@@ -41,7 +41,8 @@ export const createStripeUrl = async (plan: PremiumPlan = "monthly") => {
 
     const userSubscription = await getUserSubscription();
 
-    if (userSubscription && userSubscription.stripeCustomerId) {
+    // If user has an active subscription, send to billing portal to manage it
+    if (userSubscription?.isActive && userSubscription.stripeCustomerId) {
       const stripeSession = await stripe.billingPortal.sessions.create({
         customer: userSubscription.stripeCustomerId,
         return_url: returnUrl,
@@ -52,12 +53,12 @@ export const createStripeUrl = async (plan: PremiumPlan = "monthly") => {
 
     const config = PLAN_CONFIG[plan];
     const email = user.emailAddresses[0]?.emailAddress;
-    console.log("[Stripe] Creating checkout for:", { plan, email, userId });
 
-    const stripeSession = await stripe.checkout.sessions.create({
+    // Create a new checkout session (works for new users and users
+    // whose previous subscription expired or was never completed)
+    const sessionParams: Record<string, any> = {
       mode: "subscription",
       payment_method_types: ["card"],
-      customer_email: email,
       line_items: [
         {
           quantity: 1,
@@ -80,7 +81,16 @@ export const createStripeUrl = async (plan: PremiumPlan = "monthly") => {
       },
       success_url: returnUrl,
       cancel_url: returnUrl,
-    });
+    };
+
+    // Reuse existing Stripe customer if available, otherwise use email
+    if (userSubscription?.stripeCustomerId) {
+      sessionParams.customer = userSubscription.stripeCustomerId;
+    } else {
+      sessionParams.customer_email = email;
+    }
+
+    const stripeSession = await stripe.checkout.sessions.create(sessionParams);
 
     return { data: stripeSession.url };
   } catch (error: any) {
