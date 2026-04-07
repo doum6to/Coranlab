@@ -189,7 +189,7 @@ export const PricingView = () => {
               boxShadow: "0 4px 0 0 rgba(0, 0, 0, 0.25)",
             }}
           >
-            {pending ? "Chargement..." : "S'abonner maintenant"}
+            {pending ? "Chargement..." : "Devenir Premium"}
           </button>
         </div>
       </div>

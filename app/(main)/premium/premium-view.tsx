@@ -160,7 +160,7 @@ export const PremiumView = () => {
               boxShadow: "0 4px 0 0 rgba(0, 0, 0, 0.25)",
             }}
           >
-            S&apos;abonner maintenant
+            Devenir Premium
           </Link>
         </div>
       </div>
