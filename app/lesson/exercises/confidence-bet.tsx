@@ -6,30 +6,24 @@ import { challengeOptions, challenges } from "@/db/schema";
 
 type BetLevel = "sure" | "hesitant" | "fifty";
 
-const BET_CONFIG: Record<BetLevel, { label: string; emoji: string; description: string; color: string; borderColor: string; bgColor: string }> = {
+const BET_CONFIG: Record<BetLevel, { label: string; description: string; borderColor: string; bgColor: string }> = {
   sure: {
     label: "Je suis sûr(e)",
-    emoji: "🔥",
     description: "+20 XP si correct, -10 XP si faux",
-    color: "text-emerald-600",
-    borderColor: "border-emerald-400",
-    bgColor: "bg-emerald-50",
+    borderColor: "border-[#6967FB]",
+    bgColor: "bg-[#f0f0ff]",
   },
   hesitant: {
     label: "J'hésite",
-    emoji: "🤔",
     description: "+10 XP si correct, -5 XP si faux",
-    color: "text-amber-600",
-    borderColor: "border-amber-400",
-    bgColor: "bg-amber-50",
+    borderColor: "border-[#6967FB]",
+    bgColor: "bg-[#f0f0ff]",
   },
   fifty: {
     label: "50/50",
-    emoji: "🎲",
     description: "+5 XP si correct, 0 XP si faux",
-    color: "text-gray-600",
-    borderColor: "border-gray-400",
-    bgColor: "bg-gray-50",
+    borderColor: "border-[#6967FB]",
+    bgColor: "bg-[#f0f0ff]",
   },
 };
 
@@ -94,9 +88,8 @@ export const ConfidenceBet = ({
                     boxShadow: bet === level ? "none" : "0 4px 0 0 #D4D4D4",
                   }}
                 >
-                  <span className="text-xl sm:text-2xl">{config.emoji}</span>
                   <div className="flex flex-col items-start">
-                    <span className={cn("font-bold text-sm sm:text-base", config.color)}>
+                    <span className="font-bold text-sm sm:text-base text-brilliant-text">
                       {config.label}
                     </span>
                     <span className="text-[10px] sm:text-xs text-gray-400">
@@ -114,11 +107,9 @@ export const ConfidenceBet = ({
         <>
           {/* Bet indicator */}
           <div className={cn(
-            "flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold",
-            BET_CONFIG[bet].bgColor,
-            BET_CONFIG[bet].color
+            "flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold text-brilliant-text",
+            BET_CONFIG[bet].bgColor
           )}>
-            <span>{BET_CONFIG[bet].emoji}</span>
             <span>{BET_CONFIG[bet].label}</span>
           </div>
 

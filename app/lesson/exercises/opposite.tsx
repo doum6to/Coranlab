@@ -33,12 +33,9 @@ export const Opposite = ({
       </div>
 
       {/* Instruction */}
-      <div className="flex items-center gap-2">
-        <span className="text-lg">🔄</span>
-        <p className="text-xs sm:text-sm text-brilliant-muted font-medium text-center">
-          Trouve la traduction du <span className="font-bold text-[#6967FB]">contraire</span>
-        </p>
-      </div>
+      <p className="text-xs sm:text-sm text-brilliant-muted font-medium text-center">
+        Trouve la traduction du contraire
+      </p>
 
       {/* Options */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-3 w-full max-w-md">

@@ -50,12 +50,9 @@ export const SpotTheError = ({
   return (
     <div className="flex flex-col items-center gap-3 sm:gap-6">
       {/* Instruction */}
-      <div className="flex items-center gap-2">
-        <span className="text-lg">🔍</span>
-        <p className="text-xs sm:text-sm text-brilliant-muted font-medium text-center">
-          Une de ces paires est <span className="font-bold text-rose-500">fausse</span>. Trouve l&apos;erreur !
-        </p>
-      </div>
+      <p className="text-xs sm:text-sm text-brilliant-muted font-medium text-center">
+        Une de ces paires est fausse. Trouve l&apos;erreur !
+      </p>
 
       {/* Pairs list */}
       <div className="flex flex-col gap-1.5 sm:gap-2.5 w-full max-w-md">
