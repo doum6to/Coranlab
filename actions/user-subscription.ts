@@ -30,53 +30,61 @@ const PLAN_CONFIG: Record<PremiumPlan, {
 };
 
 export const createStripeUrl = async (plan: PremiumPlan = "monthly") => {
-  const { userId } = await auth();
-  const user = await currentUser();
+  try {
+    const { userId } = await auth();
+    const user = await currentUser();
 
-  if (!userId || !user) {
-    throw new Error("Unauthorized");
-  }
+    if (!userId || !user) {
+      console.error("[Stripe] Unauthorized - userId:", userId, "user:", !!user);
+      throw new Error("Unauthorized");
+    }
 
-  const userSubscription = await getUserSubscription();
+    const userSubscription = await getUserSubscription();
 
-  if (userSubscription && userSubscription.stripeCustomerId) {
-    const stripeSession = await stripe.billingPortal.sessions.create({
-      customer: userSubscription.stripeCustomerId,
-      return_url: returnUrl,
+    if (userSubscription && userSubscription.stripeCustomerId) {
+      const stripeSession = await stripe.billingPortal.sessions.create({
+        customer: userSubscription.stripeCustomerId,
+        return_url: returnUrl,
+      });
+
+      return { data: stripeSession.url };
+    }
+
+    const config = PLAN_CONFIG[plan];
+    const email = user.emailAddresses[0]?.emailAddress;
+    console.log("[Stripe] Creating checkout for:", { plan, email, userId });
+
+    const stripeSession = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      payment_method_types: ["card"],
+      customer_email: email,
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: "EUR",
+            product_data: {
+              name: config.name,
+              description: config.description,
+            },
+            unit_amount: config.unit_amount,
+            recurring: {
+              interval: config.interval,
+            },
+          },
+        },
+      ],
+      metadata: {
+        userId,
+        plan,
+      },
+      success_url: returnUrl,
+      cancel_url: returnUrl,
     });
 
     return { data: stripeSession.url };
+  } catch (error) {
+    console.error("[Stripe] Error creating checkout:", error);
+    throw error;
   }
-
-  const config = PLAN_CONFIG[plan];
-
-  const stripeSession = await stripe.checkout.sessions.create({
-    mode: "subscription",
-    payment_method_types: ["card"],
-    customer_email: user.emailAddresses[0].emailAddress,
-    line_items: [
-      {
-        quantity: 1,
-        price_data: {
-          currency: "EUR",
-          product_data: {
-            name: config.name,
-            description: config.description,
-          },
-          unit_amount: config.unit_amount,
-          recurring: {
-            interval: config.interval,
-          },
-        },
-      },
-    ],
-    metadata: {
-      userId,
-      plan,
-    },
-    success_url: returnUrl,
-    cancel_url: returnUrl,
-  });
-
-  return { data: stripeSession.url };
 };
