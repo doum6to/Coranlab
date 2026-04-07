@@ -19,15 +19,16 @@ export async function POST(req: Request) {
       signature,
       process.env.STRIPE_WEBHOOK_SECRET!,
     );
-  } catch(error: any) {
+  } catch (error: any) {
     return new NextResponse(`Webhook error: ${error.message}`, {
       status: 400,
     });
   }
 
-  const session = event.data.object as Stripe.Checkout.Session;
-
+  // --- 1. New subscription created via Checkout ---
   if (event.type === "checkout.session.completed") {
+    const session = event.data.object as Stripe.Checkout.Session;
+
     const subscription = await stripe.subscriptions.retrieve(
       session.subscription as string
     );
@@ -47,18 +48,60 @@ export async function POST(req: Request) {
     });
   }
 
+  // --- 2. Recurring payment succeeded → extend period ---
   if (event.type === "invoice.payment_succeeded") {
-    const subscription = await stripe.subscriptions.retrieve(
-      session.subscription as string
-    );
+    const invoice = event.data.object as Stripe.Invoice;
 
-    await db.update(userSubscription).set({
-      stripePriceId: subscription.items.data[0].price.id,
-      stripeCurrentPeriodEnd: new Date(
-        subscription.current_period_end * 1000,
-      ),
-    }).where(eq(userSubscription.stripeSubscriptionId, subscription.id))
+    if (invoice.subscription) {
+      const subscription = await stripe.subscriptions.retrieve(
+        invoice.subscription as string
+      );
+
+      await db.update(userSubscription).set({
+        stripePriceId: subscription.items.data[0].price.id,
+        stripeCurrentPeriodEnd: new Date(
+          subscription.current_period_end * 1000,
+        ),
+      }).where(eq(userSubscription.stripeSubscriptionId, subscription.id));
+    }
+  }
+
+  // --- 3. Payment failed → mark subscription as expired immediately ---
+  if (event.type === "invoice.payment_failed") {
+    const invoice = event.data.object as Stripe.Invoice;
+
+    if (invoice.subscription) {
+      // Set period end to now so isActive becomes false immediately
+      await db.update(userSubscription).set({
+        stripeCurrentPeriodEnd: new Date(),
+      }).where(eq(userSubscription.stripeSubscriptionId, invoice.subscription as string));
+    }
+  }
+
+  // --- 4. Subscription cancelled or expired → end access immediately ---
+  if (
+    event.type === "customer.subscription.deleted" ||
+    event.type === "customer.subscription.updated"
+  ) {
+    const subscription = event.data.object as Stripe.Subscription;
+
+    // Only act on non-active statuses (canceled, unpaid, past_due, incomplete_expired)
+    if (subscription.status !== "active" && subscription.status !== "trialing") {
+      await db.update(userSubscription).set({
+        stripeCurrentPeriodEnd: new Date(),
+      }).where(eq(userSubscription.stripeSubscriptionId, subscription.id));
+    }
+
+    // If subscription is active (e.g. reactivated), update the period end
+    if (subscription.status === "active") {
+      await db.update(userSubscription).set({
+        stripePriceId: subscription.items.data[0].price.id,
+        stripeCurrentPeriodEnd: new Date(
+          subscription.current_period_end * 1000,
+        ),
+      }).where(eq(userSubscription.stripeSubscriptionId, subscription.id));
+    }
   }
 
   return new NextResponse(null, { status: 200 });
-};
+}
