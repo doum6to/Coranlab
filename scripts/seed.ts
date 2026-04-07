@@ -45,11 +45,11 @@ function splitArabicLetters(word: string): string[] {
   return letters;
 }
 
-/** Exercise types used in mixed levels (everything except FLASHCARD). */
-const MIXED_TYPES = [
+/** Exercise types used in mixed levels (everything except FLASHCARD & MATCHING).
+ *  MATCHING is added separately as interspersed rounds. */
+const SOLO_TYPES = [
   "QCM",
   "VRAI_FAUX",
-  "MATCHING",
   "ANAGRAM",
   "QCM_INVERSE",
   "DRAG_DROP",
@@ -58,6 +58,9 @@ const MIXED_TYPES = [
   "OPPOSITE",
   "SPOT_THE_ERROR",
 ] as const;
+
+/** All mixed types including MATCHING (kept for type compatibility). */
+const MIXED_TYPES = [...SOLO_TYPES, "MATCHING"] as const;
 
 type MixedType = (typeof MIXED_TYPES)[number];
 
@@ -115,8 +118,9 @@ const main = async () => {
         globalListId++;
         const allWords = list.words;
 
-        // ── Split words into chunks of 3-4 for the middle levels ──
-        const CHUNK_SIZE = allWords.length <= 6 ? 3 : 4;
+        // ── Split words into chunks of 3 for practice levels ──
+        // Small chunks = fewer exercises per level but all exercise types covered
+        const CHUNK_SIZE = 3;
         const chunks: VocabWord[][] = [];
         for (let i = 0; i < allWords.length; i += CHUNK_SIZE) {
           chunks.push(allWords.slice(i, i + CHUNK_SIZE));
@@ -296,9 +300,14 @@ const main = async () => {
   }
 
   /**
-   * Mixed level — generates challenges of varied exercise types for a
-   * subset of words. Each word gets cycled through multiple exercise
-   * types so the level never feels repetitive.
+   * Mixed level — generates challenges covering ALL exercise types.
+   *
+   * Strategy:
+   * - 9 solo types (everything except MATCHING) must all appear.
+   * - Each word gets a unique set of types (no word+type repetition).
+   * - For small chunks (3 words): each word gets 3 types = 9 exercises.
+   * - For review levels (many words): each word gets 1 type, types cycle.
+   * - A MATCHING round is added at the end.
    *
    * @param lessonId  - the lesson to populate
    * @param levelWords - the words this level is focused on (subset or all)
@@ -309,59 +318,72 @@ const main = async () => {
     levelWords: VocabWord[],
     allWords: VocabWord[]
   ) {
-    // Each word gets 2 exercises max (different types). For large sets
-    // (review levels with 10+ words) only 1 per word to keep it short.
-    const typesPerWord = levelWords.length >= 10 ? 1 : 2;
+    const soloTypes = shuffle([...SOLO_TYPES]);
+    const wordCount = levelWords.length;
 
-    // Build a flat list of (word, exerciseType) pairs. Each pass
-    // assigns a different shuffled type pool so a word never gets
-    // the same exercise type twice.
-    const plan: { word: VocabWord; type: MixedType }[] = [];
-    const usedTypes = new Map<string, Set<MixedType>>();
+    // Decide how many types per word so we cover all 9 solo types
+    // with minimal repetition.
+    // - 3 words → 3 types each = 9 exercises (covers all types exactly)
+    // - 4 words → 2-3 types each ≈ 9 exercises
+    // - 10+ words (review) → 1 type each, types cycle
+    const typesPerWord = Math.max(1, Math.ceil(SOLO_TYPES.length / wordCount));
+    // Cap so we don't exceed 9 total types per word
+    const cappedTypesPerWord = Math.min(typesPerWord, SOLO_TYPES.length);
 
-    for (let pass = 0; pass < typesPerWord; pass++) {
-      const typePool = shuffle([...MIXED_TYPES]);
-      for (let wi = 0; wi < levelWords.length; wi++) {
-        const word = levelWords[wi];
+    const plan: { word: VocabWord; type: (typeof SOLO_TYPES)[number] }[] = [];
+    const usedTypes = new Map<string, Set<string>>();
+    let typeIdx = 0;
+
+    // Distribute types round-robin across words
+    for (let pass = 0; pass < cappedTypesPerWord; pass++) {
+      for (const word of levelWords) {
+        if (plan.length >= SOLO_TYPES.length && pass > 0) break;
         const key = word.arabic;
         if (!usedTypes.has(key)) usedTypes.set(key, new Set());
         const used = usedTypes.get(key)!;
 
         // Pick a type this word hasn't seen yet
-        let type = typePool[(wi + pass) % typePool.length];
-        if (used.has(type)) {
-          const alt = MIXED_TYPES.find((t) => !used.has(t));
-          if (alt) type = alt;
+        let type = soloTypes[typeIdx % soloTypes.length];
+        let attempts = 0;
+        while (used.has(type) && attempts < soloTypes.length) {
+          typeIdx++;
+          type = soloTypes[typeIdx % soloTypes.length];
+          attempts++;
         }
-        used.add(type);
+        if (!used.has(type)) {
+          used.add(type);
+          plan.push({ word, type });
+          typeIdx++;
+        }
+      }
+    }
+
+    // Ensure all 9 solo types are covered (fill gaps if needed)
+    const coveredTypes = new Set(plan.map((p) => p.type));
+    for (const type of soloTypes) {
+      if (!coveredTypes.has(type)) {
+        // Assign to a random word that hasn't used this type
+        const candidates = levelWords.filter((w) => {
+          const used = usedTypes.get(w.arabic);
+          return !used || !used.has(type);
+        });
+        const word = candidates.length > 0
+          ? candidates[Math.floor(Math.random() * candidates.length)]
+          : levelWords[Math.floor(Math.random() * levelWords.length)];
         plan.push({ word, type });
       }
     }
 
-    // Spread so no two consecutive challenges share the same type
-    // OR the same word.
+    // Spread so no two consecutive challenges share the same type OR word
     const spread = spreadByTypeAndWord(shuffle(plan));
 
-    // Intersperse a MATCHING round after every ~8 challenges
-    const MATCH_EVERY = 8;
     let order = 0;
-
-    for (let i = 0; i < spread.length; i++) {
-      const { word, type } = spread[i];
+    for (const { word, type } of spread) {
       order++;
       await seedSingleChallenge(lessonId, order, type, word, allWords);
-
-      if ((i + 1) % MATCH_EVERY === 0) {
-        const matchSubset = shuffle(levelWords).slice(
-          0,
-          Math.min(5, levelWords.length)
-        );
-        order++;
-        await seedMatchingRound(lessonId, order, matchSubset);
-      }
     }
 
-    // Final matching with all level words
+    // Final matching round
     order++;
     await seedMatchingRound(
       lessonId,
