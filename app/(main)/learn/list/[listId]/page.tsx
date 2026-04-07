@@ -4,6 +4,7 @@ import Image from "next/image";
 import { ArrowLeft, BookOpen, Layers } from "lucide-react";
 
 import { getListLevels } from "@/db/queries";
+import { getListImage } from "@/lib/list-images";
 
 import { LevelCard } from "./level-card";
 
@@ -40,7 +41,7 @@ const ListDetailPage = async ({ params }: Props) => {
       <div className="text-center mb-8">
         <div className="w-24 h-24 sm:w-28 sm:h-28 mx-auto mb-4 rounded-2xl overflow-hidden">
           <Image
-            src="/lesson-illustration.png"
+            src={getListImage(data.listTitle)}
             alt={data.listTitle}
             width={512}
             height={512}

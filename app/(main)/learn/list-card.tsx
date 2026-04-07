@@ -9,6 +9,7 @@ import { ShinyButton } from "@/components/ui/shiny-button";
 import { Lock } from "lucide-react";
 import { spendKey } from "@/actions/user-progress";
 import { useHeartsModal } from "@/store/use-hearts-modal";
+import { getListImage } from "@/lib/list-images";
 
 type Props = {
   listId: number;
@@ -114,7 +115,7 @@ export const ListCard = ({
       {/* Illustration */}
       <div className="w-full aspect-square rounded-xl overflow-hidden mb-4 flex items-center justify-center relative">
         <Image
-          src="/lesson-illustration.png"
+          src={getListImage(listTitle)}
           alt={listTitle}
           width={480}
           height={480}
