@@ -171,7 +171,7 @@ export const WelcomeTutorial = () => {
     if (isLast) {
       startTransition(() => {
         markTutorialDone().then(() => {
-          router.refresh();
+          router.push("/premium");
         });
       });
     } else {
