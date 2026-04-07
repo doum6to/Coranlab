@@ -9,6 +9,7 @@ type Props = {
   options: typeof challengeOptions.$inferSelect[];
   onCorrect: () => void;
   onWrong: () => void;
+  onSkip: () => void;
   disabled?: boolean;
 };
 
@@ -17,10 +18,14 @@ export const SpotTheError = ({
   options,
   onCorrect,
   onWrong,
+  onSkip,
   disabled,
 }: Props) => {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [status, setStatus] = useState<"none" | "correct" | "wrong">("none");
+
+  // The incorrect pair is the one where correct === false
+  const incorrectOption = options.find((o) => !o.correct);
 
   const handleSelect = (optionId: number) => {
     if (disabled || status !== "none") return;
@@ -33,18 +38,21 @@ export const SpotTheError = ({
     const selectedOption = options.find((o) => o.id === selectedId);
     if (!selectedOption) return;
 
-    // The "wrong pair" is the one where correct === false
     if (!selectedOption.correct) {
+      // User found the wrong pair — correct!
       setStatus("correct");
       setTimeout(() => onCorrect(), 800);
     } else {
+      // User picked a correct pair — wrong answer
       setStatus("wrong");
-      setTimeout(() => {
-        onWrong();
-        setStatus("none");
-        setSelectedId(null);
-      }, 1000);
+      onWrong();
+      // Don't reset — stay in "wrong" state showing the correct answer
     }
+  };
+
+  const handleContinue = () => {
+    // Move to next exercise after seeing the answer (wrong path)
+    onSkip();
   };
 
   return (
@@ -76,9 +84,9 @@ export const SpotTheError = ({
               selectedId === option.id && status === "wrong" &&
                 "border-red-400 bg-red-50",
               // Reveal the actual error when user picks wrong
-              selectedId !== option.id && status === "wrong" && !option.correct &&
-                "border-rose-400 bg-rose-50",
-              // Dim correct pairs after verification
+              status === "wrong" && !option.correct &&
+                "border-brilliant-green bg-brilliant-success ring-2 ring-brilliant-green",
+              // Dim correct pairs after verification (except selected)
               selectedId !== option.id && status !== "none" && option.correct &&
                 "opacity-50",
               disabled && "cursor-not-allowed"
@@ -100,7 +108,7 @@ export const SpotTheError = ({
         ))}
       </div>
 
-      {/* Verify button */}
+      {/* Verify button — only when no answer yet */}
       {status === "none" && (
         <button
           onClick={handleVerify}
@@ -114,6 +122,24 @@ export const SpotTheError = ({
         >
           C&apos;est celle-ci !
         </button>
+      )}
+
+      {/* Wrong answer: show correct answer + continue button */}
+      {status === "wrong" && (
+        <div className="w-full max-w-md flex flex-col items-center gap-3 mt-2">
+          <div className="rounded-2xl bg-red-50 border border-red-200 px-4 py-3 w-full text-center">
+            <p className="text-xs text-red-400 font-semibold mb-1">Pas tout à fait !</p>
+            <p className="text-sm font-bold text-brilliant-text">
+              La paire incorrecte était : <span className="font-arabic" dir="rtl">{incorrectOption?.arabicText}</span> = {incorrectOption?.frenchText}
+            </p>
+          </div>
+          <button
+            onClick={handleContinue}
+            className="px-8 py-3 rounded-2xl font-bold text-sm bg-red-500 text-white hover:bg-red-600 shadow-[0_4px_0_0_#b91c1c] transition-all active:translate-y-[3px] active:!shadow-none"
+          >
+            Suivant
+          </button>
+        </div>
       )}
     </div>
   );

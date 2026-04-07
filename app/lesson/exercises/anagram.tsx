@@ -10,6 +10,7 @@ type Props = {
   options: typeof challengeOptions.$inferSelect[];
   onCorrect: () => void;
   onWrong: () => void;
+  onSkip: () => void;
   disabled?: boolean;
 };
 
@@ -18,6 +19,7 @@ export const Anagram = ({
   options,
   onCorrect,
   onWrong,
+  onSkip,
   disabled,
 }: Props) => {
   const letters = useMemo(() => {
@@ -40,6 +42,8 @@ export const Anagram = ({
   );
   const [status, setStatus] = useState<"none" | "correct" | "wrong">("none");
 
+  const targetWord = challenge.arabicWord?.replace(/\s/g, "") || "";
+
   const handleLetterClick = (letterId: number) => {
     if (disabled || status !== "none") return;
     setSelectedLetters((prev) => [...prev, letterId]);
@@ -55,20 +59,17 @@ export const Anagram = ({
 
   const handleCheck = () => {
     if (disabled) return;
-    const target = challenge.arabicWord?.replace(/\s/g, "") || "";
     const assembled = selectedLetters
       .map((id) => letters.find((l) => l.id === id)?.letter || "")
       .join("");
 
-    if (assembled === target) {
+    if (assembled === targetWord) {
       setStatus("correct");
       setTimeout(() => onCorrect(), 500);
     } else {
       setStatus("wrong");
-      setTimeout(() => {
-        setStatus("none");
-        onWrong();
-      }, 800);
+      onWrong();
+      // Don't reset — stay in "wrong" state showing the correct answer
     }
   };
 
@@ -76,6 +77,11 @@ export const Anagram = ({
     setSelectedLetters([]);
     setAvailableLetters(shuffledLetters.map((l) => l.id));
     setStatus("none");
+  };
+
+  const handleContinue = () => {
+    // Move to next exercise after seeing the answer (wrong path)
+    onSkip();
   };
 
   return (
@@ -90,7 +96,6 @@ export const Anagram = ({
         </span>
       </div>
 
-
       {/* Answer zone */}
       <div className={cn(
         "flex flex-row-reverse gap-2 min-h-[56px] p-3 sm:p-4 rounded-2xl border-2 w-full max-w-md justify-center flex-wrap items-center",
@@ -98,67 +103,96 @@ export const Anagram = ({
         status === "wrong" && "border-red-400 bg-red-50",
         status === "none" && "border-[#E0E0E0] bg-white"
       )}>
-        {selectedLetters.length === 0 && (
+        {selectedLetters.length === 0 && status === "none" && (
           <span className="text-brilliant-muted text-sm">Cliquez sur les lettres ci-dessous</span>
         )}
-        {selectedLetters.map((letterId, idx) => {
-          const letter = letters.find((l) => l.id === letterId);
-          return (
+        {status === "wrong" ? (
+          // Show the correct word when wrong
+          <span className="font-arabic text-2xl sm:text-3xl font-bold text-red-500" dir="rtl">
+            {targetWord}
+          </span>
+        ) : (
+          selectedLetters.map((letterId, idx) => {
+            const letter = letters.find((l) => l.id === letterId);
+            return (
+              <button
+                key={`sel-${idx}`}
+                onClick={() => handleRemoveLetter(idx)}
+                className="h-10 sm:h-12 px-3 bg-[#6967FB] text-white rounded-xl font-arabic text-xl sm:text-2xl hover:bg-[#6967FB]/90 transition-[transform,colors,box-shadow] duration-100 active:translate-y-[3px] active:!shadow-none"
+                style={{ boxShadow: "0 3px 0 0 #4a48d4" }}
+              >
+                {letter?.letter}
+              </button>
+            );
+          })
+        )}
+      </div>
+
+      {/* Available letters — hide when wrong */}
+      {status !== "wrong" && (
+        <div className="flex flex-row-reverse gap-2 flex-wrap justify-center">
+          {shuffledLetters.map((letter) => (
             <button
-              key={`sel-${idx}`}
-              onClick={() => handleRemoveLetter(idx)}
-              className="h-10 sm:h-12 px-3 bg-[#6967FB] text-white rounded-xl font-arabic text-xl sm:text-2xl hover:bg-[#6967FB]/90 transition-[transform,colors,box-shadow] duration-100 active:translate-y-[3px] active:!shadow-none"
-              style={{ boxShadow: "0 3px 0 0 #4a48d4" }}
+              key={`avail-${letter.id}`}
+              onClick={() => handleLetterClick(letter.id)}
+              disabled={!availableLetters.includes(letter.id) || disabled || status !== "none"}
+              className={cn(
+                "h-10 sm:h-12 px-3 sm:px-4 rounded-xl border-2 font-arabic text-xl sm:text-2xl transition-[transform,colors,box-shadow] duration-100",
+                availableLetters.includes(letter.id)
+                  ? "bg-white border-[#E0E0E0] hover:border-[#6967FB]/40 hover:bg-gray-50 text-brilliant-text active:translate-y-[3px] active:!shadow-none"
+                  : "bg-[#F5F5F5] border-[#F5F5F5] text-transparent"
+              )}
+              style={{
+                boxShadow: availableLetters.includes(letter.id) ? "0 3px 0 0 #D4D4D4" : "none"
+              }}
             >
-              {letter?.letter}
+              {letter.letter}
             </button>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
 
-      {/* Available letters */}
-      <div className="flex flex-row-reverse gap-2 flex-wrap justify-center">
-        {shuffledLetters.map((letter) => (
+      {/* Action buttons — only when no answer yet */}
+      {status === "none" && (
+        <div className="flex gap-3 w-full max-w-xs">
+          <div className="w-1/2">
+            <ShinyButton
+              variant="outline-green"
+              onClick={handleReset}
+              disabled={disabled || selectedLetters.length === 0}
+            >
+              Réinitialiser
+            </ShinyButton>
+          </div>
+          <div className="w-1/2">
+            <ShinyButton
+              variant={availableLetters.length === 0 && status === "none" ? "green" : "gray"}
+              onClick={handleCheck}
+              disabled={disabled || availableLetters.length > 0 || status !== "none"}
+            >
+              Vérifier
+            </ShinyButton>
+          </div>
+        </div>
+      )}
+
+      {/* Wrong answer: show correct answer + continue button */}
+      {status === "wrong" && (
+        <div className="w-full max-w-md flex flex-col items-center gap-3 mt-2">
+          <div className="rounded-2xl bg-red-50 border border-red-200 px-4 py-3 w-full text-center">
+            <p className="text-xs text-red-400 font-semibold mb-1">Pas tout à fait !</p>
+            <p className="text-sm font-bold text-brilliant-text">
+              La bonne réponse était : <span className="font-arabic text-lg" dir="rtl">{targetWord}</span>
+            </p>
+          </div>
           <button
-            key={`avail-${letter.id}`}
-            onClick={() => handleLetterClick(letter.id)}
-            disabled={!availableLetters.includes(letter.id) || disabled || status !== "none"}
-            className={cn(
-              "h-10 sm:h-12 px-3 sm:px-4 rounded-xl border-2 font-arabic text-xl sm:text-2xl transition-[transform,colors,box-shadow] duration-100",
-              availableLetters.includes(letter.id)
-                ? "bg-white border-[#E0E0E0] hover:border-[#6967FB]/40 hover:bg-gray-50 text-brilliant-text active:translate-y-[3px] active:!shadow-none"
-                : "bg-[#F5F5F5] border-[#F5F5F5] text-transparent"
-            )}
-            style={{
-              boxShadow: availableLetters.includes(letter.id) ? "0 3px 0 0 #D4D4D4" : "none"
-            }}
+            onClick={handleContinue}
+            className="px-8 py-3 rounded-2xl font-bold text-sm bg-red-500 text-white hover:bg-red-600 shadow-[0_4px_0_0_#b91c1c] transition-all active:translate-y-[3px] active:!shadow-none"
           >
-            {letter.letter}
+            Suivant
           </button>
-        ))}
-      </div>
-
-      {/* Action buttons */}
-      <div className="flex gap-3 w-full max-w-xs">
-        <div className="w-1/2">
-          <ShinyButton
-            variant="outline-green"
-            onClick={handleReset}
-            disabled={disabled || selectedLetters.length === 0}
-          >
-            Réinitialiser
-          </ShinyButton>
         </div>
-        <div className="w-1/2">
-          <ShinyButton
-            variant={availableLetters.length === 0 && status === "none" ? "green" : "gray"}
-            onClick={handleCheck}
-            disabled={disabled || availableLetters.length > 0 || status !== "none"}
-          >
-            Vérifier
-          </ShinyButton>
-        </div>
-      </div>
+      )}
     </div>
   );
 };

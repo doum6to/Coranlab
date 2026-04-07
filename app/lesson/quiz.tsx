@@ -144,6 +144,14 @@ export const Quiz = ({
     setTotalAttempts((prev) => prev + 1);
   };
 
+  // Move to next exercise after a wrong answer was shown (no retry)
+  const handleSelfSkip = () => {
+    setPercentage((prev) => prev + 100 / challengesList.length);
+    onNext();
+    setStatus("none");
+    setSelectedOption(undefined);
+  };
+
   const onContinue = () => {
     if (!selectedOption) return;
 
@@ -217,7 +225,7 @@ export const Quiz = ({
       case "MATCHING":
         return <Matching key={k} options={options} onComplete={handleSelfComplete} disabled={pending} />;
       case "ANAGRAM":
-        return <Anagram key={k} challenge={challenge} options={options} onCorrect={handleSelfComplete} onWrong={handleSelfWrong} disabled={pending} />;
+        return <Anagram key={k} challenge={challenge} options={options} onCorrect={handleSelfComplete} onWrong={handleSelfWrong} onSkip={handleSelfSkip} disabled={pending} />;
       case "QCM_INVERSE":
         return <QCMInverse key={k} challenge={challenge} options={options} onSelect={onSelect} selectedOption={selectedOption} status={status} disabled={pending} />;
       case "DRAG_DROP":
@@ -229,7 +237,7 @@ export const Quiz = ({
       case "OPPOSITE":
         return <Opposite key={k} challenge={challenge} options={options} onSelect={onSelect} selectedOption={selectedOption} status={status} disabled={pending} />;
       case "SPOT_THE_ERROR":
-        return <SpotTheError key={k} challenge={challenge} options={options} onCorrect={handleSelfComplete} onWrong={handleSelfWrong} disabled={pending} />;
+        return <SpotTheError key={k} challenge={challenge} options={options} onCorrect={handleSelfComplete} onWrong={handleSelfWrong} onSkip={handleSelfSkip} disabled={pending} />;
       default:
         return null;
     }
