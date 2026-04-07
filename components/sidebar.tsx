@@ -13,6 +13,7 @@ import {
   HomeIcon,
   CoursIcon,
   LeaderboardIcon,
+  SettingsIcon,
 } from "./sidebar-icons";
 
 type Props = {
@@ -33,7 +34,7 @@ export const Sidebar = ({ className, streak, keys, isPro, hasActiveSubscription,
       <Link href="/learn">
         <div className="pt-8 pl-4 pb-7 flex items-center gap-x-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/quranlab-logo.svg" alt="Quranlab" className="h-7" />
+          <img src="/quranlab-logo.svg" alt="Quranlab" className="h-14" />
         </div>
       </Link>
 
@@ -67,6 +68,11 @@ export const Sidebar = ({ className, streak, keys, isPro, hasActiveSubscription,
           label="Classement"
           href="/leaderboard"
           icon={LeaderboardIcon}
+        />
+        <SidebarItem
+          label="Paramètres"
+          href="/settings"
+          icon={SettingsIcon}
         />
       </div>
 
