@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { X } from "lucide-react";
 import { createStripeUrl } from "@/actions/user-subscription";
 import type { PremiumPlan } from "@/lib/premium";
+import { RiveMascot } from "@/components/rive-mascot";
 
 export const PricingView = () => {
   const [selected, setSelected] = useState<PremiumPlan>("annual");
@@ -25,7 +26,7 @@ export const PricingView = () => {
 
   return (
     <div
-      className="h-[100dvh] w-full relative overflow-hidden flex flex-col"
+      className="fixed inset-0 z-50 overflow-hidden flex flex-col"
       style={{
         background:
           "radial-gradient(circle at 10% 0%, #F3D5FF 0%, transparent 40%), radial-gradient(circle at 90% 0%, #FFF0C4 0%, transparent 45%), radial-gradient(circle at 50% 100%, #FFE2E2 0%, transparent 50%), #FFF9F0",
@@ -39,45 +40,27 @@ export const PricingView = () => {
         <X className="w-5 h-5 sm:w-6 sm:h-6 text-brilliant-text" />
       </Link>
 
-      <div className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 pt-6 sm:pt-16 pb-6 sm:pb-12 flex flex-col">
-        {/* Logo mark */}
-        <div className="flex justify-center mb-3 sm:mb-6 shrink-0">
-          <div
-            className="w-14 h-14 sm:w-28 sm:h-28 rounded-xl sm:rounded-2xl flex items-center justify-center"
-            style={{
-              background:
-                "linear-gradient(135deg, #F7C325 0%, #E350E3 35%, #874DE5 65%, #456DFF 100%)",
-              boxShadow: "0 12px 40px -8px rgba(135, 77, 229, 0.4)",
-            }}
-          >
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              className="sm:w-14 sm:h-14"
-            >
-              <path
-                d="M9 2L3 9l9 13 9-13-6-7H9z"
-                stroke="white"
-                strokeWidth="1.5"
-                strokeLinejoin="round"
-                fill="rgba(255,255,255,0.15)"
-              />
-            </svg>
+      <div className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-12 flex flex-col items-center justify-center">
+        {/* Mascot animation */}
+        <div className="flex justify-center mb-1 sm:mb-3 shrink-0">
+          <div className="h-32 w-32 sm:h-44 sm:w-44">
+            <RiveMascot
+              src="/animations/eyes_down.riv"
+              animationName="eyes down"
+            />
           </div>
         </div>
 
         {/* Title */}
-        <h1 className="text-center text-lg leading-tight sm:text-5xl font-extrabold text-brilliant-text font-heading mb-1.5 sm:mb-3 px-2 shrink-0">
+        <h1 className="text-center text-lg leading-tight sm:text-2xl font-extrabold text-brilliant-text font-heading mb-1 sm:mb-1.5 px-2 shrink-0">
           Débloque toute l&apos;expérience Quranlab
         </h1>
-        <p className="text-center text-brilliant-muted text-xs sm:text-lg mb-4 sm:mb-14 px-2 shrink-0">
+        <p className="text-center text-brilliant-muted text-xs sm:text-sm mb-3 sm:mb-6 px-2 shrink-0">
           Accès complet à tous les cours — et bien plus.
         </p>
 
         {/* Plans — 2 columns on mobile too so the page fits without scroll */}
-        <div className="grid grid-cols-2 gap-3 sm:gap-6 max-w-2xl w-full mx-auto pt-3 sm:pt-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-lg w-full mx-auto">
           {/* Monthly */}
           <button
             type="button"
@@ -91,9 +74,9 @@ export const PricingView = () => {
                   : "#E5E7EB",
             }}
           >
-            <div className="rounded-[14px] bg-white p-3 sm:p-6">
-              <div className="flex items-center justify-between mb-1 sm:mb-2">
-                <div className="text-sm sm:text-xl font-bold text-brilliant-text">
+            <div className="rounded-[14px] bg-white p-3 sm:p-5">
+              <div className="flex items-center justify-between mb-1 sm:mb-1.5">
+                <div className="text-sm sm:text-base font-bold text-brilliant-text">
                   Mensuel
                 </div>
                 <div
@@ -109,15 +92,15 @@ export const PricingView = () => {
                 </div>
               </div>
               <div className="flex items-baseline gap-0.5 sm:gap-1 flex-wrap">
-                <span className="text-lg sm:text-3xl font-extrabold text-brilliant-text">
+                <span className="text-lg sm:text-2xl font-extrabold text-brilliant-text">
                   14,97€
                 </span>
-                <span className="text-[10px] sm:text-sm text-brilliant-muted">
+                <span className="text-[10px] sm:text-xs text-brilliant-muted">
                   / mois
                 </span>
               </div>
               <div className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs text-brilliant-muted">
-                Sans engagement
+                Renouvelé chaque mois
               </div>
             </div>
           </button>
@@ -151,9 +134,9 @@ export const PricingView = () => {
                     : "#E5E7EB",
               }}
             >
-              <div className="rounded-[14px] bg-white p-3 sm:p-6">
-                <div className="flex items-center justify-between mb-1 sm:mb-2">
-                  <div className="text-sm sm:text-xl font-bold text-brilliant-text">
+              <div className="rounded-[14px] bg-white p-3 sm:p-5">
+                <div className="flex items-center justify-between mb-1 sm:mb-1.5">
+                  <div className="text-sm sm:text-base font-bold text-brilliant-text">
                     Annuel
                   </div>
                   <div
@@ -169,10 +152,10 @@ export const PricingView = () => {
                   </div>
                 </div>
                 <div className="flex items-baseline gap-0.5 sm:gap-1 flex-wrap">
-                  <span className="text-lg sm:text-3xl font-extrabold text-brilliant-text">
+                  <span className="text-lg sm:text-2xl font-extrabold text-brilliant-text">
                     9,99€
                   </span>
-                  <span className="text-[10px] sm:text-sm text-brilliant-muted">
+                  <span className="text-[10px] sm:text-xs text-brilliant-muted">
                     / mois*
                   </span>
                 </div>
@@ -185,20 +168,18 @@ export const PricingView = () => {
         </div>
 
         {/* Fine print */}
-        <p className="text-center text-[10px] sm:text-xs text-brilliant-muted max-w-xl mx-auto mt-3 sm:mt-6 px-2 sm:px-4 shrink-0">
-          *Facturé 119,88€/an. Résiliable à tout moment.
+        <p className="text-center text-[10px] sm:text-xs text-brilliant-muted max-w-xl mx-auto mt-2 sm:mt-4 px-2 sm:px-4 shrink-0">
+          {selected === "annual"
+            ? "*Facturé 119,88€/an. Résiliable à tout moment."
+            : "Facturé 14,97€/mois. Résiliable à tout moment."}
         </p>
 
-        {/* Spacer pushes the button to the bottom on desktop while keeping it
-            visible on mobile */}
-        <div className="flex-1 min-h-[12px]" />
-
         {/* Subscribe button */}
-        <div className="flex justify-center shrink-0">
+        <div className="flex justify-center shrink-0 mt-4 sm:mt-8">
           <button
             onClick={onSubscribe}
             disabled={pending}
-            className="rounded-full px-8 sm:px-16 py-3 sm:py-4 text-white text-sm sm:text-lg font-bold transition-transform duration-100 hover:opacity-90 hover:scale-[1.02] active:translate-y-[3px] active:!shadow-none disabled:opacity-60"
+            className="rounded-full px-8 sm:px-12 py-3 sm:py-3.5 text-white text-sm sm:text-base font-bold transition-transform duration-100 hover:opacity-90 hover:scale-[1.02] active:translate-y-[3px] active:!shadow-none disabled:opacity-60"
             style={{
               background: "#0F172A",
               boxShadow: "0 4px 0 0 rgba(0, 0, 0, 0.25)",
