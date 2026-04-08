@@ -2,11 +2,13 @@
 
 import { toast } from "sonner";
 
-import Confetti from "react-confetti";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useState, useTransition, useEffect, useRef } from "react";
 import { useAudio, useWindowSize } from "react-use";
 import { useRive, Layout, Fit, Alignment } from "@rive-app/react-canvas";
+
+const Confetti = dynamic(() => import("react-confetti"), { ssr: false });
 
 import { challengeOptions, challenges, userSubscription } from "@/db/schema";
 import { completeLessonChallenges } from "@/actions/challenge-progress";
