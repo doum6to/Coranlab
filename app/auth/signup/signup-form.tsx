@@ -20,36 +20,41 @@ export function SignUpForm() {
     setLoading(true);
     setError("");
 
-    // 1. Create user server-side (auto-confirmed, no email verification)
-    const res = await fetch("/api/auth/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: email.trim(), password, name: name.trim() }),
-    });
+    try {
+      // 1. Create user server-side (auto-confirmed, no email verification)
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password, name: name.trim() }),
+      });
 
-    const body = await res.json();
+      const body = await res.json();
 
-    if (!res.ok) {
-      setError(body.error || "Erreur lors de la création du compte.");
+      if (!res.ok) {
+        setError(body.error || "Erreur lors de la création du compte.");
+        setLoading(false);
+        return;
+      }
+
+      // 2. Sign in client-side to get a session cookie
+      const supabase = createClient();
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (signInError) {
+        setError(signInError.message);
+        setLoading(false);
+        return;
+      }
+
+      router.push("/learn");
+      router.refresh();
+    } catch {
+      setError("Erreur de connexion au serveur. Réessaie dans quelques instants.");
       setLoading(false);
-      return;
     }
-
-    // 2. Sign in client-side to get a session cookie
-    const supabase = createClient();
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password,
-    });
-
-    if (signInError) {
-      setError(signInError.message);
-      setLoading(false);
-      return;
-    }
-
-    router.push("/learn");
-    router.refresh();
   };
 
   return (
