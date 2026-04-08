@@ -24,7 +24,7 @@ export function SignUpForm() {
     const res = await fetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, name }),
+      body: JSON.stringify({ email: email.trim(), password, name: name.trim() }),
     });
 
     const body = await res.json();
@@ -38,7 +38,7 @@ export function SignUpForm() {
     // 2. Sign in client-side to get a session cookie
     const supabase = createClient();
     const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
+      email: email.trim(),
       password,
     });
 
