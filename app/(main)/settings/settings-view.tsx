@@ -13,6 +13,7 @@ type Props = {
   isPro: boolean;
   subscriptionEndDate: string | null;
   hasStripeCustomer: boolean;
+  isLifetime: boolean;
 };
 
 export const SettingsView = ({
@@ -21,6 +22,7 @@ export const SettingsView = ({
   isPro,
   subscriptionEndDate,
   hasStripeCustomer,
+  isLifetime,
 }: Props) => {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -120,18 +122,24 @@ export const SettingsView = ({
                   </div>
                   <div>
                     <p className="text-sm font-bold text-brilliant-text">
-                      Premium actif
+                      {isLifetime ? "Premium à vie" : "Premium actif"}
                     </p>
-                    {formattedEndDate && (
+                    {isLifetime ? (
                       <p className="text-xs text-brilliant-muted">
-                        Prochain renouvellement le {formattedEndDate}
+                        Accès illimité à tous les cours, pour toujours
                       </p>
+                    ) : (
+                      formattedEndDate && (
+                        <p className="text-xs text-brilliant-muted">
+                          Prochain renouvellement le {formattedEndDate}
+                        </p>
+                      )
                     )}
                   </div>
                 </div>
 
-                {/* Manage subscription button */}
-                {hasStripeCustomer && (
+                {/* Manage subscription button — hidden for lifetime */}
+                {hasStripeCustomer && !isLifetime && (
                   <button
                     onClick={handleManageSubscription}
                     disabled={pending}

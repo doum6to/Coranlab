@@ -81,43 +81,7 @@ export const WelcomeTutorial = () => {
       ),
     },
 
-    // Step 2: Keys
-    {
-      title: "Les Cl\u00e9s",
-      buttonLabel: "Compris !",
-      content: (
-        <div className="flex flex-col items-center gap-5">
-          {/* Key visual */}
-          <div className="flex items-center gap-2">
-            <Image src="/key.svg" width={32} height={32} alt="Cl\u00e9" />
-            <span className="text-3xl font-extrabold text-yellow-500">1</span>
-          </div>
-
-          <p className="text-sm text-brilliant-text text-center leading-relaxed max-w-xs">
-            Les <b>cl&eacute;s</b> te permettent de d&eacute;bloquer des le&ccedil;ons
-            avanc&eacute;es (Partie II, III...).
-          </p>
-
-          <div className="bg-gray-50 rounded-xl px-4 py-3 text-center">
-            <p className="text-sm text-brilliant-text">
-              <b>1 cl&eacute; gratuite</b> chaque semaine
-            </p>
-          </div>
-
-          <p className="text-sm text-brilliant-text text-center leading-relaxed max-w-xs">
-            Utilise une cl&eacute; pour d&eacute;verrouiller une le&ccedil;on verrouill&eacute;e.
-            Une fois d&eacute;bloqu&eacute;e, elle le reste pour toujours !
-          </p>
-
-          <p className="text-xs text-brilliant-muted text-center max-w-xs">
-            Les utilisateurs Premium ont un acc&egrave;s illimit&eacute; &agrave; toutes les le&ccedil;ons,
-            sans avoir besoin de cl&eacute;s.
-          </p>
-        </div>
-      ),
-    },
-
-    // Step 3: Premium
+    // Step 2: Premium
     {
       title: "Quranlab Premium",
       buttonLabel: "C'est parti !",
@@ -134,8 +98,8 @@ export const WelcomeTutorial = () => {
           </div>
 
           <p className="text-sm text-brilliant-text text-center leading-relaxed max-w-xs">
-            Avec <b>Premium</b>, d&eacute;bloque <b>toutes les le&ccedil;ons</b> sans cl&eacute;s
-            et apprends &agrave; ton rythme.
+            Avec <b>Premium</b>, d&eacute;bloque <b>toutes les le&ccedil;ons</b>
+            {" "}et apprends &agrave; ton rythme.
           </p>
 
           <div className="w-full max-w-xs space-y-2">

@@ -4,7 +4,6 @@ import { FeedWrapper } from "@/components/feed-wrapper";
 import {
   getListsWithLevels,
   getUserProgress,
-  getUserSubscription,
   getCourses,
 } from "@/db/queries";
 import { upsertUserProgress } from "@/actions/user-progress";
@@ -20,9 +19,8 @@ const LearnPage = async () => {
     redirect("/auth/login");
   }
 
-  const [userProgressData, userSubscription, listsData] = await Promise.all([
+  const [userProgressData, listsData] = await Promise.all([
     getUserProgress(),
-    getUserSubscription(),
     getListsWithLevels(),
   ]);
   let userProgress = userProgressData;
@@ -40,8 +38,6 @@ const LearnPage = async () => {
     redirect("/auth/login");
   }
 
-  const isPro = !!userSubscription?.isActive;
-  const userKeys = userProgress?.keys ?? 0;
   const showTutorial = !userProgress?.tutorialDone;
 
   return (
@@ -56,9 +52,6 @@ const LearnPage = async () => {
               title={unit.title}
               description={unit.description}
               lists={unit.lists}
-              keyLocked={unit.keyLocked && !isPro}
-              isPro={isPro}
-              userKeys={userKeys}
             />
           </div>
         ))}

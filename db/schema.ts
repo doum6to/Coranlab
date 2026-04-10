@@ -118,8 +118,6 @@ export const userProgress = pgTable("user_progress", {
   userImageSrc: text("user_image_src").notNull().default("/mascot.svg"),
   activeCourseId: integer("active_course_id").references(() => courses.id, { onDelete: "cascade" }),
   hearts: integer("hearts").notNull().default(5),
-  keys: integer("keys").notNull().default(1),
-  lastKeyDate: text("last_key_date"),
   points: integer("points").notNull().default(0),
   streak: integer("streak").notNull().default(0),
   lastStreakDate: text("last_streak_date"),
@@ -141,12 +139,6 @@ export const userProgressRelations = relations(userProgress, ({ one }) => ({
     references: [courses.id],
   }),
 }));
-
-export const unlockedLists = pgTable("unlocked_lists", {
-  id: serial("id").primaryKey(),
-  userId: text("user_id").notNull(),
-  listId: integer("list_id").notNull(),
-});
 
 // League system
 export const leagueTierEnum = pgEnum("league_tier", [
@@ -181,7 +173,8 @@ export const userSubscription = pgTable("user_subscription", {
   id: serial("id").primaryKey(),
   userId: text("user_id").notNull().unique(),
   stripeCustomerId: text("stripe_customer_id").notNull().unique(),
-  stripeSubscriptionId: text("stripe_subscription_id").notNull().unique(),
-  stripePriceId: text("stripe_price_id").notNull(),
+  stripeSubscriptionId: text("stripe_subscription_id").unique(),
+  stripePriceId: text("stripe_price_id"),
   stripeCurrentPeriodEnd: timestamp("stripe_current_period_end").notNull(),
+  isLifetime: boolean("is_lifetime").notNull().default(false),
 });

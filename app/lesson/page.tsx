@@ -1,6 +1,11 @@
 import { redirect } from "next/navigation";
 
-import { getLesson, getUserProgress, getUserSubscription } from "@/db/queries";
+import {
+  getLesson,
+  getUserProgress,
+  getUserSubscription,
+  isListPremiumLocked,
+} from "@/db/queries";
 
 import { Quiz } from "./quiz";
 
@@ -21,6 +26,10 @@ const LessonPage = async () => {
 
   if (!lesson || !userProgress) {
     redirect("/learn");
+  }
+
+  if (await isListPremiumLocked(lesson.listId)) {
+    redirect("/premium");
   }
 
   const initialPercentage = lesson.challenges

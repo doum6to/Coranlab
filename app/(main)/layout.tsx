@@ -1,12 +1,7 @@
-import { eq } from "drizzle-orm";
 import { Sidebar } from "@/components/sidebar";
 import { MobileHeader } from "@/components/mobile-header";
 import { PageReveal } from "@/components/ui/page-reveal";
 import { getUserProgress, getUserSubscription, getStreakData } from "@/db/queries";
-import { auth } from "@/lib/supabase/server";
-import db from "@/db/drizzle";
-import { userProgress as userProgressTable } from "@/db/schema";
-import { getCurrentWeekStart } from "@/lib/league-utils";
 
 type Props = {
   children: React.ReactNode;
@@ -15,39 +10,22 @@ type Props = {
 const MainLayout = async ({
   children,
 }: Props) => {
-  const [{ userId }, userProgressData, userSubscription, streakData] = await Promise.all([
-    auth(),
+  const [userProgress, userSubscription, streakData] = await Promise.all([
     getUserProgress(),
     getUserSubscription(),
     getStreakData(),
   ]);
-  let userProgress = userProgressData;
   const isPro = !!userSubscription?.isActive;
-
-  // Auto-grant weekly key for non-Pro users
-  if (userProgress && userId && !isPro) {
-    const weekStart = getCurrentWeekStart();
-    if (userProgress.lastKeyDate !== weekStart) {
-      const newKeys = userProgress.keys + 1;
-      await db.update(userProgressTable).set({
-        keys: newKeys,
-        lastKeyDate: weekStart,
-      }).where(eq(userProgressTable.userId, userId));
-      userProgress = { ...userProgress, keys: newKeys, lastKeyDate: weekStart };
-    }
-  }
 
   return (
     <>
       <MobileHeader
         streak={userProgress?.streak}
-        keys={userProgress?.keys}
         isPro={isPro}
       />
       <Sidebar
         className="hidden lg:flex"
         streak={userProgress?.streak}
-        keys={userProgress?.keys}
         isPro={isPro}
         hasActiveSubscription={isPro}
         streakData={streakData}

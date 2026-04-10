@@ -31,6 +31,7 @@ const SettingsPage = async () => {
         userSubscription?.stripeCurrentPeriodEnd?.toISOString() ?? null
       }
       hasStripeCustomer={!!userSubscription?.stripeCustomerId}
+      isLifetime={!!userSubscription?.isLifetime}
     />
   );
 };

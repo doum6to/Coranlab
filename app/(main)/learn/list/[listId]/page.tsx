@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, BookOpen, Layers } from "lucide-react";
 
-import { getListLevels } from "@/db/queries";
+import { getListLevels, isListPremiumLocked } from "@/db/queries";
 import { getListImage } from "@/lib/list-images";
 
 import { LevelCard } from "./level-card";
@@ -19,6 +19,10 @@ const ListDetailPage = async ({ params }: Props) => {
 
   if (isNaN(listId)) {
     redirect("/learn");
+  }
+
+  if (await isListPremiumLocked(listId)) {
+    redirect("/premium");
   }
 
   const data = await getListLevels(listId);

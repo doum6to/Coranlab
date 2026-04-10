@@ -42,10 +42,6 @@ CREATE INDEX IF NOT EXISTS idx_weekly_xp_week
 CREATE INDEX IF NOT EXISTS idx_streak_activity_user_date
   ON streak_activity (user_id, date DESC);
 
--- Unlocked lists: lookups per user
-CREATE INDEX IF NOT EXISTS idx_unlocked_lists_user
-  ON unlocked_lists (user_id);
-
 -- Challenges and lessons joins
 CREATE INDEX IF NOT EXISTS idx_challenges_lesson
   ON challenges (lesson_id, "order");
@@ -70,7 +66,6 @@ ANALYZE user_progress;
 ANALYZE leagues;
 ANALYZE weekly_xp;
 ANALYZE streak_activity;
-ANALYZE unlocked_lists;
 ANALYZE challenges;
 ANALYZE lessons;
 ANALYZE units;

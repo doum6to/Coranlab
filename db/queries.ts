@@ -12,7 +12,6 @@ import {
   units,
   userProgress,
   userSubscription,
-  unlockedLists,
   weeklyXp,
   streakActivity,
 } from "@/db/schema";
@@ -52,8 +51,8 @@ export type VocabList = {
   completedLevels: number;
   totalLevels: number;
   activeLevel: ListLevel | undefined;
-  /** True if user has spent a key to unlock this list */
-  unlocked: boolean;
+  /** True if this list is hidden behind Premium for the current user. */
+  isPremiumLocked: boolean;
 };
 
 export type UnitWithLists = {
@@ -62,8 +61,6 @@ export type UnitWithLists = {
   description: string;
   order: number;
   lists: VocabList[];
-  /** True if this unit requires a key to unlock (Part II, III, etc.) */
-  keyLocked: boolean;
 };
 
 export const getListsWithLevels = cache(async (): Promise<UnitWithLists[]> => {
@@ -74,12 +71,8 @@ export const getListsWithLevels = cache(async (): Promise<UnitWithLists[]> => {
     return [];
   }
 
-  // Parallelize unlocked lists fetch with the main query
-  const [userUnlockedLists, data] = await Promise.all([
-    db
-      .select({ listId: unlockedLists.listId })
-      .from(unlockedLists)
-      .where(eq(unlockedLists.userId, userId)),
+  const [subscription, data] = await Promise.all([
+    getUserSubscription(),
     db.query.units.findMany({
       orderBy: (units, { asc }) => [asc(units.order)],
       where: eq(units.courseId, userProgressData.activeCourseId),
@@ -111,7 +104,7 @@ export const getListsWithLevels = cache(async (): Promise<UnitWithLists[]> => {
       },
     }),
   ]);
-  const unlockedListIds = new Set(userUnlockedLists.map((u) => u.listId));
+  const isPro = !!subscription?.isActive;
 
   return data.map((unit) => {
     // Group lessons by listId
@@ -153,8 +146,17 @@ export const getListsWithLevels = cache(async (): Promise<UnitWithLists[]> => {
         completedLevels,
         totalLevels: levels.length,
         activeLevel,
-        unlocked: unlockedListIds.has(listId),
+        isPremiumLocked: false, // assigned below
       });
+    }
+
+    // Apply premium lock rule: only the very first list of the very first unit
+    // (unit.order === 1, first listId) is free for non-Pro users.
+    const isFirstUnit = unit.order === 1;
+    const firstListId = lists[0]?.listId;
+    for (const list of lists) {
+      const isFreeList = isFirstUnit && list.listId === firstListId;
+      list.isPremiumLocked = !isPro && !isFreeList;
     }
 
     return {
@@ -163,9 +165,31 @@ export const getListsWithLevels = cache(async (): Promise<UnitWithLists[]> => {
       description: unit.description,
       order: unit.order,
       lists,
-      keyLocked: unit.order > 1,
     };
   });
+});
+
+export const isListPremiumLocked = cache(async (listId: number) => {
+  const subscription = await getUserSubscription();
+  if (subscription?.isActive) return false;
+
+  const up = await getUserProgress();
+  if (!up?.activeCourseId) return true;
+
+  const firstUnit = await db.query.units.findFirst({
+    where: eq(units.courseId, up.activeCourseId),
+    orderBy: (u, { asc }) => [asc(u.order)],
+    columns: { id: true },
+    with: {
+      lessons: {
+        orderBy: (l, { asc }) => [asc(l.order)],
+        columns: { listId: true },
+        limit: 1,
+      },
+    },
+  });
+  const freeListId = firstUnit?.lessons[0]?.listId;
+  return listId !== freeListId;
 });
 
 export const getListLevels = cache(async (listId: number) => {
@@ -472,8 +496,9 @@ export const getUserSubscription = cache(async () => {
   if (!data) return null;
 
   const isActive =
-    data.stripePriceId &&
-    data.stripeCurrentPeriodEnd?.getTime()! + DAY_IN_MS > Date.now();
+    data.isLifetime ||
+    (!!data.stripePriceId &&
+      data.stripeCurrentPeriodEnd.getTime() + DAY_IN_MS > Date.now());
 
   return {
     ...data,

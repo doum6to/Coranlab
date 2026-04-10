@@ -1,1 +1,5 @@
-export type PremiumPlan = "monthly" | "annual";
+export type PremiumPlan =
+  | "three_months"
+  | "six_months"
+  | "annual"
+  | "lifetime";

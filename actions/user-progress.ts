@@ -6,8 +6,8 @@ import { revalidatePath } from "next/cache";
 import { auth, currentUser } from "@/lib/supabase/server";
 
 import db from "@/db/drizzle";
-import { getCourseById, getUserProgress, getUserSubscription } from "@/db/queries";
-import { challengeProgress, challenges, userProgress, unlockedLists } from "@/db/schema";
+import { getCourseById, getUserProgress } from "@/db/queries";
+import { challengeProgress, userProgress } from "@/db/schema";
 
 export const upsertUserProgress = async (courseId: number) => {
   const { userId } = await auth();
@@ -76,84 +76,6 @@ export const reduceHearts = async (challengeId: number) => {
 
   // No hearts to lose — just track wrong answer on client
   return;
-};
-
-// Daily key claim
-export const claimDailyKey = async () => {
-  const { userId } = await auth();
-
-  if (!userId) {
-    throw new Error("Unauthorized");
-  }
-
-  const currentUserProgress = await getUserProgress();
-
-  if (!currentUserProgress) {
-    throw new Error("User progress not found");
-  }
-
-  const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
-
-  if (currentUserProgress.lastKeyDate === today) {
-    throw new Error("Daily key already claimed");
-  }
-
-  await db.update(userProgress).set({
-    keys: currentUserProgress.keys + 1,
-    lastKeyDate: today,
-  }).where(eq(userProgress.userId, userId));
-
-  revalidatePath("/learn");
-};
-
-// Use a key to unlock a list
-export const spendKey = async (listId: number) => {
-  const { userId } = await auth();
-
-  if (!userId) {
-    throw new Error("Unauthorized");
-  }
-
-  const currentUserProgress = await getUserProgress();
-  const userSubscription = await getUserSubscription();
-
-  if (!currentUserProgress) {
-    throw new Error("User progress not found");
-  }
-
-  // Pro users don't need keys
-  if (userSubscription?.isActive) {
-    return { success: true };
-  }
-
-  // Check if already unlocked
-  const existing = await db.query.unlockedLists.findFirst({
-    where: and(
-      eq(unlockedLists.userId, userId),
-      eq(unlockedLists.listId, listId),
-    ),
-  });
-
-  if (existing) {
-    return { success: true };
-  }
-
-  if (currentUserProgress.keys <= 0) {
-    return { error: "no_keys" };
-  }
-
-  await db.update(userProgress).set({
-    keys: currentUserProgress.keys - 1,
-  }).where(eq(userProgress.userId, userId));
-
-  await db.insert(unlockedLists).values({
-    userId,
-    listId,
-  });
-
-  revalidatePath("/learn");
-
-  return { success: true };
 };
 
 // Legacy — keep for backward compat but does nothing meaningful

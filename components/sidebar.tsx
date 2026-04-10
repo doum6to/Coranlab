@@ -6,7 +6,6 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { SidebarItem } from "./sidebar-item";
 import { UserButton } from "./user-button";
-import { KeyIndicator } from "./key-indicator";
 import { StreakCard } from "./streak-card";
 import type { StreakData } from "@/db/queries";
 import {
@@ -19,13 +18,12 @@ import {
 type Props = {
   className?: string;
   streak?: number;
-  keys?: number;
   isPro?: boolean;
   hasActiveSubscription?: boolean;
   streakData?: StreakData;
 };
 
-export const Sidebar = ({ className, streak, keys, isPro, hasActiveSubscription, streakData }: Props) => {
+export const Sidebar = ({ className, streak, isPro, hasActiveSubscription, streakData }: Props) => {
   return (
     <div className={cn(
       "flex h-full lg:w-[256px] lg:fixed left-0 top-0 px-4 border-r border-brilliant-border flex-col bg-white",
@@ -37,18 +35,13 @@ export const Sidebar = ({ className, streak, keys, isPro, hasActiveSubscription,
         </div>
       </Link>
 
-      {/* Streak & Keys */}
+      {/* Streak */}
       {streak !== undefined && (
-        <div className="flex items-center justify-around px-2 py-3 mb-2 rounded-xl bg-gray-50">
+        <div className="flex items-center justify-center px-2 py-3 mb-2 rounded-xl bg-gray-50">
           <div className="flex items-center gap-x-1.5 text-brilliant-orange">
             <Image src="/points.svg" height={22} width={22} alt="Streak" />
             <span className="text-sm font-bold">{streak}</span>
           </div>
-          <div className="w-px h-5 bg-gray-200" />
-          <KeyIndicator
-            count={hasActiveSubscription ? "∞" : (keys ?? 0)}
-            size="md"
-          />
         </div>
       )}
 

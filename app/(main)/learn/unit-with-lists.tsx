@@ -14,9 +14,6 @@ type Props = {
   title: string;
   description: string;
   lists: VocabList[];
-  keyLocked?: boolean;
-  isPro?: boolean;
-  userKeys?: number;
 };
 
 export const UnitWithListsView = ({
@@ -25,9 +22,6 @@ export const UnitWithListsView = ({
   title,
   description,
   lists,
-  keyLocked,
-  isPro,
-  userKeys,
 }: Props) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -141,12 +135,7 @@ export const UnitWithListsView = ({
           {lists.map((list) => {
             const isCurrent = list.listId === activeListId;
             const isCompleted = list.completedLevels === list.totalLevels;
-            const isUnlocked = list.unlocked;
-            const needsKey = isCompleted || isUnlocked
-              ? false
-              : keyLocked
-                ? true // unit locked: all non-completed, non-unlocked need key
-                : (!isCurrent); // unit free: only future lists need key
+            const isPremiumLocked = list.isPremiumLocked;
 
             return (
               <div
@@ -157,12 +146,12 @@ export const UnitWithListsView = ({
                 <ListCard
                   listId={list.listId}
                   listTitle={list.listTitle}
-                  current={!needsKey && (isCurrent || isUnlocked)}
-                  locked={needsKey}
+                  current={!isPremiumLocked && isCurrent}
+                  locked={false}
                   completed={isCompleted}
                   completedLevels={list.completedLevels}
                   totalLevels={list.totalLevels}
-                  keyLocked={needsKey}
+                  isPremiumLocked={isPremiumLocked}
                   activeLessonId={list.activeLevel?.id || list.levels[0]?.id}
                 />
               </div>

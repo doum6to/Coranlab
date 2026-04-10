@@ -14,7 +14,6 @@ type Props = {
   title: string;
   description: string;
   lists: VocabList[];
-  keyLocked?: boolean;
 };
 
 export const LeconsUnitCarousel = ({
@@ -23,7 +22,6 @@ export const LeconsUnitCarousel = ({
   title,
   description,
   lists,
-  keyLocked,
 }: Props) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -144,12 +142,7 @@ export const LeconsUnitCarousel = ({
           {lists.map((list) => {
             const isCurrent = list.listId === activeListId;
             const isCompleted = list.completedLevels === list.totalLevels;
-            const isUnlocked = list.unlocked;
-            const needsKey = isCompleted || isUnlocked
-              ? false
-              : keyLocked
-                ? true
-                : (!isCurrent);
+            const isPremiumLocked = list.isPremiumLocked;
 
             return (
               <div
@@ -160,13 +153,13 @@ export const LeconsUnitCarousel = ({
                 <ListCard
                   listId={list.listId}
                   listTitle={list.listTitle}
-                  current={!needsKey && (isCurrent || isUnlocked)}
-                  locked={needsKey}
+                  current={!isPremiumLocked && isCurrent}
+                  locked={false}
                   completed={isCompleted}
                   completedLevels={list.completedLevels}
                   totalLevels={list.totalLevels}
                   context="lecons"
-                  keyLocked={needsKey}
+                  isPremiumLocked={isPremiumLocked}
                 />
               </div>
             );

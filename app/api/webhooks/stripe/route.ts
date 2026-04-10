@@ -25,27 +25,70 @@ export async function POST(req: Request) {
     });
   }
 
-  // --- 1. New subscription created via Checkout ---
+  // --- 1. New subscription or one-time payment completed via Checkout ---
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
-
-    const subscription = await stripe.subscriptions.retrieve(
-      session.subscription as string
-    );
 
     if (!session?.metadata?.userId) {
       return new NextResponse("User ID is required", { status: 400 });
     }
 
-    await db.insert(userSubscription).values({
-      userId: session.metadata.userId,
-      stripeSubscriptionId: subscription.id,
-      stripeCustomerId: subscription.customer as string,
-      stripePriceId: subscription.items.data[0].price.id,
-      stripeCurrentPeriodEnd: new Date(
-        subscription.current_period_end * 1000,
-      ),
-    });
+    if (session.mode === "payment") {
+      // One-time lifetime purchase — no Stripe subscription exists.
+      const customerId = session.customer as string;
+      const lifetimeEnd = new Date("2099-12-31T23:59:59Z");
+
+      await db
+        .insert(userSubscription)
+        .values({
+          userId: session.metadata.userId,
+          stripeCustomerId: customerId,
+          stripeSubscriptionId: null,
+          stripePriceId: null,
+          stripeCurrentPeriodEnd: lifetimeEnd,
+          isLifetime: true,
+        })
+        .onConflictDoUpdate({
+          target: userSubscription.userId,
+          set: {
+            stripeCustomerId: customerId,
+            stripeSubscriptionId: null,
+            stripePriceId: null,
+            stripeCurrentPeriodEnd: lifetimeEnd,
+            isLifetime: true,
+          },
+        });
+    } else {
+      // Recurring subscription (3 months / 6 months / annual)
+      const subscription = await stripe.subscriptions.retrieve(
+        session.subscription as string
+      );
+
+      await db
+        .insert(userSubscription)
+        .values({
+          userId: session.metadata.userId,
+          stripeSubscriptionId: subscription.id,
+          stripeCustomerId: subscription.customer as string,
+          stripePriceId: subscription.items.data[0].price.id,
+          stripeCurrentPeriodEnd: new Date(
+            subscription.current_period_end * 1000,
+          ),
+          isLifetime: false,
+        })
+        .onConflictDoUpdate({
+          target: userSubscription.userId,
+          set: {
+            stripeSubscriptionId: subscription.id,
+            stripeCustomerId: subscription.customer as string,
+            stripePriceId: subscription.items.data[0].price.id,
+            stripeCurrentPeriodEnd: new Date(
+              subscription.current_period_end * 1000,
+            ),
+            isLifetime: false,
+          },
+        });
+    }
   }
 
   // --- 2. Recurring payment succeeded → extend period ---

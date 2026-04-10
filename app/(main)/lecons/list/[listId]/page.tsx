@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, BookOpen } from "lucide-react";
 
-import { getListLevels } from "@/db/queries";
+import { getListLevels, isListPremiumLocked } from "@/db/queries";
 import { FlashcardGrid } from "@/app/(main)/learn/list/[listId]/flashcard-grid";
 
 type Props = {
@@ -17,6 +17,10 @@ const ReviserListPage = async ({ params }: Props) => {
 
   if (isNaN(listId)) {
     redirect("/lecons");
+  }
+
+  if (await isListPremiumLocked(listId)) {
+    redirect("/premium");
   }
 
   const data = await getListLevels(listId);

@@ -9,16 +9,10 @@ const ExitModal = dynamic(
   { ssr: false }
 );
 
-const HeartsModal = dynamic(
-  () => import("./hearts-modal").then((m) => m.HeartsModal),
-  { ssr: false }
-);
-
 export const ModalsProvider = () => {
   return (
     <>
       <ExitModal />
-      <HeartsModal />
     </>
   );
 };

@@ -9,27 +9,48 @@ import type { PremiumPlan } from "@/lib/premium";
 
 const returnUrl = absoluteUrl("/learn");
 
-const PLAN_CONFIG: Record<PremiumPlan, {
+type PlanConfig = {
   name: string;
   description: string;
   unit_amount: number;
-  interval: "month" | "year";
-}> = {
-  monthly: {
-    name: "Quranlab Premium (Mensuel)",
-    description: "Accès illimité à tous les cours",
-    unit_amount: 1497, // 14.97 EUR
-    interval: "month",
+  mode: "subscription" | "payment";
+  recurring?: { interval: "month" | "year"; interval_count?: number };
+};
+
+const PLAN_CONFIG: Record<PremiumPlan, PlanConfig> = {
+  three_months: {
+    name: "Quranlab Premium (3 mois)",
+    description: "Accès illimité — facturé tous les 3 mois",
+    unit_amount: 4491, // 14,97€ × 3
+    mode: "subscription",
+    recurring: { interval: "month", interval_count: 3 },
+  },
+  six_months: {
+    name: "Quranlab Premium (6 mois)",
+    description: "Accès illimité — facturé tous les 6 mois",
+    unit_amount: 7194, // 11,99€ × 6
+    mode: "subscription",
+    recurring: { interval: "month", interval_count: 6 },
   },
   annual: {
     name: "Quranlab Premium (Annuel)",
     description: "Accès illimité à tous les cours — facturé annuellement",
-    unit_amount: 11988, // 119.88 EUR = 9.99/mois
-    interval: "year",
+    unit_amount: 11988, // 119,88€ = 9,99€/mois
+    mode: "subscription",
+    recurring: { interval: "year" },
+  },
+  lifetime: {
+    name: "Quranlab Premium (À vie)",
+    description:
+      "Accès illimité à tous les cours — paiement unique, à vie",
+    unit_amount: 29999, // 299,99€
+    mode: "payment",
   },
 };
 
-export const createStripeUrl = async (plan: PremiumPlan = "monthly") => {
+export const createStripeUrl = async (
+  plan: PremiumPlan = "three_months"
+) => {
   try {
     const { userId } = await auth();
     const user = await currentUser();
@@ -41,8 +62,13 @@ export const createStripeUrl = async (plan: PremiumPlan = "monthly") => {
 
     const userSubscription = await getUserSubscription();
 
-    // If user has an active subscription, send to billing portal to manage it
-    if (userSubscription?.isActive && userSubscription.stripeCustomerId) {
+    // If user has an active subscription, send to billing portal to manage it.
+    // Lifetime users have no billing portal (nothing to manage) — skip.
+    if (
+      userSubscription?.isActive &&
+      userSubscription.stripeCustomerId &&
+      !userSubscription.isLifetime
+    ) {
       const stripeSession = await stripe.billingPortal.sessions.create({
         customer: userSubscription.stripeCustomerId,
         return_url: returnUrl,
@@ -54,25 +80,27 @@ export const createStripeUrl = async (plan: PremiumPlan = "monthly") => {
     const config = PLAN_CONFIG[plan];
     const email = user.emailAddresses[0]?.emailAddress;
 
-    // Create a new checkout session (works for new users and users
-    // whose previous subscription expired or was never completed)
+    // Build the line item. For subscriptions we attach `recurring`,
+    // for one-time payments (lifetime) we omit it entirely.
+    const priceData: Record<string, any> = {
+      currency: "EUR",
+      product_data: {
+        name: config.name,
+        description: config.description,
+      },
+      unit_amount: config.unit_amount,
+    };
+    if (config.mode === "subscription" && config.recurring) {
+      priceData.recurring = config.recurring;
+    }
+
     const sessionParams: Record<string, any> = {
-      mode: "subscription",
+      mode: config.mode,
       payment_method_types: ["card"],
       line_items: [
         {
           quantity: 1,
-          price_data: {
-            currency: "EUR",
-            product_data: {
-              name: config.name,
-              description: config.description,
-            },
-            unit_amount: config.unit_amount,
-            recurring: {
-              interval: config.interval,
-            },
-          },
+          price_data: priceData,
         },
       ],
       metadata: {

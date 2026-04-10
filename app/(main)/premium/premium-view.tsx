@@ -2,7 +2,8 @@ import Link from "next/link";
 import { X } from "lucide-react";
 
 const BENEFITS = [
-  { label: "Leçons semanales", free: true, premium: true },
+  { label: "Première leçon", free: true, premium: true },
+  { label: "Accès à toutes les leçons", free: false, premium: true },
   { label: "Apprentissage illimité", free: false, premium: true },
   { label: "Sans publicités", free: false, premium: true },
   { label: "Pratique personnalisée", free: false, premium: true },
