@@ -461,6 +461,27 @@ export const getLesson = cache(async (id?: number) => {
   return { ...data, challenges: normalizedChallenges }
 });
 
+export const getFirstLessonId = cache(async (): Promise<number | null> => {
+  const userProgressData = await getUserProgress();
+  if (!userProgressData?.activeCourseId) return null;
+
+  const firstUnit = await db.query.units.findFirst({
+    where: and(
+      eq(units.courseId, userProgressData.activeCourseId),
+      eq(units.order, 1),
+    ),
+    with: {
+      lessons: {
+        orderBy: (lessons, { asc }) => [asc(lessons.order)],
+        columns: { id: true },
+        limit: 1,
+      },
+    },
+  });
+
+  return firstUnit?.lessons[0]?.id ?? null;
+});
+
 export const getLessonPercentage = cache(async () => {
   const courseProgress = await getCourseProgress();
 

@@ -2,8 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
-import { markTutorialDone } from "@/actions/user-progress";
+import { finishTutorialAndStartTest } from "@/actions/user-progress";
 
 const LIME = "#BEF264";
 
@@ -81,35 +80,34 @@ export const WelcomeTutorial = () => {
       ),
     },
 
-    // Step 2: Premium
+    // Step 2: Intro to the test exercise
     {
-      title: "Quranlab Premium",
-      buttonLabel: "C'est parti !",
+      title: "On essaie ?",
+      buttonLabel: "Commencer le test",
       content: (
         <div className="flex flex-col items-center gap-5">
-          {/* Premium icon */}
-          <div
-            className="w-16 h-16 rounded-2xl flex items-center justify-center"
-            style={{
-              background: "linear-gradient(135deg, #F7C325 0%, #E350E3 35%, #874DE5 65%, #456DFF 100%)",
-            }}
-          >
-            <Image src="/unlimited.svg" alt="Premium" width={36} height={36} />
+          {/* Play icon */}
+          <div className="w-20 h-20 rounded-2xl bg-[#6967FB]/10 flex items-center justify-center">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none">
+              <path d="M8 5v14l11-7z" fill="#6967FB" />
+            </svg>
           </div>
 
           <p className="text-sm text-brilliant-text text-center leading-relaxed max-w-xs">
-            Avec <b>Premium</b>, d&eacute;bloque <b>toutes les le&ccedil;ons</b>
-            {" "}et apprends &agrave; ton rythme.
+            On commence par <b>5 exercices rapides</b> pour que tu te
+            familiarises avec Quranlab.
+            <br />
+            Pr&ecirc;t ?
           </p>
 
           <div className="w-full max-w-xs space-y-2">
             {[
-              "Acc\u00e8s \u00e0 tous les cours",
-              "Le\u00e7ons illimit\u00e9es",
-              "Apprentissage personnalis\u00e9",
+              "~1 minute",
+              "Aucun pr\u00e9requis",
+              "Tu apprends d\u00e9j\u00e0 !",
             ].map((text) => (
               <div key={text} className="flex items-center gap-2.5 bg-gray-50 rounded-xl px-4 py-2.5">
-                <div className="w-5 h-5 rounded-full bg-[#FFD6A5] flex items-center justify-center shrink-0">
+                <div className="w-5 h-5 rounded-full bg-[#BEF264] flex items-center justify-center shrink-0">
                   <svg width="10" height="10" viewBox="0 0 20 20" fill="none">
                     <path d="M4 10.5l4 4 8-9" stroke="#0F172A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
@@ -118,11 +116,6 @@ export const WelcomeTutorial = () => {
               </div>
             ))}
           </div>
-
-          <p className="text-xs text-brilliant-muted text-center max-w-xs">
-            Tu pourras d&eacute;couvrir Premium &agrave; tout moment depuis les param&egrave;tres
-            ou la sidebar.
-          </p>
         </div>
       ),
     },
@@ -134,8 +127,12 @@ export const WelcomeTutorial = () => {
   const handleNext = () => {
     if (isLast) {
       startTransition(() => {
-        markTutorialDone().then(() => {
-          router.push("/premium");
+        finishTutorialAndStartTest().then(({ lessonId }) => {
+          if (lessonId) {
+            router.push(`/lesson/${lessonId}?testMode=1`);
+          } else {
+            router.push("/premium");
+          }
         });
       });
     } else {
@@ -177,11 +174,8 @@ export const WelcomeTutorial = () => {
             disabled={pending}
             className="w-full py-3.5 rounded-2xl font-bold text-sm text-white transition-all hover:opacity-90 hover:scale-[1.01] active:scale-[0.98] disabled:opacity-60"
             style={{
-              background: isLast
-                ? "linear-gradient(90deg, #050C38 0%, #6700A3 25%, #E02F75 50%, #FF5A57 75%, #050C38 100%)"
-                : "#6967FB",
-              backgroundSize: isLast ? "400% 100%" : undefined,
-              boxShadow: `0 4px 0 0 ${isLast ? "rgba(5,12,56,0.4)" : "#4a48d4"}`,
+              background: "#6967FB",
+              boxShadow: "0 4px 0 0 #4a48d4",
             }}
           >
             {pending ? "..." : currentStep.buttonLabel}

@@ -13,11 +13,17 @@ type Props = {
   params: {
     lessonId: number;
   };
+  searchParams: {
+    testMode?: string;
+  };
 };
 
 const LessonIdPage = async ({
   params,
+  searchParams,
 }: Props) => {
+  const testMode = searchParams.testMode === "1";
+
   const lessonData = getLesson(params.lessonId);
   const userProgressData = getUserProgress();
   const userSubscriptionData = getUserSubscription();
@@ -36,7 +42,9 @@ const LessonIdPage = async ({
     redirect("/learn");
   }
 
-  if (await isListPremiumLocked(lesson.listId)) {
+  // Skip premium lock in test mode — the first lesson is free anyway but
+  // this makes the bypass explicit and safe.
+  if (!testMode && (await isListPremiumLocked(lesson.listId))) {
     redirect("/premium");
   }
 
@@ -53,6 +61,7 @@ const LessonIdPage = async ({
       userSubscription={userSubscription}
       listId={lesson.listId}
       levelOrder={lesson.levelOrder}
+      testMode={testMode}
     />
   );
 };

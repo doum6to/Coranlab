@@ -32,6 +32,8 @@ import {
   SpotTheError,
 } from "./exercises";
 
+const TEST_MODE_LIMIT = 5;
+
 type Props = {
   initialPercentage: number;
   initialHearts: number;
@@ -45,6 +47,7 @@ type Props = {
   } | null;
   listId?: number;
   levelOrder?: number;
+  testMode?: boolean;
 };
 
 export const Quiz = ({
@@ -55,6 +58,7 @@ export const Quiz = ({
   userSubscription,
   listId,
   levelOrder,
+  testMode = false,
 }: Props) => {
 
   const router = useRouter();
@@ -63,9 +67,13 @@ export const Quiz = ({
   // Prefetch the return destination as soon as the quiz mounts so the
   // transition after "Continuer" feels instant.
   useEffect(() => {
+    if (testMode) {
+      router.prefetch("/premium");
+      return;
+    }
     const target = listId ? `/learn/list/${listId}` : "/learn";
     router.prefetch(target);
-  }, [router, listId]);
+  }, [router, listId, testMode]);
 
   const [correctAudio, _c, correctControls] = useAudio({ src: "/correct.wav" });
   const [incorrectAudio, _i, incorrectControls] = useAudio({ src: "/incorrect.wav" });
@@ -73,10 +81,19 @@ export const Quiz = ({
 
   const [lessonId] = useState(initialLessonId);
   const [percentage, setPercentage] = useState(() => {
+    if (testMode) return 0;
     return initialPercentage === 100 ? 0 : initialPercentage;
   });
-  const [challengesList] = useState(initialLessonChallenges);
+  const [challengesList] = useState(() => {
+    if (testMode) {
+      return initialLessonChallenges
+        .slice(0, TEST_MODE_LIMIT)
+        .map((c) => ({ ...c, completed: false }));
+    }
+    return initialLessonChallenges;
+  });
   const [activeIndex, setActiveIndex] = useState(() => {
+    if (testMode) return 0;
     const uncompletedIndex = challengesList.findIndex((c) => !c.completed);
     return uncompletedIndex === -1 ? 0 : uncompletedIndex;
   });
@@ -101,10 +118,16 @@ export const Quiz = ({
 
   // Save progress IMMEDIATELY when the level is finished AND passed.
   // This ensures progress is saved even if the user closes the tab
-  // before clicking "Continuer".
+  // before clicking "Continuer". Skipped in test mode (pure demo).
   const savedRef = useRef(false);
   useEffect(() => {
-    if (isFinished && passed && !savedRef.current && completedIdsRef.current.length > 0) {
+    if (
+      !testMode &&
+      isFinished &&
+      passed &&
+      !savedRef.current &&
+      completedIdsRef.current.length > 0
+    ) {
       savedRef.current = true;
       setSaving(true);
       completeLessonChallenges(completedIdsRef.current)
@@ -113,7 +136,9 @@ export const Quiz = ({
     }
     if (isFinished) {
       try {
-        const audio = new Audio(passed ? "/finish.mp3" : "/incorrect.wav");
+        // In test mode, always play the celebration sound.
+        const shouldCelebrate = testMode || passed;
+        const audio = new Audio(shouldCelebrate ? "/finish.mp3" : "/incorrect.wav");
         audio.play().catch(() => {});
       } catch {}
     }
@@ -190,11 +215,20 @@ export const Quiz = ({
   };
 
   const handleFinishContinue = () => {
+    if (testMode) {
+      router.push("/premium");
+      return;
+    }
     const target = listId ? `/learn/list/${listId}` : "/learn";
     router.push(target);
   };
 
   const handlePracticeAgain = () => {
+    if (testMode) {
+      // No retry in demo mode — go straight to premium.
+      router.push("/premium");
+      return;
+    }
     window.location.href = `/lesson/${lessonId}`;
   };
 
@@ -208,7 +242,8 @@ export const Quiz = ({
         levelOrder={levelOrder}
         lessonId={lessonId}
         saving={saving}
-        onContinue={passed ? handleFinishContinue : handlePracticeAgain}
+        testMode={testMode}
+        onContinue={testMode || passed ? handleFinishContinue : handlePracticeAgain}
       />
     );
   }
@@ -457,6 +492,7 @@ type FinishedScreenProps = {
   levelOrder?: number;
   lessonId: number;
   saving: boolean;
+  testMode?: boolean;
   onContinue: () => void;
 };
 
@@ -467,8 +503,11 @@ function FinishedScreen({
   levelOrder,
   lessonId,
   saving,
+  testMode = false,
   onContinue,
 }: FinishedScreenProps) {
+  // In test mode we always celebrate — no failed screen for the demo.
+  const celebrate = testMode || passed;
   const { width, height } = useWindowSize();
   const { value: animatedXP, done: xpDone } = useCountUp(totalXP, 1200, 800);
   const { value: animatedScore, done: scoreDone } = useCountUp(scorePercentage, 1200, 1000);
@@ -487,7 +526,7 @@ function FinishedScreen({
 
   return (
     <div className="flex h-[100dvh] flex-col items-center justify-center px-4 sm:px-6">
-      {passed && width > 0 && height > 0 && (
+      {celebrate && width > 0 && height > 0 && (
         <Confetti
           width={width}
           height={height}
@@ -499,7 +538,7 @@ function FinishedScreen({
 
       {/* Rive animation */}
       <div className="animate-fade-in-up" style={{ animationDelay: "0s" }}>
-        {passed ? <CompletionRive /> : <FailedRive />}
+        {celebrate ? <CompletionRive /> : <FailedRive />}
       </div>
 
       {/* Title */}
@@ -507,7 +546,13 @@ function FinishedScreen({
         className="animate-fade-in-up mt-2 text-center text-xl font-bold text-brilliant-text sm:mt-4 sm:text-3xl lg:text-4xl"
         style={{ animationDelay: "0.3s" }}
       >
-        {passed ? (
+        {testMode ? (
+          <>
+            Démo
+            <br />
+            terminée !
+          </>
+        ) : passed ? (
           <>
             {levelOrder ? `Niveau ${levelOrder}` : "Leçon"}
             <br />
@@ -568,7 +613,7 @@ function FinishedScreen({
         </div>
       </div>
 
-      {!passed && (
+      {!testMode && !passed && (
         <p className="animate-fade-in-up mt-3 text-center text-sm text-gray-500"
           style={{ animationDelay: "0.7s" }}
         >
@@ -589,18 +634,35 @@ function FinishedScreen({
         className="animate-fade-in-up mt-6 flex w-full max-w-md gap-3 sm:mt-10"
         style={{ animationDelay: "0.9s" }}
       >
-        <ShinyButton
-          variant="outline-green"
-          onClick={() => window.location.href = `/lesson/${lessonId}`}
-        >
-          Pratiquer à nouveau
-        </ShinyButton>
-        <ShinyButton
-          variant="green"
-          onClick={onContinue}
-        >
-          Continuer
-        </ShinyButton>
+        {testMode ? (
+          <button
+            onClick={onContinue}
+            className="w-full py-3.5 rounded-2xl font-bold text-sm text-white transition-all hover:opacity-90 hover:scale-[1.01] active:translate-y-[2px] active:!shadow-none animate-premium-gradient"
+            style={{
+              background:
+                "linear-gradient(90deg, #050C38 0%, #6700A3 25%, #E02F75 50%, #FF5A57 75%, #050C38 100%)",
+              backgroundSize: "400% 100%",
+              boxShadow: "0 4px 0 0 rgba(5, 12, 56, 0.4)",
+            }}
+          >
+            Débloquer tout
+          </button>
+        ) : (
+          <>
+            <ShinyButton
+              variant="outline-green"
+              onClick={() => window.location.href = `/lesson/${lessonId}`}
+            >
+              Pratiquer à nouveau
+            </ShinyButton>
+            <ShinyButton
+              variant="green"
+              onClick={onContinue}
+            >
+              Continuer
+            </ShinyButton>
+          </>
+        )}
       </div>
     </div>
   );

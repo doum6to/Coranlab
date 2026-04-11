@@ -6,7 +6,11 @@ import { revalidatePath } from "next/cache";
 import { auth, currentUser } from "@/lib/supabase/server";
 
 import db from "@/db/drizzle";
-import { getCourseById, getUserProgress } from "@/db/queries";
+import {
+  getCourseById,
+  getFirstLessonId,
+  getUserProgress,
+} from "@/db/queries";
 import { challengeProgress, userProgress } from "@/db/schema";
 
 export const upsertUserProgress = async (courseId: number) => {
@@ -92,4 +96,20 @@ export const markTutorialDone = async () => {
   }).where(eq(userProgress.userId, userId));
 
   revalidatePath("/learn");
+};
+
+export const finishTutorialAndStartTest = async (): Promise<{
+  lessonId: number | null;
+}> => {
+  const { userId } = await auth();
+  if (!userId) return { lessonId: null };
+
+  await db.update(userProgress).set({
+    tutorialDone: true,
+  }).where(eq(userProgress.userId, userId));
+
+  revalidatePath("/learn");
+
+  const lessonId = await getFirstLessonId();
+  return { lessonId };
 };
