@@ -15,12 +15,12 @@ export const metadata: Metadata = {
     title: "Blog Quranlab — Guides pour apprendre le Coran",
     description:
       "Articles et guides pour apprendre le vocabulaire du Coran, le tajwid et mémoriser le Coran efficacement.",
-    url: "https://quranlab.com/blog",
+    url: "https://www.quranlab.app/blog",
     siteName: "Quranlab",
     locale: "fr_FR",
     type: "website",
   },
-  alternates: { canonical: "https://quranlab.com/blog" },
+  alternates: { canonical: "https://www.quranlab.app/blog" },
 };
 
 export default function BlogIndexPage() {

@@ -26,13 +26,13 @@ export const metadata: Metadata = {
     title: "Quranlab — Apprends 85% des mots du Coran",
     description:
       "Application gratuite pour apprendre le vocabulaire du Coran. Maîtrise 85% des mots coraniques avec des leçons interactives.",
-    url: "https://quranlab.com",
+    url: "https://www.quranlab.app",
     siteName: "Quranlab",
     locale: "fr_FR",
     type: "website",
     images: [
       {
-        url: "https://quranlab.com/hero.png",
+        url: "https://www.quranlab.app/hero.png",
         width: 1200,
         height: 630,
         alt: "Quranlab — Apprends le vocabulaire du Coran",
@@ -44,9 +44,9 @@ export const metadata: Metadata = {
     title: "Quranlab — Apprends 85% des mots du Coran",
     description:
       "Application gratuite pour apprendre le vocabulaire du Coran.",
-    images: ["https://quranlab.com/hero.png"],
+    images: ["https://www.quranlab.app/hero.png"],
   },
-  alternates: { canonical: "https://quranlab.com" },
+  alternates: { canonical: "https://www.quranlab.app" },
 };
 
 export default function Home() {

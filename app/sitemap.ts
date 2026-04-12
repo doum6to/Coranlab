@@ -3,7 +3,7 @@ import { getAllArticles } from "@/lib/blog/articles";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL || "https://quranlab.com";
+    process.env.NEXT_PUBLIC_APP_URL || "https://www.quranlab.app";
 
   const blogEntries = getAllArticles().map((article) => ({
     url: `${baseUrl}/blog/${article.slug}`,

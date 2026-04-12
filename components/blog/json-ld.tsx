@@ -17,7 +17,7 @@ type JsonLdProps = ArticleJsonLdProps | WebsiteJsonLdProps;
 
 export function JsonLd(props: JsonLdProps) {
   const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL || "https://quranlab.com";
+    process.env.NEXT_PUBLIC_APP_URL || "https://www.quranlab.app";
 
   let data: Record<string, unknown>;
 

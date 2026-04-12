@@ -30,7 +30,7 @@ jobs:
       - name: Configure git
         run: |
           git config user.name "Quranlab Bot"
-          git config user.email "bot@quranlab.com"
+          git config user.email "bot@quranlab.app"
 
       - name: Generate article
         env:
