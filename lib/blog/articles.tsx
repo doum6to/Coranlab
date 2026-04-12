@@ -1,4 +1,9 @@
+import fs from "fs";
+import path from "path";
 import Link from "next/link";
+import matter from "gray-matter";
+
+import { renderMarkdown } from "./markdown";
 
 export type BlogArticle = {
   slug: string;
@@ -946,10 +951,54 @@ export const BLOG_ARTICLES: BlogArticle[] = [
   },
 ];
 
-export function getAllArticles() {
-  return BLOG_ARTICLES;
+/* ------------------------------------------------------------------ */
+/*  Markdown file loader                                               */
+/* ------------------------------------------------------------------ */
+
+function loadMarkdownArticles(): BlogArticle[] {
+  const contentDir = path.join(process.cwd(), "content", "blog");
+
+  if (!fs.existsSync(contentDir)) return [];
+
+  const files = fs.readdirSync(contentDir).filter((f) => f.endsWith(".md"));
+
+  return files
+    .map((file) => {
+      const slug = file.replace(/\.md$/, "");
+
+      // Skip markdown files that duplicate a JSX article
+      if (BLOG_ARTICLES.some((a) => a.slug === slug)) return null;
+
+      const raw = fs.readFileSync(path.join(contentDir, file), "utf-8");
+      const { data, content } = matter(raw);
+
+      return {
+        slug,
+        title: data.title || slug,
+        description: data.description || "",
+        keywords: data.keywords || [],
+        publishedAt: data.publishedAt || new Date().toISOString().slice(0, 10),
+        readingTime: data.readingTime || Math.ceil(content.split(/\s+/).length / 200),
+        content: renderMarkdown(content),
+      } satisfies BlogArticle;
+    })
+    .filter(Boolean) as BlogArticle[];
 }
 
-export function getArticleBySlug(slug: string) {
-  return BLOG_ARTICLES.find((a) => a.slug === slug) ?? null;
+/* ------------------------------------------------------------------ */
+/*  Public API                                                         */
+/* ------------------------------------------------------------------ */
+
+export function getAllArticles(): BlogArticle[] {
+  const mdArticles = loadMarkdownArticles();
+  const all = [...BLOG_ARTICLES, ...mdArticles];
+  // Sort by date descending (newest first)
+  return all.sort(
+    (a, b) =>
+      new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
+  );
+}
+
+export function getArticleBySlug(slug: string): BlogArticle | null {
+  return getAllArticles().find((a) => a.slug === slug) ?? null;
 }
