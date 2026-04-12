@@ -23,6 +23,7 @@
     "@rive-app/react-canvas": "^4.27.3",
     "@supabase/ssr": "^0.10.0",
     "@supabase/supabase-js": "^2.101.1",
+    "@tailwindcss/typography": "^0.5.19",
     "@upstash/redis": "^1.37.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
