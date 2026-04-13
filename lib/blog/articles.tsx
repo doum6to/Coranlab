@@ -138,7 +138,7 @@ const VocabulaireCoranContent = () => (
     <Tip>
       💡 <strong>Le savais-tu ?</strong> Avec seulement 300 mots bien choisis,
       tu peux comprendre environ la moitié de chaque page du Coran. C&apos;est
-      comme apprendre les mots les plus fréquents d&apos;une langue — 80% du
+      comme apprendre les mots les plus fréquents d&apos;une langue : 80% du
       travail vient de 20% du vocabulaire.
     </Tip>
 
@@ -166,7 +166,7 @@ const VocabulaireCoranContent = () => (
         les intervalles s&apos;allongent naturellement.
       </p>
       <p className="mt-2">
-        C&apos;est exactement ce que fait Quranlab dans ses exercices — le
+        C&apos;est exactement ce que fait Quranlab dans ses exercices, le
         système s&apos;adapte à ton rythme.
       </p>
     </Step>
@@ -179,7 +179,7 @@ const VocabulaireCoranContent = () => (
         <Link href="/blog/mots-frequents-coran">
           100 mots les plus fréquents du Coran
         </Link>
-        . Ces mots reviennent des <em>centaines</em> de fois — tu les retrouveras
+        . Ces mots reviennent des <em>centaines</em> de fois, tu les retrouveras
         partout.
       </p>
     </Step>
@@ -188,7 +188,7 @@ const VocabulaireCoranContent = () => (
       <p>
         Un mot isolé sur une flashcard, c&apos;est bien. Mais un mot dans son
         verset, c&apos;est 10 fois plus puissant. Quand tu vois{" "}
-        <span className="font-arabic text-lg">كِتَاب</span> (kitab — livre),
+        <span className="font-arabic text-lg">كِتَاب</span> (kitab, livre),
         tu le retiens bien mieux si tu sais qu&apos;il apparaît 230 fois dans
         le Coran, souvent en référence aux Écritures révélées.
       </p>
@@ -198,12 +198,12 @@ const VocabulaireCoranContent = () => (
       <p>
         QCM, correspondance, anagrammes, flashcards… Chaque type d&apos;exercice
         sollicite un circuit neuronal différent. C&apos;est comme entraîner un
-        muscle sous différents angles — ça ancre le vocabulaire bien plus
+        muscle sous différents angles, ça ancre le vocabulaire bien plus
         profondément qu&apos;une seule méthode.
       </p>
     </Step>
 
-    <InlineCTA text="Quranlab utilise exactement ces 4 méthodes — répétition espacée, fréquence, contexte et exercices variés — dans chaque leçon." />
+    <InlineCTA text="Quranlab utilise exactement ces 4 méthodes (répétition espacée, fréquence, contexte et exercices variés) dans chaque leçon." />
 
     <h2>Un plan réaliste (et faisable)</h2>
     <p>
@@ -244,12 +244,12 @@ const VocabulaireCoranContent = () => (
     <h2>La clé : la régularité</h2>
     <p>
       15 minutes par jour, tous les jours, ça bat 2 heures le week-end. Et c&apos;est
-      pas juste un dicton — le cerveau consolide la mémoire pendant le sommeil.
+      pas juste un dicton. Le cerveau consolide la mémoire pendant le sommeil.
       Des sessions courtes et quotidiennes sont scientifiquement plus efficaces
       que des marathons occasionnels.
     </p>
     <p>
-      C&apos;est pour ça que Quranlab intègre un système de streak — pour
+      C&apos;est pour ça que Quranlab intègre un système de streak, pour
       t&apos;aider à garder le rythme, jour après jour. Pas de pression, juste
       de la consistance.
     </p>
@@ -272,7 +272,7 @@ const SouratesCourtesContent = () => (
       mémorisation rapide, et une utilisation quotidienne dans la prière.
     </p>
 
-    <h2>1. Sourate Al-Kawthar — 3 versets (la plus courte !)</h2>
+    <h2>1. Sourate Al-Kawthar : 3 versets (la plus courte !)</h2>
 
     <div className="not-prose my-6 rounded-xl border-2 border-brilliant-border bg-brilliant-surface p-5 sm:p-6 text-center">
       <p className="font-arabic text-xl sm:text-2xl leading-loose">
@@ -293,7 +293,7 @@ const SouratesCourtesContent = () => (
       <ArabicWord word="انْحَرْ" translation="sacrifie" />
     </ArabicWordRow>
 
-    <h2>2. Sourate Al-Ikhlas — 4 versets</h2>
+    <h2>2. Sourate Al-Ikhlas : 4 versets</h2>
     <p>
       Probablement la sourate la plus connue après Al-Fatiha. Avec 15 mots,
       elle résume le concept fondamental du <em>tawhid</em> (unicité divine).
@@ -307,7 +307,7 @@ const SouratesCourtesContent = () => (
       <ArabicWord word="لَمْ يَلِدْ" translation="n'a pas engendré" />
     </ArabicWordRow>
 
-    <h2>3. Sourate Al-Asr — 3 versets</h2>
+    <h2>3. Sourate Al-Asr : 3 versets</h2>
     <p>
       L&apos;Imam Ash-Shafi&apos;i disait que si Allah n&apos;avait révélé que
       cette sourate, elle aurait suffi comme preuve pour l&apos;humanité.
@@ -322,7 +322,7 @@ const SouratesCourtesContent = () => (
 
     <InlineCTA text="Envie d'apprendre le vocabulaire de ces sourates ? Quranlab te fait pratiquer chaque mot avec des exercices interactifs." label="Commencer les exercices →" />
 
-    <h2>4. Sourate Al-Falaq — 5 versets</h2>
+    <h2>4. Sourate Al-Falaq : 5 versets</h2>
     <p>
       Une sourate de protection qu&apos;on récite tous les jours. 23 mots qui
       t&apos;enseignent à chercher refuge auprès d&apos;Allah contre le mal.
@@ -335,12 +335,12 @@ const SouratesCourtesContent = () => (
       <ArabicWord word="شَرِّ" translation="mal" />
     </ArabicWordRow>
 
-    <h2>5. Sourate An-Nas — 6 versets</h2>
+    <h2>5. Sourate An-Nas : 6 versets</h2>
     <p>
       La sœur jumelle d&apos;Al-Falaq. Elle utilise un vocabulaire similaire
       avec des répétitions qui facilitent la mémorisation. Le mot{" "}
       <span className="font-arabic text-lg">النَّاسِ</span> (les gens)
-      y apparaît 5 fois — parfait pour l&apos;ancrer dans ta mémoire.
+      y apparaît 5 fois, parfait pour l&apos;ancrer dans ta mémoire.
     </p>
 
     <Tip>
@@ -404,13 +404,13 @@ const TajwidDebutantsContent = () => (
     </p>
 
     <Tip>
-      📖 <strong>Important</strong> : le Tajwid n&apos;est pas un luxe — c&apos;est
+      📖 <strong>Important</strong> : le Tajwid n&apos;est pas un luxe, c&apos;est
       une obligation pour tout musulman qui lit le Coran. Mais pas de panique,
       ça s&apos;apprend étape par étape, et tu vas voir que c&apos;est plus
       intuitif que tu ne le penses.
     </Tip>
 
-    <h2>Les points d&apos;articulation — d&apos;où sortent les sons ?</h2>
+    <h2>Les points d&apos;articulation : d&apos;où sortent les sons ?</h2>
     <p>
       L&apos;arabe a 28 lettres produites depuis 5 zones de ta bouche et ta
       gorge. C&apos;est ce qui donne à l&apos;arabe cette richesse sonore
@@ -436,7 +436,7 @@ const TajwidDebutantsContent = () => (
       </div>
     </div>
 
-    <h2>Les 4 règles du Noun Sakin — le cœur du Tajwid</h2>
+    <h2>Les 4 règles du Noun Sakin : le cœur du Tajwid</h2>
     <p>
       Si tu ne devais retenir qu&apos;une chose du Tajwid, ce serait ça. Quand
       un <span className="font-arabic text-lg">نْ</span> (noun sakin) ou un
@@ -448,7 +448,7 @@ const TajwidDebutantsContent = () => (
         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-green-100 text-xs font-bold text-green-700">1</span>
         <div>
           <p className="font-heading font-bold text-brilliant-text text-sm">Idh-har <span className="font-arabic">(إظْهَار)</span></p>
-          <p className="text-sm text-brilliant-muted mt-0.5">Prononciation claire — devant les lettres de la gorge</p>
+          <p className="text-sm text-brilliant-muted mt-0.5">Prononciation claire, devant les lettres de la gorge</p>
         </div>
       </div>
       <div className="rounded-xl border-2 border-brilliant-border bg-white p-4 flex items-start gap-3">
@@ -469,18 +469,18 @@ const TajwidDebutantsContent = () => (
         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-amber-700">4</span>
         <div>
           <p className="font-heading font-bold text-brilliant-text text-sm">Ikhfa <span className="font-arabic">(إخْفَاء)</span></p>
-          <p className="text-sm text-brilliant-muted mt-0.5">Nasalisation discrète — devant les 15 lettres restantes</p>
+          <p className="text-sm text-brilliant-muted mt-0.5">Nasalisation discrète, devant les 15 lettres restantes</p>
         </div>
       </div>
     </div>
 
     <Tip>
-      🎵 <strong>Astuce</strong> : retiens le mot <span className="font-arabic">يَرْمُلُونَ</span> —
+      🎵 <strong>Astuce</strong> : retiens le mot <span className="font-arabic">يَرْمُلُونَ</span>,
       ce sont les 6 lettres de l&apos;Idgham. C&apos;est un moyen
       mnémotechnique utilisé dans toutes les écoles coraniques.
     </Tip>
 
-    <h2>Le Madd — quand allonger un son</h2>
+    <h2>Le Madd : quand allonger un son</h2>
     <p>
       Le Madd, c&apos;est l&apos;allongement d&apos;une voyelle. Deux catégories
       à retenir :
@@ -523,7 +523,7 @@ const TajwidDebutantsContent = () => (
     <Step number={3} title="Écoute et imite">
       Choisis un récitateur reconnu (Husary ou Minshawi sont parfaits pour
       apprendre) et essaie de reproduire exactement sa prononciation.
-      Enregistre-toi et compare — tu seras surpris de tes progrès.
+      Enregistre-toi et compare, tu seras surpris de tes progrès.
     </Step>
 
     <Step number={4} title="Apprends le vocabulaire en parallèle">
@@ -546,7 +546,7 @@ const MotsFrequentsCoranContent = () => (
   <>
     <p>
       Et si je te disais que <strong>100 mots suffisent pour comprendre
-      plus de la moitié du Coran</strong> ? Pas 10 000, pas 1 000 — juste 100.
+      plus de la moitié du Coran</strong> ? Pas 10 000, pas 1 000, juste 100.
       C&apos;est la magie de la fréquence : certains mots reviennent tellement
       souvent qu&apos;en les maîtrisant, tu débloques une compréhension
       massive du texte.
@@ -575,7 +575,7 @@ const MotsFrequentsCoranContent = () => (
     <h2>Les verbes les plus courants</h2>
     <p>
       Les verbes donnent vie au texte coranique. Tu vas retrouver ceux-ci
-      partout — dans les récits des prophètes, les commandements, les
+      partout : dans les récits des prophètes, les commandements, les
       descriptions du Jour dernier…
     </p>
 
@@ -633,7 +633,7 @@ const MotsFrequentsCoranContent = () => (
       <ArabicWord word="نَفْس" translation="âme" info="295 fois" />
     </ArabicWordRow>
 
-    <h2>Les particules — les petits mots qui changent tout</h2>
+    <h2>Les particules : les petits mots qui changent tout</h2>
     <p>
       On les oublie souvent, mais ces « petits mots » sont les plus fréquents
       du Coran. Sans eux, impossible de comprendre la structure des versets.
@@ -669,7 +669,7 @@ const MotsFrequentsCoranContent = () => (
     </p>
     <p>
       Et combine ça avec la{" "}
-      <Link href="/blog/memoriser-coran">mémorisation des sourates</Link> — tu
+      <Link href="/blog/memoriser-coran">mémorisation des sourates</Link>, tu
       verras ces mots en action, dans leur contexte naturel. C&apos;est comme
       ça qu&apos;ils se gravent dans ta mémoire pour de bon.
     </p>
@@ -679,7 +679,7 @@ const MotsFrequentsCoranContent = () => (
 const MemoriserCoranContent = () => (
   <>
     <p>
-      Mémoriser le Coran — le <em>hifz</em> — c&apos;est un des projets les
+      Mémoriser le Coran, le <em>hifz</em>, c&apos;est un des projets les
       plus beaux et les plus ambitieux qu&apos;un musulman puisse entreprendre.
       Que tu vises le Coran entier ou simplement quelques sourates pour enrichir
       ta prière, ce guide te donne une méthode claire et des techniques qui ont
@@ -733,15 +733,15 @@ const MemoriserCoranContent = () => (
       et elle marche. 40 minutes par jour, découpées en 3 blocs :
     </p>
 
-    <Step number={1} title="Nouvelle mémorisation — 20 min">
+    <Step number={1} title="Nouvelle mémorisation : 20 min">
       <p>
         Apprends 3 à 5 nouveaux versets. La technique : lis chaque verset
         10 fois en regardant le mushaf, puis 10 fois sans regarder. Si tu
-        bloques, pas grave — reviens au mushaf et recommence.
+        bloques, pas grave. Reviens au mushaf et recommence.
       </p>
     </Step>
 
-    <Step number={2} title="Révision récente — 10 min">
+    <Step number={2} title="Révision récente : 10 min">
       <p>
         Révise les versets appris dans les 7 derniers jours. C&apos;est la
         période critique où ta mémoire est fragile. Si tu ne révises pas
@@ -749,7 +749,7 @@ const MemoriserCoranContent = () => (
       </p>
     </Step>
 
-    <Step number={3} title="Révision ancienne — 10 min">
+    <Step number={3} title="Révision ancienne : 10 min">
       <p>
         Révise une page ou une sourate plus ancienne. C&apos;est ce qui
         transforme la mémoire à court terme en mémoire à long terme.
@@ -758,7 +758,7 @@ const MemoriserCoranContent = () => (
 
     <InlineCTA text="Quranlab applique la méthode des 3 blocs automatiquement : nouveaux mots, révision récente et révision ancienne, dans chaque session." label="Commencer une session →" />
 
-    <h2>La répétition espacée — la science à ton service</h2>
+    <h2>La répétition espacée : la science à ton service</h2>
     <p>
       Le cerveau oublie selon une courbe prévisible (la fameuse courbe de
       l&apos;oubli d&apos;Ebbinghaus). Pour contrer ça, révise selon ce
@@ -813,7 +813,7 @@ const MemoriserCoranContent = () => (
       Une bonne prononciation aide la mémorisation. Les règles du{" "}
       <Link href="/blog/tajwid-debutants">Tajwid</Link> donnent une « mélodie »
       à chaque verset qui facilite le rappel. Le cerveau retient mieux les
-      motifs sonores que les séquences aléatoires — c&apos;est pour ça que tu
+      motifs sonores que les séquences aléatoires, c&apos;est pour ça que tu
       retiens les chansons plus facilement que les cours de math.
     </p>
 
@@ -848,21 +848,21 @@ const MemoriserCoranContent = () => (
     <h2>Un planning pour débutants</h2>
     <ul>
       <li>
-        <strong>Mois 1</strong> : Juz Amma (30e partie) — les{" "}
+        <strong>Mois 1</strong> : Juz Amma (30e partie), les{" "}
         <Link href="/blog/sourates-courtes">sourates courtes</Link> que tu
         connais probablement déjà en partie.
       </li>
       <li>
-        <strong>Mois 2-3</strong> : sourate Al-Mulk, Yasin, Ar-Rahman — des
+        <strong>Mois 2-3</strong> : sourate Al-Mulk, Yasin, Ar-Rahman, des
         sourates magnifiques qui vont booster ta motivation.
       </li>
       <li>
-        <strong>Mois 4-6</strong> : sourate Al-Kahf, Al-Baqarah — tu entres
+        <strong>Mois 4-6</strong> : sourate Al-Kahf, Al-Baqarah, tu entres
         dans le vif du sujet.
       </li>
     </ul>
     <p>
-      Ce planning suppose 30-40 minutes par jour. Adapte-le à ton rythme —
+      Ce planning suppose 30-40 minutes par jour. Adapte-le à ton rythme,
       la régularité prime toujours sur la quantité. Mieux vaut 15 minutes
       chaque jour que 3 heures une fois par semaine.
     </p>

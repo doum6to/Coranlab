@@ -2,20 +2,17 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  BookOpen,
   Repeat,
   Trophy,
   Target,
-  Sparkles,
-  ArrowRight,
   Star,
   Zap,
-  Clock,
 } from "lucide-react";
 
 import { MarketingCTA } from "./marketing-cta";
+import { LandingMascot } from "./landing-mascot";
+import { StickyCTA } from "./sticky-cta";
 import { JsonLd } from "@/components/blog/json-ld";
-import { getAllArticles } from "@/lib/blog/articles";
 
 // Fully static — served from the CDN with no server-side auth lookup.
 // The CTA component checks auth client-side and upgrades the buttons.
@@ -63,8 +60,6 @@ export const metadata: Metadata = {
 };
 
 export default function Home() {
-  const articles = getAllArticles().slice(0, 3);
-
   return (
     <>
       <JsonLd type="website" />
@@ -130,12 +125,12 @@ export default function Home() {
         <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
           <div className="flex-1 text-center lg:text-left">
             <h2 className="text-2xl sm:text-3xl font-bold font-heading text-brilliant-text">
-              gratuit. fun. efficace.
+              ludique. fun. efficace.
             </h2>
             <p className="mt-4 text-brilliant-muted text-sm sm:text-base leading-relaxed max-w-md mx-auto lg:mx-0">
               Apprendre le vocabulaire du Coran ne devrait pas être compliqué ni
               ennuyeux. Avec Quranlab, chaque leçon est un jeu : des QCM, des
-              exercices de correspondance, des anagrammes — le tout conçu pour que
+              exercices de correspondance, des anagrammes... le tout conçu pour que
               tu retiennes sans effort.
             </p>
             <div className="mt-6 flex flex-wrap gap-3 justify-center lg:justify-start">
@@ -182,7 +177,7 @@ export default function Home() {
                 une méthode scientifique
               </h2>
               <p className="mt-4 text-brilliant-muted text-sm sm:text-base leading-relaxed max-w-md mx-auto lg:mx-0">
-                Quranlab utilise la répétition espacée — une technique prouvée par
+                Quranlab utilise la répétition espacée, une technique prouvée par
                 les neurosciences. Tu revois chaque mot juste avant de l&apos;oublier,
                 pour ancrer le vocabulaire dans ta mémoire à long terme. Pas de
                 bachotage, juste de la science.
@@ -233,7 +228,7 @@ export default function Home() {
               On sait que le plus dur, c&apos;est de rester régulier. C&apos;est pour ça que
               Quranlab intègre un système de streaks, de points XP et de classement pour
               te garder motivé jour après jour. Apprendre le Coran devient une habitude,
-              pas une corvée.
+              pas une corvée !
             </p>
           </div>
           <div className="shrink-0 w-[260px] sm:w-[300px] space-y-3">
@@ -326,7 +321,7 @@ export default function Home() {
               Apprends où tu veux, quand tu veux
             </h2>
             <p className="mt-3 text-white/70 text-sm sm:text-base max-w-md mx-auto">
-              5 minutes dans le métro, avant de dormir, après la prière… Chaque
+              5 minutes dans le métro, avant de dormir, après la prière... Chaque
               moment est une occasion d&apos;apprendre un nouveau mot du Coran.
             </p>
           </div>
@@ -361,66 +356,15 @@ export default function Home() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════ */}
-      {/*  BLOG SECTION                                                  */}
-      {/* ═══════════════════════════════════════════════════════════════ */}
-      <section className="max-w-[988px] mx-auto px-6 sm:px-8 py-16 sm:py-20">
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 rounded-full bg-[#6967fb]/10 px-4 py-1.5 text-sm font-semibold text-[#6967fb] mb-3">
-            <BookOpen className="h-4 w-4" />
-            Blog
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-bold font-heading text-brilliant-text">
-            Nos derniers guides
-          </h2>
-        </div>
-
-        <div className="grid gap-5 sm:grid-cols-3">
-          {articles.map((article) => (
-            <Link
-              key={article.slug}
-              href={`/blog/${article.slug}`}
-              className="group rounded-2xl border-2 border-brilliant-border border-b-4 bg-white p-5 transition-all hover:border-[#6967fb]/40 hover:shadow-md hover:scale-[1.01] active:scale-[0.98] active:border-b-2"
-            >
-              <div className="inline-block rounded-lg bg-[#e0f4fd] px-2.5 py-1 text-[10px] font-bold text-[#2AABDB] uppercase tracking-wide mb-3">
-                {article.keywords[0]}
-              </div>
-              <h3 className="text-sm sm:text-base font-bold font-heading text-brilliant-text group-hover:text-[#6967fb] transition-colors leading-snug">
-                {article.title}
-              </h3>
-              <p className="mt-2 text-xs text-brilliant-muted line-clamp-2">
-                {article.description}
-              </p>
-              <div className="mt-3 flex items-center gap-1 text-xs font-semibold text-[#6967fb]">
-                Lire l&apos;article <ArrowRight className="h-3 w-3" />
-              </div>
-            </Link>
-          ))}
-        </div>
-
-        <div className="mt-8 text-center">
-          <Link
-            href="/blog"
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#6967fb] hover:underline"
-          >
-            Voir tous les articles <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════ */}
       {/*  FINAL CTA                                                     */}
       {/* ═══════════════════════════════════════════════════════════════ */}
-      <section className="w-full bg-brilliant-surface border-t border-brilliant-border">
+      <section id="final-cta" className="w-full bg-white border-t border-brilliant-border">
         <div className="max-w-[988px] mx-auto px-6 sm:px-8 py-16 sm:py-20">
           <div className="flex flex-col items-center text-center gap-6">
-            <div className="relative w-[120px] h-[120px] sm:w-[150px] sm:h-[150px]">
-              <Image
-                src="/mascot.svg"
-                fill
-                alt="Quranlab mascotte"
-                className="object-contain"
-              />
-            </div>
+            <LandingMascot
+              src="/animations/mascot_breath.riv"
+              className="w-[120px] h-[120px] sm:w-[150px] sm:h-[150px]"
+            />
             <h2 className="text-2xl sm:text-3xl font-bold font-heading text-brilliant-text max-w-md">
               Prêt à comprendre le Coran ?
             </h2>
@@ -434,6 +378,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <StickyCTA />
     </>
   );
 }
