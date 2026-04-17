@@ -157,11 +157,17 @@ export default function Page85MotsCoran() {
       {/*  APERÇU DU CONTENU                                             */}
       {/* ═══════════════════════════════════════════════════════════════ */}
       <section className="max-w-[988px] mx-auto px-6 sm:px-8 py-16 sm:py-20">
-        <div className="text-center mb-10 sm:mb-12">
+        <div className="flex flex-col items-center text-center mb-10 sm:mb-12">
+          <LandingMascot
+            src="/animations/hi_ok.riv"
+            stateMachines="State Machine 1"
+            scrollTrigger
+            className="w-[120px] h-[120px] sm:w-[150px] sm:h-[150px] mb-3"
+          />
           <h2 className="text-2xl sm:text-3xl font-bold font-heading text-brilliant-text">
             Ce que tu vas recevoir
           </h2>
-          <p className="mt-3 text-brilliant-muted text-sm sm:text-base max-w-[520px] mx-auto">
+          <p className="mt-3 text-brilliant-muted text-sm sm:text-base max-w-[520px]">
             Des documents pensés pour l&apos;apprentissage, avec une
             progression logique basée sur la fréquence d&apos;apparition dans
             le Coran.
