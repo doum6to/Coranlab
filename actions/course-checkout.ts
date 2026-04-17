@@ -21,8 +21,10 @@ import { absoluteUrl } from "@/lib/utils";
  */
 export async function createCourseCheckoutUrl(withApp: boolean) {
   try {
-    const successUrl = absoluteUrl("/85motscoran/merci");
     const cancelUrl = absoluteUrl("/85motscoran");
+    const successUrl = absoluteUrl(
+      `/85motscoran/merci?plan=${withApp ? "combo" : "course"}`
+    );
 
     if (!withApp) {
       const session = await stripe.checkout.sessions.create({

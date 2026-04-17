@@ -15,6 +15,7 @@ import { LandingMascot } from "../landing-mascot";
 import { PricingCards } from "./pricing-cards";
 import { Faq } from "./faq";
 import { ExerciseCarousel } from "./exercise-carousel";
+import { TrackView } from "./track-view";
 
 export const dynamic = "force-static";
 export const revalidate = 3600;
@@ -61,6 +62,8 @@ export const metadata: Metadata = {
 export default function Page85MotsCoran() {
   return (
     <>
+      <TrackView />
+
       {/* ═══════════════════════════════════════════════════════════════ */}
       {/*  HERO                                                          */}
       {/* ═══════════════════════════════════════════════════════════════ */}

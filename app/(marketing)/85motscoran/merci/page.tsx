@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { Mail, Home } from "lucide-react";
 
 import { LandingMascot } from "../../landing-mascot";
+import { TrackPurchase } from "./track-purchase";
 
 export const dynamic = "force-static";
 
@@ -16,6 +18,9 @@ export const metadata: Metadata = {
 export default function MerciPage() {
   return (
     <section className="min-h-[70vh] max-w-[720px] mx-auto px-6 sm:px-8 py-16 sm:py-24 flex flex-col items-center text-center gap-6">
+      <Suspense fallback={null}>
+        <TrackPurchase />
+      </Suspense>
       <LandingMascot
         src="/animations/completed_lvl.riv"
         className="w-[180px] h-[180px] sm:w-[220px] sm:h-[220px]"

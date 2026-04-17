@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Check, Loader2, Sparkles } from "lucide-react";
 
 import { createCourseCheckoutUrl } from "@/actions/course-checkout";
+import { ttqTrack } from "@/lib/analytics/tiktok";
 
 type LoadingState = "course" | "combo" | null;
 
@@ -31,6 +32,19 @@ export function PricingCards() {
   async function handleCheckout(withApp: boolean) {
     setError(null);
     setLoading(withApp ? "combo" : "course");
+
+    // TikTok — fire BEFORE the await so the event leaves before the page
+    // navigates away to Stripe Checkout.
+    ttqTrack("InitiateCheckout", {
+      value: withApp ? 24.96 : 9.99,
+      currency: "EUR",
+      content_id: withApp ? "course_plus_app" : "course_only",
+      content_name: withApp
+        ? "Le Pack + Application"
+        : "Le Pack 85% des mots du Coran",
+      content_category: "course",
+    });
+
     try {
       const result = await createCourseCheckoutUrl(withApp);
       if (result.url) {
