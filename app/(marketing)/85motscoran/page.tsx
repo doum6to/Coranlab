@@ -295,7 +295,7 @@ export default function Page85MotsCoran() {
         <div className="max-w-[988px] mx-auto px-6 sm:px-8 py-16 sm:py-20">
           <div className="flex flex-col items-center text-center gap-6">
             <LandingMascot
-              src="/animations/mascot_breath.riv"
+              src="/animations/eyes_down.riv"
               className="w-[120px] h-[120px] sm:w-[150px] sm:h-[150px]"
             />
             <h2 className="text-2xl sm:text-3xl font-bold font-heading text-brilliant-text max-w-md">
