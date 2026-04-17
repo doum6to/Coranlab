@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  EventType,
   Fit,
   Layout,
   Alignment,
@@ -16,6 +17,12 @@ type RiveAnimationProps = {
   src: string;
   /** Optional state machine name(s) to run. Leave empty to play the default timeline. */
   stateMachines?: string | string[];
+  /**
+   * Explicit timeline animation(s) to play (bypasses the state machine).
+   * Required for .riv files whose default timeline doesn't auto-play
+   * (e.g. `eyes_down.riv` → `"eyes down"`, `mascot_breath.riv` → `"breath"`).
+   */
+  animationName?: string;
   /** Artboard name inside the `.riv` file. Defaults to the first one. */
   artboard?: string;
   /** Auto-play on mount. Defaults to true. */
@@ -38,6 +45,7 @@ type RiveAnimationProps = {
 export const RiveAnimation = ({
   src,
   stateMachines,
+  animationName,
   artboard,
   autoplay = true,
   fit = Fit.Contain,
@@ -45,13 +53,36 @@ export const RiveAnimation = ({
   className,
   ariaLabel = "animation",
 }: RiveAnimationProps) => {
-  const { RiveComponent } = useRive({
+  const { rive, RiveComponent } = useRive({
     src,
     stateMachines,
+    animations: animationName ? [animationName] : undefined,
     artboard,
     autoplay,
     layout: new Layout({ fit, alignment }),
   });
+
+  // When an explicit animationName is provided, `autoplay: true` doesn't
+  // reliably start that named timeline on first load. Wait for the Load
+  // event before calling play() to guarantee it starts once the file is
+  // fully ready. Matches the pattern used in RiveMascot.
+  useEffect(() => {
+    if (!rive || !animationName) return;
+    const tryPlay = () => {
+      try {
+        (rive as unknown as { play: (name: string) => void }).play(
+          animationName
+        );
+      } catch {
+        /* ignore */
+      }
+    };
+    tryPlay();
+    rive.on(EventType.Load, tryPlay);
+    return () => {
+      rive.off(EventType.Load, tryPlay);
+    };
+  }, [rive, animationName]);
 
   return (
     <RiveComponent

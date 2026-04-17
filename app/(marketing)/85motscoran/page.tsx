@@ -260,15 +260,11 @@ export default function Page85MotsCoran() {
         className="w-full border-y border-brilliant-border bg-brilliant-surface"
       >
         <div className="max-w-[988px] mx-auto px-6 sm:px-8 py-16 sm:py-20">
-          <div className="flex flex-col items-center text-center mb-10 sm:mb-12">
-            <LandingMascot
-              src="/animations/mascot_hi_loop.riv"
-              className="w-[100px] h-[100px] sm:w-[120px] sm:h-[120px] mb-2"
-            />
+          <div className="text-center mb-10 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl font-bold font-heading text-brilliant-text">
               Choisis ta formule
             </h2>
-            <p className="mt-3 text-brilliant-muted text-sm sm:text-base max-w-[520px]">
+            <p className="mt-3 text-brilliant-muted text-sm sm:text-base max-w-[520px] mx-auto">
               Le pack seul, ou le pack + l&apos;application pour pratiquer tous
               les jours.
             </p>
@@ -300,6 +296,7 @@ export default function Page85MotsCoran() {
           <div className="flex flex-col items-center text-center gap-6">
             <LandingMascot
               src="/animations/eyes_down.riv"
+              animationName="eyes down"
               className="w-[120px] h-[120px] sm:w-[150px] sm:h-[150px]"
             />
             <h2 className="text-2xl sm:text-3xl font-bold font-heading text-brilliant-text max-w-md">
