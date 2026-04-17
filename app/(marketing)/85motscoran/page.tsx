@@ -14,7 +14,6 @@ import {
 import { LandingMascot } from "../landing-mascot";
 import { PricingCards } from "./pricing-cards";
 import { Faq } from "./faq";
-import { Testimonials } from "./testimonials";
 import { ExerciseCarousel } from "./exercise-carousel";
 
 export const dynamic = "force-static";
@@ -276,21 +275,6 @@ export default function Page85MotsCoran() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════ */}
-      {/*  TESTIMONIALS                                                  */}
-      {/* ═══════════════════════════════════════════════════════════════ */}
-      <section className="max-w-[1100px] mx-auto px-6 sm:px-8 py-16 sm:py-20">
-        <div className="text-center mb-10 sm:mb-12">
-          <h2 className="text-2xl sm:text-3xl font-bold font-heading text-brilliant-text">
-            Ils ont transformé leur rapport au Coran
-          </h2>
-          <p className="mt-3 text-brilliant-muted text-sm sm:text-base">
-            Plus de 1 200 apprenants ont déjà démarré avec Quranlab.
-          </p>
-        </div>
-        <Testimonials />
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════ */}
       {/*  FAQ                                                           */}
       {/* ═══════════════════════════════════════════════════════════════ */}
       <section className="w-full border-y border-brilliant-border bg-brilliant-surface">
@@ -318,8 +302,8 @@ export default function Page85MotsCoran() {
               Prêt à comprendre ce que tu récites ?
             </h2>
             <p className="text-brilliant-muted text-sm sm:text-base max-w-sm">
-              Rejoins plus de 1 200 apprenants et commence aujourd&apos;hui.
-              Paiement unique, livraison immédiate par email.
+              Commence aujourd&apos;hui. Paiement unique, livraison
+              immédiate par email.
             </p>
             <a
               href="#offres"
