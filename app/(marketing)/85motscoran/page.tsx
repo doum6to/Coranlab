@@ -22,9 +22,9 @@ export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title:
-    "Apprends 85% des mots du Coran : le pack complet à 9,99€ | Quranlab",
+    "Le vocabulaire qui couvre 85% du Coran : pack complet à 9,99€ | Quranlab",
   description:
-    "Un pack de documents PDF qui couvre 85% du vocabulaire du Coran, par ordre de fréquence. Paiement unique 9,99€, envoyé par email. Option application disponible.",
+    "Un pack de documents PDF qui contient les mots les plus fréquents du Coran (couvrant environ 85% du texte), classés par ordre de fréquence. Paiement unique 9,99€, envoyé par email.",
   keywords: [
     "apprendre les mots du coran",
     "vocabulaire coranique",
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     "cours coran",
   ],
   openGraph: {
-    title: "Apprends 85% des mots du Coran : le pack complet à 9,99€",
+    title: "Le vocabulaire qui couvre 85% du Coran : pack complet à 9,99€",
     description:
       "Documents PDF envoyés par email. Option application Quranlab disponible pour pratiquer au quotidien.",
     url: "https://www.quranlab.app/85motscoran",
@@ -46,13 +46,13 @@ export const metadata: Metadata = {
         url: "https://www.quranlab.app/hero.png",
         width: 1200,
         height: 630,
-        alt: "Apprends 85% des mots du Coran",
+        alt: "Le vocabulaire qui couvre 85% du Coran",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Apprends 85% des mots du Coran : le pack à 9,99€",
+    title: "Le vocabulaire qui couvre 85% du Coran : pack à 9,99€",
     description: "Documents PDF envoyés par email, accessible à vie.",
     images: ["https://www.quranlab.app/hero.png"],
   },
@@ -83,13 +83,14 @@ export default function Page85MotsCoran() {
             Pack complet, accessible à vie
           </div>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-brilliant-text leading-tight font-heading max-w-[540px]">
-            Apprends <span className="text-[#6967fb]">85%</span> des mots du
-            Coran en un week-end.
+            Apprends le vocabulaire qui couvre{" "}
+            <span className="text-[#6967fb]">85% du Coran</span>.
           </h1>
           <p className="text-brilliant-muted text-base sm:text-lg max-w-[480px] leading-relaxed">
             Un pack de documents PDF clair, organisé par fréquence, avec les
             mots les plus utilisés du Coran, leurs racines et leurs
-            traductions. Envoyé par email, 9,99€ paiement unique.
+            traductions. À toi de l&apos;apprendre à ton rythme. 9,99€
+            paiement unique, envoyé par email.
           </p>
           <a
             href="#offres"
