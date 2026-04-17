@@ -26,7 +26,7 @@ const questions = [
   },
   {
     q: "Y a-t-il une garantie de remboursement ?",
-    a: "Oui. Si le contenu ne te convient pas, contacte-nous dans les 14 jours après achat et on te rembourse intégralement, sans poser de question.",
+    a: "Le pack est un produit digital : une fois envoyé par email, il ne peut pas être « rendu ». Un remboursement reste possible uniquement si tu as réellement appliqué la méthode sans obtenir de résultats, preuves à l'appui (notes, captures, exercices réalisés). On étudie chaque demande au cas par cas pour rester juste envers toi et envers nous.",
   },
 ];
 

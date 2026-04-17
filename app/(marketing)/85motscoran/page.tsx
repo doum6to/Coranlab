@@ -15,6 +15,7 @@ import { LandingMascot } from "../landing-mascot";
 import { PricingCards } from "./pricing-cards";
 import { Faq } from "./faq";
 import { Testimonials } from "./testimonials";
+import { ExerciseCarousel } from "./exercise-carousel";
 
 export const dynamic = "force-static";
 export const revalidate = 3600;
@@ -104,7 +105,7 @@ export default function Page85MotsCoran() {
             </span>
             <span className="flex items-center gap-1.5">
               <Check className="h-4 w-4 text-green-500" />
-              Garantie 14 jours
+              Satisfait ou remboursé*
             </span>
           </div>
         </div>
@@ -224,6 +225,34 @@ export default function Page85MotsCoran() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════ */}
+      {/*  APP PREVIEW : exercises carousel                               */}
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      <section className="w-full border-t border-brilliant-border bg-white overflow-hidden">
+        <div className="max-w-[1040px] mx-auto px-6 sm:px-8 py-16 sm:py-20">
+          <div className="text-center mb-8 sm:mb-10">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-[#6967fb]/10 px-3 py-1 text-xs font-bold text-[#6967fb] uppercase tracking-wide mb-4">
+              Aperçu de l&apos;application
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold font-heading text-brilliant-text">
+              Des exercices variés pour ancrer chaque mot
+            </h2>
+            <p className="mt-3 text-brilliant-muted text-sm sm:text-base max-w-[540px] mx-auto">
+              QCM, flashcards, associations, anagrammes... Chaque mot est vu
+              sous plusieurs angles pour que ton cerveau le retienne pour de
+              bon.
+            </p>
+          </div>
+        </div>
+        <ExerciseCarousel />
+        <div className="max-w-[988px] mx-auto px-6 sm:px-8 pt-8 sm:pt-10 pb-16 sm:pb-20 text-center">
+          <p className="text-xs text-brilliant-muted">
+            Inclus dans l&apos;offre complète avec l&apos;abonnement à
+            l&apos;application.
+          </p>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════ */}
       {/*  PRICING                                                       */}
       {/* ═══════════════════════════════════════════════════════════════ */}
       <section
@@ -300,7 +329,11 @@ export default function Page85MotsCoran() {
             </a>
             <p className="flex items-center gap-1.5 text-xs text-brilliant-muted">
               <Clock className="h-3 w-3" />
-              Livraison en 2 minutes · Garantie 14 jours
+              Livraison en 2 minutes · Garantie effort-résultats*
+            </p>
+            <p className="text-[11px] text-brilliant-muted/80 max-w-[340px]">
+              *Remboursement possible sur preuve d&apos;application sérieuse
+              de la méthode. Détails dans la FAQ.
             </p>
           </div>
         </div>
