@@ -1,19 +1,28 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { RiveMascot } from "@/components/rive-mascot";
 import { ShinyButton } from "@/components/ui/shiny-button";
 
 export function SignUpForm() {
-  const [email, setEmail] = useState("");
+  const searchParams = useSearchParams();
+  const prefilledEmail = searchParams.get("email") || "";
+  const hasCoursePurchase = Boolean(searchParams.get("course_token"));
+
+  const [email, setEmail] = useState(prefilledEmail);
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    if (prefilledEmail && !email) setEmail(prefilledEmail);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefilledEmail]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,9 +77,20 @@ export function SignUpForm() {
             Créer un compte
           </h1>
           <p className="text-brilliant-muted text-sm text-center">
-            Commence à apprendre le vocabulaire du Coran aujourd&apos;hui
+            {hasCoursePurchase
+              ? "Finalise la création de ton compte pour activer ton accès Premium."
+              : "Commence à apprendre le vocabulaire du Coran aujourd'hui"}
           </p>
         </div>
+
+        {hasCoursePurchase && (
+          <div className="rounded-xl border-2 border-b-4 border-[#6967fb]/30 bg-[#6967fb]/5 p-3 text-center">
+            <p className="text-xs font-semibold text-[#6967fb]">
+              ✨ Abonnement détecté — ton accès Premium sera activé
+              automatiquement après inscription.
+            </p>
+          </div>
+        )}
 
         <form onSubmit={handleSignUp} className="space-y-4">
           <div>

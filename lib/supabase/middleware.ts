@@ -29,10 +29,11 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  const publicRoutes = ["/", "/api/webhooks/stripe", "/api/auth/signup", "/auth/login", "/auth/signup", "/auth/callback", "/onboarding"];
+  const publicRoutes = ["/", "/api/webhooks/stripe", "/api/auth/signup", "/api/course/activate", "/auth/login", "/auth/signup", "/auth/callback", "/onboarding"];
   const isPublicRoute =
     publicRoutes.some(route => request.nextUrl.pathname === route) ||
-    request.nextUrl.pathname.startsWith("/blog");
+    request.nextUrl.pathname.startsWith("/blog") ||
+    request.nextUrl.pathname.startsWith("/85motscoran");
 
   try {
     const {

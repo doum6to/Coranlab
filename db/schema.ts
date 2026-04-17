@@ -178,3 +178,21 @@ export const userSubscription = pgTable("user_subscription", {
   stripeCurrentPeriodEnd: timestamp("stripe_current_period_end").notNull(),
   isLifetime: boolean("is_lifetime").notNull().default(false),
 });
+
+// Purchases made through the /85motscoran landing page.
+// These are anonymous at purchase time (no userId) — if hasAppSubscription
+// is true, the purchase is linked to a user account on signup via email.
+export const coursePurchase = pgTable("course_purchase", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull(),
+  stripeSessionId: text("stripe_session_id").notNull().unique(),
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  hasAppSubscription: boolean("has_app_subscription").notNull().default(false),
+  linkedUserId: text("linked_user_id"),
+  activationToken: text("activation_token").notNull().unique(),
+  emailSentAt: timestamp("email_sent_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => ({
+  emailIdx: index("course_purchase_email").on(t.email),
+}));

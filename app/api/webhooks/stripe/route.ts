@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import Stripe from "stripe";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
@@ -5,7 +6,8 @@ import { NextResponse } from "next/server";
 
 import db from "@/db/drizzle";
 import { stripe } from "@/lib/stripe";
-import { userSubscription } from "@/db/schema";
+import { coursePurchase, userSubscription } from "@/db/schema";
+import { sendCoursePurchaseEmail } from "@/lib/email/send-course-email";
 
 export async function POST(req: Request) {
   const body = await req.text();
@@ -28,6 +30,53 @@ export async function POST(req: Request) {
   // --- 1. New subscription or one-time payment completed via Checkout ---
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
+
+    // --- 1a. Course purchase via /85motscoran (anonymous, no userId) ---
+    if (session.metadata?.productType === "course") {
+      const email =
+        session.customer_details?.email || session.customer_email;
+      if (!email) {
+        console.error("[Webhook] Course purchase missing email", session.id);
+        return new NextResponse("Email required", { status: 400 });
+      }
+
+      const hasApp = session.metadata.hasApp === "true";
+      const activationToken = crypto.randomUUID();
+
+      try {
+        await db
+          .insert(coursePurchase)
+          .values({
+            email: email.toLowerCase(),
+            stripeSessionId: session.id,
+            stripeCustomerId: (session.customer as string) || null,
+            stripeSubscriptionId:
+              (session.subscription as string | null) || null,
+            hasAppSubscription: hasApp,
+            activationToken,
+          })
+          .onConflictDoNothing({ target: coursePurchase.stripeSessionId });
+
+        await sendCoursePurchaseEmail({
+          email,
+          hasApp,
+          activationToken,
+        });
+
+        await db
+          .update(coursePurchase)
+          .set({ emailSentAt: new Date() })
+          .where(eq(coursePurchase.stripeSessionId, session.id));
+      } catch (err: any) {
+        console.error("[Webhook] Course purchase error:", err);
+        // Return 500 so Stripe retries
+        return new NextResponse(`Course purchase error: ${err.message}`, {
+          status: 500,
+        });
+      }
+
+      return new NextResponse(null, { status: 200 });
+    }
 
     if (!session?.metadata?.userId) {
       return new NextResponse("User ID is required", { status: 400 });
