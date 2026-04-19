@@ -2,6 +2,7 @@ import {
   Body,
   Button,
   Container,
+  Font,
   Head,
   Heading,
   Hr,
@@ -19,155 +20,300 @@ type Props = {
   activationUrl: string | null;
 };
 
-export function CoursePurchaseEmail({ driveUrl, hasApp, activationUrl }: Props) {
+/**
+ * Premium course-purchase welcome email. Matches the /85motscoran
+ * landing page design language: cream background, serif italic
+ * headline, warm coral accent, black pill CTA. Falls back cleanly to
+ * Georgia in clients that can't load Fraunces.
+ */
+export function CoursePurchaseEmail({
+  driveUrl,
+  hasApp,
+  activationUrl,
+}: Props) {
   return (
-    <Html>
-      <Head />
+    <Html lang="fr">
+      <Head>
+        <Font
+          fontFamily="Fraunces"
+          fallbackFontFamily="Georgia"
+          webFont={{
+            url: "https://fonts.gstatic.com/s/fraunces/v31/6NUh8FyLNQOQZAnv9ZwNjucMHVn85Ni7emAe9lKqZTnrFgJtVbUjT-LJmA.woff2",
+            format: "woff2",
+          }}
+          fontWeight={400}
+          fontStyle="italic"
+        />
+        <Font
+          fontFamily="Fraunces"
+          fallbackFontFamily="Georgia"
+          webFont={{
+            url: "https://fonts.gstatic.com/s/fraunces/v31/6NUh8FyLNQOQZAnv9ZwNjucMHVn85Ni7emAe9lKqZTnrFgJtVbUjT-LJmA.woff2",
+            format: "woff2",
+          }}
+          fontWeight={600}
+          fontStyle="normal"
+        />
+      </Head>
       <Preview>
-        Ton cours 85% des mots du Coran est prêt. Clique pour accéder aux
-        documents.
+        Ton pack 85% des mots du Coran est prêt. Un clic pour y accéder.
       </Preview>
-      <Body style={styles.body}>
-        <Container style={styles.container}>
-          <Heading style={styles.h1}>Bienvenue dans Quranlab</Heading>
+      <Body style={bodyStyle}>
+        <Container style={containerStyle}>
+          {/* Logo monogram */}
+          <Section style={{ textAlign: "center", marginBottom: 32 }}>
+            <div style={monogramStyle}>Q</div>
+            <Text style={brandKickerStyle}>QURANLAB</Text>
+          </Section>
 
-          <Text style={styles.text}>
-            Assalamu alaikum, et merci pour ta confiance !
-          </Text>
-          <Text style={styles.text}>
-            Ton pack <strong>85% des mots du Coran</strong> est prêt. Clique
-            sur le bouton ci-dessous pour accéder à tes documents.
+          {/* Serif italic headline */}
+          <Heading style={headlineStyle}>Ton pack est prêt.</Heading>
+
+          <Text style={introStyle}>Assalamu alaikum,</Text>
+          <Text style={bodyTextStyle}>
+            Merci pour ta confiance. Ton pack{" "}
+            <strong>85% des mots du Coran</strong> est disponible en un clic
+            ci-dessous.
           </Text>
 
-          <Section style={styles.buttonContainer}>
-            <Button href={driveUrl} style={styles.primaryButton}>
-              Accéder à mes documents
+          {/* Primary CTA */}
+          <Section style={ctaContainerStyle}>
+            <Button href={driveUrl} style={primaryButtonStyle}>
+              Accéder à mes documents →
             </Button>
           </Section>
 
-          <Text style={styles.smallText}>
-            Si le bouton ne fonctionne pas, copie ce lien dans ton navigateur :
+          <Text style={fineprintStyle}>
+            Si le bouton ne fonctionne pas, copie ce lien&nbsp;:
             <br />
-            <Link href={driveUrl} style={styles.link}>
+            <Link href={driveUrl} style={linkStyle}>
               {driveUrl}
             </Link>
           </Text>
 
+          {/* Optional trial activation block */}
           {hasApp && activationUrl && (
             <>
-              <Hr style={styles.hr} />
-              <Heading as="h2" style={styles.h2}>
-                Active ton accès à l&apos;application
+              <Hr style={dividerStyle} />
+              <Heading as="h2" style={subHeadlineStyle}>
+                Et l&apos;application&nbsp;?
               </Heading>
-              <Text style={styles.text}>
-                Tu as également choisi l&apos;abonnement à l&apos;application
-                Quranlab. Crée ton compte dès maintenant pour débloquer toutes
-                les fonctionnalités premium.
+              <Text style={bodyTextStyle}>
+                Tu as aussi choisi l&apos;accès à l&apos;application Quranlab.
+                Crée ton compte en un clic, ton abonnement sera activé
+                automatiquement.
               </Text>
-              <Section style={styles.buttonContainer}>
-                <Button href={activationUrl} style={styles.secondaryButton}>
+              <Section style={ctaContainerStyle}>
+                <Button href={activationUrl} style={secondaryButtonStyle}>
                   Créer mon compte premium
                 </Button>
               </Section>
-              <Text style={styles.smallText}>
-                Utilise la même adresse email que celle-ci pour que ton
-                abonnement soit automatiquement lié à ton compte.
+              <Text style={fineprintStyle}>
+                Utilise la même adresse que celle-ci pour que l&apos;abonnement
+                soit lié automatiquement.
               </Text>
             </>
           )}
 
-          <Hr style={styles.hr} />
+          <Hr style={dividerStyle} />
 
-          <Text style={styles.footer}>
-            Une question ? Réponds simplement à cet email, on est là pour
-            t&apos;aider.
+          {/* Signature */}
+          <Text style={signatureItalicStyle}>
+            Qu&apos;Allah te facilite l&apos;apprentissage.
           </Text>
-          <Text style={styles.footer}>
-            — L&apos;équipe Quranlab
+          <Text style={signatureStyle}>— L&apos;équipe Quranlab</Text>
+
+          <Text style={supportStyle}>
+            Une question&nbsp;? Réponds directement à cet email, on lit tout.
           </Text>
         </Container>
+
+        {/* Outer bottom line */}
+        <Text style={outerBrandLineStyle}>
+          quranlab.app · comprends le Coran
+        </Text>
       </Body>
     </Html>
   );
 }
 
-const styles = {
-  body: {
-    backgroundColor: "#f5f5f5",
-    fontFamily:
-      "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-    margin: 0,
-    padding: 0,
-  },
-  container: {
-    backgroundColor: "#ffffff",
-    maxWidth: "560px",
-    margin: "40px auto",
-    padding: "40px 32px",
-    borderRadius: "16px",
-    border: "2px solid #e8e8e8",
-  },
-  h1: {
-    color: "#1a1a1a",
-    fontSize: "28px",
-    fontWeight: 700,
-    lineHeight: "1.3",
-    margin: "0 0 24px",
-  },
-  h2: {
-    color: "#1a1a1a",
-    fontSize: "20px",
-    fontWeight: 700,
-    margin: "0 0 16px",
-  },
-  text: {
-    color: "#333333",
-    fontSize: "16px",
-    lineHeight: "1.6",
-    margin: "0 0 16px",
-  },
-  smallText: {
-    color: "#666666",
-    fontSize: "13px",
-    lineHeight: "1.5",
-    margin: "0 0 16px",
-  },
-  buttonContainer: {
-    textAlign: "center" as const,
-    margin: "28px 0",
-  },
-  primaryButton: {
-    backgroundColor: "#6967fb",
-    color: "#ffffff",
-    padding: "14px 32px",
-    borderRadius: "12px",
-    textDecoration: "none",
-    fontWeight: 700,
-    fontSize: "16px",
-    display: "inline-block",
-  },
-  secondaryButton: {
-    backgroundColor: "#1a1a1a",
-    color: "#ffffff",
-    padding: "14px 32px",
-    borderRadius: "12px",
-    textDecoration: "none",
-    fontWeight: 700,
-    fontSize: "16px",
-    display: "inline-block",
-  },
-  link: {
-    color: "#6967fb",
-    wordBreak: "break-all" as const,
-  },
-  hr: {
-    borderColor: "#e8e8e8",
-    margin: "32px 0",
-  },
-  footer: {
-    color: "#999999",
-    fontSize: "14px",
-    lineHeight: "1.5",
-    margin: "0 0 8px",
-  },
+/* ─────────────────────────────────────────────────────────────────────
+ *  Styles — inline because email clients strip classes.
+ * ───────────────────────────────────────────────────────────────────── */
+
+const bodyStyle: React.CSSProperties = {
+  backgroundColor: "#F5F1E8",
+  fontFamily:
+    "Fraunces, Georgia, 'Times New Roman', Times, serif",
+  margin: 0,
+  padding: "48px 20px 32px",
+};
+
+const containerStyle: React.CSSProperties = {
+  backgroundColor: "#FFFFFF",
+  maxWidth: 560,
+  margin: "0 auto",
+  padding: "48px 44px",
+  borderRadius: 20,
+  border: "1px solid #E8E4D8",
+  boxShadow: "0 20px 40px -30px rgba(26,26,26,0.12)",
+};
+
+const monogramStyle: React.CSSProperties = {
+  display: "inline-block",
+  width: 60,
+  height: 60,
+  lineHeight: "60px",
+  backgroundColor: "#6967fb",
+  color: "#F5F1E8",
+  borderRadius: 14,
+  fontSize: 30,
+  fontWeight: 700,
+  fontFamily: "Fraunces, Georgia, serif",
+  textAlign: "center",
+  verticalAlign: "middle",
+};
+
+const brandKickerStyle: React.CSSProperties = {
+  fontFamily:
+    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif",
+  fontSize: 12,
+  letterSpacing: "0.28em",
+  color: "#1A1A1A",
+  fontWeight: 600,
+  marginTop: 14,
+  marginBottom: 0,
+  textAlign: "center",
+};
+
+const headlineStyle: React.CSSProperties = {
+  fontFamily: "Fraunces, Georgia, serif",
+  fontStyle: "italic",
+  fontSize: 44,
+  lineHeight: 1.05,
+  color: "#1A1A1A",
+  margin: "0 0 28px",
+  textAlign: "center",
+  fontWeight: 400,
+};
+
+const introStyle: React.CSSProperties = {
+  fontFamily:
+    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif",
+  fontSize: 16,
+  color: "#1A1A1A",
+  fontWeight: 500,
+  lineHeight: 1.6,
+  margin: "0 0 12px",
+};
+
+const bodyTextStyle: React.CSSProperties = {
+  fontFamily:
+    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif",
+  fontSize: 16,
+  color: "#333333",
+  lineHeight: 1.65,
+  margin: "0 0 20px",
+};
+
+const ctaContainerStyle: React.CSSProperties = {
+  textAlign: "center",
+  margin: "32px 0 12px",
+};
+
+const primaryButtonStyle: React.CSSProperties = {
+  backgroundColor: "#1A1A1A",
+  color: "#F5F1E8",
+  padding: "16px 36px",
+  borderRadius: 999,
+  textDecoration: "none",
+  fontFamily:
+    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif",
+  fontWeight: 600,
+  fontSize: 15,
+  letterSpacing: "0.02em",
+  display: "inline-block",
+};
+
+const secondaryButtonStyle: React.CSSProperties = {
+  backgroundColor: "#E85D3C",
+  color: "#FFFFFF",
+  padding: "16px 36px",
+  borderRadius: 999,
+  textDecoration: "none",
+  fontFamily:
+    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif",
+  fontWeight: 600,
+  fontSize: 15,
+  letterSpacing: "0.02em",
+  display: "inline-block",
+};
+
+const fineprintStyle: React.CSSProperties = {
+  fontFamily:
+    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif",
+  fontSize: 12,
+  color: "#999999",
+  lineHeight: 1.5,
+  margin: "16px 0 0",
+  textAlign: "center",
+};
+
+const linkStyle: React.CSSProperties = {
+  color: "#6967fb",
+  wordBreak: "break-all",
+};
+
+const dividerStyle: React.CSSProperties = {
+  borderColor: "#E8E4D8",
+  margin: "40px 0",
+};
+
+const subHeadlineStyle: React.CSSProperties = {
+  fontFamily: "Fraunces, Georgia, serif",
+  fontStyle: "italic",
+  fontSize: 28,
+  color: "#1A1A1A",
+  margin: "0 0 16px",
+  fontWeight: 400,
+};
+
+const signatureItalicStyle: React.CSSProperties = {
+  fontFamily: "Fraunces, Georgia, serif",
+  fontStyle: "italic",
+  fontSize: 18,
+  color: "#1A1A1A",
+  textAlign: "center",
+  margin: "0 0 8px",
+  fontWeight: 400,
+};
+
+const signatureStyle: React.CSSProperties = {
+  fontFamily:
+    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif",
+  fontSize: 14,
+  color: "#666666",
+  textAlign: "center",
+  margin: 0,
+};
+
+const supportStyle: React.CSSProperties = {
+  fontFamily:
+    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif",
+  fontSize: 12,
+  color: "#999999",
+  textAlign: "center",
+  margin: "28px 0 0",
+  lineHeight: 1.5,
+};
+
+const outerBrandLineStyle: React.CSSProperties = {
+  fontFamily:
+    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif",
+  fontSize: 11,
+  letterSpacing: "0.25em",
+  textTransform: "uppercase",
+  color: "#999999",
+  textAlign: "center",
+  margin: "24px 0 0",
 };
