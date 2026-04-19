@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
 import { BookOpen, Infinity as InfinityIcon, Sparkles } from "lucide-react";
 
-import { LandingMascot } from "../landing-mascot";
+import { LandingMascot } from "@/components/landing-mascot";
 import { PricingCards } from "./pricing-cards";
 import { Faq } from "./faq";
 import { ExerciseCarousel } from "./exercise-carousel";
@@ -73,9 +75,24 @@ export default function Page85MotsCoran() {
           </span>
         </div>
 
-        <div className="relative max-w-[1040px] mx-auto px-6 sm:px-8 pt-20 sm:pt-28 pb-16 sm:pb-24">
+        <div className="relative max-w-[1040px] mx-auto px-6 sm:px-8 pt-8 sm:pt-10 pb-16 sm:pb-24">
           <div className="max-w-[720px] mx-auto text-center">
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-neutral-300 bg-white px-3 py-1 text-[11px] font-medium text-neutral-600 tracking-wide uppercase">
+            <Link
+              href="/"
+              className="inline-block"
+              aria-label="Accueil Quranlab"
+            >
+              <Image
+                src="/quranlab-logo.svg"
+                alt="Quranlab"
+                width={140}
+                height={56}
+                priority
+                className="h-10 sm:h-12 w-auto mx-auto"
+              />
+            </Link>
+
+            <div className="mt-10 sm:mt-14 inline-flex items-center gap-1.5 rounded-full border border-neutral-300 bg-white px-3 py-1 text-[11px] font-medium text-neutral-600 tracking-wide uppercase">
               <span className="h-1.5 w-1.5 rounded-full bg-[#6967fb]" />
               Essai 7 jours offerts
             </div>

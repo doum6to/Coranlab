@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { ArrowLeft, Mail } from "lucide-react";
 
-import { LandingMascot } from "../../landing-mascot";
+import { LandingMascot } from "@/components/landing-mascot";
 import { TrackPurchase } from "./track-purchase";
 
 export const dynamic = "force-static";

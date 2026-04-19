@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 
 import { MarketingCTA } from "./marketing-cta";
-import { LandingMascot } from "./landing-mascot";
+import { LandingMascot } from "@/components/landing-mascot";
 import { StickyCTA } from "./sticky-cta";
 import { JsonLd } from "@/components/blog/json-ld";
 
