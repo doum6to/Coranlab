@@ -15,6 +15,7 @@ import {
   sendPaymentSucceeded,
   sendPaymentFailed,
 } from "@/lib/email/send-trial-emails";
+import { ttqServerTrack } from "@/lib/analytics/tiktok-server";
 
 /**
  * Opens a Stripe Billing Portal session for the given customer so they can
@@ -92,6 +93,21 @@ export async function POST(req: Request) {
           .update(coursePurchase)
           .set({ emailSentAt: new Date() })
           .where(eq(coursePurchase.stripeSessionId, session.id));
+
+        // Server-side TikTok conversion (backup for the client-side pixel).
+        // Fires regardless of ad blockers / client race conditions.
+        const amountCents = session.amount_total ?? (hasApp ? 2496 : 999);
+        await ttqServerTrack("CompletePayment", {
+          event_id: session.id, // dedup with the client-side event
+          email,
+          value: amountCents / 100,
+          currency: "EUR",
+          contentId: hasApp ? "course_plus_app" : "course_only",
+          contentName: hasApp
+            ? "Le Pack + Application"
+            : "Le Pack 85% des mots du Coran",
+          contentCategory: "course",
+        });
       } catch (err: any) {
         console.error("[Webhook] Course purchase error:", err);
         // Return 500 so Stripe retries
@@ -180,6 +196,18 @@ export async function POST(req: Request) {
           } catch (e) {
             console.error("[Webhook] sendTrialWelcome failed:", e);
           }
+
+          // Server-side StartTrial — signals the conversion to TikTok
+          // even if the user never hits a page with the client pixel.
+          await ttqServerTrack("StartTrial", {
+            event_id: session.id,
+            email,
+            value: 0,
+            currency: "EUR",
+            contentId: "monthly_trial",
+            contentName: "Quranlab Premium — Essai 7j",
+            contentCategory: "subscription",
+          });
         }
       }
     }
@@ -225,6 +253,18 @@ export async function POST(req: Request) {
         } catch (e) {
           console.error("[Webhook] sendPaymentSucceeded failed:", e);
         }
+
+        // Server-side Subscribe — the real revenue moment for the trial
+        // funnel. This is what TikTok should optimise ads against.
+        await ttqServerTrack("Subscribe", {
+          event_id: invoice.id,
+          email: invoice.customer_email,
+          value: invoice.amount_paid / 100,
+          currency: (invoice.currency || "eur").toUpperCase(),
+          contentId: "monthly_trial",
+          contentName: "Quranlab Premium — Abonnement mensuel",
+          contentCategory: "subscription",
+        });
       }
     }
   }
