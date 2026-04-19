@@ -7,10 +7,14 @@ import { createClient } from "@/lib/supabase/client";
 import { RiveMascot } from "@/components/rive-mascot";
 import { ShinyButton } from "@/components/ui/shiny-button";
 
+import { createTrialCheckoutUrl } from "@/actions/trial-checkout";
+import { ttqTrack } from "@/lib/analytics/tiktok";
+
 export function SignUpForm() {
   const searchParams = useSearchParams();
   const prefilledEmail = searchParams.get("email") || "";
   const hasCoursePurchase = Boolean(searchParams.get("course_token"));
+  const isTrialSignup = searchParams.get("trial") === "true";
 
   const [email, setEmail] = useState(prefilledEmail);
   const [password, setPassword] = useState("");
@@ -58,6 +62,29 @@ export function SignUpForm() {
         return;
       }
 
+      // 3a. Trial flow: go through Stripe Checkout to collect CB + start trial
+      if (isTrialSignup && body.user?.id) {
+        ttqTrack("CompleteRegistration", {
+          content_category: "trial_signup",
+        });
+
+        const trial = await createTrialCheckoutUrl({
+          userId: body.user.id,
+          email: email.trim(),
+        });
+        if (trial.url) {
+          window.location.href = trial.url;
+          return;
+        }
+        // Trial checkout failed: fall through to /learn so the user still has
+        // a free-tier account. They can try upgrading later from settings.
+        setError(
+          trial.error ||
+            "Inscription réussie mais l'étape paiement a échoué. Tu peux activer l'essai depuis les paramètres."
+        );
+      }
+
+      // 3b. Normal signup: straight to /learn
       router.push("/learn");
       router.refresh();
     } catch {
@@ -79,7 +106,9 @@ export function SignUpForm() {
           <p className="text-brilliant-muted text-sm text-center">
             {hasCoursePurchase
               ? "Finalise la création de ton compte pour activer ton accès Premium."
-              : "Commence à apprendre le vocabulaire du Coran aujourd'hui"}
+              : isTrialSignup
+                ? "Étape 1 sur 2 — crée ton compte, puis entre ta CB (aucun prélèvement pendant 7 jours)."
+                : "Commence à apprendre le vocabulaire du Coran aujourd'hui"}
           </p>
         </div>
 
@@ -88,6 +117,18 @@ export function SignUpForm() {
             <p className="text-xs font-semibold text-[#6967fb]">
               ✨ Abonnement détecté — ton accès Premium sera activé
               automatiquement après inscription.
+            </p>
+          </div>
+        )}
+
+        {isTrialSignup && (
+          <div className="rounded-xl border-2 border-b-4 border-[#6967fb]/30 bg-[#6967fb]/5 p-3">
+            <p className="text-xs font-semibold text-[#6967fb] text-center">
+              🎁 Essai 7 jours gratuits
+            </p>
+            <p className="mt-1 text-[11px] text-brilliant-muted text-center leading-relaxed">
+              Tu entreras ta CB à l&apos;étape suivante. Aucun prélèvement
+              pendant 7 jours. Résiliable en 1 clic depuis tes paramètres.
             </p>
           </div>
         )}

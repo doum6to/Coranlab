@@ -2,4 +2,5 @@ export type PremiumPlan =
   | "three_months"
   | "six_months"
   | "annual"
-  | "lifetime";
+  | "lifetime"
+  | "monthly_trial";

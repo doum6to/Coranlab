@@ -15,6 +15,8 @@ type PlanConfig = {
   unit_amount: number;
   mode: "subscription" | "payment";
   recurring?: { interval: "month" | "year"; interval_count?: number };
+  /** If set, Stripe collects the CB but charges 0 for N days, then auto-bills. */
+  trial_period_days?: number;
 };
 
 const PLAN_CONFIG: Record<PremiumPlan, PlanConfig> = {
@@ -45,6 +47,14 @@ const PLAN_CONFIG: Record<PremiumPlan, PlanConfig> = {
       "Accès illimité à tous les cours — paiement unique, à vie",
     unit_amount: 29999, // 299,99€
     mode: "payment",
+  },
+  monthly_trial: {
+    name: "Quranlab Premium (Mensuel, essai 7j)",
+    description: "Accès illimité — 7 jours offerts, puis 14,97€/mois",
+    unit_amount: 1497, // 14,97€/mois
+    mode: "subscription",
+    recurring: { interval: "month" },
+    trial_period_days: 7,
   },
 };
 
@@ -110,6 +120,17 @@ export const createStripeUrl = async (
       success_url: returnUrl,
       cancel_url: returnUrl,
     };
+
+    // Trial support: CB collected at checkout, 0€ charged today, auto-bill
+    // after `trial_period_days`. Stripe sets subscription.status = "trialing"
+    // and current_period_end = trial_end, which flows through our existing
+    // webhook logic (no extra handling needed for the trial itself).
+    if (config.mode === "subscription" && config.trial_period_days) {
+      sessionParams.subscription_data = {
+        ...(sessionParams.subscription_data || {}),
+        trial_period_days: config.trial_period_days,
+      };
+    }
 
     // Reuse existing Stripe customer if available, otherwise use email
     if (userSubscription?.stripeCustomerId) {

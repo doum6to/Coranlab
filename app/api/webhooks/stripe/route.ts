@@ -6,8 +6,33 @@ import { NextResponse } from "next/server";
 
 import db from "@/db/drizzle";
 import { stripe } from "@/lib/stripe";
+import { absoluteUrl } from "@/lib/utils";
 import { coursePurchase, userSubscription } from "@/db/schema";
 import { sendCoursePurchaseEmail } from "@/lib/email/send-course-email";
+import {
+  sendTrialWelcome,
+  sendTrialEndingSoon,
+  sendPaymentSucceeded,
+  sendPaymentFailed,
+} from "@/lib/email/send-trial-emails";
+
+/**
+ * Opens a Stripe Billing Portal session for the given customer so they can
+ * manage their subscription (cancel, update card). Used in trial-ending and
+ * payment-failed emails.
+ */
+async function billingPortalUrlFor(customerId: string): Promise<string> {
+  try {
+    const session = await stripe.billingPortal.sessions.create({
+      customer: customerId,
+      return_url: absoluteUrl("/settings"),
+    });
+    return session.url;
+  } catch (err) {
+    console.error("[Webhook] billingPortal error:", err);
+    return absoluteUrl("/settings");
+  }
+}
 
 export async function POST(req: Request) {
   const body = await req.text();
@@ -108,7 +133,7 @@ export async function POST(req: Request) {
           },
         });
     } else {
-      // Recurring subscription (3 months / 6 months / annual)
+      // Recurring subscription (trial / 3 months / 6 months / annual)
       const subscription = await stripe.subscriptions.retrieve(
         session.subscription as string
       );
@@ -137,10 +162,30 @@ export async function POST(req: Request) {
             isLifetime: false,
           },
         });
+
+      // Trial welcome email — only on fresh trial signups (status = trialing
+      // and plan metadata flag set by trial-checkout.ts).
+      const isTrialStart =
+        subscription.status === "trialing" &&
+        session.metadata.plan === "monthly_trial";
+      if (isTrialStart) {
+        const email =
+          session.customer_details?.email || session.customer_email;
+        const trialEndsAt = subscription.trial_end
+          ? new Date(subscription.trial_end * 1000)
+          : new Date(subscription.current_period_end * 1000);
+        if (email) {
+          try {
+            await sendTrialWelcome({ email, trialEndsAt });
+          } catch (e) {
+            console.error("[Webhook] sendTrialWelcome failed:", e);
+          }
+        }
+      }
     }
   }
 
-  // --- 2. Recurring payment succeeded → extend period ---
+  // --- 2. Recurring payment succeeded → extend period + "thanks" email ---
   if (event.type === "invoice.payment_succeeded") {
     const invoice = event.data.object as Stripe.Invoice;
 
@@ -155,18 +200,79 @@ export async function POST(req: Request) {
           subscription.current_period_end * 1000,
         ),
       }).where(eq(userSubscription.stripeSubscriptionId, subscription.id));
+
+      // Send "payment received" email ONLY for the first real charge (i.e.
+      // the one right after a trial ends). Invoices during a trial are 0€
+      // and shouldn't trigger this email; subsequent monthly renewals send
+      // a receipt that Stripe already handles.
+      const billingReason = (invoice as any).billing_reason as
+        | string
+        | undefined;
+      const isFirstPostTrialCharge =
+        billingReason === "subscription_cycle" &&
+        (invoice.amount_paid ?? 0) > 0 &&
+        subscription.status === "active";
+
+      if (isFirstPostTrialCharge && invoice.customer_email) {
+        try {
+          await sendPaymentSucceeded({
+            email: invoice.customer_email,
+            amountCents: invoice.amount_paid,
+            nextBillingAt: new Date(
+              subscription.current_period_end * 1000
+            ),
+          });
+        } catch (e) {
+          console.error("[Webhook] sendPaymentSucceeded failed:", e);
+        }
+      }
     }
   }
 
-  // --- 3. Payment failed → mark subscription as expired immediately ---
+  // --- 3. Payment failed → mark expired + notify the user ---
   if (event.type === "invoice.payment_failed") {
     const invoice = event.data.object as Stripe.Invoice;
 
     if (invoice.subscription) {
-      // Set period end to now so isActive becomes false immediately
       await db.update(userSubscription).set({
         stripeCurrentPeriodEnd: new Date(),
       }).where(eq(userSubscription.stripeSubscriptionId, invoice.subscription as string));
+
+      if (invoice.customer_email && invoice.customer) {
+        try {
+          const portalUrl = await billingPortalUrlFor(
+            invoice.customer as string
+          );
+          await sendPaymentFailed({
+            email: invoice.customer_email,
+            billingPortalUrl: portalUrl,
+          });
+        } catch (e) {
+          console.error("[Webhook] sendPaymentFailed failed:", e);
+        }
+      }
+    }
+  }
+
+  // --- 3b. Trial ending soon (fires ~3 days before trial_end) ---
+  if (event.type === "customer.subscription.trial_will_end") {
+    const subscription = event.data.object as Stripe.Subscription;
+
+    try {
+      const customer = (await stripe.customers.retrieve(
+        subscription.customer as string
+      )) as Stripe.Customer;
+
+      if (!customer.deleted && customer.email && subscription.trial_end) {
+        const portalUrl = await billingPortalUrlFor(customer.id);
+        await sendTrialEndingSoon({
+          email: customer.email,
+          trialEndsAt: new Date(subscription.trial_end * 1000),
+          billingPortalUrl: portalUrl,
+        });
+      }
+    } catch (e) {
+      console.error("[Webhook] sendTrialEndingSoon failed:", e);
     }
   }
 

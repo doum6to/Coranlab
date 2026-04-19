@@ -109,6 +109,8 @@ export const PricingView = () => {
     six_months: "*Facturé 71,94€ tous les 6 mois. Résiliable à tout moment.",
     annual: "*Facturé 119,88€/an. Résiliable à tout moment.",
     lifetime: "Paiement unique de 299,99€. Aucun renouvellement.",
+    monthly_trial:
+      "*7 jours offerts, puis 14,97€/mois. Résiliable à tout moment.",
   };
 
   const ctaLabel = selected === "lifetime" ? "Acheter à vie" : "Devenir Premium";

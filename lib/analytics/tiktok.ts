@@ -33,7 +33,9 @@ type TikTokEvent =
   | "InitiateCheckout"
   | "AddPaymentInfo"
   | "CompletePayment"
-  | "Subscribe";
+  | "Subscribe"
+  | "CompleteRegistration"
+  | "StartTrial";
 
 declare global {
   interface Window {
