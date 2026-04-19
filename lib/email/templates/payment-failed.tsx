@@ -11,7 +11,7 @@ export function PaymentFailedEmail({
   return (
     <EmailLayout
       preview="Ton paiement Quranlab n'est pas passé."
-      heading="Ton paiement n'a pas pu aboutir 😕"
+      heading="Ton paiement n'a pas pu aboutir"
     >
       <Text style={emailStyles.text}>
         On a tenté de renouveler ton abonnement Quranlab, mais le paiement

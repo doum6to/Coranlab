@@ -13,7 +13,7 @@ export function TrialWelcomeEmail({
   return (
     <EmailLayout
       preview="Ton essai Quranlab est actif. Commence dès maintenant."
-      heading="Bienvenue dans Quranlab 🌙"
+      heading="Bienvenue dans Quranlab"
     >
       <Text style={emailStyles.text}>Assalamu alaikum !</Text>
       <Text style={emailStyles.text}>

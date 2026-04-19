@@ -1,4 +1,4 @@
-import { Check, CheckCircle, Heart, Settings2, X } from "lucide-react";
+import { Check, CheckCircle, Flame, Heart, Settings2, X } from "lucide-react";
 
 /* ────────────────────────────────────────────────────────────────────────
  * iPhone frame + real-app screenshots of the lesson UI.
@@ -277,7 +277,7 @@ function StreakScreen() {
         <div>
           <p className="text-[10px] text-brilliant-muted">Bonjour,</p>
           <p className="text-sm font-bold font-heading text-brilliant-text">
-            Koji 👋
+            Koji
           </p>
         </div>
         <Settings2 className="h-4 w-4 text-brilliant-muted" />
@@ -285,7 +285,13 @@ function StreakScreen() {
 
       <div className="rounded-2xl border-2 border-b-4 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50 p-4 mb-3">
         <div className="flex items-center gap-3">
-          <div className="text-3xl">🔥</div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-100">
+            <Flame
+              className="h-5 w-5 text-orange-500"
+              strokeWidth={2}
+              fill="currentColor"
+            />
+          </div>
           <div className="flex-1">
             <p className="text-[10px] uppercase font-bold text-orange-600">
               Streak
@@ -296,7 +302,7 @@ function StreakScreen() {
           </div>
         </div>
         <p className="mt-2 text-[10px] text-brilliant-muted">
-          Ne rate pas aujourd&apos;hui !
+          Ne rate pas aujourd&apos;hui.
         </p>
       </div>
 

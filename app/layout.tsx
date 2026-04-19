@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Manrope, IBM_Plex_Sans_Arabic } from "next/font/google";
+import { Inter, Manrope, IBM_Plex_Sans_Arabic, Fraunces } from "next/font/google";
 import Script from "next/script";
 import { Toaster } from "@/components/ui/sonner";
 import { ModalsProvider } from "@/components/modals/modals-provider";
@@ -19,6 +19,14 @@ const ibmPlexArabic = IBM_Plex_Sans_Arabic({
   weight: ["400", "500", "600", "700"],
   subsets: ["arabic"],
   variable: "--font-arabic",
+  display: "swap",
+});
+// Serif display font for premium marketing surfaces (landing, pricing).
+// Kept out of font-heading so the app UI stays on Manrope.
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-serif",
   display: "swap",
 });
 
@@ -91,7 +99,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${inter.className} ${inter.variable} ${manrope.variable} ${ibmPlexArabic.variable}`}
+        className={`${inter.className} ${inter.variable} ${manrope.variable} ${ibmPlexArabic.variable} ${fraunces.variable}`}
       >
         {/* Enables :active pseudo-class on iOS Safari so that
             active:scale / active:translate-y animations fire on tap */}

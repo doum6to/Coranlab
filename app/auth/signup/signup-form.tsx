@@ -122,9 +122,9 @@ export function SignUpForm() {
         )}
 
         {isTrialSignup && (
-          <div className="rounded-xl border-2 border-b-4 border-[#6967fb]/30 bg-[#6967fb]/5 p-3">
-            <p className="text-xs font-semibold text-[#6967fb] text-center">
-              🎁 Essai 7 jours gratuits
+          <div className="rounded-xl border border-[#6967fb]/30 bg-[#6967fb]/5 p-3">
+            <p className="text-xs font-semibold text-[#6967fb] text-center tracking-wide uppercase">
+              Essai 7 jours gratuits
             </p>
             <p className="mt-1 text-[11px] text-brilliant-muted text-center leading-relaxed">
               Tu entreras ta CB à l&apos;étape suivante. Aucun prélèvement

@@ -42,30 +42,28 @@ export function Faq() {
   const [openIdx, setOpenIdx] = useState<number | null>(0);
 
   return (
-    <div className="max-w-[720px] mx-auto space-y-3">
+    <div className="max-w-[720px] mx-auto divide-y divide-neutral-200 border-y border-neutral-200">
       {questions.map((item, i) => {
         const isOpen = openIdx === i;
         return (
-          <div
-            key={item.q}
-            className="rounded-2xl border-2 border-b-4 border-brilliant-border bg-white overflow-hidden"
-          >
+          <div key={item.q}>
             <button
               type="button"
               onClick={() => setOpenIdx(isOpen ? null : i)}
-              className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left"
+              className="w-full flex items-center justify-between gap-4 py-5 text-left"
             >
-              <span className="text-sm sm:text-base font-bold font-heading text-brilliant-text">
+              <span className="text-base sm:text-lg font-serif text-neutral-900">
                 {item.q}
               </span>
               <ChevronDown
-                className={`h-5 w-5 shrink-0 text-brilliant-muted transition-transform ${
+                className={`h-5 w-5 shrink-0 text-neutral-400 transition-transform ${
                   isOpen ? "rotate-180" : ""
                 }`}
+                strokeWidth={1.5}
               />
             </button>
             {isOpen && (
-              <div className="px-5 pb-4 text-sm text-brilliant-muted leading-relaxed">
+              <div className="pb-6 pr-8 text-sm sm:text-[15px] text-neutral-600 leading-relaxed">
                 {item.a}
               </div>
             )}

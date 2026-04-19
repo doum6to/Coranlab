@@ -2,59 +2,47 @@ import fs from "fs";
 import path from "path";
 
 import Image from "next/image";
-import { Heart } from "lucide-react";
 
 /**
- * Real TikTok review screenshots + text-fallback cards.
+ * Real TikTok review screenshots with an editorial fallback.
  *
- * Each testimonial has:
- *   - `screenshot`: path relative to `/public`. If the file exists in
- *     `public/testimonials/`, the component renders it as an image.
- *   - Otherwise, it renders a styled text card (TikTok-comment look).
- *
- * Detection runs at RENDER time (server component, fs.existsSync). Because
- * `/85motscoran` is `force-static`, this runs at build → images are auto-
- * detected once the user uploads them and redeploys.
+ * If `public/testimonials/{slug}.png` exists, the component renders the
+ * real screenshot (highest credibility). Otherwise it renders a refined
+ * quote card that still carries the message cleanly.
  */
 
 type Testimonial = {
-  /** Slug used as filename (e.g. "moisix" → /public/testimonials/moisix.png) */
   slug: string;
   username: string;
   date: string;
   comment: string;
   likes: number;
-  avatarColor: string;
 };
 
 const TESTIMONIALS: Testimonial[] = [
   {
-    // Moisix._ — 90 likes, strongest social proof, shown first
     slug: "moisix",
     username: "Moisix._",
-    date: "30 avr. 2025",
+    date: "30 avril 2025",
     comment:
-      "Honnêtement, je ne m'attendais pas à une telle qualité pour ce prix ! C'est une excellente surprise et je recommande ce produit à 100%.",
+      "Honnêtement, je ne m'attendais pas à une telle qualité pour ce prix. C'est une excellente surprise et je recommande ce produit à 100%.",
     likes: 90,
-    avatarColor: "bg-red-100 text-red-600",
   },
   {
     slug: "nora-ecom",
     username: "Nora Ecom",
-    date: "18 avr. 2026",
+    date: "18 avril 2026",
     comment:
-      "Allahu akbar ! Je suis venue voir les avis, je ne suis pas déçue. Qu'Allah vous récompense et par contre je suis choquée de bcp de gens de la Oummah qui veulent tout gratuit mais qui n'y toucheraient même pas si c'était le cas 😳",
+      "Je suis venue voir les avis, je ne suis pas déçue. Qu'Allah vous récompense.",
     likes: 1,
-    avatarColor: "bg-orange-100 text-orange-600",
   },
   {
     slug: "azzedine",
     username: "Azzedine",
-    date: "9 juil. 2025",
+    date: "9 juillet 2025",
     comment:
-      "je viens de l'acheter, il a l'air très complet qu'allah vous récompense !",
+      "Je viens de l'acheter, il a l'air très complet. Qu'Allah vous récompense !",
     likes: 2,
-    avatarColor: "bg-indigo-100 text-indigo-600",
   },
 ];
 
@@ -74,7 +62,7 @@ function screenshotExists(slug: string): boolean {
 
 export function Testimonials() {
   return (
-    <div className="grid gap-5 md:grid-cols-3 max-w-[1040px] mx-auto">
+    <div className="grid gap-4 sm:gap-6 md:grid-cols-3 max-w-[1040px] mx-auto">
       {TESTIMONIALS.map((t) => (
         <TestimonialCard key={t.slug} t={t} />
       ))}
@@ -87,7 +75,7 @@ function TestimonialCard({ t }: { t: Testimonial }) {
 
   if (hasScreenshot) {
     return (
-      <div className="rounded-2xl border-2 border-b-4 border-brilliant-border bg-white p-3 sm:p-4 overflow-hidden">
+      <div className="rounded-2xl border border-neutral-200 bg-white p-2 overflow-hidden">
         <Image
           src={`/testimonials/${t.slug}.png`}
           alt={`Avis TikTok de ${t.username}`}
@@ -100,34 +88,27 @@ function TestimonialCard({ t }: { t: Testimonial }) {
     );
   }
 
-  // Text-only fallback styled like a TikTok comment
-  const initial = t.username.replace(/^[.\-_]+/, "").charAt(0).toUpperCase();
+  // Editorial fallback : quote-first card
   return (
-    <div className="rounded-2xl border-2 border-b-4 border-brilliant-border bg-white p-5 sm:p-6 flex flex-col">
-      <div className="flex items-start gap-3">
-        <div
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-bold text-sm ${t.avatarColor}`}
-        >
-          {initial}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold font-heading text-brilliant-text truncate">
-            {t.username}
-          </p>
-          <p className="text-xs text-brilliant-muted">{t.date}</p>
-        </div>
-      </div>
-
-      <p className="mt-4 text-sm text-brilliant-text leading-relaxed flex-1">
+    <figure className="rounded-2xl border border-neutral-200 bg-white p-7 sm:p-8 flex flex-col h-full">
+      <span
+        className="font-serif text-5xl leading-none text-neutral-300 select-none"
+        aria-hidden
+      >
+        &ldquo;
+      </span>
+      <blockquote className="mt-2 font-serif text-lg sm:text-xl leading-relaxed text-neutral-900 flex-1">
         {t.comment}
-      </p>
-
-      <div className="mt-4 flex items-center gap-1.5 text-xs text-brilliant-muted">
-        <Heart className="h-3.5 w-3.5 fill-rose-500 text-rose-500" />
-        <span className="font-semibold">{t.likes}</span>
-        <span>·</span>
-        <span className="italic">Commentaire TikTok</span>
-      </div>
-    </div>
+      </blockquote>
+      <figcaption className="mt-8 pt-5 border-t border-neutral-200 flex items-center justify-between text-xs">
+        <div>
+          <p className="font-semibold text-neutral-900">{t.username}</p>
+          <p className="mt-0.5 text-neutral-500">{t.date}</p>
+        </div>
+        <div className="text-neutral-400">
+          {t.likes} ♥ sur TikTok
+        </div>
+      </figcaption>
+    </figure>
   );
 }

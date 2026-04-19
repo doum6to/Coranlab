@@ -2,24 +2,24 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Check, Loader2, Sparkles, FileText } from "lucide-react";
+import { ArrowRight, Check, Loader2 } from "lucide-react";
 
 import { createCourseCheckoutUrl } from "@/actions/course-checkout";
 import { ttqTrack } from "@/lib/analytics/tiktok";
 
 const trialFeatures = [
-  "Toutes les leçons de l'application",
-  "Répétition espacée scientifique",
-  "Classements, streaks, gamification",
+  "Toutes les leçons, tous les exercices",
+  "Répétition espacée adaptative",
+  "Progression, classement, streaks",
   "Les documents PDF offerts en bonus",
-  "Résiliable en 1 clic, à tout moment",
+  "Résiliable en un clic, à tout moment",
 ];
 
 const pdfFeatures = [
-  "Documents PDF (les mots les plus fréquents)",
+  "Documents PDF téléchargeables",
+  "Les mots les plus fréquents, classés",
   "Traductions et racines arabes",
-  "Accessible à vie, téléchargeable",
-  "Pas d'abonnement, paiement unique",
+  "Paiement unique, accès à vie",
 ];
 
 export function PricingCards() {
@@ -27,7 +27,6 @@ export function PricingCards() {
   const [error, setError] = useState<string | null>(null);
 
   function handleTrialClick() {
-    // Cheap top-of-funnel signal for TikTok optimisation
     ttqTrack("InitiateCheckout", {
       value: 14.97,
       currency: "EUR",
@@ -64,44 +63,44 @@ export function PricingCards() {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1.15fr_1fr] max-w-[900px] mx-auto">
-      {/* ── Trial card (primary) ─────────────────────────────────────────── */}
-      <div className="relative rounded-3xl border-2 border-b-4 border-[#6967fb] bg-white p-6 sm:p-8 flex flex-col shadow-[0_8px_30px_-10px_rgba(105,103,251,0.3)]">
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 rounded-full bg-[#6967fb] px-4 py-1 text-xs font-bold text-white uppercase tracking-wide">
-          <Sparkles className="h-3 w-3" />
-          Recommandé
-        </div>
+    <div className="grid gap-5 lg:grid-cols-[1.15fr_1fr] max-w-[900px] mx-auto">
+      {/* ── Primary : Application ───────────────────────────────────────── */}
+      <div className="relative rounded-2xl bg-neutral-950 text-white p-8 sm:p-10 flex flex-col overflow-hidden">
+        {/* Ornamental gradient */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-24 -right-24 h-72 w-72 rounded-full bg-[#6967fb] opacity-30 blur-3xl"
+        />
 
-        <h3 className="text-xl font-heading font-bold text-brilliant-text">
-          L&apos;application Quranlab
-        </h3>
-        <p className="mt-1 text-sm text-brilliant-muted">
-          Essaie gratuitement, paie si tu accroches.
-        </p>
+        <div className="relative">
+          <p className="text-[11px] tracking-[0.2em] uppercase text-white/50">
+            Application
+          </p>
+          <h3 className="mt-2 font-serif text-2xl sm:text-3xl">
+            Quranlab Premium
+          </h3>
 
-        <div className="mt-6">
-          <div className="flex items-baseline gap-2">
-            <span className="text-4xl sm:text-5xl font-heading font-bold text-[#6967fb]">
+          <div className="mt-8 flex items-baseline gap-2">
+            <span className="font-serif text-5xl sm:text-6xl tracking-tight">
               0€
             </span>
-            <span className="text-sm text-brilliant-muted">
-              pendant 7 jours
-            </span>
+            <span className="text-sm text-white/60">7 premiers jours</span>
           </div>
-          <p className="mt-1 text-xs text-brilliant-muted">
-            Puis 14,97€/mois. Résiliable en 1 clic.
+          <p className="mt-2 text-xs text-white/50">
+            Puis 14,97€/mois · Résiliable en un clic
           </p>
         </div>
 
-        <ul className="mt-6 space-y-3 flex-1">
+        <ul className="relative mt-10 space-y-3 flex-1">
           {trialFeatures.map((feature) => (
             <li
               key={feature}
-              className="flex items-start gap-2.5 text-sm text-brilliant-text"
+              className="flex items-start gap-3 text-sm text-white/90"
             >
-              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#6967fb]/15">
-                <Check className="h-3 w-3 text-[#6967fb]" />
-              </span>
+              <Check
+                className="h-4 w-4 shrink-0 mt-0.5 text-[#a6a5ff]"
+                strokeWidth={2.5}
+              />
               {feature}
             </li>
           ))}
@@ -110,44 +109,44 @@ export function PricingCards() {
         <Link
           href="/auth/signup?trial=true"
           onClick={handleTrialClick}
-          className="mt-8 w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-[#6967fb] px-6 py-3.5 text-sm font-bold text-white uppercase tracking-wide shadow-[0_4px_0_0_#5250d4] transition hover:scale-[1.01] active:scale-[0.99] active:shadow-[0_1px_0_0_#5250d4] active:translate-y-[3px]"
+          className="relative group mt-10 w-full inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-semibold text-neutral-950 tracking-wide transition hover:bg-[#6967fb] hover:text-white"
         >
-          Commencer mes 7 jours gratuits
+          Commencer mon essai
+          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
         </Link>
 
-        <p className="mt-2 text-[11px] text-brilliant-muted text-center">
-          CB demandée à l&apos;inscription · aucun prélèvement pendant 7 jours
+        <p className="relative mt-3 text-[11px] text-white/40 text-center">
+          CB demandée · aucun prélèvement pendant 7 jours
         </p>
       </div>
 
-      {/* ── PDF downsell card (secondary) ───────────────────────────────── */}
-      <div className="rounded-3xl border-2 border-b-4 border-brilliant-border bg-white p-6 sm:p-8 flex flex-col">
-        <div className="flex items-center gap-2">
-          <FileText className="h-5 w-5 text-brilliant-muted" />
-          <h3 className="text-xl font-heading font-bold text-brilliant-text">
-            Juste les PDFs
-          </h3>
-        </div>
-        <p className="mt-1 text-sm text-brilliant-muted">
-          Pour apprendre à ton rythme sans app.
+      {/* ── Secondary : PDFs ───────────────────────────────────────────── */}
+      <div className="rounded-2xl border border-neutral-300 bg-white p-8 sm:p-10 flex flex-col">
+        <p className="text-[11px] tracking-[0.2em] uppercase text-neutral-500">
+          Documents
         </p>
+        <h3 className="mt-2 font-serif text-2xl sm:text-3xl text-neutral-950">
+          Pack PDFs
+        </h3>
 
-        <div className="mt-6 flex items-baseline gap-2">
-          <span className="text-4xl sm:text-5xl font-heading font-bold text-brilliant-text">
+        <div className="mt-8 flex items-baseline gap-2">
+          <span className="font-serif text-5xl sm:text-6xl tracking-tight text-neutral-950">
             9,99€
           </span>
-          <span className="text-sm text-brilliant-muted">paiement unique</span>
+          <span className="text-sm text-neutral-500">une fois</span>
         </div>
+        <p className="mt-2 text-xs text-neutral-500">Accès à vie</p>
 
-        <ul className="mt-6 space-y-3 flex-1">
+        <ul className="mt-10 space-y-3 flex-1">
           {pdfFeatures.map((feature) => (
             <li
               key={feature}
-              className="flex items-start gap-2.5 text-sm text-brilliant-text"
+              className="flex items-start gap-3 text-sm text-neutral-700"
             >
-              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-green-100">
-                <Check className="h-3 w-3 text-green-600" />
-              </span>
+              <Check
+                className="h-4 w-4 shrink-0 mt-0.5 text-neutral-500"
+                strokeWidth={2.5}
+              />
               {feature}
             </li>
           ))}
@@ -157,7 +156,7 @@ export function PricingCards() {
           type="button"
           onClick={handlePdfCheckout}
           disabled={pdfLoading}
-          className="mt-8 w-full inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-b-4 border-brilliant-border bg-white px-6 py-3 text-sm font-bold text-brilliant-text uppercase tracking-wide transition hover:bg-brilliant-surface active:border-b-2 active:translate-y-[2px] disabled:opacity-60"
+          className="mt-10 w-full inline-flex items-center justify-center gap-2 rounded-full border border-neutral-900 bg-white px-6 py-3.5 text-sm font-semibold text-neutral-900 tracking-wide transition hover:bg-neutral-900 hover:text-white disabled:opacity-60"
         >
           {pdfLoading && <Loader2 className="h-4 w-4 animate-spin" />}
           {pdfLoading ? "Redirection..." : "Acheter le pack"}

@@ -29,7 +29,7 @@ export function CoursePurchaseEmail({ driveUrl, hasApp, activationUrl }: Props) 
       </Preview>
       <Body style={styles.body}>
         <Container style={styles.container}>
-          <Heading style={styles.h1}>Bienvenue dans Quranlab 🌙</Heading>
+          <Heading style={styles.h1}>Bienvenue dans Quranlab</Heading>
 
           <Text style={styles.text}>
             Assalamu alaikum, et merci pour ta confiance !

@@ -20,6 +20,7 @@ const config = {
     fontFamily: {
       sans: ["var(--font-inter)", "system-ui", "sans-serif"],
       heading: ["var(--font-heading)", "sans-serif"],
+      serif: ["var(--font-serif)", "Georgia", "serif"],
       arabic: ["var(--font-arabic)", "sans-serif"],
     },
     extend: {

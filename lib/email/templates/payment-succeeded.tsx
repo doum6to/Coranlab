@@ -15,7 +15,7 @@ export function PaymentSucceededEmail({
   return (
     <EmailLayout
       preview="Paiement confirmé. Ton abonnement Quranlab continue."
-      heading="Paiement reçu, merci 🎉"
+      heading="Paiement reçu, merci"
     >
       <Text style={emailStyles.text}>
         Ton paiement de <strong>{amount}</strong> a bien été reçu. Ton
