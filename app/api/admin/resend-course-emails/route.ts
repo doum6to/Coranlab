@@ -1,5 +1,4 @@
-import { isNull } from "drizzle-orm";
-import { eq } from "drizzle-orm";
+import { desc, eq, isNull } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 import db from "@/db/drizzle";
@@ -92,7 +91,9 @@ export async function POST(req: Request) {
   });
 }
 
-// Also support GET for convenience (browser-friendly, dry-run only)
+// GET — browser-friendly inspector.
+//   ?all=1  includes rows that already had emailSentAt set (so you can
+//           see EVERY course purchase the DB knows about).
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const token = url.searchParams.get("token");
@@ -107,20 +108,45 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
+  const includeAll = url.searchParams.get("all") === "1";
+
   const pending = await db.query.coursePurchase.findMany({
     where: isNull(coursePurchase.emailSentAt),
+    orderBy: [desc(coursePurchase.createdAt)],
+    limit: 500,
+  });
+
+  if (!includeAll) {
+    return NextResponse.json({
+      pendingCount: pending.length,
+      pending: pending.map((p) => ({
+        email: p.email,
+        stripeSessionId: p.stripeSessionId,
+        hasAppSubscription: p.hasAppSubscription,
+        createdAt: p.createdAt,
+      })),
+      hint:
+        "Append ?all=1 to see every course purchase (sent + pending). " +
+        "POST (same URL, same token) to retry sending the pending ones.",
+    });
+  }
+
+  const allRows = await db.query.coursePurchase.findMany({
+    orderBy: [desc(coursePurchase.createdAt)],
     limit: 500,
   });
 
   return NextResponse.json({
-    pendingCount: pending.length,
-    pending: pending.map((p) => ({
+    totalCount: allRows.length,
+    pendingCount: allRows.filter((r) => !r.emailSentAt).length,
+    sentCount: allRows.filter((r) => !!r.emailSentAt).length,
+    rows: allRows.map((p) => ({
       email: p.email,
       stripeSessionId: p.stripeSessionId,
       hasAppSubscription: p.hasAppSubscription,
       createdAt: p.createdAt,
+      emailSentAt: p.emailSentAt,
+      linkedUserId: p.linkedUserId,
     })),
-    advice:
-      "POST to this endpoint (same URL, same token) to actually retry sending.",
   });
 }
