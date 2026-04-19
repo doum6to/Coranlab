@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
-import { ArrowRight, Check, Loader2 } from "lucide-react";
+import { Check } from "lucide-react";
 
 import { createCourseCheckoutUrl } from "@/actions/course-checkout";
 import { ttqTrack } from "@/lib/analytics/tiktok";
+import { PremiumCta } from "./premium-cta";
 
 const trialFeatures = [
   "Toutes les leçons, tous les exercices",
@@ -106,14 +106,17 @@ export function PricingCards() {
           ))}
         </ul>
 
-        <Link
-          href="/auth/signup?trial=true"
-          onClick={handleTrialClick}
-          className="relative group mt-10 w-full inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-semibold text-neutral-950 tracking-wide transition hover:bg-[#6967fb] hover:text-white"
-        >
-          Commencer mon essai
-          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-        </Link>
+        <div className="relative mt-10">
+          <PremiumCta
+            as="link"
+            href="/auth/signup?trial=true"
+            onClick={handleTrialClick}
+            variant="light"
+            className="w-full"
+          >
+            Commencer mon essai
+          </PremiumCta>
+        </div>
 
         <p className="relative mt-3 text-[11px] text-white/40 text-center">
           CB demandée · aucun prélèvement pendant 7 jours
@@ -152,15 +155,16 @@ export function PricingCards() {
           ))}
         </ul>
 
-        <button
-          type="button"
+        <PremiumCta
+          as="button"
           onClick={handlePdfCheckout}
-          disabled={pdfLoading}
-          className="mt-10 w-full inline-flex items-center justify-center gap-2 rounded-full border border-neutral-900 bg-white px-6 py-3.5 text-sm font-semibold text-neutral-900 tracking-wide transition hover:bg-neutral-900 hover:text-white disabled:opacity-60"
+          loading={pdfLoading}
+          arrow={!pdfLoading}
+          variant="dark"
+          className="mt-10 w-full"
         >
-          {pdfLoading && <Loader2 className="h-4 w-4 animate-spin" />}
           {pdfLoading ? "Redirection..." : "Acheter le pack"}
-        </button>
+        </PremiumCta>
       </div>
 
       {error && (

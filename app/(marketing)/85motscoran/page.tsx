@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowRight, BookOpen, Infinity as InfinityIcon, Sparkles } from "lucide-react";
+import { BookOpen, Infinity as InfinityIcon, Sparkles } from "lucide-react";
 
 import { LandingMascot } from "../landing-mascot";
 import { PricingCards } from "./pricing-cards";
@@ -8,6 +7,7 @@ import { Faq } from "./faq";
 import { ExerciseCarousel } from "./exercise-carousel";
 import { Testimonials } from "./testimonials";
 import { TrackView } from "./track-view";
+import { PremiumCta } from "./premium-cta";
 
 export const dynamic = "force-static";
 export const revalidate = 3600;
@@ -89,25 +89,20 @@ export default function Page85MotsCoran() {
               Cinq minutes par jour. La répétition espacée fait le reste.
             </p>
 
-            <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Link
+            <div className="mt-10 flex flex-col items-center gap-4">
+              <LandingMascot
+                src="/animations/eyes_down.riv"
+                animationName="eyes down"
+                className="w-[96px] h-[96px] sm:w-[120px] sm:h-[120px]"
+              />
+              <PremiumCta
+                as="link"
                 href="/auth/signup?trial=true"
-                className="group inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-full bg-neutral-950 px-7 py-3.5 text-sm font-semibold text-white tracking-wide transition hover:bg-[#6967fb]"
+                variant="dark"
               >
                 Commencer mon essai gratuit
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-              </Link>
-              <Link
-                href="#offres"
-                className="text-sm text-neutral-600 hover:text-neutral-950 underline-offset-4 hover:underline transition"
-              >
-                ou juste les PDFs · 9,99€
-              </Link>
+              </PremiumCta>
             </div>
-
-            <p className="mt-6 text-xs text-neutral-500">
-              Puis 14,97€/mois · Résiliable en 1 clic
-            </p>
           </div>
         </div>
       </section>
@@ -261,13 +256,13 @@ export default function Page85MotsCoran() {
             Sept jours pour tester, sans condition.
           </p>
           <div className="mt-10 flex flex-col items-center gap-3">
-            <Link
+            <PremiumCta
+              as="link"
               href="/auth/signup?trial=true"
-              className="group inline-flex items-center justify-center gap-2 rounded-full bg-neutral-950 px-7 py-3.5 text-sm font-semibold text-white tracking-wide transition hover:bg-[#6967fb]"
+              variant="dark"
             >
               Commencer mon essai gratuit
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-            </Link>
+            </PremiumCta>
             <p className="text-xs text-neutral-500">
               Puis 14,97€/mois · Résiliable en 1 clic
             </p>
