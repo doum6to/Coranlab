@@ -92,7 +92,7 @@ export default function Page85MotsCoran() {
               />
             </Link>
 
-            <div className="mt-10 sm:mt-14 inline-flex items-center gap-1.5 rounded-full border border-neutral-300 bg-white px-3 py-1 text-[11px] font-medium text-neutral-600 tracking-wide uppercase">
+            <div className="mt-16 sm:mt-24 inline-flex items-center gap-1.5 rounded-full border border-neutral-300 bg-white px-3 py-1 text-[11px] font-medium text-neutral-600 tracking-wide uppercase">
               <span className="h-1.5 w-1.5 rounded-full bg-[#6967fb]" />
               Essai 7 jours offerts
             </div>
