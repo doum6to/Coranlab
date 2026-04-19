@@ -93,7 +93,7 @@ export default function Page85MotsCoran() {
               <LandingMascot
                 src="/animations/eyes_down.riv"
                 animationName="eyes down"
-                className="w-[96px] h-[96px] sm:w-[120px] sm:h-[120px]"
+                className="w-[192px] h-[192px] sm:w-[240px] sm:h-[240px]"
               />
               <PremiumCta
                 as="link"
