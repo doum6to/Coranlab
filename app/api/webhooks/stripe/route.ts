@@ -69,6 +69,9 @@ export async function POST(req: Request) {
       const hasApp = session.metadata.hasApp === "true";
       const activationToken = crypto.randomUUID();
 
+      // 1. Record the purchase in our DB — this is the source of truth for
+      //    "did the customer actually pay?". If this fails we want Stripe
+      //    to retry, so we still throw here.
       try {
         await db
           .insert(coursePurchase)
@@ -82,23 +85,45 @@ export async function POST(req: Request) {
             activationToken,
           })
           .onConflictDoNothing({ target: coursePurchase.stripeSessionId });
-
-        await sendCoursePurchaseEmail({
-          email,
-          hasApp,
-          activationToken,
+      } catch (err: any) {
+        console.error("[Webhook] DB insert failed for course purchase", err);
+        return new NextResponse(`DB insert error: ${err.message}`, {
+          status: 500,
         });
+      }
 
-        await db
-          .update(coursePurchase)
-          .set({ emailSentAt: new Date() })
-          .where(eq(coursePurchase.stripeSessionId, session.id));
+      // 2. Try to send the email — but never fail the webhook on this.
+      //    If Resend rejects (unverified domain, rate limit, etc.), the
+      //    purchase is still recorded. We log loudly and let an admin
+      //    retry via /api/admin/resend-course-emails.
+      const sendResult = await sendCoursePurchaseEmail({
+        email,
+        hasApp,
+        activationToken,
+      });
 
-        // Server-side TikTok conversion (backup for the client-side pixel).
-        // Fires regardless of ad blockers / client race conditions.
+      if (sendResult.ok) {
+        try {
+          await db
+            .update(coursePurchase)
+            .set({ emailSentAt: new Date() })
+            .where(eq(coursePurchase.stripeSessionId, session.id));
+        } catch (err: any) {
+          // Non-critical: the email went out, we just couldn't flag it.
+          console.error("[Webhook] emailSentAt update failed", err);
+        }
+      } else {
+        console.error(
+          `[Webhook] course email FAILED for ${email} — session ${session.id}: ${sendResult.error}. ` +
+            `Row is recorded; retry via POST /api/admin/resend-course-emails.`
+        );
+      }
+
+      // 3. Server-side TikTok conversion (independent of the email).
+      try {
         const amountCents = session.amount_total ?? (hasApp ? 2496 : 999);
         await ttqServerTrack("CompletePayment", {
-          event_id: session.id, // dedup with the client-side event
+          event_id: session.id,
           email,
           value: amountCents / 100,
           currency: "EUR",
@@ -108,14 +133,12 @@ export async function POST(req: Request) {
             : "Le Pack 85% des mots du Coran",
           contentCategory: "course",
         });
-      } catch (err: any) {
-        console.error("[Webhook] Course purchase error:", err);
-        // Return 500 so Stripe retries
-        return new NextResponse(`Course purchase error: ${err.message}`, {
-          status: 500,
-        });
+      } catch (err) {
+        console.error("[Webhook] TikTok tracking failed", err);
       }
 
+      // Return 200 no matter what — Stripe has done its job; our side
+      // of things (DB row) is recorded. Any failures are logged above.
       return new NextResponse(null, { status: 200 });
     }
 
