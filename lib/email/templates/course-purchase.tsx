@@ -2,7 +2,6 @@ import {
   Body,
   Button,
   Container,
-  Font,
   Head,
   Heading,
   Hr,
@@ -33,28 +32,15 @@ export function CoursePurchaseEmail({
 }: Props) {
   return (
     <Html lang="fr">
-      <Head>
-        <Font
-          fontFamily="Fraunces"
-          fallbackFontFamily="Georgia"
-          webFont={{
-            url: "https://fonts.gstatic.com/s/fraunces/v31/6NUh8FyLNQOQZAnv9ZwNjucMHVn85Ni7emAe9lKqZTnrFgJtVbUjT-LJmA.woff2",
-            format: "woff2",
-          }}
-          fontWeight={400}
-          fontStyle="italic"
-        />
-        <Font
-          fontFamily="Fraunces"
-          fallbackFontFamily="Georgia"
-          webFont={{
-            url: "https://fonts.gstatic.com/s/fraunces/v31/6NUh8FyLNQOQZAnv9ZwNjucMHVn85Ni7emAe9lKqZTnrFgJtVbUjT-LJmA.woff2",
-            format: "woff2",
-          }}
-          fontWeight={600}
-          fontStyle="normal"
-        />
-      </Head>
+      <Head />
+      {/*
+        Note: we intentionally do NOT use @react-email/components <Font/>
+        here. Email clients almost never load webfonts anyway, and a
+        recent Font component version has been observed to throw "t is
+        not a function" at render time under some Next/Resend combos.
+        The styles below fall back to Georgia, which is universally
+        available and visually matches the Fraunces direction on web.
+      */}
       <Preview>
         Ton pack 85% des mots du Coran est prêt. Un clic pour y accéder.
       </Preview>
@@ -143,8 +129,7 @@ export function CoursePurchaseEmail({
 
 const bodyStyle: React.CSSProperties = {
   backgroundColor: "#F5F1E8",
-  fontFamily:
-    "Fraunces, Georgia, 'Times New Roman', Times, serif",
+  fontFamily: "Georgia, 'Times New Roman', Times, serif",
   margin: 0,
   padding: "48px 20px 32px",
 };
@@ -169,7 +154,7 @@ const monogramStyle: React.CSSProperties = {
   borderRadius: 14,
   fontSize: 30,
   fontWeight: 700,
-  fontFamily: "Fraunces, Georgia, serif",
+  fontFamily: "Georgia, serif",
   textAlign: "center",
   verticalAlign: "middle",
 };
@@ -187,7 +172,7 @@ const brandKickerStyle: React.CSSProperties = {
 };
 
 const headlineStyle: React.CSSProperties = {
-  fontFamily: "Fraunces, Georgia, serif",
+  fontFamily: "Georgia, serif",
   fontStyle: "italic",
   fontSize: 44,
   lineHeight: 1.05,
@@ -270,7 +255,7 @@ const dividerStyle: React.CSSProperties = {
 };
 
 const subHeadlineStyle: React.CSSProperties = {
-  fontFamily: "Fraunces, Georgia, serif",
+  fontFamily: "Georgia, serif",
   fontStyle: "italic",
   fontSize: 28,
   color: "#1A1A1A",
@@ -279,7 +264,7 @@ const subHeadlineStyle: React.CSSProperties = {
 };
 
 const signatureItalicStyle: React.CSSProperties = {
-  fontFamily: "Fraunces, Georgia, serif",
+  fontFamily: "Georgia, serif",
   fontStyle: "italic",
   fontSize: 18,
   color: "#1A1A1A",
