@@ -3,10 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   BookOpen,
-  Check,
-  Clock,
-  CreditCard,
-  FileText,
   Infinity as InfinityIcon,
   Smartphone,
   Zap,
@@ -88,21 +84,18 @@ export default function Page85MotsCoran() {
             Essai 7 jours offerts
           </div>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-brilliant-text leading-tight font-heading max-w-[540px]">
-            Apprends le vocabulaire qui couvre{" "}
-            <span className="text-[#6967fb]">85% du Coran</span>.
+            Comprends <span className="text-[#6967fb]">85% du Coran</span>.
           </h1>
-          <p className="text-brilliant-muted text-base sm:text-lg max-w-[480px] leading-relaxed">
-            L&apos;application qui te fait mémoriser les mots les plus
-            fréquents du Coran, avec la répétition espacée et des exercices
-            variés. Essaie 7 jours, paie si tu accroches.
+          <p className="text-brilliant-muted text-base sm:text-lg max-w-[420px] leading-relaxed">
+            5 min par jour. La répétition espacée fait le reste.
           </p>
 
-          <div className="flex flex-col items-center lg:items-start gap-2 w-full sm:w-auto">
+          <div className="flex flex-col items-center lg:items-start gap-1.5 w-full sm:w-auto">
             <Link
               href="/auth/signup?trial=true"
               className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-2xl bg-[#6967fb] px-8 py-4 text-sm sm:text-base font-bold text-white uppercase tracking-wide shadow-[0_4px_0_0_#5250d4] transition hover:scale-[1.02] active:scale-[0.98] active:shadow-[0_1px_0_0_#5250d4] active:translate-y-[3px]"
             >
-              Commencer mes 7 jours gratuits
+              7 jours gratuits
             </Link>
             <p className="text-[11px] text-brilliant-muted">
               Puis 14,97€/mois · Résiliable en 1 clic
@@ -113,19 +106,8 @@ export default function Page85MotsCoran() {
             href="#offres"
             className="text-xs text-brilliant-muted underline-offset-4 hover:underline"
           >
-            Ou achète juste les PDFs à 9,99€ (paiement unique)
+            Ou juste les PDFs à 9,99€
           </a>
-
-          <div className="flex items-center gap-4 text-xs text-brilliant-muted">
-            <span className="flex items-center gap-1.5">
-              <Check className="h-4 w-4 text-green-500" />
-              Aucun prélèvement pendant 7 jours
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Check className="h-4 w-4 text-green-500" />
-              Paiement sécurisé Stripe
-            </span>
-          </div>
         </div>
       </section>
 
@@ -135,26 +117,20 @@ export default function Page85MotsCoran() {
       <section className="w-full border-y border-brilliant-border bg-brilliant-surface">
         <div className="max-w-[1100px] mx-auto px-6 sm:px-8 py-12 sm:py-16">
           <div className="text-center mb-8 sm:mb-10">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-[#6967fb]/10 px-3 py-1 text-xs font-bold text-[#6967fb] uppercase tracking-wide mb-3">
-              Avis TikTok vérifiés
-            </div>
             <h2 className="text-2xl sm:text-3xl font-bold font-heading text-brilliant-text">
-              Ce qu&apos;ils en disent
+              Avis TikTok
             </h2>
-            <p className="mt-2 text-brilliant-muted text-sm sm:text-base">
-              Des commentaires laissés sur nos vidéos TikTok.
-            </p>
           </div>
           <Testimonials />
         </div>
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════ */}
-      {/*  APP PREVIEW : exercise carousel                                */}
+      {/*  APP PREVIEW : exercise carousel (phone mockups)                */}
       {/* ═══════════════════════════════════════════════════════════════ */}
       <section className="w-full bg-white overflow-hidden">
-        <div className="max-w-[1040px] mx-auto px-6 sm:px-8 py-16 sm:py-20">
-          <div className="flex flex-col items-center text-center mb-8 sm:mb-10">
+        <div className="max-w-[1040px] mx-auto px-6 sm:px-8 pt-16 sm:pt-20 pb-8 sm:pb-10">
+          <div className="flex flex-col items-center text-center">
             <LandingMascot
               src="/animations/hi_ok.riv"
               stateMachines="State Machine 1"
@@ -162,21 +138,11 @@ export default function Page85MotsCoran() {
               className="w-[100px] h-[100px] sm:w-[120px] sm:h-[120px] mb-3"
             />
             <h2 className="text-2xl sm:text-3xl font-bold font-heading text-brilliant-text">
-              Des exercices variés pour ancrer chaque mot
+              L&apos;app, de l&apos;intérieur
             </h2>
-            <p className="mt-3 text-brilliant-muted text-sm sm:text-base max-w-[540px]">
-              QCM, flashcards, associations, anagrammes... Chaque mot est vu
-              sous plusieurs angles pour que ton cerveau le retienne pour de
-              bon.
-            </p>
           </div>
         </div>
         <ExerciseCarousel />
-        <div className="max-w-[988px] mx-auto px-6 sm:px-8 pt-8 sm:pt-10 pb-16 sm:pb-20 text-center">
-          <p className="text-xs text-brilliant-muted">
-            Tu testes tout pendant 7 jours, sans aucun prélèvement.
-          </p>
-        </div>
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════ */}
@@ -184,35 +150,35 @@ export default function Page85MotsCoran() {
       {/* ═══════════════════════════════════════════════════════════════ */}
       <section className="w-full border-y border-brilliant-border bg-brilliant-surface">
         <div className="max-w-[988px] mx-auto px-6 sm:px-8 py-12 sm:py-16">
-          <div className="grid gap-6 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-3">
             {[
               {
                 icon: <BookOpen className="h-6 w-6 text-[#6967fb]" />,
-                title: "85% du Coran couvert",
-                text: "En maîtrisant les mots les plus fréquents, tu comprends la majeure partie du texte coranique.",
+                title: "85% du Coran",
+                text: "Les mots qui reviennent le plus, en priorité.",
               },
               {
                 icon: <Smartphone className="h-6 w-6 text-[#6967fb]" />,
-                title: "5 min par jour suffisent",
-                text: "Des leçons courtes, la répétition espacée fait le reste. Tu progresses sans y penser.",
+                title: "5 min / jour",
+                text: "Leçons courtes. Répétition espacée automatique.",
               },
               {
                 icon: <InfinityIcon className="h-6 w-6 text-[#6967fb]" />,
-                title: "Les PDFs offerts",
-                text: "L'abonnement inclut aussi les documents PDF téléchargeables, pour réviser hors-ligne.",
+                title: "PDFs offerts",
+                text: "Les documents téléchargeables en bonus.",
               },
             ].map((b) => (
               <div
                 key={b.title}
-                className="rounded-2xl border-2 border-b-4 border-brilliant-border bg-white p-6"
+                className="rounded-2xl border-2 border-b-4 border-brilliant-border bg-white p-5"
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#6967fb]/10">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#6967fb]/10">
                   {b.icon}
                 </div>
-                <h3 className="mt-4 text-base font-bold font-heading text-brilliant-text">
+                <h3 className="mt-3 text-base font-bold font-heading text-brilliant-text">
                   {b.title}
                 </h3>
-                <p className="mt-2 text-sm text-brilliant-muted leading-relaxed">
+                <p className="mt-1 text-sm text-brilliant-muted leading-relaxed">
                   {b.text}
                 </p>
               </div>
@@ -233,10 +199,6 @@ export default function Page85MotsCoran() {
             <h2 className="text-2xl sm:text-3xl font-bold font-heading text-brilliant-text">
               Choisis ta formule
             </h2>
-            <p className="mt-3 text-brilliant-muted text-sm sm:text-base max-w-[520px] mx-auto">
-              L&apos;application pour apprendre en pratiquant, ou les PDFs
-              seuls pour apprendre à ton rythme.
-            </p>
           </div>
 
           <PricingCards />
@@ -250,7 +212,7 @@ export default function Page85MotsCoran() {
         <div className="max-w-[988px] mx-auto px-6 sm:px-8 py-16 sm:py-20">
           <div className="text-center mb-10 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl font-bold font-heading text-brilliant-text">
-              Les questions qu&apos;on nous pose
+              Questions fréquentes
             </h2>
           </div>
           <Faq />
@@ -262,39 +224,23 @@ export default function Page85MotsCoran() {
       {/* ═══════════════════════════════════════════════════════════════ */}
       <section className="w-full bg-white">
         <div className="max-w-[988px] mx-auto px-6 sm:px-8 py-16 sm:py-20">
-          <div className="flex flex-col items-center text-center gap-6">
+          <div className="flex flex-col items-center text-center gap-5">
             <LandingMascot
               src="/animations/eyes_down.riv"
               animationName="eyes down"
               className="w-[120px] h-[120px] sm:w-[150px] sm:h-[150px]"
             />
             <h2 className="text-2xl sm:text-3xl font-bold font-heading text-brilliant-text max-w-md">
-              Prêt à comprendre ce que tu récites ?
+              On se lance ?
             </h2>
-            <p className="text-brilliant-muted text-sm sm:text-base max-w-sm">
-              Essaie l&apos;application pendant 7 jours, complètement
-              gratuit. Si ça te plaît, tu continues pour 14,97€/mois.
-            </p>
             <Link
               href="/auth/signup?trial=true"
               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#6967fb] px-8 py-4 text-sm sm:text-base font-bold text-white uppercase tracking-wide shadow-[0_4px_0_0_#5250d4] transition hover:scale-[1.02] active:scale-[0.98] active:shadow-[0_1px_0_0_#5250d4] active:translate-y-[3px]"
             >
-              Commencer mes 7 jours gratuits
+              7 jours gratuits
             </Link>
-            <p className="flex items-center gap-1.5 text-xs text-brilliant-muted">
-              <CreditCard className="h-3 w-3" />
-              CB demandée à l&apos;inscription, aucun prélèvement pendant 7 jours
-            </p>
-            <a
-              href="#offres"
-              className="text-xs text-brilliant-muted underline-offset-4 hover:underline"
-            >
-              <FileText className="inline h-3 w-3 mr-1" />
-              Ou juste les PDFs à 9,99€
-            </a>
-            <p className="mt-4 flex items-center gap-1.5 text-[11px] text-brilliant-muted/80">
-              <Clock className="h-3 w-3" />
-              Livraison immédiate · Résiliable en 1 clic
+            <p className="text-[11px] text-brilliant-muted">
+              Puis 14,97€/mois · Résiliable en 1 clic
             </p>
           </div>
         </div>
