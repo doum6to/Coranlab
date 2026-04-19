@@ -1,5 +1,5 @@
 import { getResend } from "./resend";
-import { CoursePurchaseEmail } from "./templates/course-purchase";
+import { renderCoursePurchaseEmailHtml } from "./templates/course-purchase";
 import { absoluteUrl } from "@/lib/utils";
 
 type Params = {
@@ -47,12 +47,18 @@ Params):
   }
 
   try {
+    const html = renderCoursePurchaseEmailHtml({
+      driveUrl,
+      hasApp,
+      activationUrl,
+    });
+
     const result = await getResend().emails.send({
       from,
       to: email,
       replyTo,
       subject: "Bienvenue ! Ton cours 85% des mots du Coran est prêt",
-      react: CoursePurchaseEmail({ driveUrl, hasApp, activationUrl }),
+      html,
     });
 
     if (result.error) {

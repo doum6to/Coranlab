@@ -1,13 +1,12 @@
 import { getResend } from "./resend";
-import { TrialWelcomeEmail } from "./templates/trial-welcome";
-import { TrialEndingSoonEmail } from "./templates/trial-ending-soon";
-import { PaymentSucceededEmail } from "./templates/payment-succeeded";
-import { PaymentFailedEmail } from "./templates/payment-failed";
+import { renderTrialWelcomeHtml } from "./templates/trial-welcome";
+import { renderTrialEndingSoonHtml } from "./templates/trial-ending-soon";
+import { renderPaymentSucceededHtml } from "./templates/payment-succeeded";
+import { renderPaymentFailedHtml } from "./templates/payment-failed";
 import { absoluteUrl } from "@/lib/utils";
 
 const FROM =
   process.env.RESEND_FROM_EMAIL || "Quranlab <contact@quranlab.app>";
-// replyTo : replies land in the founder's Gmail.
 const REPLY_TO = process.env.RESEND_REPLY_TO || "qalbanah@gmail.com";
 
 function formatDate(d: Date): string {
@@ -25,7 +24,7 @@ type SendResult =
 async function safeSend(params: {
   to: string;
   subject: string;
-  react: React.ReactElement;
+  html: string;
   label: string;
 }): Promise<SendResult> {
   if (!process.env.RESEND_API_KEY) {
@@ -40,7 +39,7 @@ async function safeSend(params: {
       to: params.to,
       replyTo: REPLY_TO,
       subject: params.subject,
-      react: params.react,
+      html: params.html,
     });
     if (error) {
       const summary = `${error.name || "error"}: ${error.message}`;
@@ -79,7 +78,7 @@ export async function sendTrialWelcome(params: {
   return safeSend({
     to: params.email,
     subject: "Bienvenue dans Quranlab — ton essai 7 jours est actif",
-    react: TrialWelcomeEmail({
+    html: renderTrialWelcomeHtml({
       appUrl: absoluteUrl("/learn"),
       trialEndsAt: formatDate(params.trialEndsAt),
     }),
@@ -95,7 +94,7 @@ export async function sendTrialEndingSoon(params: {
   return safeSend({
     to: params.email,
     subject: "Ton essai Quranlab se termine dans 3 jours",
-    react: TrialEndingSoonEmail({
+    html: renderTrialEndingSoonHtml({
       billingPortalUrl: params.billingPortalUrl,
       trialEndsAt: formatDate(params.trialEndsAt),
     }),
@@ -113,7 +112,7 @@ export async function sendPaymentSucceeded(params: {
   return safeSend({
     to: params.email,
     subject: "Paiement Quranlab confirmé",
-    react: PaymentSucceededEmail({
+    html: renderPaymentSucceededHtml({
       appUrl: absoluteUrl("/learn"),
       amount,
       nextBillingAt: formatDate(params.nextBillingAt),
@@ -129,7 +128,9 @@ export async function sendPaymentFailed(params: {
   return safeSend({
     to: params.email,
     subject: "Ton paiement Quranlab n'est pas passé",
-    react: PaymentFailedEmail({ billingPortalUrl: params.billingPortalUrl }),
+    html: renderPaymentFailedHtml({
+      billingPortalUrl: params.billingPortalUrl,
+    }),
     label: "payment-failed",
   });
 }

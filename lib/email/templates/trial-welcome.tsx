@@ -1,41 +1,29 @@
-import { Button, Text } from "@react-email/components";
-import * as React from "react";
+import { buildEmail, buttonHtml, escapeHtml, fineHtml, pHtml } from "./_shell";
 
-import { EmailLayout, emailStyles } from "./_layout";
-
-export function TrialWelcomeEmail({
+export function renderTrialWelcomeHtml({
   appUrl,
   trialEndsAt,
 }: {
   appUrl: string;
-  trialEndsAt: string; // formatted date, e.g. "26 avril 2026"
-}) {
-  return (
-    <EmailLayout
-      preview="Ton essai Quranlab est actif. Commence dès maintenant."
-      heading="Bienvenue dans Quranlab"
-    >
-      <Text style={emailStyles.text}>Assalamu alaikum !</Text>
-      <Text style={emailStyles.text}>
-        Ton essai <strong>7 jours gratuits</strong> est actif. Tu as accès
-        dès maintenant à toutes les leçons, exercices et documents PDF de
-        Quranlab.
-      </Text>
-      <div style={emailStyles.buttonContainer}>
-        <Button href={appUrl} style={emailStyles.primaryButton}>
-          Accéder à l&apos;application
-        </Button>
-      </div>
-      <Text style={emailStyles.smallText}>
-        Ton trial se termine le <strong>{trialEndsAt}</strong>. Après cette
-        date, ton abonnement passera automatiquement à 14,97€/mois si tu ne
-        résilies pas. Tu peux résilier à tout moment en 1 clic depuis tes
-        paramètres.
-      </Text>
-      <Text style={emailStyles.text}>
-        <strong>Petit conseil</strong> : même 5 minutes par jour suffisent.
-        La répétition espacée fait le reste.
-      </Text>
-    </EmailLayout>
-  );
+  trialEndsAt: string;
+}): string {
+  const body = [
+    pHtml("Assalamu alaikum&nbsp;!"),
+    pHtml(
+      "Ton essai <strong>7 jours gratuits</strong> est actif. Tu as accès dès maintenant à toutes les leçons, exercices et documents PDF de Quranlab."
+    ),
+    buttonHtml({ href: appUrl, label: "Accéder à l'application →" }),
+    fineHtml(
+      `Ton essai se termine le <strong>${escapeHtml(trialEndsAt)}</strong>. Après cette date, ton abonnement passera à 14,97&nbsp;€/mois si tu ne résilies pas. Tu peux annuler en 1 clic depuis tes paramètres.`
+    ),
+    pHtml(
+      "<strong>Petit conseil</strong>&nbsp;: même 5 minutes par jour suffisent. La répétition espacée fait le reste."
+    ),
+  ].join("\n");
+
+  return buildEmail({
+    preview: "Ton essai Quranlab est actif. Commence dès maintenant.",
+    heading: "Bienvenue dans Quranlab",
+    bodyHtml: body,
+  });
 }

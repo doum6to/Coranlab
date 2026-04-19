@@ -1,17 +1,11 @@
-import {
-  Body,
-  Button,
-  Container,
-  Head,
-  Heading,
-  Hr,
-  Html,
-  Link,
-  Preview,
-  Section,
-  Text,
-} from "@react-email/components";
-import * as React from "react";
+/**
+ * Premium course-purchase welcome email — rendered as a plain HTML
+ * string to bypass @react-email/components entirely. The @react-email
+ * render pipeline was throwing "t is not a function" under the current
+ * Next/Resend combo in production. Plain HTML + inline styles is the
+ * most reliable transactional-email format anyway: every client
+ * understands it, no webfonts, no CSS-in-JS surprises.
+ */
 
 type Props = {
   driveUrl: string;
@@ -19,286 +13,122 @@ type Props = {
   activationUrl: string | null;
 };
 
-/**
- * Premium course-purchase welcome email. Matches the /85motscoran
- * landing page design language: cream background, serif italic
- * headline, warm coral accent, black pill CTA. Falls back cleanly to
- * Georgia in clients that can't load Fraunces.
- */
-export function CoursePurchaseEmail({
+function esc(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+export function renderCoursePurchaseEmailHtml({
   driveUrl,
   hasApp,
   activationUrl,
-}: Props) {
-  return (
-    <Html lang="fr">
-      <Head />
-      {/*
-        Note: we intentionally do NOT use @react-email/components <Font/>
-        here. Email clients almost never load webfonts anyway, and a
-        recent Font component version has been observed to throw "t is
-        not a function" at render time under some Next/Resend combos.
-        The styles below fall back to Georgia, which is universally
-        available and visually matches the Fraunces direction on web.
-      */}
-      <Preview>
-        Ton pack 85% des mots du Coran est prêt. Un clic pour y accéder.
-      </Preview>
-      <Body style={bodyStyle}>
-        <Container style={containerStyle}>
-          {/* Logo monogram */}
-          <Section style={{ textAlign: "center", marginBottom: 32 }}>
-            <div style={monogramStyle}>Q</div>
-            <Text style={brandKickerStyle}>QURANLAB</Text>
-          </Section>
+}: Props): string {
+  const safeDriveUrl = esc(driveUrl);
+  const safeActivationUrl = activationUrl ? esc(activationUrl) : null;
 
-          {/* Serif italic headline */}
-          <Heading style={headlineStyle}>Ton pack est prêt.</Heading>
+  const trialBlock =
+    hasApp && safeActivationUrl
+      ? `
+    <hr style="border:none;border-top:1px solid #E8E4D8;margin:40px 0" />
+    <h2 style="font-family:Georgia,serif;font-style:italic;font-size:28px;color:#1A1A1A;margin:0 0 16px;font-weight:400;line-height:1.1">
+      Et l&rsquo;application&nbsp;?
+    </h2>
+    <p style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;color:#333333;line-height:1.65;margin:0 0 20px">
+      Tu as aussi choisi l&rsquo;accès à l&rsquo;application Quranlab.
+      Crée ton compte en un clic, ton abonnement sera activé
+      automatiquement.
+    </p>
+    <div style="text-align:center;margin:32px 0 12px">
+      <a href="${safeActivationUrl}"
+         style="background-color:#E85D3C;color:#FFFFFF;padding:16px 36px;border-radius:999px;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-weight:600;font-size:15px;letter-spacing:0.02em;display:inline-block">
+        Créer mon compte premium
+      </a>
+    </div>
+    <p style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;color:#999999;line-height:1.5;margin:16px 0 0;text-align:center">
+      Utilise la même adresse que celle-ci pour que l&rsquo;abonnement
+      soit lié automatiquement.
+    </p>
+  `
+      : "";
 
-          <Text style={introStyle}>Assalamu alaikum,</Text>
-          <Text style={bodyTextStyle}>
-            Merci pour ta confiance. Ton pack{" "}
-            <strong>85% des mots du Coran</strong> est disponible en un clic
-            ci-dessous.
-          </Text>
+  return `<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Ton pack 85% des mots du Coran est prêt</title>
+  </head>
+  <body style="background-color:#F5F1E8;font-family:Georgia,'Times New Roman',Times,serif;margin:0;padding:48px 20px 32px">
+    <!-- Preview text (hidden) -->
+    <div style="display:none;max-height:0;overflow:hidden;mso-hide:all">
+      Ton pack 85% des mots du Coran est prêt. Un clic pour y accéder.
+    </div>
 
-          {/* Primary CTA */}
-          <Section style={ctaContainerStyle}>
-            <Button href={driveUrl} style={primaryButtonStyle}>
-              Accéder à mes documents →
-            </Button>
-          </Section>
+    <div style="background-color:#FFFFFF;max-width:560px;margin:0 auto;padding:48px 44px;border-radius:20px;border:1px solid #E8E4D8;box-shadow:0 20px 40px -30px rgba(26,26,26,0.12)">
 
-          <Text style={fineprintStyle}>
-            Si le bouton ne fonctionne pas, copie ce lien&nbsp;:
-            <br />
-            <Link href={driveUrl} style={linkStyle}>
-              {driveUrl}
-            </Link>
-          </Text>
+      <!-- Brand monogram + kicker -->
+      <div style="text-align:center;margin-bottom:32px">
+        <div style="display:inline-block;width:60px;height:60px;line-height:60px;background-color:#6967fb;color:#F5F1E8;border-radius:14px;font-size:30px;font-weight:700;font-family:Georgia,serif;text-align:center;vertical-align:middle">
+          Q
+        </div>
+        <p style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;letter-spacing:0.28em;color:#1A1A1A;font-weight:600;margin:14px 0 0;text-align:center">
+          QURANLAB
+        </p>
+      </div>
 
-          {/* Optional trial activation block */}
-          {hasApp && activationUrl && (
-            <>
-              <Hr style={dividerStyle} />
-              <Heading as="h2" style={subHeadlineStyle}>
-                Et l&apos;application&nbsp;?
-              </Heading>
-              <Text style={bodyTextStyle}>
-                Tu as aussi choisi l&apos;accès à l&apos;application Quranlab.
-                Crée ton compte en un clic, ton abonnement sera activé
-                automatiquement.
-              </Text>
-              <Section style={ctaContainerStyle}>
-                <Button href={activationUrl} style={secondaryButtonStyle}>
-                  Créer mon compte premium
-                </Button>
-              </Section>
-              <Text style={fineprintStyle}>
-                Utilise la même adresse que celle-ci pour que l&apos;abonnement
-                soit lié automatiquement.
-              </Text>
-            </>
-          )}
+      <!-- Serif italic headline -->
+      <h1 style="font-family:Georgia,serif;font-style:italic;font-size:44px;line-height:1.05;color:#1A1A1A;margin:0 0 28px;text-align:center;font-weight:400">
+        Ton pack est prêt.
+      </h1>
 
-          <Hr style={dividerStyle} />
+      <p style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;color:#1A1A1A;font-weight:500;line-height:1.6;margin:0 0 12px">
+        Assalamu alaikum,
+      </p>
 
-          {/* Signature */}
-          <Text style={signatureItalicStyle}>
-            Qu&apos;Allah te facilite l&apos;apprentissage.
-          </Text>
-          <Text style={signatureStyle}>— L&apos;équipe Quranlab</Text>
+      <p style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;color:#333333;line-height:1.65;margin:0 0 20px">
+        Merci pour ta confiance. Ton pack
+        <strong>85% des mots du Coran</strong> est disponible en un clic
+        ci-dessous.
+      </p>
 
-          <Text style={supportStyle}>
-            Une question&nbsp;? Réponds directement à cet email, on lit tout.
-          </Text>
-        </Container>
+      <!-- Primary CTA -->
+      <div style="text-align:center;margin:32px 0 12px">
+        <a href="${safeDriveUrl}"
+           style="background-color:#1A1A1A;color:#F5F1E8;padding:16px 36px;border-radius:999px;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-weight:600;font-size:15px;letter-spacing:0.02em;display:inline-block">
+          Accéder à mes documents &rarr;
+        </a>
+      </div>
 
-        {/* Outer bottom line */}
-        <Text style={outerBrandLineStyle}>
-          quranlab.app · comprends le Coran
-        </Text>
-      </Body>
-    </Html>
-  );
+      <p style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;color:#999999;line-height:1.5;margin:16px 0 0;text-align:center">
+        Si le bouton ne fonctionne pas, copie ce lien&nbsp;:<br />
+        <a href="${safeDriveUrl}" style="color:#6967fb;word-break:break-all">${safeDriveUrl}</a>
+      </p>
+
+      ${trialBlock}
+
+      <hr style="border:none;border-top:1px solid #E8E4D8;margin:40px 0" />
+
+      <!-- Signature -->
+      <p style="font-family:Georgia,serif;font-style:italic;font-size:18px;color:#1A1A1A;text-align:center;margin:0 0 8px;font-weight:400">
+        Qu&rsquo;Allah te facilite l&rsquo;apprentissage.
+      </p>
+      <p style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;color:#666666;text-align:center;margin:0">
+        &mdash; L&rsquo;équipe Quranlab
+      </p>
+
+      <p style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;color:#999999;text-align:center;margin:28px 0 0;line-height:1.5">
+        Une question&nbsp;? Réponds directement à cet email, on lit tout.
+      </p>
+
+    </div>
+
+    <p style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:11px;letter-spacing:0.25em;text-transform:uppercase;color:#999999;text-align:center;margin:24px 0 0">
+      quranlab.app &middot; comprends le Coran
+    </p>
+  </body>
+</html>`;
 }
-
-/* ─────────────────────────────────────────────────────────────────────
- *  Styles — inline because email clients strip classes.
- * ───────────────────────────────────────────────────────────────────── */
-
-const bodyStyle: React.CSSProperties = {
-  backgroundColor: "#F5F1E8",
-  fontFamily: "Georgia, 'Times New Roman', Times, serif",
-  margin: 0,
-  padding: "48px 20px 32px",
-};
-
-const containerStyle: React.CSSProperties = {
-  backgroundColor: "#FFFFFF",
-  maxWidth: 560,
-  margin: "0 auto",
-  padding: "48px 44px",
-  borderRadius: 20,
-  border: "1px solid #E8E4D8",
-  boxShadow: "0 20px 40px -30px rgba(26,26,26,0.12)",
-};
-
-const monogramStyle: React.CSSProperties = {
-  display: "inline-block",
-  width: 60,
-  height: 60,
-  lineHeight: "60px",
-  backgroundColor: "#6967fb",
-  color: "#F5F1E8",
-  borderRadius: 14,
-  fontSize: 30,
-  fontWeight: 700,
-  fontFamily: "Georgia, serif",
-  textAlign: "center",
-  verticalAlign: "middle",
-};
-
-const brandKickerStyle: React.CSSProperties = {
-  fontFamily:
-    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif",
-  fontSize: 12,
-  letterSpacing: "0.28em",
-  color: "#1A1A1A",
-  fontWeight: 600,
-  marginTop: 14,
-  marginBottom: 0,
-  textAlign: "center",
-};
-
-const headlineStyle: React.CSSProperties = {
-  fontFamily: "Georgia, serif",
-  fontStyle: "italic",
-  fontSize: 44,
-  lineHeight: 1.05,
-  color: "#1A1A1A",
-  margin: "0 0 28px",
-  textAlign: "center",
-  fontWeight: 400,
-};
-
-const introStyle: React.CSSProperties = {
-  fontFamily:
-    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif",
-  fontSize: 16,
-  color: "#1A1A1A",
-  fontWeight: 500,
-  lineHeight: 1.6,
-  margin: "0 0 12px",
-};
-
-const bodyTextStyle: React.CSSProperties = {
-  fontFamily:
-    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif",
-  fontSize: 16,
-  color: "#333333",
-  lineHeight: 1.65,
-  margin: "0 0 20px",
-};
-
-const ctaContainerStyle: React.CSSProperties = {
-  textAlign: "center",
-  margin: "32px 0 12px",
-};
-
-const primaryButtonStyle: React.CSSProperties = {
-  backgroundColor: "#1A1A1A",
-  color: "#F5F1E8",
-  padding: "16px 36px",
-  borderRadius: 999,
-  textDecoration: "none",
-  fontFamily:
-    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif",
-  fontWeight: 600,
-  fontSize: 15,
-  letterSpacing: "0.02em",
-  display: "inline-block",
-};
-
-const secondaryButtonStyle: React.CSSProperties = {
-  backgroundColor: "#E85D3C",
-  color: "#FFFFFF",
-  padding: "16px 36px",
-  borderRadius: 999,
-  textDecoration: "none",
-  fontFamily:
-    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif",
-  fontWeight: 600,
-  fontSize: 15,
-  letterSpacing: "0.02em",
-  display: "inline-block",
-};
-
-const fineprintStyle: React.CSSProperties = {
-  fontFamily:
-    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif",
-  fontSize: 12,
-  color: "#999999",
-  lineHeight: 1.5,
-  margin: "16px 0 0",
-  textAlign: "center",
-};
-
-const linkStyle: React.CSSProperties = {
-  color: "#6967fb",
-  wordBreak: "break-all",
-};
-
-const dividerStyle: React.CSSProperties = {
-  borderColor: "#E8E4D8",
-  margin: "40px 0",
-};
-
-const subHeadlineStyle: React.CSSProperties = {
-  fontFamily: "Georgia, serif",
-  fontStyle: "italic",
-  fontSize: 28,
-  color: "#1A1A1A",
-  margin: "0 0 16px",
-  fontWeight: 400,
-};
-
-const signatureItalicStyle: React.CSSProperties = {
-  fontFamily: "Georgia, serif",
-  fontStyle: "italic",
-  fontSize: 18,
-  color: "#1A1A1A",
-  textAlign: "center",
-  margin: "0 0 8px",
-  fontWeight: 400,
-};
-
-const signatureStyle: React.CSSProperties = {
-  fontFamily:
-    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif",
-  fontSize: 14,
-  color: "#666666",
-  textAlign: "center",
-  margin: 0,
-};
-
-const supportStyle: React.CSSProperties = {
-  fontFamily:
-    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif",
-  fontSize: 12,
-  color: "#999999",
-  textAlign: "center",
-  margin: "28px 0 0",
-  lineHeight: 1.5,
-};
-
-const outerBrandLineStyle: React.CSSProperties = {
-  fontFamily:
-    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif",
-  fontSize: 11,
-  letterSpacing: "0.25em",
-  textTransform: "uppercase",
-  color: "#999999",
-  textAlign: "center",
-  margin: "24px 0 0",
-};
