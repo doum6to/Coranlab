@@ -79,16 +79,16 @@ export default function Page85MotsCoran() {
           <div className="max-w-[720px] mx-auto text-center">
             <Link
               href="/"
-              className="inline-block"
+              className="flex justify-center"
               aria-label="Accueil Quranlab"
             >
               <Image
                 src="/quranlab-logo.svg"
                 alt="Quranlab"
-                width={140}
-                height={56}
+                width={180}
+                height={72}
                 priority
-                className="h-10 sm:h-12 w-auto mx-auto"
+                className="h-14 sm:h-16 w-auto"
               />
             </Link>
 
