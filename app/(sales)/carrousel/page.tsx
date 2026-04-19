@@ -2,33 +2,23 @@
 
 import { useRef, useState } from "react";
 import { toPng } from "html-to-image";
-import { ArrowDown, Check, Download, Heart } from "lucide-react";
+import { Check, Download, Heart } from "lucide-react";
 
 /* ═════════════════════════════════════════════════════════════════════
- *  /carrousel
+ *  /carrousel — 5 Instagram slides 1080×1350
  *
- *  5-slide Instagram carousel (1080×1350) designed in an editorial
- *  "journal" style. Each slide is self-contained and brandable so the
- *  series feels like a mini-magazine rather than disconnected cards.
- *
- *  Design DNA (synthesised from the user's inspiration images +
- *  Brilliant-style brand guidelines the Quranlab app already follows):
- *
- *    • Palette: cream (#F5F1E8), ink (#1A1A1A), brand violet (#6967fb),
- *      warm coral (#E85D3C) reserved for hand-drawn annotations.
- *    • Typography: Fraunces italic for emotional headlines, Inter for
- *      metadata, IBM Plex Arabic for the calligraphy.
- *    • Every slide carries the same branded header and footer so the
- *      carousel reads as one object.
- *    • Hand-drawn SVG annotations (circles, arrows, underlines, sticker
- *      labels) in coral — the "human" layer over an editorial base.
- *    • Subtle vertical ruled lines + grain on cream slides; glow + grain
- *      on ink slides. Alternating rhythm cream/ink/cream/ink/cream.
+ *  Everything is positioned with absolute coordinates in pixels so
+ *  spacing is predictable at export time. Content must stay between
+ *  y=180 and y=1190 to avoid colliding with the branded header/footer.
  * ═════════════════════════════════════════════════════════════════════ */
 
 const SLIDE_W = 1080;
 const SLIDE_H = 1350;
 const PREVIEW_SCALE = 0.34;
+
+// Safe content zones (y coordinates)
+const HEADER_BOTTOM = 170; // content starts at/after this
+const FOOTER_TOP = 1190; // content ends at/before this
 
 const COLOR = {
   cream: "#F5F1E8",
@@ -156,15 +146,15 @@ export default function CarrouselPage() {
  *  SHARED BRAND ELEMENTS
  * ───────────────────────────────────────────────────────────────────── */
 
-// Subtle film-grain noise overlay
 function Grain({ opacity = 0.08 }: { opacity?: number }) {
+  // Use a unique filter id per instance so multiple Grain SVGs don't collide
+  const id = "grain-" + Math.random().toString(36).slice(2, 8);
   return (
     <svg
       className="absolute inset-0 w-full h-full pointer-events-none"
-      xmlns="http://www.w3.org/2000/svg"
       style={{ opacity }}
     >
-      <filter id={`grain-${Math.random().toString(36).slice(2, 7)}`}>
+      <filter id={id}>
         <feTurbulence
           type="fractalNoise"
           baseFrequency="0.9"
@@ -173,37 +163,12 @@ function Grain({ opacity = 0.08 }: { opacity?: number }) {
         />
         <feColorMatrix type="saturate" values="0" />
       </filter>
-      <rect width="100%" height="100%" filter="url(#grain-abc)" />
-      <filter id="grain-abc">
-        <feTurbulence
-          type="fractalNoise"
-          baseFrequency="0.9"
-          numOctaves="2"
-          stitchTiles="stitch"
-        />
-        <feColorMatrix type="saturate" values="0" />
-      </filter>
+      <rect width="100%" height="100%" filter={`url(#${id})`} />
     </svg>
   );
 }
 
-// Subtle vertical ruled lines like notebook paper — on cream slides
-function RuledPaper({ stroke = "#1A1A1A", opacity = 0.04 }) {
-  const lines = [];
-  for (let i = 1; i < 8; i++) {
-    lines.push(
-      <line
-        key={i}
-        x1={SLIDE_W * (i / 8)}
-        y1={0}
-        x2={SLIDE_W * (i / 8)}
-        y2={SLIDE_H}
-        stroke={stroke}
-        strokeWidth={1}
-        strokeOpacity={opacity}
-      />
-    );
-  }
+function RuledPaper({ opacity = 0.04 }: { opacity?: number }) {
   return (
     <svg
       className="absolute inset-0 w-full h-full pointer-events-none"
@@ -211,12 +176,27 @@ function RuledPaper({ stroke = "#1A1A1A", opacity = 0.04 }) {
       height={SLIDE_H}
       viewBox={`0 0 ${SLIDE_W} ${SLIDE_H}`}
     >
-      {lines}
+      {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+        <line
+          key={i}
+          x1={SLIDE_W * (i / 8)}
+          y1={0}
+          x2={SLIDE_W * (i / 8)}
+          y2={SLIDE_H}
+          stroke={COLOR.ink}
+          strokeWidth={1}
+          strokeOpacity={opacity}
+        />
+      ))}
     </svg>
   );
 }
 
-type HeaderProps = { theme: "cream" | "ink"; pageNum: number; totalPages: number };
+type HeaderProps = {
+  theme: "cream" | "ink";
+  pageNum: number;
+  totalPages: number;
+};
 
 function BrandHeader({ theme }: HeaderProps) {
   const fg = theme === "cream" ? COLOR.ink : COLOR.cream;
@@ -227,7 +207,7 @@ function BrandHeader({ theme }: HeaderProps) {
     >
       <div className="flex items-center gap-3">
         <div
-          className="w-[40px] h-[40px] rounded-[10px] flex items-center justify-center text-[22px] font-bold"
+          className="w-[44px] h-[44px] rounded-[10px] flex items-center justify-center text-[24px] font-bold"
           style={{
             background: COLOR.violet,
             color: COLOR.cream,
@@ -244,7 +224,7 @@ function BrandHeader({ theme }: HeaderProps) {
             QURANLAB
           </div>
           <div
-            className="text-[14px] tracking-[0.2em] uppercase"
+            className="text-[13px] tracking-[0.2em] uppercase"
             style={{ color: fg, opacity: 0.5 }}
           >
             Comprends le Coran
@@ -252,7 +232,6 @@ function BrandHeader({ theme }: HeaderProps) {
         </div>
       </div>
 
-      {/* Arabic geometric star ornament */}
       <svg width="42" height="42" viewBox="0 0 42 42" fill="none">
         <path
           d="M21 2L26 16L40 16L29 25L33 39L21 31L9 39L13 25L2 16L16 16L21 2Z"
@@ -277,7 +256,7 @@ function BrandFooter({ theme, pageNum, totalPages }: HeaderProps) {
     >
       <div>
         <div
-          className="text-[14px] tracking-[0.2em] uppercase"
+          className="text-[13px] tracking-[0.2em] uppercase"
           style={{ color: fg, opacity: 0.5 }}
         >
           Made by
@@ -293,18 +272,14 @@ function BrandFooter({ theme, pageNum, totalPages }: HeaderProps) {
       <div className="flex items-center gap-4">
         <span
           className="text-[18px] tracking-[0.15em] font-mono"
-          style={{ color: fg, opacity: 0.6 }}
+          style={{ color: fg, opacity: 0.55 }}
         >
           {page} / {total}
         </span>
         {pageNum < totalPages && (
           <div
             className="flex items-center gap-2 rounded-full px-5 py-2.5"
-            style={{
-              background: COLOR.coral,
-              color: COLOR.cream,
-              fontFamily: "var(--font-inter)",
-            }}
+            style={{ background: COLOR.coral, color: COLOR.cream }}
           >
             <span className="text-[16px] font-bold tracking-wide uppercase">
               Swipe
@@ -326,98 +301,130 @@ function BrandFooter({ theme, pageNum, totalPages }: HeaderProps) {
 }
 
 /* ─────────────────────────────────────────────────────────────────────
- *  HAND-DRAWN ANNOTATIONS (SVG)
- *  Organic wobbly paths to give the "made with a marker" feel.
+ *  HAND-DRAWN ANNOTATIONS — position-explicit (left/top/width/height).
+ *  Every mark takes absolute pixel coordinates inside the 1080×1350
+ *  slide. `vector-effect="non-scaling-stroke"` keeps the marker weight
+ *  visually constant regardless of stretch.
  * ───────────────────────────────────────────────────────────────────── */
 
-// Imperfect circle around an element — coral ink marker feel
-function HandCircle({
-  className,
-  stroke = COLOR.coral,
-  strokeWidth = 8,
-}: {
-  className?: string;
+type MarkPos = {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
   stroke?: string;
   strokeWidth?: number;
-}) {
+};
+
+function HandCircle({
+  left,
+  top,
+  width,
+  height,
+  stroke = COLOR.coral,
+  strokeWidth = 7,
+}: MarkPos) {
   return (
     <svg
-      className={`absolute inset-0 w-full h-full pointer-events-none ${className || ""}`}
+      style={{
+        position: "absolute",
+        left,
+        top,
+        width,
+        height,
+        pointerEvents: "none",
+        zIndex: 2,
+      }}
       viewBox="0 0 300 150"
       preserveAspectRatio="none"
     >
       <path
-        // Starts mid-left, wobbles around, overshoots the closure like a marker would
-        d="M 28,82 Q 10,40 80,18 Q 170,4 260,22 Q 295,35 285,82 Q 278,122 200,138 Q 120,148 40,128 Q 12,112 26,72"
+        d="M 30,75 Q 15,30 100,18 Q 190,8 265,25 Q 292,40 282,80 Q 275,120 200,132 Q 125,142 45,125 Q 18,108 32,70"
         fill="none"
         stroke={stroke}
         strokeWidth={strokeWidth}
         strokeLinecap="round"
         strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
       />
     </svg>
   );
 }
 
-// Wavy underline — marker under a word
 function HandUnderline({
-  className,
+  left,
+  top,
+  width,
+  height,
   stroke = COLOR.coral,
-  strokeWidth = 7,
-}: {
-  className?: string;
-  stroke?: string;
-  strokeWidth?: number;
-}) {
+  strokeWidth = 6,
+}: MarkPos) {
   return (
     <svg
-      className={`absolute inset-0 w-full h-full pointer-events-none ${className || ""}`}
+      style={{
+        position: "absolute",
+        left,
+        top,
+        width,
+        height,
+        pointerEvents: "none",
+        zIndex: 2,
+      }}
       viewBox="0 0 400 30"
       preserveAspectRatio="none"
     >
       <path
-        d="M 8,22 Q 100,8 200,18 T 392,14"
+        d="M 10,22 Q 100,6 200,16 T 390,14"
         fill="none"
         stroke={stroke}
         strokeWidth={strokeWidth}
         strokeLinecap="round"
+        vectorEffect="non-scaling-stroke"
       />
     </svg>
   );
 }
 
-// Curly arrow with arrowhead — points from anchor to target
+type ArrowDirection = "down-right" | "down-left" | "right";
+
 function HandArrow({
-  className,
+  left,
+  top,
+  width,
+  height,
   direction = "down-right",
   stroke = COLOR.coral,
-  strokeWidth = 5,
-}: {
-  className?: string;
-  direction?: "down-right" | "down-left" | "right";
-  stroke?: string;
-  strokeWidth?: number;
-}) {
-  const paths = {
+  strokeWidth = 4,
+}: MarkPos & { direction?: ArrowDirection }) {
+  const paths: Record<ArrowDirection, { curve: string; head: string }> = {
     "down-right": {
-      curve: "M 40,20 Q 30,80 90,100 Q 150,120 200,160",
-      head: "M 190,150 L 200,160 L 188,168",
+      curve: "M 30,15 Q 20,80 90,105 Q 155,125 205,170",
+      head: "M 195,158 L 207,172 L 190,175",
     },
     "down-left": {
-      curve: "M 200,20 Q 210,80 140,110 Q 80,130 40,170",
-      head: "M 50,160 L 40,170 L 52,178",
+      curve: "M 210,15 Q 220,80 150,105 Q 90,125 35,170",
+      head: "M 47,158 L 35,172 L 52,175",
     },
     right: {
-      curve: "M 20,100 Q 100,60 180,120 Q 220,140 260,100",
-      head: "M 252,95 L 260,100 L 252,108",
+      curve: "M 18,90 Q 100,45 180,115 Q 215,135 255,100",
+      head: "M 245,90 L 257,100 L 247,112",
     },
   };
   const p = paths[direction];
   return (
     <svg
-      className={`absolute pointer-events-none ${className || ""}`}
-      viewBox="0 0 280 200"
+      style={{
+        position: "absolute",
+        left,
+        top,
+        width,
+        height,
+        pointerEvents: "none",
+        zIndex: 2,
+      }}
+      viewBox="0 0 250 190"
       fill="none"
+      preserveAspectRatio="xMidYMid meet"
     >
       <path
         d={p.curve}
@@ -425,6 +432,7 @@ function HandArrow({
         strokeWidth={strokeWidth}
         strokeLinecap="round"
         strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
       />
       <path
         d={p.head}
@@ -432,41 +440,54 @@ function HandArrow({
         strokeWidth={strokeWidth}
         strokeLinecap="round"
         strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
       />
     </svg>
   );
 }
 
-// Sticker label — rotated pill with drop shadow
 function Sticker({
   children,
+  left,
+  top,
   rotate = -4,
   bg = COLOR.coral,
   color = COLOR.cream,
-  className,
   fontSize = 26,
 }: {
   children: React.ReactNode;
+  left: number;
+  top: number;
   rotate?: number;
   bg?: string;
   color?: string;
-  className?: string;
   fontSize?: number;
 }) {
   return (
-    <span
-      className={`inline-block px-5 py-2 rounded-[8px] font-bold tracking-wide uppercase ${className || ""}`}
+    <div
       style={{
-        background: bg,
-        color,
+        position: "absolute",
+        left,
+        top,
         transform: `rotate(${rotate}deg)`,
-        boxShadow: "0 6px 0 0 rgba(0,0,0,0.15)",
-        fontFamily: "var(--font-inter)",
-        fontSize,
+        transformOrigin: "center center",
+        zIndex: 3,
       }}
     >
-      {children}
-    </span>
+      <span
+        className="inline-block px-5 py-2 rounded-[8px] font-bold tracking-wide uppercase whitespace-nowrap"
+        style={{
+          background: bg,
+          color,
+          boxShadow: "0 6px 0 0 rgba(0,0,0,0.15)",
+          fontFamily: "var(--font-inter)",
+          fontSize,
+          letterSpacing: "0.05em",
+        }}
+      >
+        {children}
+      </span>
+    </div>
   );
 }
 
@@ -476,7 +497,9 @@ function Sticker({
 
 type SlideProps = { pageNum: number; totalPages: number };
 
-// ── SLIDE 1 — HOOK (scroll stopper) ──────────────────────────────────
+// ── SLIDE 1 — HOOK ────────────────────────────────────────────────────
+// Arabic is the visual hero, question below. Coral circle around Arabic,
+// curly arrow pointing to the swipe footer.
 function Slide1({ pageNum, totalPages }: SlideProps) {
   return (
     <div
@@ -484,76 +507,117 @@ function Slide1({ pageNum, totalPages }: SlideProps) {
       style={{ background: COLOR.cream, fontFamily: "var(--font-serif)" }}
     >
       <RuledPaper />
-      <Grain opacity={0.09} />
+      <Grain opacity={0.08} />
       <BrandHeader theme="cream" pageNum={pageNum} totalPages={totalPages} />
 
-      {/* Massive Arabic calligraphy floating behind, bottom-left */}
+      {/* Kicker : small sans uppercase */}
       <div
-        dir="rtl"
-        className="absolute -left-12 top-[440px] font-arabic font-bold whitespace-nowrap select-none"
         style={{
-          fontFamily: "var(--font-arabic)",
-          fontSize: 360,
-          lineHeight: 1,
+          position: "absolute",
+          top: 220,
+          left: 0,
+          right: 0,
+          textAlign: "center",
+          fontFamily: "var(--font-inter)",
+          fontSize: 22,
+          letterSpacing: "0.3em",
+          textTransform: "uppercase",
           color: COLOR.ink,
-          opacity: 0.06,
+          opacity: 0.5,
+          fontWeight: 600,
         }}
       >
-        اقْرَأْ
+        × 5 fois par jour
       </div>
 
-      {/* Headline block */}
-      <div className="absolute top-[260px] left-[70px] right-[70px]">
-        <p
-          className="text-[120px] leading-[1] text-[#1A1A1A]"
-          style={{ fontStyle: "italic" }}
-        >
-          Tu récites
-        </p>
-
-        {/* Arabic word with hand-drawn circle around it */}
-        <div className="relative inline-block mt-6">
-          <div
-            dir="rtl"
-            className="font-arabic font-bold"
-            style={{
-              fontFamily: "var(--font-arabic)",
-              fontSize: 200,
-              lineHeight: 1,
-              color: COLOR.ink,
-              padding: "30px 60px",
-            }}
-          >
-            الْحَمْدُ لِلَّهِ
-          </div>
-          <HandCircle stroke={COLOR.coral} strokeWidth={10} />
-        </div>
-
-        <p
-          className="mt-10 text-[108px] leading-[1] font-semibold"
-          style={{ color: COLOR.ink }}
-        >
-          chaque jour.
-        </p>
-      </div>
-
-      {/* Hand-drawn arrow + question */}
-      <HandArrow
-        className="left-[380px] top-[940px] w-[220px] h-[160px]"
-        direction="down-right"
-      />
+      {/* Arabic hero : y=310-540 */}
       <div
-        className="absolute top-[1080px] left-[620px]"
-        style={{ fontFamily: "var(--font-inter)" }}
+        dir="rtl"
+        style={{
+          position: "absolute",
+          top: 310,
+          left: 0,
+          right: 0,
+          textAlign: "center",
+          fontFamily: "var(--font-arabic)",
+          fontSize: 210,
+          fontWeight: 700,
+          color: COLOR.ink,
+          lineHeight: 1.1,
+        }}
       >
-        <p
-          className="text-[44px] font-bold leading-[1.1]"
-          style={{ color: COLOR.ink }}
-        >
-          Tu sais ce que
-          <br />
-          ça veut dire ?
-        </p>
+        الْحَمْدُ لِلَّهِ
+      </div>
+
+      {/* Coral circle around the Arabic text */}
+      <HandCircle
+        left={100}
+        top={270}
+        width={880}
+        height={330}
+        strokeWidth={7}
+      />
+
+      {/* Question : y=680-870 */}
+      <div
+        style={{
+          position: "absolute",
+          top: 680,
+          left: 0,
+          right: 0,
+          textAlign: "center",
+          fontSize: 82,
+          fontStyle: "italic",
+          color: COLOR.ink,
+          lineHeight: 1,
+        }}
+      >
+        Tu sais
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          top: 770,
+          left: 0,
+          right: 0,
+          textAlign: "center",
+          fontSize: 82,
+          fontWeight: 700,
+          color: COLOR.coral,
+          lineHeight: 1,
+        }}
+      >
+        ce que ça veut dire&nbsp;?
+      </div>
+
+      {/* Curly arrow pointing down-right */}
+      <HandArrow
+        left={620}
+        top={920}
+        width={180}
+        height={140}
+        direction="down-right"
+        strokeWidth={4}
+      />
+
+      {/* Small reveal text */}
+      <div
+        style={{
+          position: "absolute",
+          top: 1070,
+          left: 60,
+          right: 60,
+          textAlign: "center",
+          fontFamily: "var(--font-inter)",
+          fontSize: 24,
+          fontWeight: 600,
+          letterSpacing: "0.15em",
+          textTransform: "uppercase",
+          color: COLOR.ink,
+          opacity: 0.55,
+        }}
+      >
+        Réponse dans 4 slides
       </div>
 
       <BrandFooter theme="cream" pageNum={pageNum} totalPages={totalPages} />
@@ -562,6 +626,8 @@ function Slide1({ pageNum, totalPages }: SlideProps) {
 }
 
 // ── SLIDE 2 — REVEAL ──────────────────────────────────────────────────
+// Dark ground. Arabic repeated (visual callback to slide 1). Underline in
+// coral. Translation below. Sticker with frequency punch at the bottom.
 function Slide2({ pageNum, totalPages }: SlideProps) {
   return (
     <div
@@ -570,210 +636,334 @@ function Slide2({ pageNum, totalPages }: SlideProps) {
     >
       <Grain opacity={0.12} />
 
-      {/* Violet glow */}
+      {/* Violet glow top */}
       <div
-        className="absolute top-[-100px] left-1/2 -translate-x-1/2 rounded-full blur-3xl"
         style={{
-          width: 700,
-          height: 700,
-          background: "rgba(105, 103, 251, 0.22)",
+          position: "absolute",
+          top: -140,
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: 720,
+          height: 720,
+          borderRadius: "50%",
+          background: "rgba(105, 103, 251, 0.25)",
+          filter: "blur(100px)",
         }}
       />
 
       <BrandHeader theme="ink" pageNum={pageNum} totalPages={totalPages} />
 
-      {/* Kicker */}
-      <div className="absolute top-[200px] left-0 right-0 flex items-center justify-center gap-5">
+      {/* Kicker with horizontal lines */}
+      <div
+        style={{
+          position: "absolute",
+          top: 210,
+          left: 0,
+          right: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 24,
+        }}
+      >
         <span
-          className="h-px w-14"
-          style={{ background: COLOR.cream, opacity: 0.3 }}
+          style={{
+            width: 56,
+            height: 1,
+            background: COLOR.cream,
+            opacity: 0.3,
+          }}
         />
         <span
-          className="text-[18px] tracking-[0.35em] uppercase font-semibold"
           style={{
             fontFamily: "var(--font-inter)",
+            fontSize: 20,
+            letterSpacing: "0.35em",
+            textTransform: "uppercase",
             color: COLOR.cream,
             opacity: 0.7,
+            fontWeight: 600,
           }}
         >
           Traduction
         </span>
         <span
-          className="h-px w-14"
-          style={{ background: COLOR.cream, opacity: 0.3 }}
+          style={{
+            width: 56,
+            height: 1,
+            background: COLOR.cream,
+            opacity: 0.3,
+          }}
         />
       </div>
 
-      {/* Arabic verse with hand-drawn underline */}
-      <div className="absolute top-[280px] left-0 right-0 text-center">
-        <div className="relative inline-block px-10">
-          <div
-            dir="rtl"
-            className="font-arabic font-bold leading-[1.1]"
-            style={{
-              fontFamily: "var(--font-arabic)",
-              fontSize: 170,
-              color: COLOR.cream,
-            }}
-          >
-            الْحَمْدُ لِلَّهِ
-          </div>
-          <HandUnderline
-            className="-bottom-8 left-4 right-4 h-[40px] top-auto"
-            stroke={COLOR.coral}
-            strokeWidth={10}
-          />
-        </div>
+      {/* Arabic (same as slide 1 for visual echo) — y=290-470 */}
+      <div
+        dir="rtl"
+        style={{
+          position: "absolute",
+          top: 290,
+          left: 0,
+          right: 0,
+          textAlign: "center",
+          fontFamily: "var(--font-arabic)",
+          fontSize: 180,
+          fontWeight: 700,
+          color: COLOR.cream,
+          lineHeight: 1,
+        }}
+      >
+        الْحَمْدُ لِلَّهِ
       </div>
 
-      {/* Big = */}
+      {/* Coral underline BELOW the Arabic — safely past its baseline */}
+      <HandUnderline
+        left={180}
+        top={500}
+        width={720}
+        height={40}
+        strokeWidth={9}
+      />
+
+      {/* Big equals sign */}
       <div
-        className="absolute top-[610px] left-0 right-0 text-center text-[80px]"
-        style={{ color: COLOR.cream, opacity: 0.4 }}
+        style={{
+          position: "absolute",
+          top: 600,
+          left: 0,
+          right: 0,
+          textAlign: "center",
+          fontSize: 72,
+          color: COLOR.cream,
+          opacity: 0.4,
+          lineHeight: 1,
+        }}
       >
         =
       </div>
 
       {/* Translation */}
-      <div className="absolute top-[740px] left-[70px] right-[70px] text-center">
-        <p
-          className="text-[92px] leading-[1.05]"
-          style={{ fontStyle: "italic", color: COLOR.cream }}
-        >
-          Toute louange
-        </p>
-        <p
-          className="mt-3 text-[92px] leading-[1.05] font-semibold"
-          style={{ color: COLOR.cream }}
-        >
-          appartient à Allah.
-        </p>
+      <div
+        style={{
+          position: "absolute",
+          top: 720,
+          left: 60,
+          right: 60,
+          textAlign: "center",
+          fontSize: 80,
+          fontStyle: "italic",
+          color: COLOR.cream,
+          lineHeight: 1.05,
+        }}
+      >
+        Toute louange
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          top: 820,
+          left: 60,
+          right: 60,
+          textAlign: "center",
+          fontSize: 80,
+          fontWeight: 700,
+          color: COLOR.cream,
+          lineHeight: 1.05,
+        }}
+      >
+        appartient à Allah.
       </div>
 
-      {/* Sticker — frequency */}
-      <div className="absolute top-[1080px] left-1/2 -translate-x-1/2">
-        <Sticker bg={COLOR.coral} rotate={-5} fontSize={30}>
-          + 1 800× / an sans le savoir
-        </Sticker>
-      </div>
+      {/* Sticker — frequency punch */}
+      <Sticker left={260} top={1030} rotate={-4} fontSize={26}>
+        + 1 800× par an · sans savoir
+      </Sticker>
 
       <BrandFooter theme="ink" pageNum={pageNum} totalPages={totalPages} />
     </div>
   );
 }
 
-// ── SLIDE 3 — THREE BEAUTIFUL WORDS ───────────────────────────────────
+// ── SLIDE 3 — THREE WORDS ─────────────────────────────────────────────
+// Editorial list. Each row: number · Arabic · French italic · count.
+// Coral underline under the emphasised French word.
 function Slide3({ pageNum, totalPages }: SlideProps) {
-  const words: { ar: string; fr: string; count: string; emphasise?: boolean }[] =
-    [
-      { ar: "رَحْمَة", fr: "Miséricorde", count: "339×", emphasise: true },
-      { ar: "نُور", fr: "Lumière", count: "194×" },
-      { ar: "قَلْب", fr: "Cœur", count: "132×" },
-    ];
+  const words: {
+    ar: string;
+    fr: string;
+    count: string;
+    emphasise?: boolean;
+  }[] = [
+    { ar: "رَحْمَة", fr: "Miséricorde", count: "339×", emphasise: true },
+    { ar: "نُور", fr: "Lumière", count: "194×" },
+    { ar: "قَلْب", fr: "Cœur", count: "132×" },
+  ];
+
+  // Row layout: each row is 140px tall, first at y=540, gap 40 → 540, 720, 900
+  const rowTops = [540, 720, 900];
+
   return (
     <div
       className="relative w-full h-full overflow-hidden"
       style={{ background: COLOR.cream, fontFamily: "var(--font-serif)" }}
     >
       <RuledPaper />
-      <Grain opacity={0.09} />
+      <Grain opacity={0.08} />
       <BrandHeader theme="cream" pageNum={pageNum} totalPages={totalPages} />
 
-      {/* Top title */}
-      <div className="absolute top-[220px] left-[70px] right-[70px]">
-        <p
-          className="text-[22px] tracking-[0.3em] uppercase font-semibold"
-          style={{
-            fontFamily: "var(--font-inter)",
-            color: COLOR.ink,
-            opacity: 0.5,
-          }}
-        >
-          Trois mots qui reviennent
-        </p>
-        <p
-          className="mt-3 text-[96px] leading-[1] italic"
-          style={{ color: COLOR.ink }}
-        >
-          des centaines
-        </p>
-        <p
-          className="mt-1 text-[96px] leading-[1]"
-          style={{ color: COLOR.ink, fontWeight: 600 }}
-        >
-          de fois.
-        </p>
+      {/* Kicker */}
+      <div
+        style={{
+          position: "absolute",
+          top: 220,
+          left: 70,
+          right: 70,
+          fontFamily: "var(--font-inter)",
+          fontSize: 22,
+          letterSpacing: "0.3em",
+          textTransform: "uppercase",
+          color: COLOR.ink,
+          opacity: 0.5,
+          fontWeight: 600,
+        }}
+      >
+        Trois mots du Coran
       </div>
 
-      {/* Words list */}
-      <div className="absolute top-[620px] left-[70px] right-[70px] flex flex-col gap-[30px]">
-        {words.map((w, i) => (
-          <div
-            key={i}
-            className="flex items-center justify-between pb-[28px]"
-            style={{ borderBottom: `1.5px solid ${COLOR.ink}20` }}
-          >
-            <div className="flex items-center gap-[36px]">
-              <span
-                className="text-[22px] font-mono"
-                style={{
-                  fontFamily: "var(--font-inter)",
-                  color: COLOR.ink,
-                  opacity: 0.35,
-                }}
-              >
-                0{i + 1}
-              </span>
-              <span
-                dir="rtl"
-                className="font-arabic font-bold"
-                style={{
-                  fontFamily: "var(--font-arabic)",
-                  fontSize: 110,
-                  lineHeight: 1,
-                  color: COLOR.ink,
-                }}
-              >
-                {w.ar}
-              </span>
+      {/* Headline */}
+      <div
+        style={{
+          position: "absolute",
+          top: 270,
+          left: 70,
+          right: 70,
+          fontSize: 88,
+          fontStyle: "italic",
+          color: COLOR.ink,
+          lineHeight: 1,
+        }}
+      >
+        Tu les connais
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          top: 370,
+          left: 70,
+          right: 70,
+          fontSize: 88,
+          fontWeight: 700,
+          color: COLOR.ink,
+          lineHeight: 1,
+        }}
+      >
+        sans le savoir.
+      </div>
+
+      {/* Rows */}
+      {words.map((w, i) => {
+        const top = rowTops[i];
+        return (
+          <div key={i}>
+            {/* Index number */}
+            <div
+              style={{
+                position: "absolute",
+                top: top + 30,
+                left: 70,
+                fontFamily: "var(--font-inter)",
+                fontSize: 22,
+                color: COLOR.ink,
+                opacity: 0.35,
+                fontWeight: 500,
+              }}
+            >
+              0{i + 1}
             </div>
-            <div className="flex flex-col items-end">
-              <div className="relative inline-block">
-                <span
-                  className="text-[46px] leading-none italic"
-                  style={{ color: COLOR.ink }}
-                >
-                  {w.fr}
-                </span>
-                {w.emphasise && (
-                  <HandUnderline
-                    className="-bottom-4 left-0 right-0 h-[16px] top-auto"
-                    stroke={COLOR.coral}
-                    strokeWidth={6}
-                  />
-                )}
+
+            {/* Arabic word left-center */}
+            <div
+              dir="rtl"
+              style={{
+                position: "absolute",
+                top: top + 10,
+                left: 140,
+                fontFamily: "var(--font-arabic)",
+                fontSize: 96,
+                fontWeight: 700,
+                color: COLOR.ink,
+                lineHeight: 1,
+              }}
+            >
+              {w.ar}
+            </div>
+
+            {/* French italic + count right-aligned */}
+            <div
+              style={{
+                position: "absolute",
+                top: top + 20,
+                right: 70,
+                textAlign: "right",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 48,
+                  fontStyle: "italic",
+                  color: COLOR.ink,
+                  lineHeight: 1,
+                }}
+              >
+                {w.fr}
               </div>
-              <span
-                className="mt-3 text-[18px] tracking-[0.2em] uppercase font-semibold"
+              <div
                 style={{
                   fontFamily: "var(--font-inter)",
+                  fontSize: 18,
+                  letterSpacing: "0.2em",
+                  textTransform: "uppercase",
                   color: COLOR.ink,
                   opacity: 0.5,
+                  marginTop: 14,
+                  fontWeight: 600,
                 }}
               >
                 {w.count}
-              </span>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
 
-      {/* Sticker bottom-right */}
-      <div className="absolute top-[1140px] right-[70px]">
-        <Sticker bg={COLOR.ink} color={COLOR.cream} rotate={3}>
-          + 84 000 occurrences
-        </Sticker>
-      </div>
+            {/* Hairline divider below the row */}
+            <div
+              style={{
+                position: "absolute",
+                top: top + 140,
+                left: 70,
+                right: 70,
+                height: 1,
+                background: COLOR.ink,
+                opacity: 0.15,
+              }}
+            />
+
+            {/* Underline under emphasised French word */}
+            {w.emphasise && (
+              <HandUnderline
+                left={685}
+                top={top + 68}
+                width={325}
+                height={18}
+                strokeWidth={7}
+              />
+            )}
+          </div>
+        );
+      })}
+
+      {/* Bottom sticker — positioned clear of last row (y=1040, row ends y=1040) */}
+      <Sticker left={550} top={1100} rotate={3} bg={COLOR.ink} fontSize={22}>
+        + 84 000 occurrences
+      </Sticker>
 
       <BrandFooter theme="cream" pageNum={pageNum} totalPages={totalPages} />
     </div>
@@ -781,12 +971,17 @@ function Slide3({ pageNum, totalPages }: SlideProps) {
 }
 
 // ── SLIDE 4 — STAT PUNCH ─────────────────────────────────────────────
+// 100/300/500 → 50/70/85%. The last row (85%) is highlighted with a coral
+// circle. Bottom two-line statement.
 function Slide4({ pageNum, totalPages }: SlideProps) {
   const rows: { mots: string; pct: string; highlight?: boolean }[] = [
     { mots: "100 mots", pct: "50%" },
     { mots: "300 mots", pct: "70%" },
     { mots: "500 mots", pct: "85%", highlight: true },
   ];
+  // Rows at y=520, 680, 840 — each 120px tall
+  const rowTops = [520, 680, 840];
+
   return (
     <div
       className="relative w-full h-full overflow-hidden"
@@ -794,103 +989,179 @@ function Slide4({ pageNum, totalPages }: SlideProps) {
     >
       <Grain opacity={0.12} />
 
-      {/* Bottom glow */}
+      {/* Bottom coral glow */}
       <div
-        className="absolute bottom-[-200px] left-[-100px] right-[-100px] h-[700px] blur-3xl"
         style={{
+          position: "absolute",
+          bottom: -200,
+          left: -100,
+          right: -100,
+          height: 700,
           background:
-            "radial-gradient(ellipse at center, rgba(232, 93, 60, 0.25) 0%, rgba(232, 93, 60, 0) 70%)",
+            "radial-gradient(ellipse at center, rgba(232,93,60,0.28) 0%, rgba(232,93,60,0) 70%)",
+          filter: "blur(80px)",
         }}
       />
 
       <BrandHeader theme="ink" pageNum={pageNum} totalPages={totalPages} />
 
       {/* Kicker */}
-      <div className="absolute top-[210px] left-[70px] right-[70px]">
-        <p
-          className="text-[22px] tracking-[0.3em] uppercase font-semibold"
-          style={{
-            fontFamily: "var(--font-inter)",
-            color: COLOR.cream,
-            opacity: 0.5,
-          }}
-        >
-          La règle des 500
-        </p>
-        <p
-          className="mt-3 text-[88px] leading-[1]"
-          style={{ color: COLOR.cream, fontStyle: "italic" }}
-        >
-          Moins de mots
-        </p>
-        <p
-          className="mt-1 text-[88px] leading-[1] font-semibold"
-          style={{ color: COLOR.cream }}
-        >
-          que tu ne crois.
-        </p>
+      <div
+        style={{
+          position: "absolute",
+          top: 210,
+          left: 70,
+          right: 70,
+          fontFamily: "var(--font-inter)",
+          fontSize: 22,
+          letterSpacing: "0.3em",
+          textTransform: "uppercase",
+          color: COLOR.cream,
+          opacity: 0.5,
+          fontWeight: 600,
+        }}
+      >
+        La règle des 500
       </div>
 
-      {/* Stats rows */}
-      <div className="absolute top-[600px] left-[70px] right-[70px] flex flex-col gap-[20px]">
-        {rows.map((r, i) => (
-          <div
-            key={i}
-            className="relative flex items-baseline justify-between py-[24px]"
-            style={{ borderBottom: `1.5px solid ${COLOR.cream}25` }}
-          >
-            <div className="flex items-baseline gap-[28px]">
-              <span
-                className="text-[20px] font-mono"
-                style={{
-                  fontFamily: "var(--font-inter)",
-                  color: COLOR.cream,
-                  opacity: 0.35,
-                }}
-              >
-                0{i + 1}
-              </span>
-              <span
-                className="text-[60px] italic"
-                style={{ color: COLOR.cream }}
-              >
-                {r.mots}
-              </span>
-            </div>
-            <div className="relative inline-block">
-              <span
-                className="text-[140px] leading-none font-semibold"
-                style={{ color: r.highlight ? COLOR.coral : COLOR.cream }}
-              >
-                {r.pct}
-              </span>
-              {r.highlight && (
-                <HandCircle
-                  className="-top-4 -left-8 -right-8 -bottom-4 w-auto h-auto"
-                  stroke={COLOR.coral}
-                  strokeWidth={10}
-                />
-              )}
-            </div>
-          </div>
-        ))}
+      {/* Headline */}
+      <div
+        style={{
+          position: "absolute",
+          top: 260,
+          left: 70,
+          right: 70,
+          fontSize: 84,
+          fontStyle: "italic",
+          color: COLOR.cream,
+          lineHeight: 1,
+        }}
+      >
+        Moins de mots
       </div>
+      <div
+        style={{
+          position: "absolute",
+          top: 360,
+          left: 70,
+          right: 70,
+          fontSize: 84,
+          fontWeight: 700,
+          color: COLOR.cream,
+          lineHeight: 1,
+        }}
+      >
+        que tu ne crois.
+      </div>
+
+      {/* Rows */}
+      {rows.map((r, i) => {
+        const top = rowTops[i];
+        return (
+          <div key={i}>
+            <div
+              style={{
+                position: "absolute",
+                top: top + 40,
+                left: 70,
+                fontFamily: "var(--font-inter)",
+                fontSize: 22,
+                color: COLOR.cream,
+                opacity: 0.35,
+                fontWeight: 500,
+              }}
+            >
+              0{i + 1}
+            </div>
+
+            <div
+              style={{
+                position: "absolute",
+                top: top + 30,
+                left: 140,
+                fontSize: 56,
+                fontStyle: "italic",
+                color: COLOR.cream,
+                lineHeight: 1,
+              }}
+            >
+              {r.mots}
+            </div>
+
+            {/* Percentage : right side, highlighted if 85% */}
+            <div
+              style={{
+                position: "absolute",
+                top: top - 10,
+                right: 80,
+                fontSize: 130,
+                fontWeight: 700,
+                color: r.highlight ? COLOR.coral : COLOR.cream,
+                lineHeight: 1,
+              }}
+            >
+              {r.pct}
+            </div>
+
+            {/* Circle around 85% */}
+            {r.highlight && (
+              <HandCircle
+                left={700}
+                top={top - 30}
+                width={340}
+                height={180}
+                stroke={COLOR.coral}
+                strokeWidth={8}
+              />
+            )}
+
+            {/* Divider below row */}
+            <div
+              style={{
+                position: "absolute",
+                top: top + 130,
+                left: 70,
+                right: 70,
+                height: 1,
+                background: COLOR.cream,
+                opacity: 0.2,
+              }}
+            />
+          </div>
+        );
+      })}
 
       {/* Bottom statement */}
-      <div className="absolute top-[1080px] left-[70px] right-[70px]">
-        <p
-          className="text-[36px] leading-[1.2] font-semibold"
-          style={{
-            fontFamily: "var(--font-inter)",
-            color: COLOR.cream,
-          }}
-        >
-          Tu y es en <span style={{ color: COLOR.coral }}>2 mois</span>.
-          <br />
-          <span style={{ opacity: 0.7, fontWeight: 400 }}>
-            À raison de 5 minutes par jour.
-          </span>
-        </p>
+      <div
+        style={{
+          position: "absolute",
+          top: 1060,
+          left: 70,
+          right: 70,
+          fontFamily: "var(--font-inter)",
+          fontSize: 34,
+          fontWeight: 700,
+          color: COLOR.cream,
+          lineHeight: 1.25,
+        }}
+      >
+        Tu y es en <span style={{ color: COLOR.coral }}>2 mois</span>.
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          top: 1105,
+          left: 70,
+          right: 70,
+          fontFamily: "var(--font-inter)",
+          fontSize: 26,
+          fontWeight: 400,
+          color: COLOR.cream,
+          opacity: 0.6,
+          lineHeight: 1.25,
+        }}
+      >
+        À raison de 5 minutes par jour.
       </div>
 
       <BrandFooter theme="ink" pageNum={pageNum} totalPages={totalPages} />
@@ -899,6 +1170,8 @@ function Slide4({ pageNum, totalPages }: SlideProps) {
 }
 
 // ── SLIDE 5 — CTA + APP MOCKUP ───────────────────────────────────────
+// Phone mockup centered. Coral sticker positioned OUTSIDE the phone.
+// Arrow points from sticker to phone. Big pill CTA at the bottom.
 function Slide5({ pageNum, totalPages }: SlideProps) {
   return (
     <div
@@ -906,80 +1179,124 @@ function Slide5({ pageNum, totalPages }: SlideProps) {
       style={{ background: COLOR.cream, fontFamily: "var(--font-serif)" }}
     >
       <RuledPaper />
-      <Grain opacity={0.09} />
+      <Grain opacity={0.08} />
       <BrandHeader theme="cream" pageNum={pageNum} totalPages={totalPages} />
 
-      {/* Top kicker + title */}
-      <div className="absolute top-[210px] left-[70px] right-[70px]">
-        <p
-          className="text-[22px] tracking-[0.3em] uppercase font-semibold"
-          style={{
-            fontFamily: "var(--font-inter)",
-            color: COLOR.ink,
-            opacity: 0.5,
-          }}
-        >
-          L&apos;application
-        </p>
-        <p
-          className="mt-3 text-[110px] leading-[1] italic"
-          style={{ color: COLOR.ink }}
-        >
-          On commence ?
-        </p>
+      {/* Kicker + title : y=210-400 */}
+      <div
+        style={{
+          position: "absolute",
+          top: 210,
+          left: 70,
+          right: 70,
+          fontFamily: "var(--font-inter)",
+          fontSize: 22,
+          letterSpacing: "0.3em",
+          textTransform: "uppercase",
+          color: COLOR.ink,
+          opacity: 0.5,
+          fontWeight: 600,
+          textAlign: "center",
+        }}
+      >
+        L&apos;application
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          top: 260,
+          left: 70,
+          right: 70,
+          fontSize: 96,
+          fontStyle: "italic",
+          color: COLOR.ink,
+          lineHeight: 1,
+          textAlign: "center",
+        }}
+      >
+        On commence&nbsp;?
       </div>
 
-      {/* Phone mockup */}
-      <div className="absolute top-[480px] left-1/2 -translate-x-1/2">
+      {/* Phone : y=430-960 (scaled 0.88 → 370×528) */}
+      <div
+        style={{
+          position: "absolute",
+          top: 430,
+          left: "50%",
+          transform: "translateX(-50%) scale(0.88)",
+          transformOrigin: "top center",
+        }}
+      >
         <PhoneMockup />
       </div>
 
-      {/* Sticker above the phone pointing down */}
-      <div className="absolute top-[430px] right-[100px]">
-        <Sticker bg={COLOR.coral} rotate={8} fontSize={22}>
-          7 jours gratuits
-        </Sticker>
-      </div>
+      {/* Sticker : OUTSIDE phone, top-right */}
+      <Sticker left={720} top={430} rotate={8} bg={COLOR.coral} fontSize={26}>
+        7 jours gratuits
+      </Sticker>
+
+      {/* Arrow from sticker to phone (down-left) */}
       <HandArrow
-        className="top-[460px] right-[190px] w-[140px] h-[100px]"
+        left={660}
+        top={500}
+        width={130}
+        height={110}
         direction="down-left"
-        strokeWidth={5}
+        strokeWidth={4}
       />
 
-      {/* Bottom CTA */}
-      <div className="absolute bottom-[200px] left-0 right-0 flex flex-col items-center gap-4">
-        <div
-          className="px-12 py-6 rounded-full flex items-center gap-4"
-          style={{
-            background: COLOR.ink,
-            color: COLOR.cream,
-            fontFamily: "var(--font-inter)",
-            boxShadow: "0 8px 0 0 rgba(0,0,0,0.15)",
-          }}
-        >
-          <span className="text-[34px] font-bold tracking-wide">
-            Commencer mon essai
-          </span>
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <path
-              d="M6 16H26M26 16L16 6M26 16L16 26"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </div>
-        <p
-          className="text-[22px] tracking-[0.15em] uppercase font-semibold"
-          style={{
-            fontFamily: "var(--font-inter)",
-            color: COLOR.ink,
-            opacity: 0.5,
-          }}
-        >
-          quranlab.app / 85motscoran
-        </p>
+      {/* Bottom CTA button : y=1000-1100 */}
+      <div
+        style={{
+          position: "absolute",
+          top: 1000,
+          left: "50%",
+          transform: "translateX(-50%)",
+          background: COLOR.ink,
+          color: COLOR.cream,
+          borderRadius: 999,
+          padding: "24px 54px",
+          display: "flex",
+          alignItems: "center",
+          gap: 18,
+          fontFamily: "var(--font-inter)",
+          fontSize: 32,
+          fontWeight: 700,
+          letterSpacing: "0.02em",
+          boxShadow: "0 6px 0 0 rgba(0,0,0,0.15)",
+          whiteSpace: "nowrap",
+        }}
+      >
+        Commencer mon essai
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <path
+            d="M5 14H23M23 14L14 5M23 14L14 23"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </div>
+
+      {/* URL : y=1130 */}
+      <div
+        style={{
+          position: "absolute",
+          top: 1130,
+          left: 70,
+          right: 70,
+          textAlign: "center",
+          fontFamily: "var(--font-inter)",
+          fontSize: 22,
+          letterSpacing: "0.15em",
+          textTransform: "uppercase",
+          color: COLOR.ink,
+          opacity: 0.5,
+          fontWeight: 600,
+        }}
+      >
+        quranlab.app · 85motscoran
       </div>
 
       <BrandFooter theme="cream" pageNum={pageNum} totalPages={totalPages} />
@@ -987,9 +1304,7 @@ function Slide5({ pageNum, totalPages }: SlideProps) {
   );
 }
 
-/* ─────────────────────────────────────────────────────────────────────
- *  iPhone mockup for slide 5 — faithful to the actual lesson UI
- * ───────────────────────────────────────────────────────────────────── */
+/* iPhone mockup — fixed 420×600 internal size */
 function PhoneMockup() {
   return (
     <div
@@ -1001,10 +1316,8 @@ function PhoneMockup() {
       }}
     >
       <div className="relative rounded-[54px] overflow-hidden bg-white h-full flex flex-col">
-        {/* Dynamic Island */}
         <div className="absolute top-[12px] left-1/2 -translate-x-1/2 h-[24px] w-[100px] rounded-full bg-neutral-950 z-20" />
 
-        {/* Status bar */}
         <div
           className="relative z-10 flex items-center justify-between px-[28px] pt-[16px] pb-[4px] text-[12px] font-semibold text-neutral-900"
           style={{ fontFamily: "var(--font-inter)" }}
@@ -1013,7 +1326,6 @@ function PhoneMockup() {
           <span className="inline-block h-[8px] w-[14px] rounded-[2px] border border-neutral-900" />
         </div>
 
-        {/* App header */}
         <div className="flex items-center gap-[12px] px-[22px] pt-[18px] pb-[10px]">
           <div className="h-[14px] w-[14px] rounded-full bg-neutral-400" />
           <div className="flex-1 h-[8px] rounded-full bg-neutral-200 overflow-hidden">
@@ -1029,7 +1341,7 @@ function PhoneMockup() {
         </div>
 
         <div
-          className="px-[22px] pt-[20px]"
+          className="px-[22px] pt-[22px]"
           style={{ fontFamily: "var(--font-inter)" }}
         >
           <p className="text-[13px] font-bold text-neutral-400 text-center mb-[18px] tracking-wide">
