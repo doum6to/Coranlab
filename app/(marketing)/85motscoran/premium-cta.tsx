@@ -37,12 +37,12 @@ export function PremiumCta(props: Props) {
   const { children, className, variant = "dark", loading, disabled, arrow = true } = props;
 
   const base =
-    "group relative inline-flex items-center justify-center gap-2 rounded-full px-7 py-3.5 text-sm font-semibold tracking-wide transition-[transform,background-color,color] duration-200 will-change-transform";
+    "group relative inline-flex items-center justify-center gap-2 rounded-full px-7 py-3.5 text-sm font-semibold tracking-wide transition-transform duration-200 will-change-transform";
 
   const variantClasses =
     variant === "dark"
-      ? "bg-neutral-950 text-white hover:bg-[#6967fb] hover:scale-[1.02] active:scale-[0.99]"
-      : "bg-white text-neutral-950 hover:bg-[#6967fb] hover:text-white hover:scale-[1.02] active:scale-[0.99]";
+      ? "bg-neutral-950 text-white hover:scale-[1.02] active:scale-[0.99]"
+      : "bg-white text-neutral-950 hover:scale-[1.02] active:scale-[0.99]";
 
   const inner = (
     <span className="relative z-[2] flex items-center gap-2">
