@@ -25,6 +25,13 @@ function esc(s: string): string {
     .replace(/'/g, "&#39;");
 }
 
+// Public logo URL. Must be an absolute URL because emails are opened
+// outside of the Next.js app context. Next.js serves /public/* at the
+// site root, so /quranlab-logo.png resolves to the site's logo PNG.
+const LOGO_URL =
+  (process.env.NEXT_PUBLIC_APP_URL || "https://www.quranlab.app") +
+  "/quranlab-logo.png";
+
 export function buildEmail({
   preview,
   heading,
@@ -44,12 +51,9 @@ export function buildEmail({
     <div style="background-color:#FFFFFF;max-width:560px;margin:0 auto;padding:48px 44px;border-radius:20px;border:1px solid #E8E4D8;box-shadow:0 20px 40px -30px rgba(26,26,26,0.12)">
 
       <div style="text-align:center;margin-bottom:32px">
-        <div style="display:inline-block;width:60px;height:60px;line-height:60px;background-color:#6967fb;color:#F5F1E8;border-radius:14px;font-size:30px;font-weight:700;font-family:Georgia,serif;text-align:center;vertical-align:middle">
-          Q
-        </div>
-        <p style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;letter-spacing:0.28em;color:#1A1A1A;font-weight:600;margin:14px 0 0;text-align:center">
-          QURANLAB
-        </p>
+        <a href="https://www.quranlab.app" style="text-decoration:none;display:inline-block">
+          <img src="${LOGO_URL}" alt="Quranlab" width="180" height="auto" style="display:block;max-width:180px;height:auto;border:0;margin:0 auto" />
+        </a>
       </div>
 
       <h1 style="font-family:Georgia,serif;font-style:italic;font-size:40px;line-height:1.05;color:#1A1A1A;margin:0 0 28px;text-align:center;font-weight:400">
