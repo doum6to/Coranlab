@@ -2,7 +2,7 @@ import { desc, gte } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 import db from "@/db/drizzle";
-import { coursePurchase } from "@/db/schema";
+import { coursePurchase, userSubscription } from "@/db/schema";
 import { stripe } from "@/lib/stripe";
 
 /**
@@ -49,11 +49,24 @@ export async function GET(req: Request) {
     (s) => s.metadata?.productType === "course"
   );
 
-  // 2. Recent coursePurchase rows
+  // 2. Recent coursePurchase rows (PDF course flow)
   const rows = await db.query.coursePurchase.findMany({
     where: gte(coursePurchase.createdAt, sinceDate),
     orderBy: [desc(coursePurchase.createdAt)],
     limit: 50,
+  });
+
+  // 2b. Recent user_subscription rows (trial flow)
+  const subscriptionRows = await db
+    .select()
+    .from(userSubscription)
+    .limit(50);
+
+  // 2c. Trial subscriptions seen by Stripe in the window
+  const stripeSubs = await stripe.subscriptions.list({
+    limit: 50,
+    status: "trialing",
+    created: { gte: Math.floor(sinceDate.getTime() / 1000) },
   });
 
   // 3. Stripe webhook endpoints (their URL + subscribed events)
@@ -85,23 +98,48 @@ export async function GET(req: Request) {
     };
   });
 
+  // Correlate trialing subs with our DB
+  const trialCorrelated = await Promise.all(
+    stripeSubs.data.map(async (sub) => {
+      const customer =
+        typeof sub.customer === "string"
+          ? ((await stripe.customers.retrieve(sub.customer)) as any)
+          : null;
+      const email = customer?.deleted ? null : customer?.email ?? null;
+      const dbRow = subscriptionRows.find(
+        (r) => r.stripeSubscriptionId === sub.id
+      );
+      return {
+        stripeSubscriptionId: sub.id,
+        email,
+        status: sub.status,
+        trialEnd: sub.trial_end ? new Date(sub.trial_end * 1000) : null,
+        created: new Date(sub.created * 1000),
+        inDb: !!dbRow,
+      };
+    })
+  );
+
   return NextResponse.json({
     window: `last ${Number(url.searchParams.get("sinceHours") || "48")}h`,
     stripe: {
       sessionsSeen: sessions.data.length,
       completedCourses: courseSessions.length,
-      correlated,
+      correlatedCourses: correlated,
+      trialingSubscriptions: stripeSubs.data.length,
+      correlatedTrials: trialCorrelated,
     },
     db: {
-      recentRows: rows.map((r) => ({
+      recentCourseRows: rows.map((r) => ({
         email: r.email,
         stripeSessionId: r.stripeSessionId,
         createdAt: r.createdAt,
         emailSentAt: r.emailSentAt,
       })),
+      subscriptionRowsTotal: subscriptionRows.length,
     },
     webhookEndpoints: endpoints,
     hint:
-      "If completedCourses > 0 but inDb = false, Stripe thinks there's a sale but your server never processed it. Check that webhook endpoint URL + STRIPE_WEBHOOK_SECRET match between Stripe Dashboard and Vercel, and that checkout.session.completed is in the enabled_events list.",
+      "If completedCourses > 0 but inDb = false, OR if trialingSubscriptions > 0 but inDb = false on correlatedTrials, the webhook isn't reaching your server. Check webhook URL + STRIPE_WEBHOOK_SECRET match between Stripe Dashboard and Vercel.",
   });
 }
