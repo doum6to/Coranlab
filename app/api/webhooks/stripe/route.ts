@@ -36,6 +36,16 @@ async function billingPortalUrlFor(customerId: string): Promise<string> {
   }
 }
 
+/**
+ * Sentinel "already expired" date used to revoke premium access
+ * immediately. Set far in the past so it defeats the DAY_IN_MS grace
+ * period in getUserSubscription()'s isActive check — a failed charge or a
+ * cancelled/past_due subscription loses access right away, not 24h later.
+ * A later successful retry (invoice.payment_succeeded) restores a real
+ * future period end.
+ */
+const ACCESS_REVOKED = new Date(0);
+
 export async function POST(req: Request) {
   const body = await req.text();
   const signature = headers().get("Stripe-Signature") as string;
@@ -275,8 +285,9 @@ export async function POST(req: Request) {
     const invoice = event.data.object as Stripe.Invoice;
 
     if (invoice.subscription) {
+      // Revoke premium immediately on a failed charge attempt.
       await db.update(userSubscription).set({
-        stripeCurrentPeriodEnd: new Date(),
+        stripeCurrentPeriodEnd: ACCESS_REVOKED,
       }).where(eq(userSubscription.stripeSubscriptionId, invoice.subscription as string));
 
       if (invoice.customer_email && invoice.customer) {
@@ -327,7 +338,7 @@ export async function POST(req: Request) {
     // Only act on non-active statuses (canceled, unpaid, past_due, incomplete_expired)
     if (subscription.status !== "active" && subscription.status !== "trialing") {
       await db.update(userSubscription).set({
-        stripeCurrentPeriodEnd: new Date(),
+        stripeCurrentPeriodEnd: ACCESS_REVOKED,
       }).where(eq(userSubscription.stripeSubscriptionId, subscription.id));
     }
 
