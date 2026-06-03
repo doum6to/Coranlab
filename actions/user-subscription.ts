@@ -117,7 +117,14 @@ export const createStripeUrl = async (
         userId,
         plan,
       },
-      success_url: returnUrl,
+      // Reconcile the subscription server-side on return so premium is
+      // active immediately, without waiting on the async webhook. Stripe
+      // substitutes {CHECKOUT_SESSION_ID}. Lifetime (mode "payment") sessions
+      // also pass through; the reconciliation route ignores non-subscription
+      // sessions and lets the webhook mark isLifetime.
+      success_url: absoluteUrl(
+        "/api/stripe/sync?session_id={CHECKOUT_SESSION_ID}",
+      ),
       cancel_url: returnUrl,
     };
 

@@ -23,7 +23,13 @@ export async function createTrialCheckoutUrl(params: {
   try {
     const { userId, email } = params;
 
-    const successUrl = absoluteUrl("/learn");
+    // Land on the reconciliation route (not /learn directly) so the
+    // subscription is written to our DB before the user reaches the app —
+    // otherwise the async webhook may not have run yet and premium would
+    // appear locked. Stripe substitutes {CHECKOUT_SESSION_ID} at redirect.
+    const successUrl = absoluteUrl(
+      "/api/stripe/sync?session_id={CHECKOUT_SESSION_ID}",
+    );
     const cancelUrl = absoluteUrl("/auth/signup?trial=true");
 
     const session = await stripe.checkout.sessions.create({
