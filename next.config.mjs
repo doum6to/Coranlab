@@ -31,6 +31,19 @@ const nextConfig = {
   // Strict mode for cleaner renders
   reactStrictMode: true,
 
+  async redirects() {
+    return [
+      // Funnel the homepage to the sales landing page. Temporary (307) so
+      // it isn't cached permanently by browsers/search engines and can be
+      // reverted later without lingering effects.
+      {
+        source: "/",
+        destination: "/85motscoran",
+        permanent: false,
+      },
+    ];
+  },
+
   async headers() {
     return [
       {
