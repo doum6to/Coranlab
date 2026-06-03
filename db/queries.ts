@@ -516,10 +516,17 @@ export const getUserSubscription = cache(async () => {
 
   if (!data) return null;
 
+  // Source of truth for an active plan is the period end, not stripePriceId:
+  // trialing/recurring subscriptions (mode "subscription") always have a
+  // future period end, while stripePriceId could be missing for an ad-hoc
+  // inline price. Gating on stripePriceId previously broke trials while
+  // lifetime (isLifetime) kept working. Guard against an invalid date too.
+  const periodEnd = data.stripeCurrentPeriodEnd?.getTime();
   const isActive =
     data.isLifetime ||
-    (!!data.stripePriceId &&
-      data.stripeCurrentPeriodEnd.getTime() + DAY_IN_MS > Date.now());
+    (typeof periodEnd === "number" &&
+      !Number.isNaN(periodEnd) &&
+      periodEnd + DAY_IN_MS > Date.now());
 
   return {
     ...data,

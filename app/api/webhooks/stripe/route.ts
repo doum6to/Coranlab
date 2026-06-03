@@ -8,6 +8,7 @@ import db from "@/db/drizzle";
 import { stripe } from "@/lib/stripe";
 import { absoluteUrl } from "@/lib/utils";
 import { coursePurchase, userSubscription } from "@/db/schema";
+import { upsertSubscriptionRow } from "@/lib/stripe-sync";
 import { sendCoursePurchaseEmail } from "@/lib/email/send-course-email";
 import {
   sendTrialWelcome,
@@ -177,30 +178,7 @@ export async function POST(req: Request) {
         session.subscription as string
       );
 
-      await db
-        .insert(userSubscription)
-        .values({
-          userId: session.metadata.userId,
-          stripeSubscriptionId: subscription.id,
-          stripeCustomerId: subscription.customer as string,
-          stripePriceId: subscription.items.data[0].price.id,
-          stripeCurrentPeriodEnd: new Date(
-            subscription.current_period_end * 1000,
-          ),
-          isLifetime: false,
-        })
-        .onConflictDoUpdate({
-          target: userSubscription.userId,
-          set: {
-            stripeSubscriptionId: subscription.id,
-            stripeCustomerId: subscription.customer as string,
-            stripePriceId: subscription.items.data[0].price.id,
-            stripeCurrentPeriodEnd: new Date(
-              subscription.current_period_end * 1000,
-            ),
-            isLifetime: false,
-          },
-        });
+      await upsertSubscriptionRow(session.metadata.userId, subscription);
 
       // Trial welcome email — only on fresh trial signups (status = trialing
       // and plan metadata flag set by trial-checkout.ts).
