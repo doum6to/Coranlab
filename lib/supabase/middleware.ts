@@ -36,7 +36,11 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/85motscoran") ||
     // Admin API endpoints are token-gated (ADMIN_TOKEN query param) at
     // the route level — they must be reachable without a Supabase session.
-    request.nextUrl.pathname.startsWith("/api/admin/");
+    request.nextUrl.pathname.startsWith("/api/admin/") ||
+    // The premium management portal has its own credential auth (admin
+    // session cookie), separate from Supabase user auth — don't bounce it
+    // to the user login.
+    request.nextUrl.pathname.startsWith("/admin/premium");
 
   try {
     const {
