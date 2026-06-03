@@ -116,12 +116,12 @@ export async function GET(req: Request) {
           s.subscription as string,
         );
 
-        // Skip subscriptions that are no longer live (canceled/expired) —
-        // we don't want to grant access to someone who churned.
+        // Only grant access to genuinely live subscriptions. Anything else
+        // (canceled, unpaid, past_due after a failed charge, incomplete...)
+        // must NOT be premium.
         if (
           subscription.status !== "active" &&
-          subscription.status !== "trialing" &&
-          subscription.status !== "past_due"
+          subscription.status !== "trialing"
         ) {
           report.push({
             ...base,
