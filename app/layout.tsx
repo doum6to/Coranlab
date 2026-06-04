@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Manrope, IBM_Plex_Sans_Arabic, Fraunces } from "next/font/google";
+import { Inter, Manrope, IBM_Plex_Sans_Arabic, Fraunces, Fredoka } from "next/font/google";
 import Script from "next/script";
 import { Toaster } from "@/components/ui/sonner";
 import { ModalsProvider } from "@/components/modals/modals-provider";
@@ -27,6 +27,13 @@ const fraunces = Fraunces({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-serif",
+  display: "swap",
+});
+// Rounded, playful display font for the conversion landing pages.
+const fredoka = Fredoka({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-display",
   display: "swap",
 });
 
@@ -99,7 +106,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${inter.className} ${inter.variable} ${manrope.variable} ${ibmPlexArabic.variable} ${fraunces.variable}`}
+        className={`${inter.className} ${inter.variable} ${manrope.variable} ${ibmPlexArabic.variable} ${fraunces.variable} ${fredoka.variable}`}
       >
         {/* Enables :active pseudo-class on iOS Safari so that
             active:scale / active:translate-y animations fire on tap */}

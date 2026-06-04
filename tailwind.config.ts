@@ -22,6 +22,7 @@ const config = {
       heading: ["var(--font-heading)", "sans-serif"],
       serif: ["var(--font-serif)", "Georgia", "serif"],
       arabic: ["var(--font-arabic)", "sans-serif"],
+      display: ["var(--font-display)", "var(--font-heading)", "sans-serif"],
     },
     extend: {
       colors: {
