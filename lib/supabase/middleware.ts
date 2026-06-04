@@ -34,6 +34,7 @@ export async function updateSession(request: NextRequest) {
     publicRoutes.some(route => request.nextUrl.pathname === route) ||
     request.nextUrl.pathname.startsWith("/blog") ||
     request.nextUrl.pathname.startsWith("/85motscoran") ||
+    request.nextUrl.pathname.startsWith("/offre-a-vie") ||
     // Admin API endpoints are token-gated (ADMIN_TOKEN query param) at
     // the route level — they must be reachable without a Supabase session.
     request.nextUrl.pathname.startsWith("/api/admin/") ||

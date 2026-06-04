@@ -84,7 +84,36 @@ async function linkCoursePurchaseIfAny(userId: string, email: string) {
     ),
   });
 
-  if (!purchase || !purchase.stripeSubscriptionId) return;
+  if (!purchase) return;
+
+  // Lifetime app purchase (one-time payment via /offre-a-vie): hasApp is true
+  // but there is no Stripe subscription. Grant a lifetime user_subscription.
+  if (!purchase.stripeSubscriptionId) {
+    const LIFETIME_END = new Date("2099-12-31T23:59:59Z");
+    await db
+      .insert(userSubscription)
+      .values({
+        userId,
+        stripeCustomerId: purchase.stripeCustomerId || `lifetime_${userId}`,
+        stripeSubscriptionId: null,
+        stripePriceId: null,
+        stripeCurrentPeriodEnd: LIFETIME_END,
+        isLifetime: true,
+      })
+      .onConflictDoUpdate({
+        target: userSubscription.userId,
+        set: {
+          stripeCurrentPeriodEnd: LIFETIME_END,
+          isLifetime: true,
+        },
+      });
+
+    await db
+      .update(coursePurchase)
+      .set({ linkedUserId: userId })
+      .where(eq(coursePurchase.id, purchase.id));
+    return;
+  }
 
   const sub = await stripe.subscriptions.retrieve(
     purchase.stripeSubscriptionId
