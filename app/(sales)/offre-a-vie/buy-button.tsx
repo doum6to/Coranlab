@@ -14,9 +14,12 @@ import { ttqTrack } from "@/lib/analytics/tiktok";
 export function BuyButton({
   className,
   label = "Obtenir l'accès à vie",
+  priceValue = 14.97,
 }: {
   className?: string;
   label?: string;
+  /** Price in € used for the TikTok conversion value. */
+  priceValue?: number;
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +29,7 @@ export function BuyButton({
     setLoading(true);
 
     ttqTrack("InitiateCheckout", {
-      value: 14.97,
+      value: priceValue,
       currency: "EUR",
       content_id: "app_lifetime",
       content_name: "Quranlab — Accès à vie",

@@ -9,7 +9,13 @@ import { ttqTrack } from "@/lib/analytics/tiktok";
  * (47€ lifetime app access). De-duplicated by a ref + sessionStorage key so
  * refreshes / bfcache don't double-count the conversion.
  */
-export function TrackLifetimePurchase({ sessionId }: { sessionId?: string }) {
+export function TrackLifetimePurchase({
+  sessionId,
+  value = 14.97,
+}: {
+  sessionId?: string;
+  value?: number;
+}) {
   const fired = useRef(false);
 
   useEffect(() => {
@@ -25,13 +31,13 @@ export function TrackLifetimePurchase({ sessionId }: { sessionId?: string }) {
     }
 
     ttqTrack("CompletePayment", {
-      value: 14.97,
+      value,
       currency: "EUR",
       content_id: "app_lifetime",
       content_name: "Quranlab — Accès à vie",
       content_category: "app",
     });
-  }, [sessionId]);
+  }, [sessionId, value]);
 
   return null;
 }
