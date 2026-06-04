@@ -40,12 +40,12 @@ const nextConfig = {
 
   async redirects() {
     return [
-      // Funnel the homepage to the sales landing page. Temporary (307) so
-      // it isn't cached permanently by browsers/search engines and can be
-      // reverted later without lingering effects.
+      // Funnel the homepage to the lifetime offer landing page. Temporary
+      // (307) so it isn't cached permanently by browsers/search engines and
+      // can be reverted later without lingering effects.
       {
         source: "/",
-        destination: "/85motscoran",
+        destination: "/offre-a-vie",
         permanent: false,
       },
     ];
