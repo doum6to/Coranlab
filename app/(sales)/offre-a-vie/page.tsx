@@ -3,12 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   BadgeCheck,
-  BookOpenText,
   Infinity as InfinityIcon,
   Lock,
-  RefreshCw,
-  Smartphone,
-  Sparkles as SparklesIcon,
 } from "lucide-react";
 
 import { LandingMascot } from "@/components/landing-mascot";
@@ -24,7 +20,6 @@ export const revalidate = 3600;
 
 const PRICE = "47€";
 
-// Subtle graph-paper grid, like the reference.
 const GRID_STYLE = {
   backgroundImage:
     "linear-gradient(rgba(20,20,20,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(20,20,20,0.05) 1px, transparent 1px)",
@@ -70,42 +65,30 @@ export const metadata: Metadata = {
 
 const avatars = ["/woman.svg", "/man.svg", "/girl.svg", "/boy.svg"];
 
-const heroCards = [
-  { bg: "bg-[#46c4f2]", src: "/girl.svg", label: "Toutes les leçons" },
-  { bg: "bg-[#6967fb]", src: "/mascot.svg", label: "Accès à vie", lift: true },
-  { bg: "bg-[#f6923a]", src: "/boy.svg", label: "5 min / jour" },
-];
-
-const features = [
+const rows = [
   {
-    icon: <InfinityIcon className="h-5 w-5" strokeWidth={2} />,
-    title: "Accès à vie",
-    text: "Un seul paiement, et l'application est à toi pour toujours. Aucun abonnement, aucun prélèvement récurrent.",
+    src: "/mascot.svg",
+    tint: "#6967fb",
+    title: "Ludique, efficace, et à toi pour toujours",
+    text: "Des leçons courtes et addictives, pensées pour que tu progresses vraiment — et un accès à vie, pour ne jamais t'arrêter.",
   },
   {
-    icon: <BookOpenText className="h-5 w-5" strokeWidth={2} />,
-    title: "Toutes les leçons",
-    text: "Tous les cours, tous les exercices, sans aucune limite. Tu apprends à ton rythme, du premier au dernier mot.",
+    src: "/robot.svg",
+    tint: "#46c4f2",
+    title: "Fondé sur la science",
+    text: "La répétition espacée te fait réviser chaque mot juste avant que tu l'oublies. C'est prouvé : c'est comme ça qu'on mémorise durablement.",
   },
   {
-    icon: <SparklesIcon className="h-5 w-5" strokeWidth={2} />,
-    title: "Répétition espacée",
-    text: "L'algorithme te fait réviser chaque mot juste avant que tu l'oublies. La mémorisation devient durable.",
+    src: "/girl.svg",
+    tint: "#f6923a",
+    title: "Reste motivé",
+    text: "Séries de jours, points d'XP, ligues et défis : on transforme l'apprentissage en une habitude qu'on a envie de tenir.",
   },
   {
-    icon: <RefreshCw className="h-5 w-5" strokeWidth={2} />,
-    title: "Mises à jour incluses",
-    text: "Chaque nouvelle leçon et chaque amélioration future te sont offertes, sans jamais payer de supplément.",
-  },
-  {
-    icon: <Smartphone className="h-5 w-5" strokeWidth={2} />,
-    title: "Sur tous tes appareils",
-    text: "Téléphone, tablette, ordinateur. Ta progression te suit partout, automatiquement.",
-  },
-  {
-    icon: <BookOpenText className="h-5 w-5" strokeWidth={2} />,
-    title: "Les PDF en bonus",
-    text: "Tu reçois aussi les documents PDF « 85% des mots du Coran », offerts avec ton accès.",
+    src: "/boy.svg",
+    tint: "#58cc6a",
+    title: "Apprends à ton rythme",
+    text: "Cinq minutes par jour suffisent. L'application s'adapte à ton niveau et à ta mémoire, leçon après leçon.",
   },
 ];
 
@@ -115,18 +98,17 @@ export default function OffreAViePage() {
       <TrackView />
 
       {/* ═══════════════════════════════════════════════════════════════ */}
-      {/*  HERO — gold frame + grid card                                  */}
+      {/*  HERO — gold frame + grid, two columns                          */}
       {/* ═══════════════════════════════════════════════════════════════ */}
       <section className="bg-gradient-to-b from-[#f6c343] to-[#f0a92e] px-2 pt-2 pb-3 sm:px-4 sm:pt-4 sm:pb-5">
         <div className="relative overflow-hidden rounded-[28px] sm:rounded-[40px] bg-[#FAF8F3]">
-          {/* graph-paper grid */}
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0"
             style={GRID_STYLE}
           />
 
-          <div className="relative px-5 sm:px-8 pt-5 sm:pt-6 pb-12 sm:pb-16">
+          <div className="relative px-5 sm:px-8 pt-5 sm:pt-6 pb-14 sm:pb-20">
             {/* top bar */}
             <div className="flex items-center justify-between max-w-[1080px] mx-auto">
               <Link href="/85motscoran" aria-label="Accueil Quranlab">
@@ -147,114 +129,99 @@ export default function OffreAViePage() {
               </a>
             </div>
 
-            {/* hero center */}
-            <div className="relative max-w-[760px] mx-auto text-center mt-12 sm:mt-16">
-              {/* doodles */}
-              <Sparkle className="absolute -left-2 sm:left-6 top-10 h-7 w-7 text-neutral-900 hidden sm:block" />
-              <Star className="absolute right-2 sm:right-10 top-2 h-6 w-6 text-[#6967fb] hidden sm:block" />
-              <Loops className="absolute left-1/2 -translate-x-1/2 -top-2 h-6 w-20 text-[#f0a92e] hidden sm:block" />
-              <Squiggle className="absolute -right-2 sm:right-8 bottom-28 h-5 w-16 text-[#46c4f2] hidden sm:block" />
-
-              {/* social proof */}
-              <div className="inline-flex items-center gap-3 rounded-full border border-neutral-200 bg-white px-3 py-1.5 shadow-sm">
-                <div className="flex -space-x-2">
-                  {avatars.map((src, i) => (
-                    <span
-                      key={src}
-                      className="inline-flex h-6 w-6 items-center justify-center overflow-hidden rounded-full ring-2 ring-white"
-                      style={{
-                        backgroundColor: [
-                          "#46c4f2",
-                          "#6967fb",
-                          "#f6923a",
-                          "#f6c343",
-                        ][i],
-                      }}
-                    >
-                      <Image
-                        src={src}
-                        alt=""
-                        width={24}
-                        height={24}
-                        className="h-5 w-5 object-contain"
-                      />
-                    </span>
-                  ))}
-                </div>
-                <span className="text-xs font-medium text-neutral-600">
-                  Plus de 1 000 apprenants
-                </span>
-              </div>
-
-              <h1 className="mt-7 font-display font-bold text-[44px] sm:text-[64px] lg:text-[76px] leading-[0.98] tracking-tight text-neutral-950">
-                Toute l&apos;application,
-                <br className="hidden sm:block" />{" "}
-                <span className="relative inline-block text-[#6967fb]">
-                  à vie
-                  <svg
-                    viewBox="0 0 200 16"
-                    className="absolute -bottom-2 left-0 w-full"
-                    fill="none"
+            {/* hero grid */}
+            <div className="mt-10 sm:mt-14 grid items-center gap-8 lg:gap-4 lg:grid-cols-2 max-w-[1080px] mx-auto">
+              {/* mascot */}
+              <div className="relative order-1 lg:order-none flex justify-center">
+                <div className="relative">
+                  <div
                     aria-hidden
-                  >
-                    <path
-                      d="M4 11C50 4 150 4 196 9"
-                      stroke="#6967fb"
-                      strokeWidth="4"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                </span>
-                .
-              </h1>
-
-              <p className="mt-7 text-base sm:text-lg text-neutral-600 leading-relaxed max-w-[480px] mx-auto">
-                Un seul paiement de {PRICE}. Aucun abonnement, jamais. Apprends
-                le vocabulaire du Coran et garde ton accès pour toujours.
-              </p>
-
-              <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-                <BuyButton className="w-full sm:w-auto" />
-                <a
-                  href="#offre"
-                  className="inline-flex items-center justify-center rounded-full border-2 border-neutral-300 bg-white px-7 py-3.5 text-sm font-semibold text-neutral-800 transition-transform hover:scale-[1.02] active:scale-[0.99]"
-                >
-                  En savoir plus
-                </a>
-              </div>
-              <p className="mt-4 text-xs text-neutral-500">
-                Paiement unique · Accès immédiat · Sécurisé par Stripe
-              </p>
-            </div>
-
-            {/* colorful character cards */}
-            <div className="relative mt-14 sm:mt-20 grid grid-cols-3 gap-3 sm:gap-5 max-w-[720px] mx-auto">
-              <ArrowDoodle className="absolute -left-4 -top-10 h-10 w-10 text-neutral-900 hidden sm:block" />
-              {heroCards.map((c) => (
-                <div
-                  key={c.label}
-                  className={`relative flex aspect-[3/4] items-end justify-center overflow-hidden rounded-3xl ${c.bg} shadow-[0_18px_40px_-18px_rgba(0,0,0,0.4)] ${
-                    c.lift ? "sm:-translate-y-5" : ""
-                  }`}
-                >
-                  <span
-                    aria-hidden
-                    className="absolute right-3 top-3 text-white/80"
-                  >
-                    <SparklesIcon className="h-4 w-4" strokeWidth={2} />
-                  </span>
-                  <Image
-                    src={c.src}
-                    alt=""
-                    width={220}
-                    height={260}
-                    className="h-[78%] w-auto object-contain drop-shadow-sm"
+                    className="absolute inset-0 -m-6 rounded-[44%] opacity-15 blur-2xl"
+                    style={{ backgroundColor: "#6967fb" }}
                   />
-                  <span className="absolute bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-white/90 px-3 py-1 text-[11px] font-bold text-neutral-900">
-                    {c.label}
+                  <Sparkle className="absolute -left-4 top-2 h-7 w-7 text-neutral-900" />
+                  <Star className="absolute -right-2 top-8 h-6 w-6 text-[#6967fb]" />
+                  <Loops className="absolute left-1/2 -translate-x-1/2 -bottom-3 h-6 w-24 text-[#f0a92e]" />
+                  <LandingMascot
+                    src="/animations/eyes_down.riv"
+                    animationName="eyes down"
+                    className="relative w-[240px] h-[240px] sm:w-[300px] sm:h-[300px]"
+                  />
+                </div>
+              </div>
+
+              {/* copy + CTA */}
+              <div className="relative text-center lg:text-left">
+                <Squiggle className="absolute -top-6 right-6 h-5 w-16 text-[#46c4f2] hidden lg:block" />
+                <div className="inline-flex items-center gap-3 rounded-full border border-neutral-200 bg-white px-3 py-1.5 shadow-sm">
+                  <div className="flex -space-x-2">
+                    {avatars.map((src, i) => (
+                      <span
+                        key={src}
+                        className="inline-flex h-6 w-6 items-center justify-center overflow-hidden rounded-full ring-2 ring-white"
+                        style={{
+                          backgroundColor: [
+                            "#46c4f2",
+                            "#6967fb",
+                            "#f6923a",
+                            "#f6c343",
+                          ][i],
+                        }}
+                      >
+                        <Image
+                          src={src}
+                          alt=""
+                          width={24}
+                          height={24}
+                          className="h-5 w-5 object-contain"
+                        />
+                      </span>
+                    ))}
+                  </div>
+                  <span className="text-xs font-medium text-neutral-600">
+                    Plus de 1 000 apprenants
                   </span>
                 </div>
-              ))}
+
+                <h1 className="mt-6 font-display font-bold text-[40px] sm:text-[56px] lg:text-[60px] leading-[0.98] tracking-tight text-neutral-950">
+                  La façon ludique d&apos;apprendre le Coran,{" "}
+                  <span className="relative inline-block text-[#6967fb]">
+                    à vie
+                    <svg
+                      viewBox="0 0 200 16"
+                      className="absolute -bottom-1.5 left-0 w-full"
+                      fill="none"
+                      aria-hidden
+                    >
+                      <path
+                        d="M4 11C50 4 150 4 196 9"
+                        stroke="#6967fb"
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  </span>
+                  .
+                </h1>
+
+                <p className="mt-6 text-base sm:text-lg text-neutral-600 leading-relaxed max-w-[460px] mx-auto lg:mx-0">
+                  Un seul paiement de {PRICE}, aucun abonnement. Apprends 85%
+                  des mots du Coran et garde ton accès pour toujours.
+                </p>
+
+                <div className="mt-8 flex flex-col gap-3 max-w-[360px] mx-auto lg:mx-0">
+                  <BuyButton />
+                  <Link
+                    href="/auth/login"
+                    className="inline-flex w-full items-center justify-center rounded-2xl border-2 border-b-4 border-neutral-300 bg-white px-8 py-4 font-display text-base font-bold uppercase tracking-wide text-[#6967fb] transition-all hover:bg-neutral-50 active:translate-y-1 active:border-b-2"
+                  >
+                    J&apos;ai déjà un compte
+                  </Link>
+                </div>
+                <p className="mt-4 text-xs text-neutral-500">
+                  Paiement unique · Accès immédiat · Sécurisé par Stripe
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -284,44 +251,60 @@ export default function OffreAViePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════ */}
-      {/*  WHAT YOU GET                                                  */}
+      {/*  ALTERNATING FEATURE ROWS (Duolingo-style)                      */}
       {/* ═══════════════════════════════════════════════════════════════ */}
-      <section className="w-full bg-[#FAF8F3]">
-        <div className="max-w-[1040px] mx-auto px-6 sm:px-8 py-16 sm:py-24">
-          <div className="text-center mb-12">
-            <p className="text-[11px] tracking-[0.2em] uppercase text-neutral-500">
-              Ce que tu obtiens
-            </p>
-            <h2 className="mt-3 font-display font-bold text-3xl sm:text-4xl text-neutral-950">
-              Tout, sans limite, pour toujours
-            </h2>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map((f) => (
+      {rows.map((r, i) => (
+        <section
+          key={r.title}
+          className={i % 2 === 0 ? "bg-[#FAF8F3]" : "bg-white"}
+        >
+          <div className="max-w-[1000px] mx-auto px-6 sm:px-8 py-14 sm:py-20">
+            <div className="grid items-center gap-8 sm:gap-12 md:grid-cols-2">
+              {/* illustration on a colored blob */}
               <div
-                key={f.title}
-                className="rounded-3xl border-2 border-neutral-900/10 bg-white p-7 flex flex-col transition-transform hover:-translate-y-1"
+                className={`flex justify-center ${
+                  i % 2 === 1 ? "md:order-2" : ""
+                }`}
               >
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#6967fb] text-white">
-                  {f.icon}
+                <div className="relative flex h-[260px] w-[260px] sm:h-[300px] sm:w-[300px] items-center justify-center">
+                  <div
+                    aria-hidden
+                    className="absolute inset-0 rounded-[42%]"
+                    style={{ backgroundColor: r.tint, opacity: 0.12 }}
+                  />
+                  <Star className="absolute right-6 top-6 h-5 w-5 text-neutral-900/20" />
+                  <Image
+                    src={r.src}
+                    alt=""
+                    width={240}
+                    height={240}
+                    className="relative h-[72%] w-auto object-contain drop-shadow-sm"
+                  />
                 </div>
-                <h3 className="mt-5 font-display font-semibold text-xl text-neutral-950">
-                  {f.title}
-                </h3>
-                <p className="mt-2 text-sm text-neutral-600 leading-relaxed">
-                  {f.text}
+              </div>
+
+              {/* text */}
+              <div
+                className={`text-center md:text-left ${
+                  i % 2 === 1 ? "md:order-1" : ""
+                }`}
+              >
+                <h2 className="font-display font-bold text-3xl sm:text-4xl leading-tight text-neutral-950">
+                  {r.title}
+                </h2>
+                <p className="mt-4 text-base sm:text-lg text-neutral-600 leading-relaxed max-w-[460px] mx-auto md:mx-0">
+                  {r.text}
                 </p>
               </div>
-            ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      ))}
 
       {/* ═══════════════════════════════════════════════════════════════ */}
       {/*  APP PREVIEW                                                   */}
       {/* ═══════════════════════════════════════════════════════════════ */}
-      <section className="w-full border-t border-neutral-200/70 bg-white overflow-hidden">
+      <section className="w-full border-t border-neutral-200/70 bg-[#FAF8F3] overflow-hidden">
         <div className="max-w-[1040px] mx-auto px-6 sm:px-8 pt-16 sm:pt-24 pb-8 sm:pb-10">
           <div className="text-center">
             <p className="text-[11px] tracking-[0.2em] uppercase text-neutral-500">
@@ -342,7 +325,7 @@ export default function OffreAViePage() {
       {/* ═══════════════════════════════════════════════════════════════ */}
       {/*  PRICE ANCHOR                                                  */}
       {/* ═══════════════════════════════════════════════════════════════ */}
-      <section className="w-full border-t border-neutral-200/70 bg-[#FAF8F3]">
+      <section className="w-full border-t border-neutral-200/70 bg-white">
         <div className="max-w-[720px] mx-auto px-6 sm:px-8 py-16 sm:py-24 text-center">
           <p className="text-[11px] tracking-[0.2em] uppercase text-neutral-500">
             Fais le calcul
@@ -383,7 +366,7 @@ export default function OffreAViePage() {
       {/* ═══════════════════════════════════════════════════════════════ */}
       {/*  TESTIMONIALS                                                  */}
       {/* ═══════════════════════════════════════════════════════════════ */}
-      <section className="w-full border-t border-neutral-200/70 bg-white">
+      <section className="w-full border-t border-neutral-200/70 bg-[#FAF8F3]">
         <div className="max-w-[1100px] mx-auto px-6 sm:px-8 py-16 sm:py-24">
           <div className="text-center mb-12">
             <p className="text-[11px] tracking-[0.2em] uppercase text-neutral-500">
@@ -398,11 +381,11 @@ export default function OffreAViePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════ */}
-      {/*  PRICING CARD                                                  */}
+      {/*  OFFER CARD                                                    */}
       {/* ═══════════════════════════════════════════════════════════════ */}
       <section
         id="offre"
-        className="w-full border-t border-neutral-200/70 bg-[#FAF8F3]"
+        className="w-full border-t border-neutral-200/70 bg-white"
       >
         <div className="max-w-[560px] mx-auto px-6 sm:px-8 py-16 sm:py-24">
           <div className="relative rounded-[32px] bg-neutral-950 text-white p-8 sm:p-12 overflow-hidden">
@@ -448,7 +431,7 @@ export default function OffreAViePage() {
 
               <BuyButton
                 className="mt-10"
-                label={`Obtenir l'accès à vie — ${PRICE}`}
+                label={`Obtenir l'accès — ${PRICE}`}
               />
 
               <p className="mt-4 flex items-center justify-center gap-1.5 text-[11px] text-white/40">
@@ -463,7 +446,7 @@ export default function OffreAViePage() {
       {/* ═══════════════════════════════════════════════════════════════ */}
       {/*  FAQ                                                           */}
       {/* ═══════════════════════════════════════════════════════════════ */}
-      <section className="w-full border-t border-neutral-200/70 bg-white">
+      <section className="w-full border-t border-neutral-200/70 bg-[#FAF8F3]">
         <div className="max-w-[820px] mx-auto px-6 sm:px-8 py-16 sm:py-24">
           <div className="text-center mb-10 sm:mb-12">
             <p className="text-[11px] tracking-[0.2em] uppercase text-neutral-500">
@@ -488,10 +471,11 @@ export default function OffreAViePage() {
             style={GRID_STYLE}
           />
           <div className="relative max-w-[720px] mx-auto px-6 sm:px-8 py-20 sm:py-28 text-center">
+            <ArrowDoodle className="absolute left-10 top-12 h-10 w-10 text-neutral-900 hidden sm:block" />
             <LandingMascot
               src="/animations/eyes_down.riv"
               animationName="eyes down"
-              className="w-[100px] h-[100px] sm:w-[120px] sm:h-[120px] mx-auto"
+              className="w-[120px] h-[120px] sm:w-[140px] sm:h-[140px] mx-auto"
             />
             <h2 className="mt-6 font-display font-bold text-3xl sm:text-5xl leading-[1.02] text-neutral-950">
               Ton accès, pour toujours.
@@ -499,8 +483,8 @@ export default function OffreAViePage() {
             <p className="mt-5 text-base text-neutral-600">
               Un seul paiement de {PRICE}. Tu n&apos;y repenseras jamais.
             </p>
-            <div className="mt-10 flex flex-col items-center gap-3">
-              <BuyButton className="w-full max-w-[320px]" />
+            <div className="mt-10 flex flex-col items-center gap-3 max-w-[360px] mx-auto">
+              <BuyButton className="w-full" />
               <p className="text-xs text-neutral-500">
                 Accès immédiat · Sécurisé par Stripe
               </p>
