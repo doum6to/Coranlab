@@ -13,7 +13,6 @@ import { ExerciseCarousel } from "../85motscoran/exercise-carousel";
 import { TrackView } from "../85motscoran/track-view";
 import { BuyButton } from "./buy-button";
 import { Faq } from "./faq";
-import { Scene } from "./scene";
 import { ArrowDoodle, Loops, Sparkle, Squiggle, Star } from "./doodles";
 
 export const dynamic = "force-static";
@@ -66,26 +65,27 @@ export const metadata: Metadata = {
 
 const avatars = ["/woman.svg", "/man.svg", "/girl.svg", "/boy.svg"];
 
+const SECTION_IMG =
+  "https://geeipdnizshcpdmcgvdv.supabase.co/storage/v1/object/public/images/coranlab";
+
 const rows = [
   {
-    variant: "lifetime" as const,
+    img: `${SECTION_IMG}/01.png`,
+    tint: "#6967fb",
     title: "Ludique, efficace, et à toi pour toujours",
     text: "Des leçons courtes et addictives, pensées pour que tu progresses vraiment — et un accès à vie, pour ne jamais t'arrêter.",
   },
   {
-    variant: "science" as const,
+    img: `${SECTION_IMG}/02.png`,
+    tint: "#46c4f2",
     title: "Fondé sur la science",
     text: "La répétition espacée te fait réviser chaque mot juste avant que tu l'oublies. C'est prouvé : c'est comme ça qu'on mémorise durablement.",
   },
   {
-    variant: "motivation" as const,
+    img: `${SECTION_IMG}/03.png`,
+    tint: "#f6923a",
     title: "Reste motivé",
-    text: "Séries de jours, points d'XP, ligues et défis : on transforme l'apprentissage en une habitude qu'on a envie de tenir.",
-  },
-  {
-    variant: "pace" as const,
-    title: "Apprends à ton rythme",
-    text: "Cinq minutes par jour suffisent. L'application s'adapte à ton niveau et à ta mémoire, leçon après leçon.",
+    text: "Séries de jours, points d'XP, ligues et défis : on transforme l'apprentissage en une habitude qu'on a envie de tenir. Cinq minutes par jour suffisent.",
   },
 ];
 
@@ -257,13 +257,28 @@ export default function OffreAViePage() {
         >
           <div className="max-w-[1000px] mx-auto px-6 sm:px-8 py-14 sm:py-20">
             <div className="grid items-center gap-8 sm:gap-12 md:grid-cols-2">
-              {/* themed scene illustration */}
+              {/* themed illustration */}
               <div
                 className={`flex justify-center ${
                   i % 2 === 1 ? "md:order-2" : ""
                 }`}
               >
-                <Scene variant={r.variant} />
+                <div className="relative h-[280px] w-full max-w-[380px] sm:h-[360px]">
+                  <div
+                    aria-hidden
+                    className="absolute left-1/2 top-1/2 h-[230px] w-[230px] -translate-x-1/2 -translate-y-1/2 rounded-[42%] sm:h-[280px] sm:w-[280px]"
+                    style={{ backgroundColor: r.tint, opacity: 0.1 }}
+                  />
+                  <Sparkle className="absolute left-5 top-3 h-6 w-6 text-neutral-900/60" />
+                  <Star className="absolute right-6 bottom-6 h-5 w-5 text-neutral-900/25" />
+                  <Image
+                    src={r.img}
+                    alt={r.title}
+                    fill
+                    sizes="(max-width: 768px) 80vw, 380px"
+                    className="relative object-contain p-1"
+                  />
+                </div>
               </div>
 
               {/* text */}
