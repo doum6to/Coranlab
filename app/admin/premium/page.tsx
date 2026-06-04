@@ -5,9 +5,11 @@ import { userSubscription } from "@/db/schema";
 import { adminConfigured, isAdminAuthed } from "@/lib/admin-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getOfferSettings } from "@/lib/offer";
+import { getLandingContent } from "@/lib/landing-content";
 
 import { UsersTable, type AdminUser } from "./users-table";
 import { OfferSettingsForm } from "./offer-settings-form";
+import { LandingContentForm } from "./landing-content-form";
 
 export const dynamic = "force-dynamic";
 
@@ -103,7 +105,10 @@ const AdminPremiumPage = async () => {
 
   const premiumCount = users.filter((u) => u.isPremium).length;
 
-  const offer = await getOfferSettings();
+  const [offer, content] = await Promise.all([
+    getOfferSettings(),
+    getLandingContent(),
+  ]);
 
   return (
     <div className="min-h-screen bg-neutral-50">
@@ -116,6 +121,7 @@ const AdminPremiumPage = async () => {
             spotsTotal: offer.spotsTotal,
           }}
         />
+        <LandingContentForm initial={content} />
         <UsersTable
           users={users}
           premiumCount={premiumCount}
