@@ -13,6 +13,7 @@ import { ExerciseCarousel } from "../85motscoran/exercise-carousel";
 import { TrackView } from "../85motscoran/track-view";
 import { BuyButton } from "./buy-button";
 import { Faq } from "./faq";
+import { Scene } from "./scene";
 import { ArrowDoodle, Loops, Sparkle, Squiggle, Star } from "./doodles";
 
 export const dynamic = "force-static";
@@ -67,26 +68,22 @@ const avatars = ["/woman.svg", "/man.svg", "/girl.svg", "/boy.svg"];
 
 const rows = [
   {
-    src: "/mascot.svg",
-    tint: "#6967fb",
+    variant: "lifetime" as const,
     title: "Ludique, efficace, et à toi pour toujours",
     text: "Des leçons courtes et addictives, pensées pour que tu progresses vraiment — et un accès à vie, pour ne jamais t'arrêter.",
   },
   {
-    src: "/robot.svg",
-    tint: "#46c4f2",
+    variant: "science" as const,
     title: "Fondé sur la science",
     text: "La répétition espacée te fait réviser chaque mot juste avant que tu l'oublies. C'est prouvé : c'est comme ça qu'on mémorise durablement.",
   },
   {
-    src: "/girl.svg",
-    tint: "#f6923a",
+    variant: "motivation" as const,
     title: "Reste motivé",
     text: "Séries de jours, points d'XP, ligues et défis : on transforme l'apprentissage en une habitude qu'on a envie de tenir.",
   },
   {
-    src: "/boy.svg",
-    tint: "#58cc6a",
+    variant: "pace" as const,
     title: "Apprends à ton rythme",
     text: "Cinq minutes par jour suffisent. L'application s'adapte à ton niveau et à ta mémoire, leçon après leçon.",
   },
@@ -260,27 +257,13 @@ export default function OffreAViePage() {
         >
           <div className="max-w-[1000px] mx-auto px-6 sm:px-8 py-14 sm:py-20">
             <div className="grid items-center gap-8 sm:gap-12 md:grid-cols-2">
-              {/* illustration on a colored blob */}
+              {/* themed scene illustration */}
               <div
                 className={`flex justify-center ${
                   i % 2 === 1 ? "md:order-2" : ""
                 }`}
               >
-                <div className="relative flex h-[260px] w-[260px] sm:h-[300px] sm:w-[300px] items-center justify-center">
-                  <div
-                    aria-hidden
-                    className="absolute inset-0 rounded-[42%]"
-                    style={{ backgroundColor: r.tint, opacity: 0.12 }}
-                  />
-                  <Star className="absolute right-6 top-6 h-5 w-5 text-neutral-900/20" />
-                  <Image
-                    src={r.src}
-                    alt=""
-                    width={240}
-                    height={240}
-                    className="relative h-[72%] w-auto object-contain drop-shadow-sm"
-                  />
-                </div>
+                <Scene variant={r.variant} />
               </div>
 
               {/* text */}
