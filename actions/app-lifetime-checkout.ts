@@ -31,7 +31,7 @@ export async function createAppLifetimeCheckoutUrl() {
               description:
                 "Paiement unique. Accès Premium à vie + les documents PDF en bonus.",
             },
-            unit_amount: 4700,
+            unit_amount: 1497,
           },
         },
       ],

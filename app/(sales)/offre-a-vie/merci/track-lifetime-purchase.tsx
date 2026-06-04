@@ -25,7 +25,7 @@ export function TrackLifetimePurchase({ sessionId }: { sessionId?: string }) {
     }
 
     ttqTrack("CompletePayment", {
-      value: 47,
+      value: 14.97,
       currency: "EUR",
       content_id: "app_lifetime",
       content_name: "Quranlab — Accès à vie",

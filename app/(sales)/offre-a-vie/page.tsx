@@ -12,12 +12,13 @@ import { Testimonials } from "../85motscoran/testimonials";
 import { TrackView } from "../85motscoran/track-view";
 import { BuyButton } from "./buy-button";
 import { Faq } from "./faq";
+import { SpotsProgress, StickySpotsBar } from "./spots";
 import { ArrowDoodle, Loops, Sparkle, Squiggle, Star } from "./doodles";
 
 export const dynamic = "force-static";
 export const revalidate = 3600;
 
-const PRICE = "47€";
+const PRICE = "14,97€";
 
 const GRID_STYLE = {
   backgroundImage:
@@ -26,9 +27,10 @@ const GRID_STYLE = {
 } as const;
 
 export const metadata: Metadata = {
-  title: "Quranlab — Accès à vie à l'application. Paiement unique de 47€.",
+  title:
+    "Quranlab — Accès à vie pour 14,97€ (2000 premières places).",
   description:
-    "Débloque toute l'application Quranlab à vie pour 47€. Un seul paiement, aucun abonnement. Apprends le vocabulaire du Coran par la répétition espacée.",
+    "Débloque toute l'application Quranlab à vie pour 14,97€ — le prix d'un seul mois, réservé aux 2000 premiers élèves. Un paiement unique, aucun abonnement.",
   keywords: [
     "quranlab accès à vie",
     "application coran paiement unique",
@@ -37,7 +39,7 @@ export const metadata: Metadata = {
     "abonnement à vie coran",
   ],
   openGraph: {
-    title: "Quranlab — Accès à vie pour 47€",
+    title: "Quranlab — Accès à vie pour 14,97€",
     description:
       "Un seul paiement. Toute l'application, pour toujours. Aucun abonnement.",
     url: "https://www.quranlab.app/offre-a-vie",
@@ -55,7 +57,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Quranlab — Accès à vie pour 47€",
+    title: "Quranlab — Accès à vie pour 14,97€",
     description: "Un seul paiement. Toute l'application, pour toujours.",
     images: ["https://www.quranlab.app/hero.png"],
   },
@@ -92,6 +94,7 @@ export default function OffreAViePage() {
   return (
     <div className="w-full bg-[#FAF8F3] text-neutral-900 font-sans">
       <TrackView />
+      <StickySpotsBar />
 
       {/* ═══════════════════════════════════════════════════════════════ */}
       {/*  HERO — gold frame + grid, two columns                          */}
@@ -320,15 +323,19 @@ export default function OffreAViePage() {
                 Fais le calcul
               </p>
               <h2 className="mt-3 font-display font-bold text-3xl sm:text-4xl text-neutral-950">
-                {PRICE} une fois. Et c&apos;est tout.
+                Le prix d&apos;un mois. À vie.
               </h2>
               <p className="mt-5 text-base text-neutral-600 leading-relaxed max-w-[520px] mx-auto">
-                L&apos;abonnement classique, c&apos;est 14,97€ chaque mois.
-                Avec l&apos;offre à vie, tu es gagnant en moins de{" "}
+                L&apos;abonnement, c&apos;est 14,97€ chaque mois — soit près de{" "}
                 <span className="font-semibold text-neutral-900">
-                  quatre mois
-                </span>{" "}
-                — puis tout le reste est offert, pour toujours.
+                  180€ par an
+                </span>
+                . Pour les{" "}
+                <span className="font-semibold text-neutral-900">
+                  2 000 premiers élèves
+                </span>
+                , c&apos;est le prix d&apos;un seul mois, en paiement unique, et
+                l&apos;accès est à toi pour toujours.
               </p>
 
               <div className="mt-10 grid grid-cols-2 gap-4 max-w-[440px] mx-auto">
@@ -340,7 +347,7 @@ export default function OffreAViePage() {
                     14,97€
                   </p>
                   <p className="mt-1 text-xs text-neutral-400">
-                    par mois, à vie
+                    par mois · ~180€/an
                   </p>
                 </div>
                 <div className="rounded-3xl border-2 border-neutral-950 bg-white p-6">
@@ -422,6 +429,8 @@ export default function OffreAViePage() {
                     className="mt-10"
                     label={`Obtenir l'accès — ${PRICE}`}
                   />
+
+                  <SpotsProgress tone="dark" />
 
                   <p className="mt-4 flex items-center justify-center gap-1.5 text-[11px] text-white/40">
                     <Lock className="h-3 w-3" strokeWidth={1.5} />
