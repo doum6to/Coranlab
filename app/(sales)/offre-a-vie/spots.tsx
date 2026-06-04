@@ -1,24 +1,24 @@
 import { Flame } from "lucide-react";
 
-/**
- * Scarcity data for the lifetime launch offer (first 2000 students at the
- * monthly price). Update these two numbers to reflect current sign-ups.
- */
-export const SPOTS_JOINED = 1902;
-export const SPOTS_TOTAL = 2000;
-
-const PCT = Math.round((SPOTS_JOINED / SPOTS_TOTAL) * 100);
 const fmt = (n: number) => n.toLocaleString("fr-FR");
+const pct = (joined: number, total: number) =>
+  total > 0 ? Math.min(100, Math.round((joined / total) * 100)) : 0;
 
 /** Thin sticky banner shown at the very top of the page. */
-export function StickySpotsBar() {
+export function StickySpotsBar({
+  joined,
+  total,
+}: {
+  joined: number;
+  total: number;
+}) {
   return (
     <div className="sticky top-0 z-50 bg-[#6967fb] text-white shadow-sm">
       <div className="mx-auto flex max-w-[1080px] items-center justify-center gap-2 px-4 py-2 text-center text-[12px] font-semibold sm:text-sm">
         <Flame className="h-4 w-4 shrink-0" strokeWidth={2.2} />
         <span>
-          Offre limitée par places : {fmt(SPOTS_JOINED)}/{fmt(SPOTS_TOTAL)}{" "}
-          élèves ont rejoint
+          Offre limitée par places : {fmt(joined)}/{fmt(total)} élèves ont
+          rejoint
         </span>
       </div>
     </div>
@@ -26,8 +26,19 @@ export function StickySpotsBar() {
 }
 
 /** Progress display placed under the pricing CTA. */
-export function SpotsProgress({ tone = "dark" }: { tone?: "dark" | "light" }) {
+export function SpotsProgress({
+  joined,
+  total,
+  priceLabel,
+  tone = "dark",
+}: {
+  joined: number;
+  total: number;
+  priceLabel: string;
+  tone?: "dark" | "light";
+}) {
   const isDark = tone === "dark";
+  const left = Math.max(0, total - joined);
   return (
     <div className="mt-5">
       <div
@@ -36,9 +47,9 @@ export function SpotsProgress({ tone = "dark" }: { tone?: "dark" | "light" }) {
         }`}
       >
         <span>
-          {fmt(SPOTS_JOINED)}/{fmt(SPOTS_TOTAL)} élèves ont rejoint
+          {fmt(joined)}/{fmt(total)} élèves ont rejoint
         </span>
-        <span>{PCT}%</span>
+        <span>{pct(joined, total)}%</span>
       </div>
       <div
         className={`mt-1.5 h-2 w-full overflow-hidden rounded-full ${
@@ -48,7 +59,7 @@ export function SpotsProgress({ tone = "dark" }: { tone?: "dark" | "light" }) {
         <div
           className="h-full rounded-full"
           style={{
-            width: `${PCT}%`,
+            width: `${pct(joined, total)}%`,
             backgroundColor: isDark ? "#a6a5ff" : "#6967fb",
           }}
         />
@@ -58,7 +69,7 @@ export function SpotsProgress({ tone = "dark" }: { tone?: "dark" | "light" }) {
           isDark ? "text-white/55" : "text-neutral-500"
         }`}
       >
-        Plus que {fmt(SPOTS_TOTAL - SPOTS_JOINED)} places à 14,97€ à vie.
+        Plus que {fmt(left)} places à {priceLabel} à vie.
       </p>
     </div>
   );

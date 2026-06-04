@@ -23,14 +23,20 @@ export const metadata: Metadata = {
  * course_purchase row exists before the buyer signs up — independent of the
  * (async) Stripe webhook. Idempotent: a no-op if the row is already there.
  */
-async function ensurePurchaseRow(sessionId: string): Promise<string | null> {
+async function ensurePurchaseRow(
+  sessionId: string,
+): Promise<{ email: string | null; amount: number | null }> {
   try {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
-    if (session.payment_status !== "paid") return null;
+    if (session.payment_status !== "paid") return { email: null, amount: null };
 
     const email =
       session.customer_details?.email || session.customer_email || null;
-    if (!email) return null;
+    const amount =
+      typeof session.amount_total === "number"
+        ? session.amount_total / 100
+        : null;
+    if (!email) return { email: null, amount };
 
     await db
       .insert(coursePurchase)
@@ -44,10 +50,10 @@ async function ensurePurchaseRow(sessionId: string): Promise<string | null> {
       })
       .onConflictDoNothing({ target: coursePurchase.stripeSessionId });
 
-    return email;
+    return { email, amount };
   } catch (e) {
     console.error("[offre-a-vie/merci] reconcile failed:", e);
-    return null;
+    return { email: null, amount: null };
   }
 }
 
@@ -57,7 +63,9 @@ export default async function MerciAVie({
   searchParams: { session_id?: string };
 }) {
   const sessionId = searchParams.session_id;
-  const email = sessionId ? await ensurePurchaseRow(sessionId) : null;
+  const { email, amount } = sessionId
+    ? await ensurePurchaseRow(sessionId)
+    : { email: null, amount: null };
 
   const signupUrl = email
     ? `/auth/signup?email=${encodeURIComponent(email)}`
@@ -65,7 +73,7 @@ export default async function MerciAVie({
 
   return (
     <div className="min-h-[70vh] w-full bg-[#FAF8F3] text-neutral-900 flex items-center justify-center">
-      <TrackLifetimePurchase sessionId={sessionId} />
+      <TrackLifetimePurchase sessionId={sessionId} value={amount ?? undefined} />
 
       <section className="max-w-[680px] mx-auto px-6 sm:px-8 py-16 sm:py-24 flex flex-col items-center text-center gap-6">
         <LandingMascot

@@ -196,3 +196,11 @@ export const coursePurchase = pgTable("course_purchase", {
 }, (t) => ({
   emailIdx: index("course_purchase_email").on(t.email),
 }));
+
+// Generic key/value store for admin-editable settings (offer price, the
+// scarcity counter, etc.). Kept simple so new settings need no migration.
+export const appSetting = pgTable("app_setting", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});

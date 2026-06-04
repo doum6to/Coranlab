@@ -14,11 +14,11 @@ import { BuyButton } from "./buy-button";
 import { Faq } from "./faq";
 import { SpotsProgress, StickySpotsBar } from "./spots";
 import { ArrowDoodle, Loops, Sparkle, Squiggle, Star } from "./doodles";
+import { getOfferSettings, formatEuros } from "@/lib/offer";
 
-export const dynamic = "force-static";
-export const revalidate = 3600;
-
-const PRICE = "14,97€";
+// ISR — regenerated on demand when the admin saves the offer settings, and
+// at most every 60s otherwise. The price/counter are read from the DB.
+export const revalidate = 60;
 
 const GRID_STYLE = {
   backgroundImage:
@@ -27,10 +27,9 @@ const GRID_STYLE = {
 } as const;
 
 export const metadata: Metadata = {
-  title:
-    "Quranlab — Accès à vie pour 14,97€ (2000 premières places).",
+  title: "Quranlab — Accès à vie à l'application. Offre de lancement.",
   description:
-    "Débloque toute l'application Quranlab à vie pour 14,97€ — le prix d'un seul mois, réservé aux 2000 premiers élèves. Un paiement unique, aucun abonnement.",
+    "Débloque toute l'application Quranlab à vie, en un seul paiement et sans abonnement. Offre de lancement à prix réduit, en nombre de places limité.",
   keywords: [
     "quranlab accès à vie",
     "application coran paiement unique",
@@ -90,11 +89,15 @@ const rows = [
   },
 ];
 
-export default function OffreAViePage() {
+export default async function OffreAViePage() {
+  const { priceCents, spotsJoined, spotsTotal } = await getOfferSettings();
+  const PRICE = formatEuros(priceCents);
+  const priceValue = priceCents / 100;
+
   return (
     <div className="w-full bg-[#FAF8F3] text-neutral-900 font-sans">
       <TrackView />
-      <StickySpotsBar />
+      <StickySpotsBar joined={spotsJoined} total={spotsTotal} />
 
       {/* ═══════════════════════════════════════════════════════════════ */}
       {/*  HERO — gold frame + grid, two columns                          */}
@@ -209,7 +212,7 @@ export default function OffreAViePage() {
                 </p>
 
                 <div className="mt-8 flex flex-col gap-3 max-w-[360px] mx-auto lg:mx-0">
-                  <BuyButton />
+                  <BuyButton priceValue={priceValue} />
                   <Link
                     href="/auth/login"
                     className="inline-flex w-full items-center justify-center rounded-2xl border-2 border-b-4 border-neutral-300 bg-white px-8 py-4 font-display text-base font-bold uppercase tracking-wide text-[#6967fb] transition-all hover:bg-neutral-50 active:translate-y-1 active:border-b-2"
@@ -323,19 +326,20 @@ export default function OffreAViePage() {
                 Fais le calcul
               </p>
               <h2 className="mt-3 font-display font-bold text-3xl sm:text-4xl text-neutral-950">
-                Le prix d&apos;un mois. À vie.
+                Un paiement. Pour toujours.
               </h2>
               <p className="mt-5 text-base text-neutral-600 leading-relaxed max-w-[520px] mx-auto">
                 L&apos;abonnement, c&apos;est 14,97€ chaque mois — soit près de{" "}
                 <span className="font-semibold text-neutral-900">
                   180€ par an
                 </span>
-                . Pour les{" "}
+                . L&apos;offre à vie, c&apos;est un paiement unique de{" "}
+                <span className="font-semibold text-neutral-900">{PRICE}</span>,
+                et l&apos;accès est à toi pour toujours. Réservé aux{" "}
                 <span className="font-semibold text-neutral-900">
-                  2 000 premiers élèves
+                  {spotsTotal.toLocaleString("fr-FR")} premiers élèves
                 </span>
-                , c&apos;est le prix d&apos;un seul mois, en paiement unique, et
-                l&apos;accès est à toi pour toujours.
+                .
               </p>
 
               <div className="mt-10 grid grid-cols-2 gap-4 max-w-[440px] mx-auto">
@@ -428,9 +432,15 @@ export default function OffreAViePage() {
                   <BuyButton
                     className="mt-10"
                     label={`Obtenir l'accès — ${PRICE}`}
+                    priceValue={priceValue}
                   />
 
-                  <SpotsProgress tone="dark" />
+                  <SpotsProgress
+                    tone="dark"
+                    joined={spotsJoined}
+                    total={spotsTotal}
+                    priceLabel={PRICE}
+                  />
 
                   <p className="mt-4 flex items-center justify-center gap-1.5 text-[11px] text-white/40">
                     <Lock className="h-3 w-3" strokeWidth={1.5} />
@@ -468,7 +478,7 @@ export default function OffreAViePage() {
                 Un seul paiement de {PRICE}. Tu n&apos;y repenseras jamais.
               </p>
               <div className="mt-10 flex flex-col items-center gap-3 max-w-[360px] mx-auto">
-                <BuyButton className="w-full" />
+                <BuyButton className="w-full" priceValue={priceValue} />
                 <p className="text-xs text-neutral-500">
                   Accès immédiat · Sécurisé par Stripe
                 </p>

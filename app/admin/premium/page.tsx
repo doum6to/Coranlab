@@ -4,8 +4,10 @@ import db from "@/db/drizzle";
 import { userSubscription } from "@/db/schema";
 import { adminConfigured, isAdminAuthed } from "@/lib/admin-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getOfferSettings } from "@/lib/offer";
 
 import { UsersTable, type AdminUser } from "./users-table";
+import { OfferSettingsForm } from "./offer-settings-form";
 
 export const dynamic = "force-dynamic";
 
@@ -101,9 +103,18 @@ const AdminPremiumPage = async () => {
 
   const premiumCount = users.filter((u) => u.isPremium).length;
 
+  const offer = await getOfferSettings();
+
   return (
     <div className="min-h-screen bg-neutral-50">
       <div className="mx-auto max-w-6xl p-4 sm:p-8">
+        <OfferSettingsForm
+          initial={{
+            priceEuros: (offer.priceCents / 100).toFixed(2),
+            spotsJoined: offer.spotsJoined,
+            spotsTotal: offer.spotsTotal,
+          }}
+        />
         <UsersTable
           users={users}
           premiumCount={premiumCount}
