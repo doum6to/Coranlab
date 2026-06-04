@@ -14,18 +14,22 @@ import { OFFER_KEYS } from "@/lib/offer";
  */
 export async function updateOfferSettings(input: {
   priceCents: number;
+  compareAtCents: number;
   spotsJoined: number;
   spotsTotal: number;
 }) {
   if (!isAdminAuthed()) throw new Error("Unauthorized");
 
   const priceCents = Math.round(input.priceCents);
+  const compareAtCents = Math.round(input.compareAtCents);
   const spotsJoined = Math.round(input.spotsJoined);
   const spotsTotal = Math.round(input.spotsTotal);
 
   if (
     !Number.isFinite(priceCents) ||
     priceCents < 0 ||
+    !Number.isFinite(compareAtCents) ||
+    compareAtCents < 0 ||
     !Number.isFinite(spotsJoined) ||
     spotsJoined < 0 ||
     !Number.isFinite(spotsTotal) ||
@@ -36,6 +40,7 @@ export async function updateOfferSettings(input: {
 
   const entries: Array<[string, string]> = [
     [OFFER_KEYS.price, String(priceCents)],
+    [OFFER_KEYS.compare, String(compareAtCents)],
     [OFFER_KEYS.joined, String(spotsJoined)],
     [OFFER_KEYS.total, String(spotsTotal)],
   ];

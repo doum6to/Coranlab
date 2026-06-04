@@ -9,10 +9,16 @@ import { updateOfferSettings } from "@/actions/offer-settings";
 export function OfferSettingsForm({
   initial,
 }: {
-  initial: { priceEuros: string; spotsJoined: number; spotsTotal: number };
+  initial: {
+    priceEuros: string;
+    compareEuros: string;
+    spotsJoined: number;
+    spotsTotal: number;
+  };
 }) {
   const router = useRouter();
   const [priceEuros, setPriceEuros] = useState(initial.priceEuros);
+  const [compareEuros, setCompareEuros] = useState(initial.compareEuros);
   const [spotsJoined, setSpotsJoined] = useState(String(initial.spotsJoined));
   const [spotsTotal, setSpotsTotal] = useState(String(initial.spotsTotal));
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -23,12 +29,17 @@ export function OfferSettingsForm({
     const priceCents = Math.round(
       parseFloat(priceEuros.replace(",", ".")) * 100,
     );
+    const compareAtCents = Math.round(
+      parseFloat(compareEuros.replace(",", ".")) * 100,
+    );
     const joined = parseInt(spotsJoined, 10);
     const total = parseInt(spotsTotal, 10);
 
     if (
       !Number.isFinite(priceCents) ||
       priceCents < 0 ||
+      !Number.isFinite(compareAtCents) ||
+      compareAtCents < 0 ||
       !Number.isFinite(joined) ||
       !Number.isFinite(total) ||
       total < 1
@@ -40,6 +51,7 @@ export function OfferSettingsForm({
     startTransition(async () => {
       const res = await updateOfferSettings({
         priceCents,
+        compareAtCents,
         spotsJoined: joined,
         spotsTotal: total,
       });
@@ -64,7 +76,7 @@ export function OfferSettingsForm({
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <label className="block">
           <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-neutral-500">
             Prix (€)
@@ -74,6 +86,18 @@ export function OfferSettingsForm({
             inputMode="decimal"
             value={priceEuros}
             onChange={(e) => setPriceEuros(e.target.value)}
+            className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brilliant-green focus:ring-2 focus:ring-brilliant-green/20"
+          />
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-neutral-500">
+            Prix barré (€)
+          </span>
+          <input
+            type="text"
+            inputMode="decimal"
+            value={compareEuros}
+            onChange={(e) => setCompareEuros(e.target.value)}
             className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brilliant-green focus:ring-2 focus:ring-brilliant-green/20"
           />
         </label>
