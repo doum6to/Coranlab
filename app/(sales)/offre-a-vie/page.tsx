@@ -228,7 +228,7 @@ export default function OffreAViePage() {
       {/* ═══════════════════════════════════════════════════════════════ */}
       <section className="w-full bg-white border-b border-neutral-200/70">
         <div className="max-w-[1040px] mx-auto px-6 sm:px-8 py-6">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
             {[
               { icon: <Lock className="h-4 w-4" strokeWidth={2} />, text: "Paiement sécurisé Stripe" },
               { icon: <InfinityIcon className="h-4 w-4" strokeWidth={2} />, text: "Aucun abonnement" },
@@ -236,7 +236,7 @@ export default function OffreAViePage() {
             ].map((t) => (
               <div
                 key={t.text}
-                className="flex items-center justify-center gap-2 text-sm font-medium text-neutral-600"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-[11px] leading-tight sm:text-sm font-medium text-neutral-600"
               >
                 <span className="text-[#6967fb]">{t.icon}</span>
                 {t.text}
