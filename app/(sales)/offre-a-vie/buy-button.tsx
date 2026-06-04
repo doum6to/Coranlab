@@ -26,7 +26,7 @@ export function BuyButton({
     setLoading(true);
 
     ttqTrack("InitiateCheckout", {
-      value: 47,
+      value: 14.97,
       currency: "EUR",
       content_id: "app_lifetime",
       content_name: "Quranlab — Accès à vie",
