@@ -111,6 +111,7 @@ const AdminPremiumPage = async () => {
         <OfferSettingsForm
           initial={{
             priceEuros: (offer.priceCents / 100).toFixed(2),
+            compareEuros: (offer.compareAtCents / 100).toFixed(2),
             spotsJoined: offer.spotsJoined,
             spotsTotal: offer.spotsTotal,
           }}

@@ -90,8 +90,10 @@ const rows = [
 ];
 
 export default async function OffreAViePage() {
-  const { priceCents, spotsJoined, spotsTotal } = await getOfferSettings();
+  const { priceCents, compareAtCents, spotsJoined, spotsTotal } =
+    await getOfferSettings();
   const PRICE = formatEuros(priceCents);
+  const COMPARE = compareAtCents > priceCents ? formatEuros(compareAtCents) : null;
   const priceValue = priceCents / 100;
 
   return (
@@ -219,6 +221,13 @@ export default async function OffreAViePage() {
                   >
                     J&apos;ai déjà un compte
                   </Link>
+                  <SpotsProgress
+                    tone="light"
+                    joined={spotsJoined}
+                    total={spotsTotal}
+                    priceLabel={PRICE}
+                    compareLabel={COMPARE ?? undefined}
+                  />
                 </div>
                 <p className="mt-4 text-xs text-neutral-500">
                   Paiement unique · Accès immédiat · Sécurisé par Stripe
@@ -397,6 +406,11 @@ export default async function OffreAViePage() {
                     Accès à vie
                   </p>
                   <div className="mt-4 flex items-baseline justify-center gap-2">
+                    {COMPARE && (
+                      <span className="font-display text-3xl text-white/40 line-through">
+                        {COMPARE}
+                      </span>
+                    )}
                     <span className="font-display font-bold text-6xl sm:text-7xl tracking-tight">
                       {PRICE}
                     </span>
@@ -440,6 +454,7 @@ export default async function OffreAViePage() {
                     joined={spotsJoined}
                     total={spotsTotal}
                     priceLabel={PRICE}
+                    compareLabel={COMPARE ?? undefined}
                   />
 
                   <p className="mt-4 flex items-center justify-center gap-1.5 text-[11px] text-white/40">

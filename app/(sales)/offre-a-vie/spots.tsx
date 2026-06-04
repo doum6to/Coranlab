@@ -30,11 +30,13 @@ export function SpotsProgress({
   joined,
   total,
   priceLabel,
+  compareLabel,
   tone = "dark",
 }: {
   joined: number;
   total: number;
   priceLabel: string;
+  compareLabel?: string;
   tone?: "dark" | "light";
 }) {
   const isDark = tone === "dark";
@@ -69,7 +71,14 @@ export function SpotsProgress({
           isDark ? "text-white/55" : "text-neutral-500"
         }`}
       >
-        Plus que {fmt(left)} places à {priceLabel} à vie.
+        <span className="font-semibold">{priceLabel}</span>
+        {compareLabel ? (
+          <>
+            {" "}
+            <span className="line-through opacity-60">{compareLabel}</span>
+          </>
+        ) : null}{" "}
+        — plus que {fmt(left)} places à vie.
       </p>
     </div>
   );
