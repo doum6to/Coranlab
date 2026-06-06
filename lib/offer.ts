@@ -5,7 +5,7 @@ import { inArray } from "drizzle-orm";
 import db from "@/db/drizzle";
 import { appSetting } from "@/db/schema";
 
-export type LandingVariant = "classic" | "letter";
+export type LandingVariant = "classic" | "letter" | "product";
 
 export type OfferSettings = {
   /** Lifetime price charged at checkout, in cents. */
@@ -71,7 +71,10 @@ export const getOfferSettings = cache(async (): Promise<OfferSettings> => {
       ),
       spotsJoined: toInt(map.get(KEYS.joined), OFFER_DEFAULTS.spotsJoined),
       spotsTotal: toInt(map.get(KEYS.total), OFFER_DEFAULTS.spotsTotal),
-      variant: map.get(KEYS.variant) === "letter" ? "letter" : "classic",
+      variant: ((): LandingVariant => {
+        const v = map.get(KEYS.variant);
+        return v === "letter" || v === "product" ? v : "classic";
+      })(),
     };
   } catch (e) {
     console.error("[offer] getOfferSettings failed, using defaults:", e);

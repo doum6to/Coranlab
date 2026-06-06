@@ -14,7 +14,7 @@ export function OfferSettingsForm({
     compareEuros: string;
     spotsJoined: number;
     spotsTotal: number;
-    variant: "classic" | "letter";
+    variant: "classic" | "letter" | "product";
   };
 }) {
   const router = useRouter();
@@ -22,7 +22,7 @@ export function OfferSettingsForm({
   const [compareEuros, setCompareEuros] = useState(initial.compareEuros);
   const [spotsJoined, setSpotsJoined] = useState(String(initial.spotsJoined));
   const [spotsTotal, setSpotsTotal] = useState(String(initial.spotsTotal));
-  const [variant, setVariant] = useState<"classic" | "letter">(
+  const [variant, setVariant] = useState<"classic" | "letter" | "product">(
     initial.variant,
   );
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -138,6 +138,7 @@ export function OfferSettingsForm({
           {([
             ["classic", "Classique (V1)"],
             ["letter", "Lettre (V2)"],
+            ["product", "Produit (V3)"],
           ] as const).map(([key, label]) => (
             <button
               key={key}

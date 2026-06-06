@@ -162,6 +162,7 @@ const TABS = [
   ["faq", "FAQ"],
   ["final", "CTA final"],
   ["letter", "Lettre (V2)"],
+  ["product", "Produit (V3)"],
 ] as const;
 type TabKey = (typeof TABS)[number][0];
 
@@ -185,6 +186,9 @@ export function LandingContentForm({ initial }: { initial: LandingContent }) {
   const letter = c.letter;
   const setLetter = (v: Partial<LandingContent["letter"]>) =>
     patch("letter", v);
+  const prod = c.product;
+  const setProd = (v: Partial<LandingContent["product"]>) =>
+    patch("product", v);
 
   const onSave = () => {
     setMsg(null);
@@ -1134,6 +1138,339 @@ export function LandingContentForm({ initial }: { initial: LandingContent }) {
             label="Bouton final (CTA)"
             value={letter.ctaLabel}
             onChange={(v) => setLetter({ ctaLabel: v })}
+          />
+        </Section>
+        )}
+
+        {/* PRODUCT (V3) */}
+        {tab === "product" && (
+        <Section title="Produit (version 3) — active via « Offre & prix »">
+          <Field
+            label="Titre"
+            value={prod.title}
+            onChange={(v) => setProd({ title: v })}
+          />
+          <Field
+            label="Sous-titre"
+            area
+            value={prod.subtitle}
+            onChange={(v) => setProd({ subtitle: v })}
+          />
+          <Field
+            label="Note / avis (ex. 4,9/5 · 1 000+ avis)"
+            value={prod.rating}
+            onChange={(v) => setProd({ rating: v })}
+          />
+
+          <div className="rounded-xl border border-neutral-200 bg-white p-3">
+            <span className="mb-2 block text-xs font-bold text-neutral-500">
+              Galerie d&apos;images (la 1ère = image principale)
+            </span>
+            <div className="space-y-2">
+              {prod.gallery.map((g, i) => (
+                <div key={i} className="flex items-end gap-2">
+                  <div className="flex-1">
+                    <ImageField
+                      label={`Image ${i + 1}`}
+                      value={g}
+                      onChange={(v) =>
+                        setProd({
+                          gallery: prod.gallery.map((x, j) =>
+                            j === i ? v : x,
+                          ),
+                        })
+                      }
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setProd({
+                        gallery: prod.gallery.filter((_, j) => j !== i),
+                      })
+                    }
+                    className="pb-2 text-xs font-semibold text-rose-500 hover:underline"
+                  >
+                    Suppr.
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => setProd({ gallery: [...prod.gallery, ""] })}
+                className="text-xs font-semibold text-brilliant-green hover:underline"
+              >
+                + Ajouter une image
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <span className="mb-1 block text-xs font-semibold text-neutral-500">
+              Points clés (un par ligne)
+            </span>
+            <textarea
+              rows={4}
+              value={prod.bullets.join("\n")}
+              onChange={(e) =>
+                setProd({ bullets: e.target.value.split("\n").filter(Boolean) })
+              }
+              className={inputCls}
+            />
+          </div>
+          <Field
+            label="Ligne de réassurance (sous le bouton)"
+            value={prod.guarantee}
+            onChange={(v) => setProd({ guarantee: v })}
+          />
+
+          <Field
+            label="Bénéfices — titre"
+            value={prod.benefitsHeading}
+            onChange={(v) => setProd({ benefitsHeading: v })}
+          />
+          {prod.benefits.map((b, i) => (
+            <div
+              key={i}
+              className="space-y-2 rounded-xl border border-neutral-200 bg-white p-3"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-neutral-500">
+                  Bénéfice {i + 1}
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setProd({
+                      benefits: prod.benefits.filter((_, j) => j !== i),
+                    })
+                  }
+                  className="text-xs font-semibold text-rose-500 hover:underline"
+                >
+                  Supprimer
+                </button>
+              </div>
+              <Field
+                label="Titre"
+                value={b.title}
+                onChange={(v) =>
+                  setProd({
+                    benefits: prod.benefits.map((x, j) =>
+                      j === i ? { ...x, title: v } : x,
+                    ),
+                  })
+                }
+              />
+              <Field
+                label="Texte"
+                area
+                value={b.text}
+                onChange={(v) =>
+                  setProd({
+                    benefits: prod.benefits.map((x, j) =>
+                      j === i ? { ...x, text: v } : x,
+                    ),
+                  })
+                }
+              />
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() =>
+              setProd({
+                benefits: [...prod.benefits, { title: "", text: "" }],
+              })
+            }
+            className="text-xs font-semibold text-brilliant-green hover:underline"
+          >
+            + Ajouter un bénéfice
+          </button>
+
+          <Field
+            label="« Ce que tu reçois » — titre"
+            value={prod.insideHeading}
+            onChange={(v) => setProd({ insideHeading: v })}
+          />
+          {prod.insideItems.map((it, i) => (
+            <div
+              key={i}
+              className="space-y-2 rounded-xl border border-neutral-200 bg-white p-3"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-neutral-500">
+                  Élément {i + 1}
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setProd({
+                      insideItems: prod.insideItems.filter((_, j) => j !== i),
+                    })
+                  }
+                  className="text-xs font-semibold text-rose-500 hover:underline"
+                >
+                  Supprimer
+                </button>
+              </div>
+              <ImageField
+                label="Image"
+                value={it.image}
+                onChange={(v) =>
+                  setProd({
+                    insideItems: prod.insideItems.map((x, j) =>
+                      j === i ? { ...x, image: v } : x,
+                    ),
+                  })
+                }
+              />
+              <Field
+                label="Titre"
+                value={it.title}
+                onChange={(v) =>
+                  setProd({
+                    insideItems: prod.insideItems.map((x, j) =>
+                      j === i ? { ...x, title: v } : x,
+                    ),
+                  })
+                }
+              />
+              <Field
+                label="Texte"
+                area
+                value={it.text}
+                onChange={(v) =>
+                  setProd({
+                    insideItems: prod.insideItems.map((x, j) =>
+                      j === i ? { ...x, text: v } : x,
+                    ),
+                  })
+                }
+              />
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() =>
+              setProd({
+                insideItems: [
+                  ...prod.insideItems,
+                  { image: "", title: "", text: "" },
+                ],
+              })
+            }
+            className="text-xs font-semibold text-brilliant-green hover:underline"
+          >
+            + Ajouter un élément
+          </button>
+
+          <Field
+            label="Étapes — titre"
+            value={prod.howHeading}
+            onChange={(v) => setProd({ howHeading: v })}
+          />
+          {prod.steps.map((s, i) => (
+            <div
+              key={i}
+              className="space-y-2 rounded-xl border border-neutral-200 bg-white p-3"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-neutral-500">
+                  Étape {i + 1}
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setProd({ steps: prod.steps.filter((_, j) => j !== i) })
+                  }
+                  className="text-xs font-semibold text-rose-500 hover:underline"
+                >
+                  Supprimer
+                </button>
+              </div>
+              <Field
+                label="Titre"
+                value={s.title}
+                onChange={(v) =>
+                  setProd({
+                    steps: prod.steps.map((x, j) =>
+                      j === i ? { ...x, title: v } : x,
+                    ),
+                  })
+                }
+              />
+              <Field
+                label="Texte"
+                area
+                value={s.text}
+                onChange={(v) =>
+                  setProd({
+                    steps: prod.steps.map((x, j) =>
+                      j === i ? { ...x, text: v } : x,
+                    ),
+                  })
+                }
+              />
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() =>
+              setProd({ steps: [...prod.steps, { title: "", text: "" }] })
+            }
+            className="text-xs font-semibold text-brilliant-green hover:underline"
+          >
+            + Ajouter une étape
+          </button>
+
+          <Field
+            label="Comparatif — titre"
+            value={prod.compareHeading}
+            onChange={(v) => setProd({ compareHeading: v })}
+          />
+          <div className="grid gap-2 sm:grid-cols-2">
+            <Field
+              label="Colonne « nous »"
+              value={prod.compareUs}
+              onChange={(v) => setProd({ compareUs: v })}
+            />
+            <Field
+              label="Colonne « eux »"
+              value={prod.compareThem}
+              onChange={(v) => setProd({ compareThem: v })}
+            />
+          </div>
+          <div>
+            <span className="mb-1 block text-xs font-semibold text-neutral-500">
+              Lignes du comparatif (une par ligne)
+            </span>
+            <textarea
+              rows={5}
+              value={prod.compareRows.join("\n")}
+              onChange={(e) =>
+                setProd({
+                  compareRows: e.target.value.split("\n").filter(Boolean),
+                })
+              }
+              className={inputCls}
+            />
+          </div>
+
+          <Field
+            label="Fondateur — titre"
+            value={prod.founderHeading}
+            onChange={(v) => setProd({ founderHeading: v })}
+          />
+          <Field
+            label="Fondateur — texte"
+            area
+            value={prod.founderText}
+            onChange={(v) => setProd({ founderText: v })}
+          />
+          <ImageField
+            label="Fondateur — image"
+            value={prod.founderImage}
+            onChange={(v) => setProd({ founderImage: v })}
           />
         </Section>
         )}
