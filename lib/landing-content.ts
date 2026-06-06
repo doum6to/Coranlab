@@ -28,6 +28,7 @@ export type ProductFeature = { image: string; title: string; text: string };
 
 export type LandingProduct = {
   gallery: string[];
+  showThumbnails: boolean;
   rating: string;
   title: string;
   subtitle: string;
@@ -370,6 +371,7 @@ export const LANDING_DEFAULTS: LandingContent = {
   },
   product: {
     gallery: [],
+    showThumbnails: true,
     rating: "4,9/5 · plus de 1 000 apprenants",
     title: "Comprendre 85% du Coran",
     subtitle:

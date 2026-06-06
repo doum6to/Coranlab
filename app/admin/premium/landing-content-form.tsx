@@ -1205,6 +1205,16 @@ export function LandingContentForm({ initial }: { initial: LandingContent }) {
             </div>
           </div>
 
+          <label className="flex items-center gap-2 text-sm font-medium text-neutral-700">
+            <input
+              type="checkbox"
+              checked={prod.showThumbnails}
+              onChange={(e) => setProd({ showThumbnails: e.target.checked })}
+              className="h-4 w-4 rounded border-neutral-300"
+            />
+            Afficher les miniatures sous le carrousel
+          </label>
+
           <div>
             <span className="mb-1 block text-xs font-semibold text-neutral-500">
               Points clés (un par ligne)
