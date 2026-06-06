@@ -18,6 +18,7 @@ export async function updateOfferSettings(input: {
   spotsJoined: number;
   spotsTotal: number;
   variant: "classic" | "letter" | "product";
+  pdfLinks: { label: string; url: string }[];
 }) {
   if (!isAdminAuthed()) throw new Error("Unauthorized");
 
@@ -49,6 +50,14 @@ export async function updateOfferSettings(input: {
     [OFFER_KEYS.joined, String(spotsJoined)],
     [OFFER_KEYS.total, String(spotsTotal)],
     [OFFER_KEYS.variant, variant],
+    [
+      OFFER_KEYS.pdf,
+      JSON.stringify(
+        (input.pdfLinks || [])
+          .filter((l) => l && l.url)
+          .map((l) => ({ label: String(l.label || "Document"), url: String(l.url) })),
+      ),
+    ],
   ];
 
   try {

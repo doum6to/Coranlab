@@ -136,6 +136,9 @@ const AdminPremiumPage = async () => {
                     spotsJoined: offer.spotsJoined,
                     spotsTotal: offer.spotsTotal,
                     variant: offer.variant,
+                    pdfRaw: offer.pdfLinks
+                      .map((l) => `${l.label} | ${l.url}`)
+                      .join("\n"),
                   }}
                 />
               ),

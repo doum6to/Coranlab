@@ -15,6 +15,7 @@ export function OfferSettingsForm({
     spotsJoined: number;
     spotsTotal: number;
     variant: "classic" | "letter" | "product";
+    pdfRaw: string;
   };
 }) {
   const router = useRouter();
@@ -25,6 +26,7 @@ export function OfferSettingsForm({
   const [variant, setVariant] = useState<"classic" | "letter" | "product">(
     initial.variant,
   );
+  const [pdfRaw, setPdfRaw] = useState(initial.pdfRaw);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -53,12 +55,26 @@ export function OfferSettingsForm({
     }
 
     startTransition(async () => {
+      const pdfLinks = pdfRaw
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => {
+          const [label, ...rest] = line.split("|");
+          const url = rest.join("|").trim();
+          return url
+            ? { label: label.trim() || "Document", url }
+            : { label: "Document", url: label.trim() };
+        })
+        .filter((l) => l.url.startsWith("http"));
+
       const res = await updateOfferSettings({
         priceCents,
         compareAtCents,
         spotsJoined: joined,
         spotsTotal: total,
         variant,
+        pdfLinks,
       });
       if (res?.error) {
         setMsg({ ok: false, text: res.error });
@@ -156,6 +172,23 @@ export function OfferSettingsForm({
         </div>
         <p className="mt-2 text-xs text-neutral-400">
           L&apos;autre version reste éditable et réutilisable à tout moment.
+        </p>
+      </div>
+
+      <div className="mt-4">
+        <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-neutral-500">
+          Liens PDF (espace acheteur) — un par ligne : Libellé | URL
+        </span>
+        <textarea
+          rows={4}
+          value={pdfRaw}
+          onChange={(e) => setPdfRaw(e.target.value)}
+          placeholder={"Ebook 85% du Coran | https://...\nDu'as coraniques | https://..."}
+          className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brilliant-green focus:ring-2 focus:ring-brilliant-green/20"
+        />
+        <p className="mt-1 text-xs text-neutral-400">
+          Ces liens apparaissent dans « Mes documents » de l&apos;espace des
+          personnes ayant acheté.
         </p>
       </div>
 

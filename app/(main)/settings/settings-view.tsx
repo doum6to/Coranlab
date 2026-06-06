@@ -3,7 +3,15 @@
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toast } from "sonner";
-import { LogOut, CreditCard, Crown, Mail, User } from "lucide-react";
+import {
+  LogOut,
+  CreditCard,
+  Crown,
+  Mail,
+  User,
+  FileText,
+  Download,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { createStripeUrl } from "@/actions/user-subscription";
 
@@ -14,6 +22,7 @@ type Props = {
   subscriptionEndDate: string | null;
   hasStripeCustomer: boolean;
   isLifetime: boolean;
+  documents: { label: string; url: string }[];
 };
 
 export const SettingsView = ({
@@ -23,6 +32,7 @@ export const SettingsView = ({
   subscriptionEndDate,
   hasStripeCustomer,
   isLifetime,
+  documents,
 }: Props) => {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -97,6 +107,34 @@ export const SettingsView = ({
             </div>
           </div>
         </section>
+
+        {/* Documents Section */}
+        {documents.length > 0 && (
+          <section className="rounded-2xl border border-brilliant-border bg-white overflow-hidden">
+            <div className="px-5 py-4 border-b border-brilliant-border">
+              <h2 className="text-sm font-bold text-brilliant-text uppercase tracking-wide">
+                Mes documents
+              </h2>
+            </div>
+            <div className="divide-y divide-brilliant-border">
+              {documents.map((doc) => (
+                <a
+                  key={doc.url}
+                  href={doc.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-x-3 px-5 py-4 transition hover:bg-gray-50"
+                >
+                  <FileText className="h-5 w-5 text-[#6967fb] shrink-0" />
+                  <span className="flex-1 text-sm font-semibold text-brilliant-text">
+                    {doc.label}
+                  </span>
+                  <Download className="h-4 w-4 text-brilliant-muted shrink-0" />
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Subscription Section */}
         <section className="rounded-2xl border border-brilliant-border bg-white overflow-hidden">
