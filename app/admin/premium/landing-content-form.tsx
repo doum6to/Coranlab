@@ -140,9 +140,24 @@ function Section({
   );
 }
 
+const TABS = [
+  ["hero", "Hero"],
+  ["trust", "Confiance"],
+  ["rows", "Sections"],
+  ["value", "Pack & bonus"],
+  ["story", "Texte de vente"],
+  ["tarif", "Tarif"],
+  ["offer", "Carte d'offre"],
+  ["reviews", "Avis"],
+  ["faq", "FAQ"],
+  ["final", "CTA final"],
+] as const;
+type TabKey = (typeof TABS)[number][0];
+
 export function LandingContentForm({ initial }: { initial: LandingContent }) {
   const router = useRouter();
   const [c, setC] = useState<LandingContent>(initial);
+  const [tab, setTab] = useState<TabKey>("hero");
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -154,6 +169,8 @@ export function LandingContentForm({ initial }: { initial: LandingContent }) {
 
   const setRows = (rows: LandingRow[]) => setC((p) => ({ ...p, rows }));
   const setTrust = (trust: string[]) => setC((p) => ({ ...p, trust }));
+  const story = c.story;
+  const setStory = (v: Partial<LandingContent["story"]>) => patch("story", v);
 
   const onSave = () => {
     setMsg(null);
@@ -168,16 +185,35 @@ export function LandingContentForm({ initial }: { initial: LandingContent }) {
   };
 
   return (
-    <div className="mb-6 rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6">
+    <div className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6">
       <h2 className="text-lg font-bold text-neutral-800">
         Contenu de la landing (/offre-a-vie)
       </h2>
       <p className="mb-4 text-sm text-neutral-500">
-        Modifie textes, illustrations, avis et FAQ, puis « Mettre à jour ».
+        Choisis une section, modifie-la, puis « Mettre à jour ».
       </p>
 
-      <div className="space-y-4">
+      {/* section tabs */}
+      <div className="mb-5 flex flex-wrap gap-2">
+        {TABS.map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setTab(key)}
+            className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition ${
+              tab === key
+                ? "bg-[#6967fb] text-white"
+                : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      <div className="space-y-4 pb-20">
         {/* HERO */}
+        {tab === "hero" && (
         <Section title="Hero">
           <Field
             label="Pastille (preuve sociale)"
@@ -213,8 +249,10 @@ export function LandingContentForm({ initial }: { initial: LandingContent }) {
             />
           </div>
         </Section>
+        )}
 
         {/* TRUST */}
+        {tab === "trust" && (
         <Section title="Barre de confiance (3 éléments)">
           <div className="grid gap-3 sm:grid-cols-3">
             {[0, 1, 2].map((i) => (
@@ -231,8 +269,10 @@ export function LandingContentForm({ initial }: { initial: LandingContent }) {
             ))}
           </div>
         </Section>
+        )}
 
         {/* ROWS */}
+        {tab === "rows" && (
         <Section title="Sections explicatives">
           {c.rows.map((row, i) => (
             <div
@@ -309,8 +349,10 @@ export function LandingContentForm({ initial }: { initial: LandingContent }) {
             + Ajouter une section
           </button>
         </Section>
+        )}
 
         {/* VALUE STACK */}
+        {tab === "value" && (
         <Section title="Pack & bonus (ce que tu reçois)">
           <Field
             label="Sur-titre"
@@ -413,8 +455,279 @@ export function LandingContentForm({ initial }: { initial: LandingContent }) {
             + Ajouter un élément
           </button>
         </Section>
+        )}
+
+        {/* STORY */}
+        {tab === "story" && (
+        <Section title="Texte de vente (page longue)">
+          <Field
+            label="Accroche — titre"
+            area
+            value={story.hookHeading}
+            onChange={(v) => setStory({ hookHeading: v })}
+          />
+          <Field
+            label="Accroche — texte (paragraphes séparés par une ligne vide)"
+            area
+            value={story.hookBody}
+            onChange={(v) => setStory({ hookBody: v })}
+          />
+          <Field
+            label="Schéma ignoré — titre"
+            value={story.patternHeading}
+            onChange={(v) => setStory({ patternHeading: v })}
+          />
+          <Field
+            label="Schéma ignoré — texte"
+            area
+            value={story.patternBody}
+            onChange={(v) => setStory({ patternBody: v })}
+          />
+          <Field
+            label="Pourquoi ça échoue — titre"
+            value={story.whyHeading}
+            onChange={(v) => setStory({ whyHeading: v })}
+          />
+          {story.discoveries.map((d, i) => (
+            <div
+              key={i}
+              className="space-y-2 rounded-xl border border-neutral-200 bg-white p-3"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-neutral-500">
+                  Découverte {i + 1}
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setStory({
+                      discoveries: story.discoveries.filter((_, j) => j !== i),
+                    })
+                  }
+                  className="text-xs font-semibold text-rose-500 hover:underline"
+                >
+                  Supprimer
+                </button>
+              </div>
+              <Field
+                label="Titre"
+                value={d.title}
+                onChange={(v) =>
+                  setStory({
+                    discoveries: story.discoveries.map((x, j) =>
+                      j === i ? { ...x, title: v } : x,
+                    ),
+                  })
+                }
+              />
+              <Field
+                label="Texte"
+                area
+                value={d.text}
+                onChange={(v) =>
+                  setStory({
+                    discoveries: story.discoveries.map((x, j) =>
+                      j === i ? { ...x, text: v } : x,
+                    ),
+                  })
+                }
+              />
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() =>
+              setStory({
+                discoveries: [...story.discoveries, { title: "", text: "" }],
+              })
+            }
+            className="text-xs font-semibold text-brilliant-green hover:underline"
+          >
+            + Ajouter une découverte
+          </button>
+
+          <Field
+            label="Méthode — sur-titre"
+            value={story.methodEyebrow}
+            onChange={(v) => setStory({ methodEyebrow: v })}
+          />
+          <Field
+            label="Méthode — titre"
+            value={story.methodHeading}
+            onChange={(v) => setStory({ methodHeading: v })}
+          />
+          <Field
+            label="Méthode — texte"
+            area
+            value={story.methodBody}
+            onChange={(v) => setStory({ methodBody: v })}
+          />
+          {story.steps.map((s, i) => (
+            <div
+              key={i}
+              className="space-y-2 rounded-xl border border-neutral-200 bg-white p-3"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-neutral-500">
+                  Étape {i + 1}
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setStory({ steps: story.steps.filter((_, j) => j !== i) })
+                  }
+                  className="text-xs font-semibold text-rose-500 hover:underline"
+                >
+                  Supprimer
+                </button>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-[110px_1fr]">
+                <Field
+                  label="Label"
+                  value={s.label}
+                  onChange={(v) =>
+                    setStory({
+                      steps: story.steps.map((x, j) =>
+                        j === i ? { ...x, label: v } : x,
+                      ),
+                    })
+                  }
+                />
+                <Field
+                  label="Titre"
+                  value={s.title}
+                  onChange={(v) =>
+                    setStory({
+                      steps: story.steps.map((x, j) =>
+                        j === i ? { ...x, title: v } : x,
+                      ),
+                    })
+                  }
+                />
+              </div>
+              <Field
+                label="Texte"
+                area
+                value={s.text}
+                onChange={(v) =>
+                  setStory({
+                    steps: story.steps.map((x, j) =>
+                      j === i ? { ...x, text: v } : x,
+                    ),
+                  })
+                }
+              />
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() =>
+              setStory({
+                steps: [...story.steps, { label: "Étape", title: "", text: "" }],
+              })
+            }
+            className="text-xs font-semibold text-brilliant-green hover:underline"
+          >
+            + Ajouter une étape
+          </button>
+
+          <Field
+            label="Avantages — titre"
+            value={story.perksHeading}
+            onChange={(v) => setStory({ perksHeading: v })}
+          />
+          <div>
+            <span className="mb-1 block text-xs font-semibold text-neutral-500">
+              Avantages (un par ligne)
+            </span>
+            <textarea
+              rows={6}
+              value={story.perks.join("\n")}
+              onChange={(e) =>
+                setStory({ perks: e.target.value.split("\n").filter(Boolean) })
+              }
+              className={inputCls}
+            />
+          </div>
+
+          <Field
+            label="Pourquoi ça marche — titre"
+            value={story.whyWorksHeading}
+            onChange={(v) => setStory({ whyWorksHeading: v })}
+          />
+          <Field
+            label="Pourquoi ça marche — texte"
+            area
+            value={story.whyWorksBody}
+            onChange={(v) => setStory({ whyWorksBody: v })}
+          />
+
+          <Field
+            label="Science — titre"
+            value={story.scienceHeading}
+            onChange={(v) => setStory({ scienceHeading: v })}
+          />
+          {story.science.map((s, i) => (
+            <div key={i} className="grid gap-2 sm:grid-cols-2">
+              <Field
+                label={`Chiffre ${i + 1}`}
+                value={s.k}
+                onChange={(v) =>
+                  setStory({
+                    science: story.science.map((x, j) =>
+                      j === i ? { ...x, k: v } : x,
+                    ),
+                  })
+                }
+              />
+              <Field
+                label="Détail"
+                value={s.v}
+                onChange={(v) =>
+                  setStory({
+                    science: story.science.map((x, j) =>
+                      j === i ? { ...x, v } : x,
+                    ),
+                  })
+                }
+              />
+            </div>
+          ))}
+          <Field
+            label="Science — note"
+            area
+            value={story.scienceNote}
+            onChange={(v) => setStory({ scienceNote: v })}
+          />
+
+          <Field
+            label="Prix — titre"
+            value={story.priceHeading}
+            onChange={(v) => setStory({ priceHeading: v })}
+          />
+          <Field
+            label="Prix — texte"
+            area
+            value={story.priceBody}
+            onChange={(v) => setStory({ priceBody: v })}
+          />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field
+              label="Bouton (CTA)"
+              value={story.ctaLabel}
+              onChange={(v) => setStory({ ctaLabel: v })}
+            />
+            <Field
+              label="Sous-texte du bouton"
+              value={story.ctaSub}
+              onChange={(v) => setStory({ ctaSub: v })}
+            />
+          </div>
+        </Section>
+        )}
 
         {/* PRICE ANCHOR */}
+        {tab === "tarif" && (
         <Section title="Bloc tarif (texte)">
           <Field
             label="Sur-titre"
@@ -433,8 +746,10 @@ export function LandingContentForm({ initial }: { initial: LandingContent }) {
             onChange={(v) => patch("priceAnchor", { body: v })}
           />
         </Section>
+        )}
 
         {/* OFFER */}
+        {tab === "offer" && (
         <Section title="Carte d'offre">
           <Field
             label="Sur-titre"
@@ -474,8 +789,10 @@ export function LandingContentForm({ initial }: { initial: LandingContent }) {
             />
           </div>
         </Section>
+        )}
 
         {/* REVIEWS */}
+        {tab === "reviews" && (
         <Section title="Avis (en plus des captures TikTok)">
           <div className="grid gap-3 sm:grid-cols-2">
             <Field
@@ -563,8 +880,10 @@ export function LandingContentForm({ initial }: { initial: LandingContent }) {
             + Ajouter un avis
           </button>
         </Section>
+        )}
 
         {/* FAQ */}
+        {tab === "faq" && (
         <Section title="FAQ">
           <div className="grid gap-3 sm:grid-cols-2">
             <Field
@@ -636,8 +955,10 @@ export function LandingContentForm({ initial }: { initial: LandingContent }) {
             + Ajouter une question
           </button>
         </Section>
+        )}
 
         {/* FINAL CTA */}
+        {tab === "final" && (
         <Section title="CTA final">
           <Field
             label="Titre"
@@ -650,9 +971,11 @@ export function LandingContentForm({ initial }: { initial: LandingContent }) {
             onChange={(v) => patch("finalCta", { subtitle: v })}
           />
         </Section>
+        )}
       </div>
 
-      <div className="mt-5 flex items-center gap-3">
+      {/* sticky save bar */}
+      <div className="sticky bottom-0 -mx-5 sm:-mx-6 -mb-5 sm:-mb-6 flex items-center gap-3 rounded-b-2xl border-t border-neutral-200 bg-white/95 px-5 sm:px-6 py-3 backdrop-blur">
         <Button variant="primary" disabled={pending} onClick={onSave}>
           {pending ? "Mise à jour…" : "Mettre à jour la landing"}
         </Button>
@@ -665,6 +988,9 @@ export function LandingContentForm({ initial }: { initial: LandingContent }) {
             {msg.text}
           </span>
         )}
+        <span className="ml-auto text-xs text-neutral-400">
+          Section : {TABS.find((t) => t[0] === tab)?.[1]}
+        </span>
       </div>
     </div>
   );

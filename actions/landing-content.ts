@@ -30,6 +30,7 @@ export async function updateLandingContent(content: LandingContent) {
     reviews: content.reviews ?? LANDING_DEFAULTS.reviews,
     faq: content.faq ?? LANDING_DEFAULTS.faq,
     finalCta: content.finalCta ?? LANDING_DEFAULTS.finalCta,
+    story: content.story ?? LANDING_DEFAULTS.story,
   };
 
   try {
