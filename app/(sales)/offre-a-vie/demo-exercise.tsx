@@ -76,7 +76,7 @@ export function DemoExercise() {
           </p>
         </div>
 
-        <div className="relative rounded-[28px] border-2 border-neutral-900/10 bg-[#FAF8F3] p-5 sm:p-8 overflow-hidden">
+        <div className="relative flex min-h-[440px] flex-col justify-center rounded-[28px] border-2 border-neutral-900/10 bg-[#FAF8F3] p-5 sm:min-h-[460px] sm:p-8 overflow-hidden">
           <Sparkle className="absolute right-6 top-5 h-6 w-6 text-[#6967fb] hidden sm:block" />
           <Star className="absolute left-5 bottom-5 h-5 w-5 text-neutral-900/20 hidden sm:block" />
 
@@ -86,15 +86,15 @@ export function DemoExercise() {
               <p className="mb-5 text-center text-sm font-semibold text-neutral-500">
                 Étape 1 — Découvre les mots
               </p>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {WORDS.map((w) => (
                   <div
                     key={w.id}
-                    className="rounded-2xl border border-neutral-200 bg-white p-4 text-center"
+                    className="rounded-2xl border border-neutral-200 bg-white p-3 sm:p-4 text-center"
                   >
                     <p
                       dir="rtl"
-                      className="font-arabic text-3xl text-neutral-950"
+                      className="font-arabic text-2xl sm:text-3xl text-neutral-950"
                     >
                       {w.ar}
                     </p>
