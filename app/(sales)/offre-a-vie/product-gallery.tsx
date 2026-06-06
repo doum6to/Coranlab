@@ -21,9 +21,11 @@ function Placeholder({ className }: { className?: string }) {
 export function ProductGallery({
   images,
   alt,
+  showThumbnails = true,
 }: {
   images: string[];
   alt: string;
+  showThumbnails?: boolean;
 }) {
   const [index, setIndex] = useState(0);
   const startX = useRef<number | null>(null);
@@ -32,11 +34,13 @@ export function ProductGallery({
     return (
       <div>
         <Placeholder className="aspect-square w-full" />
-        <div className="mt-3 grid grid-cols-4 gap-3">
-          {[0, 1, 2, 3].map((i) => (
-            <Placeholder key={i} className="aspect-square w-full" />
-          ))}
-        </div>
+        {showThumbnails && (
+          <div className="mt-3 grid grid-cols-4 gap-3">
+            {[0, 1, 2, 3].map((i) => (
+              <Placeholder key={i} className="aspect-square w-full" />
+            ))}
+          </div>
+        )}
       </div>
     );
   }
@@ -107,7 +111,7 @@ export function ProductGallery({
         )}
       </div>
 
-      {count > 1 && (
+      {showThumbnails && count > 1 && (
         <div className="mt-3 grid grid-cols-4 gap-3">
           {images.slice(0, 8).map((img, i) => (
             <button

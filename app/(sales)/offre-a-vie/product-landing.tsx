@@ -59,12 +59,12 @@ export function ProductLanding({
               className="h-8 sm:h-9 w-auto"
             />
           </Link>
-          <a
-            href="#offre"
+          <Link
+            href="/auth/login"
             className="rounded-full bg-neutral-950 px-4 py-2 text-xs sm:text-sm font-semibold text-white"
           >
-            Voir l&apos;offre
-          </a>
+            Se connecter
+          </Link>
         </div>
       </header>
 
@@ -72,7 +72,11 @@ export function ProductLanding({
       <section className="mx-auto max-w-[1100px] px-4 sm:px-6 py-6 sm:py-10">
         <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
           {/* gallery */}
-          <ProductGallery images={p.gallery} alt={p.title} />
+          <ProductGallery
+            images={p.gallery}
+            alt={p.title}
+            showThumbnails={p.showThumbnails}
+          />
 
           {/* info / buy box */}
           <div className="lg:py-4">
