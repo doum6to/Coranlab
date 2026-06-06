@@ -13,6 +13,12 @@ export type LandingRow = {
 };
 export type LandingFaq = { q: string; a: string };
 export type LandingReview = { author: string; handle: string; text: string };
+export type LandingValueItem = {
+  badge: string;
+  title: string;
+  description: string;
+  value: string;
+};
 
 export type LandingContent = {
   hero: {
@@ -25,6 +31,13 @@ export type LandingContent = {
   };
   trust: string[];
   rows: LandingRow[];
+  valueStack: {
+    eyebrow: string;
+    heading: string;
+    intro: string;
+    items: LandingValueItem[];
+    totalLabel: string;
+  };
   priceAnchor: { eyebrow: string; heading: string; body: string };
   offer: {
     eyebrow: string;
@@ -44,11 +57,11 @@ const IMG =
 export const LANDING_DEFAULTS: LandingContent = {
   hero: {
     socialProof: "Plus de 1 000 apprenants",
-    titleLead: "La façon ludique d'apprendre le Coran,",
-    titleHighlight: "à vie",
+    titleLead: "Comprends 85% des mots du Coran",
+    titleHighlight: "aujourd'hui",
     subtitle:
-      "Un seul paiement, aucun abonnement. Apprends 85% des mots du Coran et garde ton accès pour toujours.",
-    ctaPrimary: "Obtenir l'accès à vie",
+      "L'ebook de référence + 3 bonus offerts (dont l'accès à vie à l'application). Téléchargement immédiat, paiement unique.",
+    ctaPrimary: "Recevoir l'ebook + les bonus",
     ctaSecondary: "J'ai déjà un compte",
   },
   trust: [
@@ -76,22 +89,59 @@ export const LANDING_DEFAULTS: LandingContent = {
       text: "Séries de jours, points d'XP, ligues et défis : on transforme l'apprentissage en une habitude qu'on a envie de tenir. Cinq minutes par jour suffisent.",
     },
   ],
+  valueStack: {
+    eyebrow: "Ce que tu reçois aujourd'hui",
+    heading: "Tout le pack pour comprendre le Coran",
+    intro:
+      "Un seul paiement, téléchargement immédiat — l'ebook et ses 3 bonus offerts.",
+    items: [
+      {
+        badge: "L'EBOOK",
+        title: "85% des mots du Coran",
+        description:
+          "Les mots les plus fréquents du Coran, classés par fréquence, avec traduction et racines arabes. Comprends l'essentiel du texte en un temps record.",
+        value: "27€",
+      },
+      {
+        badge: "BONUS 1",
+        title: "Accès à vie à l'application (places limitées)",
+        description:
+          "Apprends et révise le vocabulaire par la répétition espacée, sur tous tes appareils, à vie. Réservé aux premiers inscrits.",
+        value: "97€",
+      },
+      {
+        badge: "BONUS 2",
+        title: "Du'as coraniques 🎁",
+        description:
+          "Transforme ta vie avec les Du'as puissantes du Coran. Plus de 240 pages de sagesses divines, disponibles instantanément. Traduction + Tafsir clair selon Ibn Kathir pour une compréhension ancrée.",
+        value: "37€",
+      },
+      {
+        badge: "BONUS 3",
+        title: "Résumé des 30 Juzz du Coran 🎁",
+        description:
+          "Pour t'aider à mieux comprendre la parole d'Allah, à la méditer au quotidien et à la vivre pleinement.",
+        value: "29€",
+      },
+    ],
+    totalLabel: "Valeur totale",
+  },
   priceAnchor: {
     eyebrow: "Fais le calcul",
-    heading: "Un paiement. Pour toujours.",
-    body: "L'abonnement, c'est 14,97€ chaque mois — soit près de 180€ par an. L'offre à vie, c'est un paiement unique, et l'accès est à toi pour toujours, en nombre de places limité.",
+    heading: "Tout ça, aujourd'hui, en un seul paiement",
+    body: "L'ebook seul vaut déjà 27€. Avec les 3 bonus offerts (dont l'accès à vie à l'application), tu reçois un pack à plus de 190€ — pour une fraction du prix, et en nombre de places limité.",
   },
   offer: {
-    eyebrow: "Accès à vie",
-    cycleNote: "Aucun abonnement · Aucun prélèvement récurrent",
+    eyebrow: "L'offre complète",
+    cycleNote: "Paiement unique · Téléchargement immédiat",
     features: [
-      "Toutes les leçons et tous les exercices",
-      "Répétition espacée adaptative",
-      "Mises à jour et nouvelles leçons incluses",
-      "Sur tous tes appareils",
-      "Les documents PDF offerts en bonus",
+      "📖 L'ebook : 85% des mots du Coran",
+      "🎁 Accès à vie à l'application (places limitées)",
+      "🎁 Du'as coraniques — 240+ pages, Tafsir Ibn Kathir",
+      "🎁 Résumé des 30 Juzz du Coran",
+      "Accès et téléchargement immédiats",
     ],
-    buttonLabel: "Obtenir l'accès à vie",
+    buttonLabel: "Tout recevoir maintenant",
     secure: "Paiement sécurisé via Stripe",
   },
   reviews: {

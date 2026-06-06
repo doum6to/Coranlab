@@ -298,6 +298,90 @@ export default async function OffreAViePage() {
       ))}
 
       {/* ═══════════════════════════════════════════════════════════════ */}
+      {/*  VALUE STACK — ebook + bonuses                                  */}
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      <section className="bg-white border-t border-neutral-200/70">
+        <div className="max-w-[820px] mx-auto px-6 sm:px-8 py-16 sm:py-24">
+          <div className="text-center mb-10">
+            <p className="text-[11px] tracking-[0.2em] uppercase text-neutral-500">
+              {content.valueStack.eyebrow}
+            </p>
+            <h2 className="mt-3 font-display font-bold text-3xl sm:text-4xl text-neutral-950">
+              {content.valueStack.heading}
+            </h2>
+            <p className="mt-4 text-base text-neutral-600 max-w-[480px] mx-auto">
+              {content.valueStack.intro}
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {content.valueStack.items.map((item) => {
+              const isBonus = item.badge.toUpperCase().startsWith("BONUS");
+              return (
+                <div
+                  key={item.title}
+                  className="flex items-start gap-4 rounded-2xl border-2 border-neutral-900/10 bg-[#FAF8F3] p-4 sm:p-5"
+                >
+                  <span
+                    className={`shrink-0 rounded-lg px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${
+                      isBonus
+                        ? "bg-[#f6c343] text-neutral-900"
+                        : "bg-[#6967fb] text-white"
+                    }`}
+                  >
+                    {item.badge}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-display font-bold text-neutral-950">
+                      {item.title}
+                    </h3>
+                    <p className="mt-1 text-sm text-neutral-600 leading-relaxed">
+                      {item.description}
+                    </p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    {item.value ? (
+                      <span className="text-sm text-neutral-400 line-through">
+                        {item.value}
+                      </span>
+                    ) : null}
+                    {isBonus && (
+                      <span className="block text-xs font-bold text-[#58cc6a]">
+                        OFFERT
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-8 flex flex-col items-center gap-4 rounded-2xl bg-neutral-950 p-6 text-center text-white">
+            <p className="text-sm text-white/70">
+              {content.valueStack.totalLabel}
+              {COMPARE ? (
+                <>
+                  {" "}
+                  <span className="font-bold text-white/90 line-through">
+                    {COMPARE}
+                  </span>
+                </>
+              ) : null}{" "}
+              · Aujourd&apos;hui{" "}
+              <span className="font-display text-xl font-bold text-white">
+                {PRICE}
+              </span>
+            </p>
+            <BuyButton
+              className="w-full max-w-[320px]"
+              label={content.offer.buttonLabel}
+              priceValue={priceValue}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════ */}
       {/*  INTERACTIVE DEMO                                               */}
       {/* ═══════════════════════════════════════════════════════════════ */}
       <DemoExercise />
