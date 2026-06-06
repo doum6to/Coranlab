@@ -214,13 +214,6 @@ export default async function OffreAViePage() {
                   >
                     {content.hero.ctaSecondary}
                   </Link>
-                  <SpotsProgress
-                    tone="light"
-                    joined={spotsJoined}
-                    total={spotsTotal}
-                    priceLabel={PRICE}
-                    compareLabel={COMPARE ?? undefined}
-                  />
                 </div>
                 <p className="mt-4 text-xs text-neutral-500">
                   Paiement unique · Accès immédiat · Sécurisé par Stripe
