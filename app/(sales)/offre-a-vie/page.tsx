@@ -13,6 +13,7 @@ import { BuyButton } from "./buy-button";
 import { Faq } from "./faq";
 import { LandingReviews } from "./reviews";
 import { DemoExercise } from "./demo-exercise";
+import { StorySection } from "./story-section";
 import { SpotsProgress } from "./spots";
 import { StickySpotsBar } from "./sticky-spots-bar";
 import { ArrowDoodle, Loops, Sparkle, Star } from "./doodles";
@@ -242,6 +243,11 @@ export default async function OffreAViePage() {
           </div>
         </div>
       </section>
+
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      {/*  STORY — long-form sales copy                                   */}
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      <StorySection />
 
       {/* ═══════════════════════════════════════════════════════════════ */}
       {/*  ALTERNATING FEATURE ROWS (Duolingo-style)                      */}
