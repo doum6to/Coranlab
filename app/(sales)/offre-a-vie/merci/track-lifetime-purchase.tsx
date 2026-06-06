@@ -2,19 +2,21 @@
 
 import { useEffect, useRef } from "react";
 
-import { ttqTrack } from "@/lib/analytics/tiktok";
+import { ttqIdentify, ttqTrack } from "@/lib/analytics/tiktok";
 
 /**
- * Fires the TikTok `CompletePayment` event once per /offre-a-vie/merci visit
- * (47€ lifetime app access). De-duplicated by a ref + sessionStorage key so
- * refreshes / bfcache don't double-count the conversion.
+ * Fires the TikTok `CompletePayment` conversion once per visit to the
+ * thank-you page (deduped via ref + sessionStorage), with advanced matching
+ * on the buyer's email for better attribution.
  */
 export function TrackLifetimePurchase({
   sessionId,
   value = 14.97,
+  email,
 }: {
   sessionId?: string;
   value?: number;
+  email?: string | null;
 }) {
   const fired = useRef(false);
 
@@ -30,6 +32,7 @@ export function TrackLifetimePurchase({
       /* ignore — still fire */
     }
 
+    ttqIdentify(email);
     ttqTrack("CompletePayment", {
       value,
       currency: "EUR",
@@ -37,7 +40,7 @@ export function TrackLifetimePurchase({
       content_name: "Quranlab — Accès à vie",
       content_category: "app",
     });
-  }, [sessionId, value]);
+  }, [sessionId, value, email]);
 
   return null;
 }

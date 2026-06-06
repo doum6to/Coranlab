@@ -44,6 +44,7 @@ declare global {
     ttq?: {
       track: (event: string, props?: Record<string, unknown>) => void;
       page: () => void;
+      identify?: (info: Record<string, unknown>) => void;
     };
   }
 }
@@ -60,6 +61,35 @@ function debug(...args: unknown[]) {
   } catch {
     /* ignore */
   }
+}
+
+/**
+ * Advanced matching — passes the buyer's email so TikTok can attribute the
+ * conversion to the right user. The pixel hashes it client-side. Call this
+ * before firing the conversion event (e.g. on the thank-you page).
+ */
+export function ttqIdentify(email?: string | null) {
+  if (typeof window === "undefined" || !email) return;
+
+  const start = Date.now();
+  const fire = () => {
+    const ttq = window.ttq;
+    if (ttq && typeof ttq.identify === "function") {
+      try {
+        ttq.identify({ email });
+        debug("identify", email);
+      } catch (e) {
+        debug("identify error", e);
+      }
+      return true;
+    }
+    return false;
+  };
+
+  if (fire()) return;
+  const interval = setInterval(() => {
+    if (fire() || Date.now() - start > MAX_RETRY_MS) clearInterval(interval);
+  }, RETRY_INTERVAL_MS);
 }
 
 export function ttqTrack(event: TikTokEvent, props?: TikTokProps) {
