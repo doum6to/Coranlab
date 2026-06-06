@@ -15,7 +15,7 @@ import { LandingReviews } from "./reviews";
 import { DemoExercise } from "./demo-exercise";
 import { SpotsProgress } from "./spots";
 import { StickySpotsBar } from "./sticky-spots-bar";
-import { ArrowDoodle, Loops, Sparkle, Squiggle, Star } from "./doodles";
+import { ArrowDoodle, Loops, Sparkle, Star } from "./doodles";
 import { getOfferSettings, formatEuros } from "@/lib/offer";
 import { getLandingContent } from "@/lib/landing-content";
 
@@ -125,10 +125,67 @@ export default async function OffreAViePage() {
               </a>
             </div>
 
-            {/* hero grid */}
-            <div className="mt-10 sm:mt-14 grid items-center gap-8 lg:gap-4 lg:grid-cols-2 max-w-[1080px] mx-auto">
-              {/* mascot */}
-              <div className="relative order-1 lg:order-none flex justify-center">
+            {/* hero — centered column: title, subtitle, illustration, CTAs */}
+            <div className="relative mt-10 sm:mt-14 flex flex-col items-center text-center max-w-[680px] mx-auto">
+              {/* social proof */}
+              <div className="inline-flex items-center gap-3 rounded-full border border-neutral-200 bg-white px-3 py-1.5 shadow-sm">
+                <div className="flex -space-x-2">
+                  {avatars.map((src, i) => (
+                    <span
+                      key={src}
+                      className="inline-flex h-6 w-6 items-center justify-center overflow-hidden rounded-full ring-2 ring-white"
+                      style={{
+                        backgroundColor: [
+                          "#46c4f2",
+                          "#6967fb",
+                          "#f6923a",
+                          "#f6c343",
+                        ][i],
+                      }}
+                    >
+                      <Image
+                        src={src}
+                        alt=""
+                        width={24}
+                        height={24}
+                        className="h-5 w-5 object-contain"
+                      />
+                    </span>
+                  ))}
+                </div>
+                <span className="text-xs font-medium text-neutral-600">
+                  {content.hero.socialProof}
+                </span>
+              </div>
+
+              {/* title */}
+              <h1 className="mt-6 font-display font-bold text-[40px] sm:text-[56px] lg:text-[60px] leading-[0.98] tracking-tight text-neutral-950">
+                {content.hero.titleLead}{" "}
+                <span className="relative inline-block text-[#6967fb]">
+                  {content.hero.titleHighlight}
+                  <svg
+                    viewBox="0 0 200 16"
+                    className="absolute -bottom-1.5 left-0 w-full"
+                    fill="none"
+                    aria-hidden
+                  >
+                    <path
+                      d="M4 11C50 4 150 4 196 9"
+                      stroke="#6967fb"
+                      strokeWidth="4"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </span>
+              </h1>
+
+              {/* subtitle */}
+              <p className="mt-6 text-base sm:text-lg text-neutral-600 leading-relaxed max-w-[460px] mx-auto">
+                {content.hero.subtitle}
+              </p>
+
+              {/* illustration */}
+              <div className="relative mt-10 flex justify-center">
                 <div className="relative">
                   <div
                     aria-hidden
@@ -141,84 +198,27 @@ export default async function OffreAViePage() {
                   <LandingMascot
                     src="/animations/eyes_down.riv"
                     animationName="eyes down"
-                    className="relative w-[240px] h-[240px] sm:w-[300px] sm:h-[300px]"
+                    className="relative w-[220px] h-[220px] sm:w-[280px] sm:h-[280px]"
                   />
                 </div>
               </div>
 
-              {/* copy + CTA */}
-              <div className="relative text-center lg:text-left">
-                <Squiggle className="absolute -top-6 right-6 h-5 w-16 text-[#46c4f2] hidden lg:block" />
-                <div className="inline-flex items-center gap-3 rounded-full border border-neutral-200 bg-white px-3 py-1.5 shadow-sm">
-                  <div className="flex -space-x-2">
-                    {avatars.map((src, i) => (
-                      <span
-                        key={src}
-                        className="inline-flex h-6 w-6 items-center justify-center overflow-hidden rounded-full ring-2 ring-white"
-                        style={{
-                          backgroundColor: [
-                            "#46c4f2",
-                            "#6967fb",
-                            "#f6923a",
-                            "#f6c343",
-                          ][i],
-                        }}
-                      >
-                        <Image
-                          src={src}
-                          alt=""
-                          width={24}
-                          height={24}
-                          className="h-5 w-5 object-contain"
-                        />
-                      </span>
-                    ))}
-                  </div>
-                  <span className="text-xs font-medium text-neutral-600">
-                    {content.hero.socialProof}
-                  </span>
-                </div>
-
-                <h1 className="mt-6 font-display font-bold text-[40px] sm:text-[56px] lg:text-[60px] leading-[0.98] tracking-tight text-neutral-950">
-                  {content.hero.titleLead}{" "}
-                  <span className="relative inline-block text-[#6967fb]">
-                    {content.hero.titleHighlight}
-                    <svg
-                      viewBox="0 0 200 16"
-                      className="absolute -bottom-1.5 left-0 w-full"
-                      fill="none"
-                      aria-hidden
-                    >
-                      <path
-                        d="M4 11C50 4 150 4 196 9"
-                        stroke="#6967fb"
-                        strokeWidth="4"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                  </span>
-                </h1>
-
-                <p className="mt-6 text-base sm:text-lg text-neutral-600 leading-relaxed max-w-[460px] mx-auto lg:mx-0">
-                  {content.hero.subtitle}
-                </p>
-
-                <div className="mt-8 flex flex-col gap-3 max-w-[360px] mx-auto lg:mx-0">
-                  <BuyButton
-                    priceValue={priceValue}
-                    label={content.hero.ctaPrimary}
-                  />
-                  <Link
-                    href="/auth/login"
-                    className="inline-flex w-full items-center justify-center rounded-2xl border-2 border-b-4 border-neutral-300 bg-white px-8 py-4 font-display text-base font-bold uppercase tracking-wide text-[#6967fb] transition-all hover:bg-neutral-50 active:translate-y-1 active:border-b-2"
-                  >
-                    {content.hero.ctaSecondary}
-                  </Link>
-                </div>
-                <p className="mt-4 text-xs text-neutral-500">
-                  Paiement unique · Accès immédiat · Sécurisé par Stripe
-                </p>
+              {/* CTAs */}
+              <div className="mt-10 flex w-full flex-col gap-3 max-w-[360px] mx-auto">
+                <BuyButton
+                  priceValue={priceValue}
+                  label={content.hero.ctaPrimary}
+                />
+                <Link
+                  href="/auth/login"
+                  className="inline-flex w-full items-center justify-center rounded-2xl border-2 border-b-4 border-neutral-300 bg-white px-8 py-4 font-display text-base font-bold uppercase tracking-wide text-[#6967fb] transition-all hover:bg-neutral-50 active:translate-y-1 active:border-b-2"
+                >
+                  {content.hero.ctaSecondary}
+                </Link>
               </div>
+              <p className="mt-4 text-xs text-neutral-500">
+                Paiement unique · Accès immédiat · Sécurisé par Stripe
+              </p>
             </div>
           </div>
         </div>
