@@ -135,6 +135,7 @@ const AdminPremiumPage = async () => {
                     compareEuros: (offer.compareAtCents / 100).toFixed(2),
                     spotsJoined: offer.spotsJoined,
                     spotsTotal: offer.spotsTotal,
+                    variant: offer.variant,
                   }}
                 />
               ),

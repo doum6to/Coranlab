@@ -14,6 +14,7 @@ import { Faq } from "./faq";
 import { LandingReviews } from "./reviews";
 import { DemoExercise } from "./demo-exercise";
 import { StorySection } from "./story-section";
+import { LetterLanding } from "./letter-landing";
 import { SpotsProgress } from "./spots";
 import { StickySpotsBar } from "./sticky-spots-bar";
 import { ArrowDoodle, Loops, Sparkle, Star } from "./doodles";
@@ -70,9 +71,18 @@ export const metadata: Metadata = {
 const avatars = ["/woman.svg", "/man.svg", "/girl.svg", "/boy.svg"];
 
 export default async function OffreAViePage() {
-  const [{ priceCents, compareAtCents, spotsJoined, spotsTotal }, content] =
-    await Promise.all([getOfferSettings(), getLandingContent()]);
+  const [offer, content] = await Promise.all([
+    getOfferSettings(),
+    getLandingContent(),
+  ]);
 
+  // Variant switch: the "letter" version is a separate layout; the classic
+  // version below stays available (reusable draft) whenever it's selected.
+  if (offer.variant === "letter") {
+    return <LetterLanding content={content} offer={offer} />;
+  }
+
+  const { priceCents, compareAtCents, spotsJoined, spotsTotal } = offer;
   const PRICE = formatEuros(priceCents);
   const COMPARE =
     compareAtCents > priceCents ? formatEuros(compareAtCents) : null;

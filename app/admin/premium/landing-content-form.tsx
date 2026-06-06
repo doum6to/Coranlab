@@ -151,6 +151,7 @@ const TABS = [
   ["reviews", "Avis"],
   ["faq", "FAQ"],
   ["final", "CTA final"],
+  ["letter", "Lettre (V2)"],
 ] as const;
 type TabKey = (typeof TABS)[number][0];
 
@@ -171,6 +172,9 @@ export function LandingContentForm({ initial }: { initial: LandingContent }) {
   const setTrust = (trust: string[]) => setC((p) => ({ ...p, trust }));
   const story = c.story;
   const setStory = (v: Partial<LandingContent["story"]>) => patch("story", v);
+  const letter = c.letter;
+  const setLetter = (v: Partial<LandingContent["letter"]>) =>
+    patch("letter", v);
 
   const onSave = () => {
     setMsg(null);
@@ -974,6 +978,152 @@ export function LandingContentForm({ initial }: { initial: LandingContent }) {
             label="Sous-titre"
             value={c.finalCta.subtitle}
             onChange={(v) => patch("finalCta", { subtitle: v })}
+          />
+        </Section>
+        )}
+
+        {/* LETTER (V2) */}
+        {tab === "letter" && (
+        <Section title="Lettre (version 2) — active via « Offre & prix »">
+          <Field
+            label="Salutation"
+            value={letter.greeting}
+            onChange={(v) => setLetter({ greeting: v })}
+          />
+          <Field
+            label="Intro (paragraphes séparés par une ligne vide)"
+            area
+            value={letter.intro}
+            onChange={(v) => setLetter({ intro: v })}
+          />
+          <Field
+            label="Phrase « méthode »"
+            value={letter.methodLine}
+            onChange={(v) => setLetter({ methodLine: v })}
+          />
+          <ImageField
+            label="Image 1"
+            value={letter.image1}
+            onChange={(v) => setLetter({ image1: v })}
+          />
+          <Field
+            label="Bloc « ce que j'ai compris » — titre"
+            value={letter.insightHeading}
+            onChange={(v) => setLetter({ insightHeading: v })}
+          />
+          <Field
+            label="Bloc « ce que j'ai compris » — texte"
+            area
+            value={letter.insightBody}
+            onChange={(v) => setLetter({ insightBody: v })}
+          />
+          <ImageField
+            label="Image 2"
+            value={letter.image2}
+            onChange={(v) => setLetter({ image2: v })}
+          />
+          <Field
+            label="Bloc « comment ça se passe » — titre"
+            value={letter.howHeading}
+            onChange={(v) => setLetter({ howHeading: v })}
+          />
+          <Field
+            label="Bloc « comment ça se passe » — texte"
+            area
+            value={letter.howBody}
+            onChange={(v) => setLetter({ howBody: v })}
+          />
+          <Field
+            label="Bonus — titre de section"
+            value={letter.bonusesHeading}
+            onChange={(v) => setLetter({ bonusesHeading: v })}
+          />
+          <ImageField
+            label="Image des 3 livres (bundle)"
+            value={letter.bonusesImage}
+            onChange={(v) => setLetter({ bonusesImage: v })}
+          />
+          {letter.bonuses.map((b, i) => (
+            <div
+              key={i}
+              className="space-y-2 rounded-xl border border-neutral-200 bg-white p-3"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-neutral-500">
+                  Bonus {i + 1}
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setLetter({
+                      bonuses: letter.bonuses.filter((_, j) => j !== i),
+                    })
+                  }
+                  className="text-xs font-semibold text-rose-500 hover:underline"
+                >
+                  Supprimer
+                </button>
+              </div>
+              <Field
+                label="Titre"
+                value={b.title}
+                onChange={(v) =>
+                  setLetter({
+                    bonuses: letter.bonuses.map((x, j) =>
+                      j === i ? { ...x, title: v } : x,
+                    ),
+                  })
+                }
+              />
+              <ImageField
+                label="Image"
+                value={b.image}
+                onChange={(v) =>
+                  setLetter({
+                    bonuses: letter.bonuses.map((x, j) =>
+                      j === i ? { ...x, image: v } : x,
+                    ),
+                  })
+                }
+              />
+              <Field
+                label="Description"
+                area
+                value={b.description}
+                onChange={(v) =>
+                  setLetter({
+                    bonuses: letter.bonuses.map((x, j) =>
+                      j === i ? { ...x, description: v } : x,
+                    ),
+                  })
+                }
+              />
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() =>
+              setLetter({
+                bonuses: [
+                  ...letter.bonuses,
+                  { title: "", image: "", description: "" },
+                ],
+              })
+            }
+            className="text-xs font-semibold text-brilliant-green hover:underline"
+          >
+            + Ajouter un bonus
+          </button>
+          <Field
+            label="Conclusion"
+            area
+            value={letter.closing}
+            onChange={(v) => setLetter({ closing: v })}
+          />
+          <Field
+            label="Bouton final (CTA)"
+            value={letter.ctaLabel}
+            onChange={(v) => setLetter({ ctaLabel: v })}
           />
         </Section>
         )}
