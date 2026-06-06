@@ -1,14 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Flame } from "lucide-react";
+import { Clock, Flame } from "lucide-react";
 
 const fmt = (n: number) => n.toLocaleString("fr-FR");
+const pad = (n: number) => String(n).padStart(2, "0");
+const fmtTime = (s: number) =>
+  `${pad(Math.floor(s / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(
+    s % 60,
+  )}`;
 
 /**
- * Premium floating bar pinned to the bottom of the viewport. Shows the
- * scarcity counter + a CTA to the pricing section, and hides itself while
- * the pricing section (#offre) is on screen (no point nudging there).
+ * Premium floating bar pinned to the bottom: scarcity counter, price, a
+ * looping 24h countdown and a CTA to the pricing section. Hides itself while
+ * the pricing section (#offre) is on screen.
  */
 export function StickySpotsBar({
   joined,
@@ -24,9 +29,10 @@ export function StickySpotsBar({
   ctaLabel?: string;
 }) {
   const [hidden, setHidden] = useState(false);
-  const pct = total > 0 ? Math.min(100, Math.round((joined / total) * 100)) : 0;
+  const [remaining, setRemaining] = useState<number | null>(null);
   const left = Math.max(0, total - joined);
 
+  // Hide while the offer section is visible.
   useEffect(() => {
     const el = document.getElementById("offre");
     if (!el) return;
@@ -38,6 +44,15 @@ export function StickySpotsBar({
     return () => obs.disconnect();
   }, []);
 
+  // Looping 24h countdown (resets every day at UTC midnight).
+  useEffect(() => {
+    const tick = () =>
+      setRemaining(86400 - (Math.floor(Date.now() / 1000) % 86400));
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
+
   return (
     <div
       className={`fixed inset-x-0 bottom-0 z-50 px-3 pb-3 sm:px-4 sm:pb-4 transition-all duration-300 ${
@@ -46,42 +61,34 @@ export function StickySpotsBar({
           : "translate-y-0 opacity-100"
       }`}
     >
-      <div className="mx-auto flex max-w-[1000px] items-center gap-3 rounded-2xl border border-white/10 bg-neutral-950/95 px-4 py-3 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.6)] backdrop-blur sm:gap-5 sm:px-6 sm:py-4">
+      <div className="mx-auto flex max-w-[1000px] items-center gap-3 rounded-2xl border border-white/10 bg-neutral-950/95 px-3 py-2.5 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.6)] backdrop-blur sm:gap-5 sm:px-6 sm:py-4">
         <span className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#6967fb] text-white sm:flex">
           <Flame className="h-5 w-5" strokeWidth={2.2} />
         </span>
 
         <div className="min-w-0 flex-1">
-          <p className="font-display text-sm font-bold text-white sm:text-base">
-            Offre limitée — plus que {fmt(left)} places à vie
+          <p className="truncate text-[13px] font-bold text-white sm:text-base">
+            Offre limitée — plus que {fmt(left)} places
           </p>
-          <div className="mt-1.5 flex items-center gap-2">
-            <div className="h-1.5 w-full max-w-[240px] overflow-hidden rounded-full bg-white/15">
-              <div
-                className="h-full rounded-full bg-[#a6a5ff]"
-                style={{ width: `${pct}%` }}
-              />
-            </div>
-            <span className="whitespace-nowrap text-[11px] font-medium text-white/60">
-              {fmt(joined)}/{fmt(total)}
+          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span className="inline-flex items-center gap-1 rounded-md bg-white/10 px-2 py-0.5 text-[12px] font-bold tabular-nums text-white">
+              <Clock className="h-3.5 w-3.5" strokeWidth={2} />
+              {fmtTime(remaining ?? 86400)}
+            </span>
+            <span className="text-[13px] font-bold text-white sm:text-sm">
+              {priceLabel}
+              {compareLabel ? (
+                <span className="ml-1.5 font-medium text-white/40 line-through">
+                  {compareLabel}
+                </span>
+              ) : null}
             </span>
           </div>
         </div>
 
-        <div className="hidden text-right sm:block">
-          <p className="font-display text-lg font-bold leading-none text-white">
-            {priceLabel}
-          </p>
-          {compareLabel ? (
-            <p className="text-[11px] text-white/40 line-through">
-              {compareLabel}
-            </p>
-          ) : null}
-        </div>
-
         <a
           href="#offre"
-          className="shrink-0 rounded-xl border-b-4 border-[#4a48c4] bg-[#6967fb] px-5 py-3 font-display text-sm font-bold uppercase tracking-wide text-white transition-all hover:brightness-[1.05] active:translate-y-1 active:border-b-0"
+          className="shrink-0 rounded-xl border-b-4 border-[#4a48c4] bg-[#6967fb] px-4 py-2.5 text-center font-display text-xs font-bold uppercase tracking-wide text-white transition-all hover:brightness-[1.05] active:translate-y-1 active:border-b-0 sm:px-5 sm:py-3 sm:text-sm"
         >
           {ctaLabel}
         </a>
