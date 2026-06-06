@@ -15,6 +15,7 @@ import { LandingReviews } from "./reviews";
 import { DemoExercise } from "./demo-exercise";
 import { StorySection } from "./story-section";
 import { LetterLanding } from "./letter-landing";
+import { ProductLanding } from "./product-landing";
 import { SpotsProgress } from "./spots";
 import { StickySpotsBar } from "./sticky-spots-bar";
 import { ArrowDoodle, Loops, Sparkle, Star } from "./doodles";
@@ -80,6 +81,9 @@ export default async function OffreAViePage() {
   // version below stays available (reusable draft) whenever it's selected.
   if (offer.variant === "letter") {
     return <LetterLanding content={content} offer={offer} />;
+  }
+  if (offer.variant === "product") {
+    return <ProductLanding content={content} offer={offer} />;
   }
 
   const { priceCents, compareAtCents, spotsJoined, spotsTotal } = offer;

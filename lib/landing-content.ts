@@ -24,6 +24,30 @@ export type LandingStep = { label: string; title: string; text: string };
 export type LandingStat = { k: string; v: string };
 export type LetterBonus = { title: string; image: string; description: string };
 
+export type ProductFeature = { image: string; title: string; text: string };
+
+export type LandingProduct = {
+  gallery: string[];
+  rating: string;
+  title: string;
+  subtitle: string;
+  bullets: string[];
+  guarantee: string;
+  benefitsHeading: string;
+  benefits: LandingPair[];
+  insideHeading: string;
+  insideItems: ProductFeature[];
+  howHeading: string;
+  steps: LandingPair[];
+  compareHeading: string;
+  compareUs: string;
+  compareThem: string;
+  compareRows: string[];
+  founderHeading: string;
+  founderText: string;
+  founderImage: string;
+};
+
 export type LandingLetter = {
   greeting: string;
   intro: string;
@@ -97,6 +121,7 @@ export type LandingContent = {
   finalCta: { heading: string; subtitle: string };
   story: LandingStory;
   letter: LandingLetter;
+  product: LandingProduct;
 };
 
 const IMG =
@@ -342,6 +367,87 @@ export const LANDING_DEFAULTS: LandingContent = {
     closing:
       "Et si tu hésites encore… dis-toi une chose : le Coran ne changera pas. Mais ta manière de le lire, elle, peut changer. Dès maintenant.",
     ctaLabel: "Rejoindre le programme",
+  },
+  product: {
+    gallery: [],
+    rating: "4,9/5 · plus de 1 000 apprenants",
+    title: "Comprendre 85% du Coran",
+    subtitle:
+      "L'ebook de référence + 3 bonus offerts (dont l'accès à vie à l'application). Téléchargement immédiat, paiement unique.",
+    bullets: [
+      "Les ~300 mots qui forment 85% du Coran",
+      "Traduction + racines, classés par fréquence",
+      "Accès à vie à l'application en bonus",
+      "Téléchargement immédiat",
+    ],
+    guarantee: "Paiement unique · Accès immédiat · Sécurisé par Stripe",
+    benefitsHeading: "Pourquoi ça marche",
+    benefits: [
+      {
+        title: "L'essentiel d'abord",
+        text: "Tu apprends les mots les plus fréquents — un maximum de compréhension pour un minimum d'effort.",
+      },
+      {
+        title: "Sans grammaire écrasante",
+        text: "Les mots dans leur contexte coranique, naturellement, comme on apprend une langue.",
+      },
+      {
+        title: "5 minutes par jour",
+        text: "Un rythme tenable, pensé pour les actifs, étudiants et parents débordés.",
+      },
+    ],
+    insideHeading: "Ce que tu reçois",
+    insideItems: [
+      {
+        image: "",
+        title: "📖 L'ebook — 85% des mots du Coran",
+        text: "Les mots les plus fréquents, classés, avec traduction et racines.",
+      },
+      {
+        image: "",
+        title: "🎁 Accès à vie à l'application",
+        text: "Apprends et révise par la répétition espacée, à vie. Places limitées.",
+      },
+      {
+        image: "",
+        title: "🎁 Du'as coraniques",
+        text: "240+ pages, traduction + Tafsir Ibn Kathir.",
+      },
+      {
+        image: "",
+        title: "🎁 Résumé des 30 Juzz",
+        text: "Pour méditer et vivre la parole d'Allah au quotidien.",
+      },
+    ],
+    howHeading: "Comment ça se passe",
+    steps: [
+      {
+        title: "1. Reçois l'accès",
+        text: "Paiement unique, puis téléchargement immédiat de l'ebook et des bonus.",
+      },
+      {
+        title: "2. Apprends l'essentiel",
+        text: "10 mots par jour, en contexte. L'application t'aide à réviser.",
+      },
+      {
+        title: "3. Comprends le Coran",
+        text: "En quelques semaines, le sens apparaît — en prière comme en lecture.",
+      },
+    ],
+    compareHeading: "Pourquoi pas un cours classique ?",
+    compareUs: "Cet ebook",
+    compareThem: "Cours d'arabe classique",
+    compareRows: [
+      "Centré sur le vocabulaire du Coran",
+      "Résultats en quelques semaines",
+      "Sans grammaire interminable",
+      "Accès à vie à l'application inclus",
+      "Une fraction du prix",
+    ],
+    founderHeading: "Pourquoi j'ai créé ceci",
+    founderText:
+      "Comme beaucoup, je récitais sans comprendre. Je ne voulais pas devenir linguiste — juste comprendre le Livre que je lis chaque jour. Cette méthode est celle que j'aurais aimé avoir.",
+    founderImage: "",
   },
 };
 

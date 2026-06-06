@@ -32,6 +32,7 @@ export async function updateLandingContent(content: LandingContent) {
     finalCta: content.finalCta ?? LANDING_DEFAULTS.finalCta,
     story: content.story ?? LANDING_DEFAULTS.story,
     letter: content.letter ?? LANDING_DEFAULTS.letter,
+    product: content.product ?? LANDING_DEFAULTS.product,
   };
 
   try {
