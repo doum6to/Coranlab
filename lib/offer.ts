@@ -5,6 +5,8 @@ import { inArray } from "drizzle-orm";
 import db from "@/db/drizzle";
 import { appSetting } from "@/db/schema";
 
+export type LandingVariant = "classic" | "letter";
+
 export type OfferSettings = {
   /** Lifetime price charged at checkout, in cents. */
   priceCents: number;
@@ -14,6 +16,8 @@ export type OfferSettings = {
   spotsJoined: number;
   /** "Y" in the X/Y scarcity counter. */
   spotsTotal: number;
+  /** Which landing layout is live at /offre-a-vie. */
+  variant: LandingVariant;
 };
 
 export const OFFER_DEFAULTS: OfferSettings = {
@@ -21,6 +25,7 @@ export const OFFER_DEFAULTS: OfferSettings = {
   compareAtCents: 9900,
   spotsJoined: 1902,
   spotsTotal: 2000,
+  variant: "classic",
 };
 
 const KEYS = {
@@ -28,6 +33,7 @@ const KEYS = {
   compare: "offer_compare_cents",
   joined: "offer_spots_joined",
   total: "offer_spots_total",
+  variant: "landing_variant",
 } as const;
 
 const toInt = (v: string | undefined, fallback: number) => {
@@ -53,6 +59,7 @@ export const getOfferSettings = cache(async (): Promise<OfferSettings> => {
           KEYS.compare,
           KEYS.joined,
           KEYS.total,
+          KEYS.variant,
         ]),
       );
     const map = new Map(rows.map((r) => [r.key, r.value]));
@@ -64,6 +71,7 @@ export const getOfferSettings = cache(async (): Promise<OfferSettings> => {
       ),
       spotsJoined: toInt(map.get(KEYS.joined), OFFER_DEFAULTS.spotsJoined),
       spotsTotal: toInt(map.get(KEYS.total), OFFER_DEFAULTS.spotsTotal),
+      variant: map.get(KEYS.variant) === "letter" ? "letter" : "classic",
     };
   } catch (e) {
     console.error("[offer] getOfferSettings failed, using defaults:", e);

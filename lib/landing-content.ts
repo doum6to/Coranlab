@@ -22,6 +22,24 @@ export type LandingValueItem = {
 export type LandingPair = { title: string; text: string };
 export type LandingStep = { label: string; title: string; text: string };
 export type LandingStat = { k: string; v: string };
+export type LetterBonus = { title: string; image: string; description: string };
+
+export type LandingLetter = {
+  greeting: string;
+  intro: string;
+  methodLine: string;
+  image1: string;
+  insightHeading: string;
+  insightBody: string;
+  image2: string;
+  howHeading: string;
+  howBody: string;
+  bonusesHeading: string;
+  bonusesImage: string;
+  bonuses: LetterBonus[];
+  closing: string;
+  ctaLabel: string;
+};
 
 export type LandingStory = {
   hookHeading: string;
@@ -78,6 +96,7 @@ export type LandingContent = {
   faq: { eyebrow: string; heading: string; items: LandingFaq[] };
   finalCta: { heading: string; subtitle: string };
   story: LandingStory;
+  letter: LandingLetter;
 };
 
 const IMG =
@@ -283,6 +302,46 @@ export const LANDING_DEFAULTS: LandingContent = {
       "Un cours complet d'arabe coûte 300€ à 500€ et dure 2 à 3 ans. Les cours particuliers, 30€ à 50€ de l'heure. « Débloque 85% du vocabulaire coranique » vise de meilleurs résultats, pour une fraction du temps et du coût.",
     ctaLabel: "Je veux découvrir ces 300 mots essentiels",
     ctaSub: "Et vivre enfin le Coran avec compréhension",
+  },
+  letter: {
+    greeting: "As Salam Alaykum !",
+    intro:
+      "Je vais être honnête avec toi.\n\nPendant longtemps, j'ouvrais le Coran… Je récitais. Je connaissais les sourates. Mais je ne comprenais pas vraiment ce que je disais.\n\nEt à chaque fois, je me disais : « Un jour, j'apprendrai l'arabe correctement. » Ce jour mettait toujours du temps à venir.\n\nSi tu te reconnais là-dedans, alors lis bien ce qui suit.\n\nCe programme est né d'une frustration : celle de dépendre constamment d'une traduction, d'une note en bas de page, d'un cours trop compliqué… ou trop éloigné du Coran.\n\nJe ne voulais pas devenir linguiste. Je voulais comprendre le Livre que je récite tous les jours.",
+    methodLine:
+      "Et c'est possible avec la méthodologie de Médine, adaptée pour toi :",
+    image1: "",
+    insightHeading: "Ce que j'ai compris, avec le temps",
+    insightBody:
+      "On n'a pas besoin de tout l'arabe pour comprendre le Coran. On a besoin de l'essentiel.\n\nLes mêmes mots reviennent. Les mêmes structures aussi. Quand tu les reconnais, le sens apparaît. Naturellement.\n\nC'est exactement ce que cette méthode t'enseigne.",
+    image2: "",
+    howHeading: "Comment ça se passe, concrètement",
+    howBody:
+      "Tu avances doucement, sans pression. 15 à 30 minutes par jour. Un peu de vocabulaire. Un peu de grammaire — seulement ce qui sert vraiment.\n\nJour après jour, tu réalises quelque chose d'étrange :\n👉 tu comprends sans traduire\n👉 tu anticipes le sens\n👉 tu n'es plus perdu(e) dans les versets\n\nEt la prière… c'est là que tout change. Quand tu sais ce que tu dis, quand tu comprends ce que tu récites, la prière n'est plus un automatisme. Elle devient une conversation.\n\nEn 30 jours, tu ne deviendras pas arabophone. Mais tu feras quelque chose de bien plus précieux :\n✔️ Tu liras le Coran avec sérénité\n✔️ Tu comprendras l'essentiel du message\n✔️ Tu te sentiras enfin proche du sens, pas juste des mots\n\nCe programme est pour toi si tu veux comprendre (pas impressionner), avancer sans te noyer dans la théorie, et te rapprocher du Coran, simplement. Il n'est pas pour tout le monde — et c'est volontaire.",
+    bonusesHeading: "Et en plus, 3 bonus offerts 🎁 (offre à durée limitée)",
+    bonusesImage: "",
+    bonuses: [
+      {
+        title: "Bonus 01 — Du'as coraniques 🎁",
+        image: "",
+        description:
+          "Transforme ta vie avec les Du'as puissantes du Coran. Plus de 240 pages de sagesses divines, disponibles instantanément. Traduction + Tafsir clair selon Ibn Kathir pour une compréhension ancrée.",
+      },
+      {
+        title: "Bonus 02 — Résumé des 30 Juzz du Coran 🎁",
+        image: "",
+        description:
+          "Pour t'aider à mieux comprendre la parole d'Allah, à la méditer au quotidien et à la vivre pleinement.",
+      },
+      {
+        title: "Bonus 03 — Application à vie 🎁",
+        image: "",
+        description:
+          "Apprends et révise le vocabulaire par la répétition espacée, sur tous tes appareils, à vie. Places limitées.",
+      },
+    ],
+    closing:
+      "Et si tu hésites encore… dis-toi une chose : le Coran ne changera pas. Mais ta manière de le lire, elle, peut changer. Dès maintenant.",
+    ctaLabel: "Rejoindre le programme",
   },
 };
 

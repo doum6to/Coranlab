@@ -14,6 +14,7 @@ export function OfferSettingsForm({
     compareEuros: string;
     spotsJoined: number;
     spotsTotal: number;
+    variant: "classic" | "letter";
   };
 }) {
   const router = useRouter();
@@ -21,6 +22,9 @@ export function OfferSettingsForm({
   const [compareEuros, setCompareEuros] = useState(initial.compareEuros);
   const [spotsJoined, setSpotsJoined] = useState(String(initial.spotsJoined));
   const [spotsTotal, setSpotsTotal] = useState(String(initial.spotsTotal));
+  const [variant, setVariant] = useState<"classic" | "letter">(
+    initial.variant,
+  );
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -54,6 +58,7 @@ export function OfferSettingsForm({
         compareAtCents,
         spotsJoined: joined,
         spotsTotal: total,
+        variant,
       });
       if (res?.error) {
         setMsg({ ok: false, text: res.error });
@@ -123,6 +128,34 @@ export function OfferSettingsForm({
             className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brilliant-green focus:ring-2 focus:ring-brilliant-green/20"
           />
         </label>
+      </div>
+
+      <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+        <span className="mb-2 block text-xs font-semibold uppercase tracking-wide text-neutral-500">
+          Version de la landing en ligne
+        </span>
+        <div className="flex flex-wrap gap-2">
+          {([
+            ["classic", "Classique (V1)"],
+            ["letter", "Lettre (V2)"],
+          ] as const).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setVariant(key)}
+              className={`rounded-xl px-4 py-2 text-sm font-bold transition ${
+                variant === key
+                  ? "bg-[#6967fb] text-white"
+                  : "border border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-100"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <p className="mt-2 text-xs text-neutral-400">
+          L&apos;autre version reste éditable et réutilisable à tout moment.
+        </p>
       </div>
 
       <div className="mt-4 flex items-center gap-3">

@@ -17,6 +17,7 @@ export async function updateOfferSettings(input: {
   compareAtCents: number;
   spotsJoined: number;
   spotsTotal: number;
+  variant: "classic" | "letter";
 }) {
   if (!isAdminAuthed()) throw new Error("Unauthorized");
 
@@ -24,6 +25,7 @@ export async function updateOfferSettings(input: {
   const compareAtCents = Math.round(input.compareAtCents);
   const spotsJoined = Math.round(input.spotsJoined);
   const spotsTotal = Math.round(input.spotsTotal);
+  const variant = input.variant === "letter" ? "letter" : "classic";
 
   if (
     !Number.isFinite(priceCents) ||
@@ -43,6 +45,7 @@ export async function updateOfferSettings(input: {
     [OFFER_KEYS.compare, String(compareAtCents)],
     [OFFER_KEYS.joined, String(spotsJoined)],
     [OFFER_KEYS.total, String(spotsTotal)],
+    [OFFER_KEYS.variant, variant],
   ];
 
   try {
