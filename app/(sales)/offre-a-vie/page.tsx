@@ -12,6 +12,7 @@ import { TrackView } from "../85motscoran/track-view";
 import { BuyButton } from "./buy-button";
 import { Faq } from "./faq";
 import { LandingReviews } from "./reviews";
+import { DemoExercise } from "./demo-exercise";
 import { SpotsProgress, StickySpotsBar } from "./spots";
 import { ArrowDoodle, Loops, Sparkle, Squiggle, Star } from "./doodles";
 import { getOfferSettings, formatEuros } from "@/lib/offer";
@@ -296,6 +297,11 @@ export default async function OffreAViePage() {
           </div>
         </section>
       ))}
+
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      {/*  INTERACTIVE DEMO                                               */}
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      <DemoExercise />
 
       {/* ═══════════════════════════════════════════════════════════════ */}
       {/*  LOWER SURFACE — tarif + avis + FAQ + CTA, same DA as the hero  */}
