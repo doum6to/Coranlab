@@ -41,14 +41,30 @@ export async function POST(req: Request) {
 
   try {
     const supabase = createAdminClient();
+    const contentType = file.type;
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    const { error } = await supabase.storage
-      .from(BUCKET)
-      .upload(path, buffer, {
-        contentType: file.type,
+    const doUpload = () =>
+      supabase.storage.from(BUCKET).upload(path, buffer, {
+        contentType,
         upsert: false,
       });
+
+    let { error } = await doUpload();
+
+    // Self-heal: if the bucket doesn't exist yet, create it (public) and retry.
+    if (error && /bucket not found/i.test(error.message)) {
+      const { error: createErr } = await supabase.storage.createBucket(BUCKET, {
+        public: true,
+      });
+      if (createErr && !/already exists/i.test(createErr.message)) {
+        return NextResponse.json(
+          { error: `Création du bucket impossible : ${createErr.message}` },
+          { status: 500 },
+        );
+      }
+      ({ error } = await doUpload());
+    }
 
     if (error) {
       console.error("[upload] supabase error:", error);

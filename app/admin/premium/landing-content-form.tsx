@@ -69,8 +69,18 @@ function ImageField({
       const fd = new FormData();
       fd.append("file", file);
       const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Échec de l'upload.");
+      const text = await res.text();
+      let data: { url?: string; error?: string } = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        data = { error: text.slice(0, 140) || `Erreur ${res.status}` };
+      }
+      if (res.status === 413) {
+        throw new Error("Image trop lourde (> ~4,5 Mo). Compresse-la et réessaie.");
+      }
+      if (!res.ok) throw new Error(data.error || `Erreur ${res.status}`);
+      if (!data.url) throw new Error("Réponse inattendue du serveur.");
       onChange(data.url);
     } catch (e: any) {
       setErr(e?.message || "Échec de l'upload.");
