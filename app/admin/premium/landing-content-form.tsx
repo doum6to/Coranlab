@@ -787,6 +787,11 @@ export function LandingContentForm({ initial }: { initial: LandingContent }) {
               value={c.offer.secure}
               onChange={(v) => patch("offer", { secure: v })}
             />
+            <Field
+              label="Libellé barre flottante (bas)"
+              value={c.offer.stickyLabel}
+              onChange={(v) => patch("offer", { stickyLabel: v })}
+            />
           </div>
         </Section>
         )}

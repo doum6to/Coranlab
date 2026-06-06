@@ -72,6 +72,7 @@ export type LandingContent = {
     features: string[];
     buttonLabel: string;
     secure: string;
+    stickyLabel: string;
   };
   reviews: { eyebrow: string; heading: string; items: LandingReview[] };
   faq: { eyebrow: string; heading: string; items: LandingFaq[] };
@@ -171,6 +172,7 @@ export const LANDING_DEFAULTS: LandingContent = {
     ],
     buttonLabel: "Tout recevoir maintenant",
     secure: "Paiement sécurisé via Stripe",
+    stickyLabel: "J'en profite",
   },
   reviews: {
     eyebrow: "Avis TikTok vérifiés",
