@@ -9,7 +9,7 @@ import crypto from "crypto";
  *   1. TikTok Business Center → Events Manager → your pixel
  *      → Settings → Events API → "Generate Access Token"
  *   2. Add env vars on Vercel:
- *        TIKTOK_PIXEL_ID = D2EE5VRC77U9TM002EK0
+ *        TIKTOK_PIXEL_ID = D8I0EF3C77UA4F3IM190
  *        TIKTOK_ACCESS_TOKEN = <the generated token>
  *   3. Call `ttqServerTrack()` from webhooks or server actions when a
  *      critical conversion (purchase, trial start) occurs.
