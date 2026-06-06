@@ -18,6 +18,8 @@ export type OfferSettings = {
   spotsTotal: number;
   /** Which landing layout is live at /offre-a-vie. */
   variant: LandingVariant;
+  /** Downloadable PDF links shown in the buyer's account space. */
+  pdfLinks: { label: string; url: string }[];
 };
 
 export const OFFER_DEFAULTS: OfferSettings = {
@@ -26,6 +28,7 @@ export const OFFER_DEFAULTS: OfferSettings = {
   spotsJoined: 1902,
   spotsTotal: 2000,
   variant: "classic",
+  pdfLinks: [],
 };
 
 const KEYS = {
@@ -34,6 +37,7 @@ const KEYS = {
   joined: "offer_spots_joined",
   total: "offer_spots_total",
   variant: "landing_variant",
+  pdf: "pdf_links",
 } as const;
 
 const toInt = (v: string | undefined, fallback: number) => {
@@ -60,9 +64,20 @@ export const getOfferSettings = cache(async (): Promise<OfferSettings> => {
           KEYS.joined,
           KEYS.total,
           KEYS.variant,
+          KEYS.pdf,
         ]),
       );
     const map = new Map(rows.map((r) => [r.key, r.value]));
+    let pdfLinks: { label: string; url: string }[] = [];
+    try {
+      const raw = map.get(KEYS.pdf);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) pdfLinks = parsed;
+      }
+    } catch {
+      /* keep empty */
+    }
     return {
       priceCents: toInt(map.get(KEYS.price), OFFER_DEFAULTS.priceCents),
       compareAtCents: toInt(
@@ -75,6 +90,7 @@ export const getOfferSettings = cache(async (): Promise<OfferSettings> => {
         const v = map.get(KEYS.variant);
         return v === "letter" || v === "product" ? v : "classic";
       })(),
+      pdfLinks,
     };
   } catch (e) {
     console.error("[offer] getOfferSettings failed, using defaults:", e);

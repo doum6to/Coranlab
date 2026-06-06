@@ -1,5 +1,10 @@
 import { redirect } from "next/navigation";
+import { eq } from "drizzle-orm";
+
+import db from "@/db/drizzle";
+import { coursePurchase } from "@/db/schema";
 import { getUserProgress, getUserSubscription } from "@/db/queries";
+import { getOfferSettings } from "@/lib/offer";
 import { auth, currentUser } from "@/lib/supabase/server";
 import { SettingsView } from "./settings-view";
 
@@ -22,6 +27,22 @@ const SettingsPage = async () => {
 
   const email = user?.emailAddresses?.[0]?.emailAddress ?? "";
 
+  // Show the PDF documents to people who bought (matched by email) or who
+  // have a lifetime grant.
+  const offerSettings = await getOfferSettings();
+  let documents = offerSettings.pdfLinks;
+  if (!documents.length && process.env.COURSE_DRIVE_URL) {
+    documents = [
+      { label: "Tous les documents (PDF)", url: process.env.COURSE_DRIVE_URL },
+    ];
+  }
+  const purchase = email
+    ? await db.query.coursePurchase.findFirst({
+        where: eq(coursePurchase.email, email.toLowerCase()),
+      })
+    : null;
+  const hasDocs = !!purchase || !!userSubscription?.isLifetime;
+
   return (
     <SettingsView
       userName={userProgress.userName}
@@ -32,6 +53,7 @@ const SettingsPage = async () => {
       }
       hasStripeCustomer={!!userSubscription?.stripeCustomerId}
       isLifetime={!!userSubscription?.isLifetime}
+      documents={hasDocs ? documents : []}
     />
   );
 };
