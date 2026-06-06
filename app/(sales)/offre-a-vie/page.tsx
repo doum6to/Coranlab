@@ -247,7 +247,7 @@ export default async function OffreAViePage() {
       {/* ═══════════════════════════════════════════════════════════════ */}
       {/*  STORY — long-form sales copy                                   */}
       {/* ═══════════════════════════════════════════════════════════════ */}
-      <StorySection />
+      <StorySection data={content.story} />
 
       {/* ═══════════════════════════════════════════════════════════════ */}
       {/*  ALTERNATING FEATURE ROWS (Duolingo-style)                      */}

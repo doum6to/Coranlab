@@ -10,6 +10,7 @@ import { getLandingContent } from "@/lib/landing-content";
 import { UsersTable, type AdminUser } from "./users-table";
 import { OfferSettingsForm } from "./offer-settings-form";
 import { LandingContentForm } from "./landing-content-form";
+import { AdminTabs } from "./admin-tabs";
 
 export const dynamic = "force-dynamic";
 
@@ -113,19 +114,48 @@ const AdminPremiumPage = async () => {
   return (
     <div className="min-h-screen bg-neutral-50">
       <div className="mx-auto max-w-6xl p-4 sm:p-8">
-        <OfferSettingsForm
-          initial={{
-            priceEuros: (offer.priceCents / 100).toFixed(2),
-            compareEuros: (offer.compareAtCents / 100).toFixed(2),
-            spotsJoined: offer.spotsJoined,
-            spotsTotal: offer.spotsTotal,
-          }}
-        />
-        <LandingContentForm initial={content} />
-        <UsersTable
-          users={users}
-          premiumCount={premiumCount}
-          freeCount={users.length - premiumCount}
+        <header className="mb-6">
+          <h1 className="font-bold text-2xl text-neutral-900">
+            Dashboard Quranlab
+          </h1>
+          <p className="text-sm text-neutral-500">
+            Gère l&apos;offre, le contenu de la landing et les accès premium.
+          </p>
+        </header>
+
+        <AdminTabs
+          tabs={[
+            {
+              key: "offer",
+              label: "Offre & prix",
+              node: (
+                <OfferSettingsForm
+                  initial={{
+                    priceEuros: (offer.priceCents / 100).toFixed(2),
+                    compareEuros: (offer.compareAtCents / 100).toFixed(2),
+                    spotsJoined: offer.spotsJoined,
+                    spotsTotal: offer.spotsTotal,
+                  }}
+                />
+              ),
+            },
+            {
+              key: "content",
+              label: "Contenu de la landing",
+              node: <LandingContentForm initial={content} />,
+            },
+            {
+              key: "users",
+              label: "Premium (utilisateurs)",
+              node: (
+                <UsersTable
+                  users={users}
+                  premiumCount={premiumCount}
+                  freeCount={users.length - premiumCount}
+                />
+              ),
+            },
+          ]}
         />
       </div>
     </div>

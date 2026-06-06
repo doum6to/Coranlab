@@ -19,6 +19,33 @@ export type LandingValueItem = {
   description: string;
   value: string;
 };
+export type LandingPair = { title: string; text: string };
+export type LandingStep = { label: string; title: string; text: string };
+export type LandingStat = { k: string; v: string };
+
+export type LandingStory = {
+  hookHeading: string;
+  hookBody: string;
+  patternHeading: string;
+  patternBody: string;
+  whyHeading: string;
+  discoveries: LandingPair[];
+  methodEyebrow: string;
+  methodHeading: string;
+  methodBody: string;
+  steps: LandingStep[];
+  perksHeading: string;
+  perks: string[];
+  whyWorksHeading: string;
+  whyWorksBody: string;
+  scienceHeading: string;
+  science: LandingStat[];
+  scienceNote: string;
+  priceHeading: string;
+  priceBody: string;
+  ctaLabel: string;
+  ctaSub: string;
+};
 
 export type LandingContent = {
   hero: {
@@ -49,6 +76,7 @@ export type LandingContent = {
   reviews: { eyebrow: string; heading: string; items: LandingReview[] };
   faq: { eyebrow: string; heading: string; items: LandingFaq[] };
   finalCta: { heading: string; subtitle: string };
+  story: LandingStory;
 };
 
 const IMG =
@@ -182,6 +210,77 @@ export const LANDING_DEFAULTS: LandingContent = {
   finalCta: {
     heading: "Ton accès, pour toujours.",
     subtitle: "Un seul paiement. Tu n'y repenseras jamais.",
+  },
+  story: {
+    hookHeading:
+      "Réciter les paroles d'Allah pendant des années… sans en comprendre un seul mot.",
+    hookBody:
+      "Imagine la scène. Tu es debout en prière, tu récites Al-Fātiḥa pour la millième fois. L'arabe coule parfaitement de tes lèvres, ton tajwīd est impeccable.\n\nMais à l'intérieur… le vide. Tu n'as aucune idée de ce que tu viens de dire à ton Créateur.\n\nAutour de toi, certains ont les larmes aux yeux, touchés par les versets. Toi, tu continues les gestes, mécaniquement — comme dans une pièce où tout le monde parle une langue magnifique qui touche l'âme, pendant que tu restes là, perdu.\n\nEt pendant le Ramadan, au Tarāwīḥ, c'est pire : tous vivent le khushūʿ, tandis que toi tu attends la traduction pour comprendre ce qui les a émus jusqu'aux larmes.\n\nCette déconnexion crée un cercle de frustration que beaucoup de musulmans portent en silence pendant des années. Mais ce n'est pas ta faute.",
+    patternHeading:
+      "Un « schéma linguistique » que l'enseignement traditionnel a ignoré",
+    patternBody:
+      "En tant que chercheur en linguistique coranique, j'ai vu des musulmans brillants et sincères — médecins, ingénieurs, enseignants — avoir mémorisé des sourates entières sans comprendre un seul verset sans traduction.\n\nPartout, on se concentre sur le tajwīd et le ḥifẓ, mais on néglige la compréhension. Et quand on tente enfin d'apprendre l'arabe, on est noyé dans une grammaire conçue pour des savants, pas pour des croyants qui veulent simplement comprendre leurs prières.",
+    whyHeading: "Pourquoi l'arabe classique échoue pour 95% des musulmans",
+    discoveries: [
+      {
+        title: "On enseigne le mauvais arabe",
+        text: "Les cours classiques s'attardent sur l'arabe moderne et la grammaire savante. Or l'arabe pour commander un café à Marrakech n'a rien à voir avec celui de tes prières. On surcharge l'élève de vocabulaire inutile au lieu d'aller à l'essentiel.",
+      },
+      {
+        title: "La « grammaire d'abord » tue la motivation",
+        text: "Tableaux, conjugaisons, déclinaisons… L'arabe paraît alors impossible. 87% des élèves interrogés ont abandonné parce que c'était « trop académique » et « déconnecté de leur objectif spirituel ».",
+      },
+      {
+        title: "Le Coran utilise très peu de mots",
+        text: "La révélation décisive : seulement ~300 mots reviennent sans cesse et forment 85% du texte coranique. Les cours qui veulent t'enseigner des milliers de mots compliquent inutilement les choses.",
+      },
+    ],
+    methodEyebrow: "La méthode « Fréquence avant tout »",
+    methodHeading: "Comprends 85% du Coran en 30 jours — 10 mots par jour",
+    methodBody:
+      "Au lieu de lutter des années contre la grammaire, tu te concentres sur les bons 300 mots. C'est tout l'objet de l'ebook interactif « Débloque 85% du vocabulaire coranique » : ni manuel de grammaire, ni cours traditionnel — un système ciblé sur les mots les plus fréquents et les plus puissants.",
+    steps: [
+      {
+        label: "Étape 1",
+        title: "Maîtrise les fondations",
+        text: "Les 50 mots les plus utilisés — « Allah », « Ar-Raḥmān », « les croyants », « la guidée »… Ils apparaissent dans presque chaque verset que tu récites. C'est la base de toute compréhension.",
+      },
+      {
+        label: "Étape 2",
+        title: "Construis ta reconnaissance",
+        text: "Ajoute les 150 mots suivants, l'ossature des messages du Coran. Tu commences à saisir des phrases entières, plus seulement des mots isolés.",
+      },
+      {
+        label: "Étape 3",
+        title: "Le déclic",
+        text: "Les 300 mots maîtrisés, 85% de ce que tu entends en prière, chaque khuṭba du vendredi, chaque récitation du Ramadan deviennent soudain clairs et lumineux.",
+      },
+    ],
+    perksHeading: "Ce qui change tout",
+    perks: [
+      "Aucune grammaire écrasante — tu apprends les mots en contexte, naturellement.",
+      "Pertinence spirituelle immédiate — chaque mot revient dans tes prières.",
+      "Mémorisation visuelle — chaque mot illustré par un verset que tu connais déjà.",
+      "Mémorisation audio — chaque mot et verset lu pour ancrer la mémoire.",
+      "Rythme flexible — pensé pour les actifs, étudiants et parents débordés.",
+      "Méthode éprouvée — testée avec plus de 2 000 musulmans francophones.",
+    ],
+    whyWorksHeading: "Pourquoi ça marche là où le reste échoue",
+    whyWorksBody:
+      "Quand tu as appris ta langue maternelle, tu n'as pas commencé par la littérature classique : tu as appris « le », « et », « est »… puis tu as progressé. Le Coran fonctionne pareil — Allah répète certains mots parce qu'ils sont au cœur de Son message. En te concentrant sur ces répétitions, tu apprends d'abord ce qu'Il a voulu que tu retiennes le plus.",
+    scienceHeading: "La science derrière la méthode",
+    science: [
+      { k: "30 mots", v: "38% du Coran" },
+      { k: "100 mots", v: "56% du Coran" },
+      { k: "300 mots", v: "85% du Coran" },
+    ],
+    scienceNote:
+      "Ce n'est pas du bricolage : c'est la voie intelligente que l'éducation traditionnelle a oubliée.",
+    priceHeading: "Une fraction du prix d'un cours d'arabe",
+    priceBody:
+      "Un cours complet d'arabe coûte 300€ à 500€ et dure 2 à 3 ans. Les cours particuliers, 30€ à 50€ de l'heure. « Débloque 85% du vocabulaire coranique » vise de meilleurs résultats, pour une fraction du temps et du coût.",
+    ctaLabel: "Je veux découvrir ces 300 mots essentiels",
+    ctaSub: "Et vivre enfin le Coran avec compréhension",
   },
 };
 
