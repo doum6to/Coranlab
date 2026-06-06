@@ -15,11 +15,13 @@ export function StickySpotsBar({
   total,
   priceLabel,
   compareLabel,
+  ctaLabel = "J'en profite",
 }: {
   joined: number;
   total: number;
   priceLabel: string;
   compareLabel?: string;
+  ctaLabel?: string;
 }) {
   const [hidden, setHidden] = useState(false);
   const pct = total > 0 ? Math.min(100, Math.round((joined / total) * 100)) : 0;
@@ -81,7 +83,7 @@ export function StickySpotsBar({
           href="#offre"
           className="shrink-0 rounded-xl border-b-4 border-[#4a48c4] bg-[#6967fb] px-5 py-3 font-display text-sm font-bold uppercase tracking-wide text-white transition-all hover:brightness-[1.05] active:translate-y-1 active:border-b-0"
         >
-          J&apos;en profite
+          {ctaLabel}
         </a>
       </div>
     </div>

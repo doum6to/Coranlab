@@ -92,6 +92,7 @@ export default async function OffreAViePage() {
         total={spotsTotal}
         priceLabel={PRICE}
         compareLabel={COMPARE ?? undefined}
+        ctaLabel={content.offer.stickyLabel}
       />
 
       {/* ═══════════════════════════════════════════════════════════════ */}
@@ -206,10 +207,12 @@ export default async function OffreAViePage() {
 
               {/* CTAs */}
               <div className="mt-10 flex w-full flex-col gap-3 max-w-[360px] mx-auto">
-                <BuyButton
-                  priceValue={priceValue}
-                  label={content.hero.ctaPrimary}
-                />
+                <a
+                  href="#offre"
+                  className="inline-flex w-full items-center justify-center rounded-2xl border-b-4 border-[#4a48c4] bg-[#6967fb] px-8 py-4 font-display text-base font-bold uppercase tracking-wide text-white shadow-sm transition-all hover:brightness-[1.05] active:translate-y-1 active:border-b-0"
+                >
+                  {content.hero.ctaPrimary}
+                </a>
                 <Link
                   href="/auth/login"
                   className="inline-flex w-full items-center justify-center rounded-2xl border-2 border-b-4 border-neutral-300 bg-white px-8 py-4 font-display text-base font-bold uppercase tracking-wide text-[#6967fb] transition-all hover:bg-neutral-50 active:translate-y-1 active:border-b-2"
@@ -555,7 +558,11 @@ export default async function OffreAViePage() {
                 {content.finalCta.subtitle}
               </p>
               <div className="mt-10 flex flex-col items-center gap-3 max-w-[360px] mx-auto">
-                <BuyButton className="w-full" priceValue={priceValue} />
+                <BuyButton
+                  className="w-full"
+                  priceValue={priceValue}
+                  label={content.offer.buttonLabel}
+                />
                 <p className="text-xs text-neutral-500">
                   Accès immédiat · Sécurisé par Stripe
                 </p>
