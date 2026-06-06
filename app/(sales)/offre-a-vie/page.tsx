@@ -78,6 +78,17 @@ export default async function OffreAViePage() {
     compareAtCents > priceCents ? formatEuros(compareAtCents) : null;
   const priceValue = priceCents / 100;
 
+  // Total perceived value = sum of the value-stack item values (e.g. 27€ +
+  // 97€ + 37€ + 29€). Kept consistent with the bonuses the admin edits.
+  const valueTotalCents = content.valueStack.items.reduce((sum, it) => {
+    const n = parseFloat(
+      String(it.value).replace(",", ".").replace(/[^0-9.]/g, ""),
+    );
+    return sum + (Number.isFinite(n) ? Math.round(n * 100) : 0);
+  }, 0);
+  const VALUE_TOTAL =
+    valueTotalCents > priceCents ? formatEuros(valueTotalCents) : null;
+
   const trustIcons = [
     <Lock key="0" className="h-4 w-4" strokeWidth={2} />,
     <InfinityIcon key="1" className="h-4 w-4" strokeWidth={2} />,
@@ -368,11 +379,11 @@ export default async function OffreAViePage() {
           <div className="mt-8 flex flex-col items-center gap-4 rounded-2xl bg-neutral-950 p-6 text-center text-white">
             <p className="text-sm text-white/70">
               {content.valueStack.totalLabel}
-              {COMPARE ? (
+              {VALUE_TOTAL ?? COMPARE ? (
                 <>
                   {" "}
                   <span className="font-bold text-white/90 line-through">
-                    {COMPARE}
+                    {VALUE_TOTAL ?? COMPARE}
                   </span>
                 </>
               ) : null}{" "}
@@ -425,24 +436,24 @@ export default async function OffreAViePage() {
               <div className="mt-10 grid grid-cols-2 gap-4 max-w-[440px] mx-auto">
                 <div className="rounded-3xl border-2 border-neutral-200 bg-white p-6">
                   <p className="text-[11px] tracking-[0.15em] uppercase text-neutral-400">
-                    Abonnement
+                    Valeur totale
                   </p>
                   <p className="mt-2 font-display font-bold text-3xl text-neutral-400 line-through">
-                    14,97€
+                    {VALUE_TOTAL ?? COMPARE ?? "—"}
                   </p>
                   <p className="mt-1 text-xs text-neutral-400">
-                    par mois · ~180€/an
+                    ebook + bonus
                   </p>
                 </div>
                 <div className="rounded-3xl border-2 border-neutral-950 bg-white p-6">
                   <p className="text-[11px] tracking-[0.15em] uppercase text-[#6967fb]">
-                    À vie
+                    Aujourd&apos;hui
                   </p>
                   <p className="mt-2 font-display font-bold text-3xl text-neutral-950">
                     {PRICE}
                   </p>
                   <p className="mt-1 text-xs text-neutral-500">
-                    une seule fois
+                    paiement unique
                   </p>
                 </div>
               </div>
