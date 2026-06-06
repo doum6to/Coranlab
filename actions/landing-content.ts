@@ -24,6 +24,7 @@ export async function updateLandingContent(content: LandingContent) {
     hero: content.hero ?? LANDING_DEFAULTS.hero,
     trust: content.trust ?? LANDING_DEFAULTS.trust,
     rows: content.rows ?? LANDING_DEFAULTS.rows,
+    valueStack: content.valueStack ?? LANDING_DEFAULTS.valueStack,
     priceAnchor: content.priceAnchor ?? LANDING_DEFAULTS.priceAnchor,
     offer: content.offer ?? LANDING_DEFAULTS.offer,
     reviews: content.reviews ?? LANDING_DEFAULTS.reviews,

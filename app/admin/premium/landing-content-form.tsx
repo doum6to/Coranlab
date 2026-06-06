@@ -310,6 +310,110 @@ export function LandingContentForm({ initial }: { initial: LandingContent }) {
           </button>
         </Section>
 
+        {/* VALUE STACK */}
+        <Section title="Pack & bonus (ce que tu reçois)">
+          <Field
+            label="Sur-titre"
+            value={c.valueStack.eyebrow}
+            onChange={(v) => patch("valueStack", { eyebrow: v })}
+          />
+          <Field
+            label="Titre"
+            value={c.valueStack.heading}
+            onChange={(v) => patch("valueStack", { heading: v })}
+          />
+          <Field
+            label="Intro"
+            area
+            value={c.valueStack.intro}
+            onChange={(v) => patch("valueStack", { intro: v })}
+          />
+          {c.valueStack.items.map((it, i) => (
+            <div
+              key={i}
+              className="space-y-2 rounded-xl border border-neutral-200 bg-white p-3"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-neutral-500">
+                  Élément {i + 1}
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    patch("valueStack", {
+                      items: c.valueStack.items.filter((_, j) => j !== i),
+                    })
+                  }
+                  className="text-xs font-semibold text-rose-500 hover:underline"
+                >
+                  Supprimer
+                </button>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-[120px_1fr_90px]">
+                <Field
+                  label="Badge"
+                  value={it.badge}
+                  onChange={(v) =>
+                    patch("valueStack", {
+                      items: c.valueStack.items.map((x, j) =>
+                        j === i ? { ...x, badge: v } : x,
+                      ),
+                    })
+                  }
+                />
+                <Field
+                  label="Titre"
+                  value={it.title}
+                  onChange={(v) =>
+                    patch("valueStack", {
+                      items: c.valueStack.items.map((x, j) =>
+                        j === i ? { ...x, title: v } : x,
+                      ),
+                    })
+                  }
+                />
+                <Field
+                  label="Valeur"
+                  value={it.value}
+                  onChange={(v) =>
+                    patch("valueStack", {
+                      items: c.valueStack.items.map((x, j) =>
+                        j === i ? { ...x, value: v } : x,
+                      ),
+                    })
+                  }
+                />
+              </div>
+              <Field
+                label="Description"
+                area
+                value={it.description}
+                onChange={(v) =>
+                  patch("valueStack", {
+                    items: c.valueStack.items.map((x, j) =>
+                      j === i ? { ...x, description: v } : x,
+                    ),
+                  })
+                }
+              />
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() =>
+              patch("valueStack", {
+                items: [
+                  ...c.valueStack.items,
+                  { badge: "BONUS", title: "", description: "", value: "" },
+                ],
+              })
+            }
+            className="text-xs font-semibold text-brilliant-green hover:underline"
+          >
+            + Ajouter un élément
+          </button>
+        </Section>
+
         {/* PRICE ANCHOR */}
         <Section title="Bloc tarif (texte)">
           <Field
