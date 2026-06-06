@@ -8,7 +8,7 @@ import { BuyButton } from "./buy-button";
 import { Faq } from "./faq";
 import { LandingReviews } from "./reviews";
 import { SpotsProgress } from "./spots";
-import { StickySpotsBar } from "./sticky-spots-bar";
+import { ProductGallery } from "./product-gallery";
 
 function Placeholder({ className }: { className?: string }) {
   return (
@@ -43,19 +43,9 @@ export function ProductLanding({
     compareAtCents > priceCents ? formatEuros(compareAtCents) : null;
   const priceValue = priceCents / 100;
   const p = content.product;
-  const mainImg = p.gallery[0] || "";
-  const thumbs = p.gallery.slice(0, 4);
 
   return (
     <div className="w-full bg-white text-neutral-900 font-sans">
-      <StickySpotsBar
-        joined={spotsJoined}
-        total={spotsTotal}
-        priceLabel={PRICE}
-        compareLabel={COMPARE ?? undefined}
-        ctaLabel={content.offer.stickyLabel}
-      />
-
       {/* top bar */}
       <header className="border-b border-neutral-200">
         <div className="mx-auto flex max-w-[1100px] items-center justify-between px-4 py-3 sm:px-6">
@@ -82,35 +72,7 @@ export function ProductLanding({
       <section className="mx-auto max-w-[1100px] px-4 sm:px-6 py-6 sm:py-10">
         <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
           {/* gallery */}
-          <div>
-            {mainImg ? (
-              <Image
-                src={mainImg}
-                alt={p.title}
-                width={900}
-                height={900}
-                className="aspect-square w-full rounded-3xl object-cover"
-              />
-            ) : (
-              <Placeholder className="aspect-square w-full" />
-            )}
-            <div className="mt-3 grid grid-cols-4 gap-3">
-              {(thumbs.length ? thumbs : [0, 1, 2, 3]).map((t, i) =>
-                typeof t === "string" ? (
-                  <Image
-                    key={i}
-                    src={t}
-                    alt=""
-                    width={200}
-                    height={200}
-                    className="aspect-square w-full rounded-xl object-cover"
-                  />
-                ) : (
-                  <Placeholder key={i} className="aspect-square w-full" />
-                ),
-              )}
-            </div>
-          </div>
+          <ProductGallery images={p.gallery} alt={p.title} />
 
           {/* info / buy box */}
           <div className="lg:py-4">
