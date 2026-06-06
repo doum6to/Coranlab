@@ -1,7 +1,6 @@
 import crypto from "crypto";
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowRight, Mail } from "lucide-react";
+import { Mail } from "lucide-react";
 
 import db from "@/db/drizzle";
 import { coursePurchase } from "@/db/schema";
@@ -68,12 +67,16 @@ export default async function MerciAVie({
     : { email: null, amount: null };
 
   const signupUrl = email
-    ? `/auth/signup?email=${encodeURIComponent(email)}`
+    ? `/auth/signup?email=${encodeURIComponent(email)}&locked=1`
     : "/auth/signup";
 
   return (
     <div className="min-h-[70vh] w-full bg-[#FAF8F3] text-neutral-900 flex items-center justify-center">
-      <TrackLifetimePurchase sessionId={sessionId} value={amount ?? undefined} />
+      <TrackLifetimePurchase
+        sessionId={sessionId}
+        value={amount ?? undefined}
+        email={email}
+      />
 
       <section className="max-w-[680px] mx-auto px-6 sm:px-8 py-16 sm:py-24 flex flex-col items-center text-center gap-6">
         <LandingMascot
@@ -110,6 +113,18 @@ export default async function MerciAVie({
           Créer mon compte
         </PremiumCta>
 
+        <p className="max-w-[440px] rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm font-medium text-amber-800">
+          ⚠️ Important : crée ton compte avec le{" "}
+          <span className="font-bold">même email que lors de l&apos;achat</span>
+          {email ? (
+            <>
+              {" "}
+              (<span className="font-bold">{email}</span>)
+            </>
+          ) : null}
+          , sinon ton accès Premium ne sera pas activé.
+        </p>
+
         <div className="mt-2 rounded-2xl border border-neutral-200 bg-white p-6 w-full max-w-[480px]">
           <div className="flex items-start gap-4 text-left">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-950 text-white">
@@ -126,14 +141,6 @@ export default async function MerciAVie({
             </div>
           </div>
         </div>
-
-        <Link
-          href="/85motscoran"
-          className="mt-2 inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-950 underline-offset-4 hover:underline transition"
-        >
-          Découvrir l&apos;application
-          <ArrowRight className="h-4 w-4" />
-        </Link>
       </section>
     </div>
   );

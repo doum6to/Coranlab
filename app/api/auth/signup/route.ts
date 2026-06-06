@@ -1,10 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
-import { and, eq, isNull } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
-import db from "@/db/drizzle";
-import { coursePurchase, userSubscription } from "@/db/schema";
-import { stripe } from "@/lib/stripe";
+import { linkCoursePurchaseByEmail } from "@/lib/link-purchase";
 
 /**
  * Server-side signup that auto-confirms the user so no email
@@ -50,10 +47,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    // If this email has a pending course purchase with an app subscription,
-    // link it so the user gets Premium access immediately.
+    // If this email has a pending course/app purchase, link it so the user
+    // gets Premium access immediately.
     try {
-      await linkCoursePurchaseIfAny(data.user.id, email);
+      await linkCoursePurchaseByEmail(data.user.id, email);
     } catch (e) {
       console.error("[Signup] linkCoursePurchase failed:", e);
       // Non-fatal: the signup itself succeeded.
@@ -66,82 +63,4 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
-}
-
-/**
- * Finds any unlinked course_purchase with hasAppSubscription=true for this
- * email, links it to the newly-created userId, and creates a matching
- * user_subscription row so /learn grants premium access immediately.
- */
-async function linkCoursePurchaseIfAny(userId: string, email: string) {
-  const normalizedEmail = email.toLowerCase();
-
-  const purchase = await db.query.coursePurchase.findFirst({
-    where: and(
-      eq(coursePurchase.email, normalizedEmail),
-      eq(coursePurchase.hasAppSubscription, true),
-      isNull(coursePurchase.linkedUserId)
-    ),
-  });
-
-  if (!purchase) return;
-
-  // Lifetime app purchase (one-time payment via /offre-a-vie): hasApp is true
-  // but there is no Stripe subscription. Grant a lifetime user_subscription.
-  if (!purchase.stripeSubscriptionId) {
-    const LIFETIME_END = new Date("2099-12-31T23:59:59Z");
-    await db
-      .insert(userSubscription)
-      .values({
-        userId,
-        stripeCustomerId: purchase.stripeCustomerId || `lifetime_${userId}`,
-        stripeSubscriptionId: null,
-        stripePriceId: null,
-        stripeCurrentPeriodEnd: LIFETIME_END,
-        isLifetime: true,
-      })
-      .onConflictDoUpdate({
-        target: userSubscription.userId,
-        set: {
-          stripeCurrentPeriodEnd: LIFETIME_END,
-          isLifetime: true,
-        },
-      });
-
-    await db
-      .update(coursePurchase)
-      .set({ linkedUserId: userId })
-      .where(eq(coursePurchase.id, purchase.id));
-    return;
-  }
-
-  const sub = await stripe.subscriptions.retrieve(
-    purchase.stripeSubscriptionId
-  );
-
-  await db
-    .insert(userSubscription)
-    .values({
-      userId,
-      stripeCustomerId: purchase.stripeCustomerId!,
-      stripeSubscriptionId: purchase.stripeSubscriptionId,
-      stripePriceId: sub.items.data[0].price.id,
-      stripeCurrentPeriodEnd: new Date(sub.current_period_end * 1000),
-      isLifetime: false,
-    })
-    .onConflictDoUpdate({
-      target: userSubscription.userId,
-      set: {
-        stripeCustomerId: purchase.stripeCustomerId!,
-        stripeSubscriptionId: purchase.stripeSubscriptionId,
-        stripePriceId: sub.items.data[0].price.id,
-        stripeCurrentPeriodEnd: new Date(sub.current_period_end * 1000),
-        isLifetime: false,
-      },
-    });
-
-  await db
-    .update(coursePurchase)
-    .set({ linkedUserId: userId })
-    .where(eq(coursePurchase.id, purchase.id));
 }

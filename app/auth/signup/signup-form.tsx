@@ -15,6 +15,11 @@ export function SignUpForm() {
   const prefilledEmail = searchParams.get("email") || "";
   const hasCoursePurchase = Boolean(searchParams.get("course_token"));
   const isTrialSignup = searchParams.get("trial") === "true";
+  // When arriving from a purchase, lock the email so the account is created
+  // with the exact email used at checkout (that's how the purchase is linked).
+  const lockEmail =
+    !!prefilledEmail &&
+    (searchParams.get("locked") === "1" || hasCoursePurchase);
 
   const [email, setEmail] = useState(prefilledEmail);
   const [password, setPassword] = useState("");
@@ -162,9 +167,18 @@ export function SignUpForm() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full mt-1 px-3 py-2 border border-brilliant-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6967fb] focus:border-transparent"
+              readOnly={lockEmail}
+              className={`w-full mt-1 px-3 py-2 border border-brilliant-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6967fb] focus:border-transparent ${
+                lockEmail ? "bg-neutral-100 text-neutral-500 cursor-not-allowed" : ""
+              }`}
               required
             />
+            {lockEmail && (
+              <p className="mt-1 text-[11px] text-brilliant-muted">
+                Email utilisé lors de ton achat — ne le modifie pas pour
+                activer ton accès.
+              </p>
+            )}
           </div>
           <div>
             <label

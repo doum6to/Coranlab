@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { RiveMascot } from "@/components/rive-mascot";
 import { ShinyButton } from "@/components/ui/shiny-button";
+import { claimPurchase } from "@/actions/claim-purchase";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
@@ -29,6 +30,14 @@ export function LoginForm() {
       setError(error.message);
       setLoading(false);
       return;
+    }
+
+    // Link any pending purchase made with this email (covers buyers who
+    // already had an account). Non-blocking on failure.
+    try {
+      await claimPurchase();
+    } catch {
+      /* non-fatal */
     }
 
     router.push("/learn");
