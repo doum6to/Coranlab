@@ -1,29 +1,6 @@
-import { Flame } from "lucide-react";
-
 const fmt = (n: number) => n.toLocaleString("fr-FR");
 const pct = (joined: number, total: number) =>
   total > 0 ? Math.min(100, Math.round((joined / total) * 100)) : 0;
-
-/** Thin sticky banner shown at the very top of the page. */
-export function StickySpotsBar({
-  joined,
-  total,
-}: {
-  joined: number;
-  total: number;
-}) {
-  return (
-    <div className="sticky top-0 z-50 bg-[#6967fb] text-white shadow-sm">
-      <div className="mx-auto flex max-w-[1080px] items-center justify-center gap-2 px-4 py-2 text-center text-[12px] font-semibold sm:text-sm">
-        <Flame className="h-4 w-4 shrink-0" strokeWidth={2.2} />
-        <span>
-          Offre limitée par places : {fmt(joined)}/{fmt(total)} élèves ont
-          rejoint
-        </span>
-      </div>
-    </div>
-  );
-}
 
 /** Progress display placed under the pricing CTA. */
 export function SpotsProgress({

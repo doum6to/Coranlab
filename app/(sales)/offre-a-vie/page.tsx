@@ -13,7 +13,8 @@ import { BuyButton } from "./buy-button";
 import { Faq } from "./faq";
 import { LandingReviews } from "./reviews";
 import { DemoExercise } from "./demo-exercise";
-import { SpotsProgress, StickySpotsBar } from "./spots";
+import { SpotsProgress } from "./spots";
+import { StickySpotsBar } from "./sticky-spots-bar";
 import { ArrowDoodle, Loops, Sparkle, Squiggle, Star } from "./doodles";
 import { getOfferSettings, formatEuros } from "@/lib/offer";
 import { getLandingContent } from "@/lib/landing-content";
@@ -85,7 +86,12 @@ export default async function OffreAViePage() {
   return (
     <div className="w-full bg-[#FAF8F3] text-neutral-900 font-sans">
       <TrackView />
-      <StickySpotsBar joined={spotsJoined} total={spotsTotal} />
+      <StickySpotsBar
+        joined={spotsJoined}
+        total={spotsTotal}
+        priceLabel={PRICE}
+        compareLabel={COMPARE ?? undefined}
+      />
 
       {/* ═══════════════════════════════════════════════════════════════ */}
       {/*  HERO — gold frame + grid, two columns                          */}
@@ -475,6 +481,9 @@ export default async function OffreAViePage() {
           </div>
         </div>
       </section>
+
+      {/* Clearance so the fixed bottom bar never covers the last content */}
+      <div aria-hidden className="h-24" />
     </div>
   );
 }
