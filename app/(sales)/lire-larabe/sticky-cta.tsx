@@ -4,7 +4,13 @@ import { useEffect, useState } from "react";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
-export function StickyCta() {
+export function StickyCta({
+  label = "Offre limitée — fin dans",
+  ctaLabel = "J'apprends à lire l'arabe",
+}: {
+  label?: string;
+  ctaLabel?: string;
+}) {
   const [hidden, setHidden] = useState(false);
   const [remaining, setRemaining] = useState<number | null>(null);
 
@@ -44,7 +50,7 @@ export function StickyCta() {
         <div className="mx-auto flex max-w-[1000px] items-center gap-3 px-4 py-3 sm:gap-5 sm:px-6">
           <div className="min-w-0 flex-1">
             <p className="text-[11px] font-bold uppercase tracking-wide text-[#e0b34a]">
-              Offre limitée — fin dans
+              {label}
             </p>
             <p className="font-mono text-lg font-bold tabular-nums text-white">
               {pad(h)}h {pad(m)}m {pad(sec)}s
@@ -54,7 +60,7 @@ export function StickyCta() {
             href="#tarifs"
             className="shrink-0 rounded-xl border-b-4 border-[#a9801f] bg-gradient-to-b from-[#e9c15a] to-[#d9a93c] px-5 py-3 text-xs font-extrabold uppercase tracking-wide text-neutral-900 transition-all hover:brightness-[1.04] active:translate-y-1 active:border-b-0 sm:text-sm"
           >
-            J&apos;apprends à lire l&apos;arabe
+            {ctaLabel}
           </a>
         </div>
       </div>

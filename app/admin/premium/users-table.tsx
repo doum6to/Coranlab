@@ -4,7 +4,12 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
-import { grantPremium, revokePremium } from "@/actions/admin-premium";
+import {
+  grantPremium,
+  revokePremium,
+  grantArabicCourse,
+  revokeArabicCourse,
+} from "@/actions/admin-premium";
 
 export type AdminUser = {
   id: string;
@@ -15,6 +20,7 @@ export type AdminUser = {
   plan: string;
   source: string;
   periodEnd: string | null;
+  hasArabicCourse: boolean;
 };
 
 type Filter = "all" | "premium" | "free";
@@ -86,6 +92,25 @@ export const UsersTable = ({
     });
   };
 
+  const onArabic = (u: AdminUser) => {
+    if (!u.email || u.email === "—") return;
+    if (
+      u.hasArabicCourse &&
+      !window.confirm(`Révoquer l'accès au cours « Lire l'arabe » de ${u.email} ?`)
+    )
+      return;
+    setPendingId(u.id);
+    startTransition(async () => {
+      try {
+        if (u.hasArabicCourse) await revokeArabicCourse(u.email);
+        else await grantArabicCourse(u.email);
+        router.refresh();
+      } finally {
+        setPendingId(null);
+      }
+    });
+  };
+
   const logout = async () => {
     await fetch("/api/admin/auth/logout", { method: "POST" });
     router.replace("/admin/premium/login");
@@ -148,14 +173,15 @@ export const UsersTable = ({
               <th className="px-4 py-3 font-semibold">Statut</th>
               <th className="px-4 py-3 font-semibold">Source</th>
               <th className="px-4 py-3 font-semibold">Échéance</th>
-              <th className="px-4 py-3 text-right font-semibold">Action</th>
+              <th className="px-4 py-3 font-semibold">Cours arabe</th>
+              <th className="px-4 py-3 text-right font-semibold">Actions</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 && (
               <tr>
                 <td
-                  colSpan={7}
+                  colSpan={8}
                   className="px-4 py-10 text-center text-neutral-400"
                 >
                   Aucun utilisateur.
@@ -189,26 +215,51 @@ export const UsersTable = ({
                 <td className="px-4 py-3 text-neutral-500">
                   {fmtDate(u.periodEnd)}
                 </td>
-                <td className="px-4 py-3 text-right">
-                  {u.isPremium ? (
-                    <Button
-                      size="sm"
-                      variant="dangerOutline"
-                      disabled={pendingId === u.id}
-                      onClick={() => onRevoke(u)}
-                    >
-                      {pendingId === u.id ? "…" : "Révoquer"}
-                    </Button>
+                <td className="px-4 py-3">
+                  {u.hasArabicCourse ? (
+                    <span className="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-700">
+                      Accès
+                    </span>
                   ) : (
+                    <span className="inline-flex rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-bold text-neutral-400">
+                      —
+                    </span>
+                  )}
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center justify-end gap-2">
+                    {u.isPremium ? (
+                      <Button
+                        size="sm"
+                        variant="dangerOutline"
+                        disabled={pendingId === u.id}
+                        onClick={() => onRevoke(u)}
+                      >
+                        {pendingId === u.id ? "…" : "Révoquer premium"}
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="primaryOutline"
+                        disabled={pendingId === u.id}
+                        onClick={() => onGrant(u)}
+                      >
+                        {pendingId === u.id ? "…" : "Donner premium"}
+                      </Button>
+                    )}
                     <Button
                       size="sm"
-                      variant="primaryOutline"
-                      disabled={pendingId === u.id}
-                      onClick={() => onGrant(u)}
+                      variant={u.hasArabicCourse ? "dangerOutline" : "primaryOutline"}
+                      disabled={pendingId === u.id || !u.email || u.email === "—"}
+                      onClick={() => onArabic(u)}
                     >
-                      {pendingId === u.id ? "…" : "Donner premium"}
+                      {pendingId === u.id
+                        ? "…"
+                        : u.hasArabicCourse
+                          ? "Retirer cours arabe"
+                          : "Donner cours arabe"}
                     </Button>
-                  )}
+                  </div>
                 </td>
               </tr>
             ))}

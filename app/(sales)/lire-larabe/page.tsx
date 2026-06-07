@@ -3,6 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Check, Clock, Play, ShieldCheck, X } from "lucide-react";
 
+import { formatEuros } from "@/lib/offer";
+import { getArabicLandingContent } from "@/lib/arabic-landing-content";
 import { BuyButton } from "./buy-button";
 import { StickyCta } from "./sticky-cta";
 
@@ -26,103 +28,58 @@ export const metadata: Metadata = {
   },
 };
 
-const chapters = [
-  "Différence entre l'enseignement classique et la méthode master",
-  "La science perdue des arabes",
-  "Faut-il apprendre l'alphabet entièrement ?",
-  "La première famille",
-  "La première lettre emphatique",
-  "Premiers exercices : les trios",
-  "La deuxième famille : les jumeaux (1/3)",
-  "La deuxième famille : les jumeaux (2/3)",
-  "Exercice 3 : les jumeaux",
-  "Exercice 4 : les jumeaux",
-  "La deuxième famille : les jumeaux (3/3)",
-  "La troisième famille : les solos",
-  "Exercice 5 : les solos, lettres",
-  "Exercice 6 : les solos, chiffres",
-  "Chapitre 2 : l'attachement des lettres",
-  "Règle 1 : les 6 lettres qui ne s'attachent pas à gauche",
-  "Règle 2 : la méthode LUC",
-  "Exercice : méthode LUC",
-  "Règle 3 : les 5 lettres qui ne changent pas",
-  "Chapitre 3 : les voyelles courtes",
-  "Chapitre 3 : les voyelles longues",
-];
+const TrustIcon = [ShieldCheck, Clock, Check];
 
-const steps = [
-  {
-    n: "01",
-    title: "21 cours en vidéo",
-    text: "Des leçons structurées et progressives pour apprendre l'arabe pas à pas.",
-  },
-  {
-    n: "02",
-    title: "Apprends à ton rythme",
-    text: "Accès 24h/24, depuis ton téléphone ou ton ordinateur, où tu veux.",
-  },
-  {
-    n: "03",
-    title: "Résultats rapides",
-    text: "Commence à lire le Coran en arabe en moins de 7h de formation.",
-  },
-  {
-    n: "04",
-    title: "Accès à vie",
-    text: "Paiement unique, reviens autant de fois que tu veux, sans limite.",
-  },
-];
+function isEmbed(url: string) {
+  return /youtube\.com|youtu\.be|vimeo\.com/i.test(url);
+}
 
-const classic = [
-  "Des années d'études nécessaires",
-  "Devoirs, stylo, cahier… c'est l'école",
-  "Pas de suivi personnalisé",
-  "Méthode ennuyeuse et démotivante",
-];
-const ours = [
-  "Résultats en moins de 7h",
-  "Sans devoirs, sans stylo, sans cahier",
-  "100% en ligne, à ton rythme",
-  "Méthode fun et engageante",
-];
+function embedSrc(url: string) {
+  const yt = url.match(
+    /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]{11})/,
+  );
+  if (yt) return `https://www.youtube.com/embed/${yt[1]}`;
+  const vm = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  if (vm) return `https://player.vimeo.com/video/${vm[1]}`;
+  return url;
+}
 
-const features = [
-  "21 cours en vidéo structurés et progressifs",
-  "Accès complet au e-learning 24h/24",
-  "Apprends à ton rythme, où tu veux",
-  "Méthode éprouvée : lis le Coran en moins de 7h",
-  "Compatible téléphone et ordinateur",
-  "Mises à jour gratuites incluses",
-  "Accès à vie — paiement unique",
-];
-
-const faq = [
-  {
-    q: "Je suis un vrai débutant, est-ce pour moi ?",
-    a: "Oui, à 100%. La méthode part de zéro : tu n'as besoin d'aucune connaissance préalable. Tout est expliqué pas à pas.",
-  },
-  {
-    q: "Combien de temps faut-il pour savoir lire ?",
-    a: "La formation est conçue pour te faire lire l'arabe en moins de 7h au total — à ton rythme, en une fois ou sur plusieurs jours.",
-  },
-  {
-    q: "Comment se déroule la formation ?",
-    a: "21 cours en vidéo, accessibles 24h/24 depuis ton espace, sur téléphone ou ordinateur. Tu avances quand tu veux.",
-  },
-  {
-    q: "Et si j'ai des horaires compliqués ?",
-    a: "Aucun souci : l'accès est à vie et disponible à toute heure. Tu apprends 10 minutes par-ci par-là, sans contrainte.",
-  },
-  {
-    q: "Est-ce un paiement unique ou un abonnement ?",
-    a: "Un paiement unique, sans abonnement. Tu paies une fois et tu gardes l'accès à vie.",
-  },
-];
-
-function VideoBox({ label, className }: { label: string; className?: string }) {
+function VideoBox({
+  url,
+  label,
+  className,
+}: {
+  url?: string;
+  label: string;
+  className?: string;
+}) {
+  if (url) {
+    if (isEmbed(url)) {
+      return (
+        <div
+          className={`relative aspect-video w-full overflow-hidden rounded-2xl border border-white/10 bg-black ${className ?? ""}`}
+        >
+          <iframe
+            src={embedSrc(url)}
+            title={label}
+            className="absolute inset-0 h-full w-full"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      );
+    }
+    return (
+      <video
+        src={url}
+        controls
+        className={`aspect-video w-full overflow-hidden rounded-2xl border border-white/10 bg-black ${className ?? ""}`}
+      />
+    );
+  }
   return (
     <div
-      className={`relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] ${className}`}
+      className={`relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] ${className ?? ""}`}
     >
       <div className="flex flex-col items-center gap-2 text-white/40">
         <span
@@ -137,25 +94,15 @@ function VideoBox({ label, className }: { label: string; className?: string }) {
   );
 }
 
-const TrustRow = () => (
-  <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-medium text-white/60">
-    <span className="inline-flex items-center gap-1.5">
-      <ShieldCheck className="h-4 w-4" style={{ color: GOLD }} /> Paiement unique
-    </span>
-    <span className="inline-flex items-center gap-1.5">
-      <Clock className="h-4 w-4" style={{ color: GOLD }} /> Accès à vie
-    </span>
-    <span className="inline-flex items-center gap-1.5">
-      <Check className="h-4 w-4" style={{ color: GOLD }} /> Satisfait ou
-      remboursé
-    </span>
-  </div>
-);
+export default async function LireLArabePage() {
+  const c = await getArabicLandingContent();
+  const price = formatEuros(c.pricing.priceCents);
+  const compareAt = formatEuros(c.pricing.compareAtCents);
+  const priceEuros = c.pricing.priceCents / 100;
 
-export default function LireLArabePage() {
   return (
     <div className="w-full bg-neutral-950 text-white">
-      <StickyCta />
+      <StickyCta label={c.sticky.label} ctaLabel={c.sticky.ctaLabel} />
 
       {/* HERO */}
       <section className="relative overflow-hidden">
@@ -186,24 +133,37 @@ export default function LireLArabePage() {
               className="inline-block rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em]"
               style={{ borderColor: `${GOLD}55`, color: GOLD }}
             >
-              Méthode Master
+              {c.hero.badge}
             </span>
             <h1 className="mt-5 text-4xl sm:text-6xl font-extrabold leading-[1.05] tracking-tight">
-              Comment lire l&apos;arabe en{" "}
-              <span style={{ color: GOLD }}>moins de 7h</span> ?
+              {c.hero.titleLead}{" "}
+              <span style={{ color: GOLD }}>{c.hero.titleHighlight}</span> ?
             </h1>
             <p className="mt-5 text-lg sm:text-xl text-white/70">
-              Sans devoirs, sans stylo et sans cahier…
+              {c.hero.subtitle}
             </p>
           </div>
 
           <div className="mt-10">
-            <VideoBox label="Vidéo de présentation (à venir)" />
+            <VideoBox url={c.hero.videoUrl} label={c.hero.videoLabel} />
           </div>
 
           <div className="mt-8 flex flex-col items-center gap-4">
-            <BuyButton className="w-full max-w-[360px]" />
-            <TrustRow />
+            <BuyButton
+              className="w-full max-w-[360px]"
+              label={c.hero.ctaLabel}
+              priceEuros={priceEuros}
+            />
+            <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-medium text-white/60">
+              {c.trust.map((t, i) => {
+                const Icon = TrustIcon[i % TrustIcon.length];
+                return (
+                  <span key={t} className="inline-flex items-center gap-1.5">
+                    <Icon className="h-4 w-4" style={{ color: GOLD }} /> {t}
+                  </span>
+                );
+              })}
+            </div>
           </div>
         </div>
       </section>
@@ -213,15 +173,13 @@ export default function LireLArabePage() {
         <div className="mx-auto max-w-[1000px] px-5 sm:px-8 py-14 sm:py-20">
           <div className="text-center">
             <h2 className="text-3xl sm:text-4xl font-extrabold">
-              Tu n&apos;y crois toujours pas ?
+              {c.testimonials.heading}
             </h2>
-            <p className="mt-3 text-white/60">
-              Écoute ce que disent nos élèves
-            </p>
+            <p className="mt-3 text-white/60">{c.testimonials.subheading}</p>
           </div>
           <div className="mt-10 grid gap-4 sm:grid-cols-3">
-            {[1, 2, 3].map((i) => (
-              <VideoBox key={i} label={`Témoignage ${i} (à venir)`} />
+            {c.testimonials.items.map((t, i) => (
+              <VideoBox key={i} url={t.videoUrl} label={t.label} />
             ))}
           </div>
         </div>
@@ -232,11 +190,9 @@ export default function LireLArabePage() {
         <div className="mx-auto max-w-[560px] px-5 sm:px-8 py-16 sm:py-24">
           <div className="text-center mb-8">
             <h2 className="text-3xl sm:text-4xl font-extrabold">
-              Rejoins Quranlab maintenant
+              {c.pricing.heading}
             </h2>
-            <p className="mt-3 text-sm text-white/60">
-              Accès à vie • Paiement unique • Satisfait ou remboursé
-            </p>
+            <p className="mt-3 text-sm text-white/60">{c.pricing.subheading}</p>
           </div>
 
           <div
@@ -247,26 +203,30 @@ export default function LireLArabePage() {
               className="text-center text-[11px] font-bold uppercase tracking-[0.2em]"
               style={{ color: GOLD }}
             >
-              Accès complet
+              {c.pricing.badge}
             </p>
             <p className="mt-1 text-center text-sm text-white/50">
-              Paiement unique — Accès à vie
+              {c.pricing.cycleNote}
             </p>
 
             <div className="mt-6 flex items-center justify-center gap-3">
-              <span className="text-2xl font-bold text-white/40 line-through">
-                97€
-              </span>
+              {c.pricing.compareAtCents > c.pricing.priceCents && (
+                <span className="text-2xl font-bold text-white/40 line-through">
+                  {compareAt}
+                </span>
+              )}
               <span className="text-6xl font-extrabold" style={{ color: GOLD }}>
-                27€
+                {price}
               </span>
             </div>
-            <p className="mt-2 text-center text-sm font-semibold text-[#e0b34a]">
-              Économise 70€ !
-            </p>
+            {c.pricing.savingLabel && (
+              <p className="mt-2 text-center text-sm font-semibold text-[#e0b34a]">
+                {c.pricing.savingLabel}
+              </p>
+            )}
 
             <ul className="mt-8 space-y-3">
-              {features.map((f) => (
+              {c.pricing.features.map((f) => (
                 <li key={f} className="flex items-start gap-3 text-sm text-white/85">
                   <Check
                     className="mt-0.5 h-4 w-4 shrink-0"
@@ -278,9 +238,13 @@ export default function LireLArabePage() {
               ))}
             </ul>
 
-            <BuyButton className="mt-8" label="Je veux lire en arabe !" />
+            <BuyButton
+              className="mt-8"
+              label={c.pricing.buttonLabel}
+              priceEuros={priceEuros}
+            />
             <p className="mt-3 text-center text-[11px] text-white/40">
-              Paiement unique • Sécurisé • Accès à vie
+              {c.pricing.secure}
             </p>
           </div>
         </div>
@@ -294,19 +258,17 @@ export default function LireLArabePage() {
               className="text-[11px] font-bold uppercase tracking-[0.2em]"
               style={{ color: GOLD }}
             >
-              Méthode
+              {c.method.eyebrow}
             </p>
             <h2 className="mt-3 text-3xl sm:text-4xl font-extrabold">
-              Comment ça marche ?
+              {c.method.heading}
             </h2>
-            <p className="mt-3 text-white/60">
-              C&apos;est simple : tu t&apos;inscris et tu commences immédiatement.
-            </p>
+            <p className="mt-3 text-white/60">{c.method.subheading}</p>
           </div>
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {steps.map((s) => (
+            {c.method.steps.map((s) => (
               <div
-                key={s.n}
+                key={s.n + s.title}
                 className="rounded-2xl border border-white/10 bg-white/[0.03] p-6"
               >
                 <span
@@ -329,12 +291,12 @@ export default function LireLArabePage() {
       <section className="border-t border-white/10">
         <div className="mx-auto max-w-[820px] px-5 sm:px-8 py-16 sm:py-20">
           <h2 className="text-center text-3xl sm:text-4xl font-extrabold">
-            Le programme — 21 cours
+            {c.program.heading}
           </h2>
           <div className="mt-8 divide-y divide-white/10 overflow-hidden rounded-2xl border border-white/10">
-            {chapters.map((c, i) => (
+            {c.program.chapters.map((ch, i) => (
               <div
-                key={c}
+                key={ch + i}
                 className="flex items-center gap-4 px-4 py-3.5 sm:px-6"
               >
                 <span
@@ -343,7 +305,7 @@ export default function LireLArabePage() {
                 >
                   {String(i + 1).padStart(2, "0")}
                 </span>
-                <span className="text-sm text-white/85">{c}</span>
+                <span className="text-sm text-white/85">{ch}</span>
               </div>
             ))}
           </div>
@@ -354,19 +316,21 @@ export default function LireLArabePage() {
       <section className="border-t border-white/10 bg-white/[0.02]">
         <div className="mx-auto max-w-[860px] px-5 sm:px-8 py-16 sm:py-20">
           <h2 className="text-center text-3xl sm:text-4xl font-extrabold">
-            Pourquoi les méthodes classiques ne fonctionnent pas ?
+            {c.comparison.heading}
           </h2>
           <div className="mt-10 grid gap-4 sm:grid-cols-2">
             <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-6">
-              <h3 className="font-bold text-white/70">Méthodes classiques</h3>
+              <h3 className="font-bold text-white/70">
+                {c.comparison.classicTitle}
+              </h3>
               <ul className="mt-4 space-y-3">
-                {classic.map((c) => (
+                {c.comparison.classic.map((item) => (
                   <li
-                    key={c}
+                    key={item}
                     className="flex items-start gap-3 text-sm text-white/60"
                   >
                     <X className="mt-0.5 h-4 w-4 shrink-0 text-rose-400" strokeWidth={3} />
-                    {c}
+                    {item}
                   </li>
                 ))}
               </ul>
@@ -376,12 +340,12 @@ export default function LireLArabePage() {
               style={{ borderColor: `${GOLD}40` }}
             >
               <h3 className="font-bold" style={{ color: GOLD }}>
-                Méthode Quranlab
+                {c.comparison.oursTitle}
               </h3>
               <ul className="mt-4 space-y-3">
-                {ours.map((c) => (
+                {c.comparison.ours.map((item) => (
                   <li
-                    key={c}
+                    key={item}
                     className="flex items-start gap-3 text-sm text-white/90"
                   >
                     <Check
@@ -389,7 +353,7 @@ export default function LireLArabePage() {
                       style={{ color: GOLD }}
                       strokeWidth={3}
                     />
-                    {c}
+                    {item}
                   </li>
                 ))}
               </ul>
@@ -402,10 +366,10 @@ export default function LireLArabePage() {
       <section className="border-t border-white/10">
         <div className="mx-auto max-w-[760px] px-5 sm:px-8 py-16 sm:py-20">
           <h2 className="text-center text-3xl sm:text-4xl font-extrabold">
-            Questions fréquentes
+            {c.faq.heading}
           </h2>
           <div className="mt-8 divide-y divide-white/10 border-y border-white/10">
-            {faq.map((item) => (
+            {c.faq.items.map((item) => (
               <details key={item.q} className="group py-5">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
                   <span className="font-semibold text-white">{item.q}</span>
@@ -424,10 +388,12 @@ export default function LireLArabePage() {
           </div>
 
           <div className="mt-12 text-center">
-            <BuyButton className="mx-auto max-w-[360px]" />
-            <p className="mt-3 text-[11px] text-white/40">
-              Paiement unique • Sécurisé • Accès à vie
-            </p>
+            <BuyButton
+              className="mx-auto max-w-[360px]"
+              label={c.pricing.buttonLabel}
+              priceEuros={priceEuros}
+            />
+            <p className="mt-3 text-[11px] text-white/40">{c.pricing.secure}</p>
           </div>
         </div>
       </section>

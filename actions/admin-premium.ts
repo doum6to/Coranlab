@@ -1,10 +1,11 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import crypto from "crypto";
+import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import db from "@/db/drizzle";
-import { userSubscription } from "@/db/schema";
+import { coursePurchase, userSubscription } from "@/db/schema";
 import { isAdminAuthed } from "@/lib/admin-auth";
 
 // Lifetime marker far in the future; revoked marker far in the past so it
@@ -60,4 +61,57 @@ export async function revokePremium(userId: string) {
     .where(eq(userSubscription.userId, userId));
 
   revalidatePath("/admin");
+}
+
+const ARABIC_SLUG = "arabic_course";
+
+/**
+ * Grant access to the standalone "Lire l'arabe en 7h" course by email.
+ * Access is matched on the email, so we record a manual course_purchase row
+ * (idempotent — no-op if one already exists for this email).
+ */
+export async function grantArabicCourse(email: string) {
+  if (!isAdminAuthed()) throw new Error("Unauthorized");
+  const normalized = email.trim().toLowerCase();
+  if (!normalized) return { error: "Email manquant." };
+
+  const existing = await db.query.coursePurchase.findFirst({
+    where: and(
+      eq(coursePurchase.email, normalized),
+      eq(coursePurchase.productType, ARABIC_SLUG),
+    ),
+  });
+  if (!existing) {
+    await db.insert(coursePurchase).values({
+      email: normalized,
+      stripeSessionId: `manual_arabic_${crypto.randomUUID()}`,
+      stripeCustomerId: null,
+      stripeSubscriptionId: null,
+      hasAppSubscription: false,
+      productType: ARABIC_SLUG,
+      activationToken: crypto.randomUUID(),
+    });
+  }
+
+  revalidatePath("/admin/premium");
+  return { ok: true };
+}
+
+/** Revoke access to the arabic course for an email (deletes its purchase rows). */
+export async function revokeArabicCourse(email: string) {
+  if (!isAdminAuthed()) throw new Error("Unauthorized");
+  const normalized = email.trim().toLowerCase();
+  if (!normalized) return { error: "Email manquant." };
+
+  await db
+    .delete(coursePurchase)
+    .where(
+      and(
+        eq(coursePurchase.email, normalized),
+        eq(coursePurchase.productType, ARABIC_SLUG),
+      ),
+    );
+
+  revalidatePath("/admin/premium");
+  return { ok: true };
 }

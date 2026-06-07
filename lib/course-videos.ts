@@ -7,5 +7,8 @@
 /** Private Supabase Storage bucket holding the course video files. */
 export const COURSE_VIDEO_BUCKET = "course-videos";
 
+/** Public Supabase Storage bucket for landing-page media (promo videos). */
+export const LANDING_MEDIA_BUCKET = "landing-media";
+
 /** Course identifier (slug) for the arabic-reading course. */
 export const ARABIC_COURSE_SLUG = "arabic_course";
