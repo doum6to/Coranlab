@@ -27,6 +27,15 @@ const SettingsPage = async () => {
 
   const email = user?.emailAddresses?.[0]?.emailAddress ?? "";
 
+  // Google Drive links copied from the browser contain a "/u/<n>/" account
+  // slot that only works for the owner — strip it so the link works for
+  // everyone.
+  const cleanDrive = (url: string) =>
+    url.replace(
+      /drive\.google\.com\/drive\/u\/\d+\//,
+      "drive.google.com/drive/",
+    );
+
   // Show the PDF documents to people who bought (matched by email) or who
   // have a lifetime grant.
   const offerSettings = await getOfferSettings();
@@ -36,6 +45,7 @@ const SettingsPage = async () => {
       { label: "Tous les documents (PDF)", url: process.env.COURSE_DRIVE_URL },
     ];
   }
+  documents = documents.map((d) => ({ ...d, url: cleanDrive(d.url) }));
   const purchase = email
     ? await db.query.coursePurchase.findFirst({
         where: eq(coursePurchase.email, email.toLowerCase()),
