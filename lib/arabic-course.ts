@@ -17,13 +17,19 @@ export async function userHasArabicCourse(): Promise<boolean> {
   const email = user?.emailAddresses?.[0]?.emailAddress?.toLowerCase();
   if (!email) return false;
 
-  const purchase = await db.query.coursePurchase.findFirst({
-    where: and(
-      eq(coursePurchase.email, email),
-      eq(coursePurchase.productType, COURSE_SLUG),
-    ),
-  });
-  return !!purchase;
+  try {
+    const purchase = await db.query.coursePurchase.findFirst({
+      where: and(
+        eq(coursePurchase.email, email),
+        eq(coursePurchase.productType, COURSE_SLUG),
+      ),
+    });
+    return !!purchase;
+  } catch (e) {
+    // product_type column not added yet (db-setup not run) — no access.
+    console.error("[arabic-course] userHasArabicCourse failed:", e);
+    return false;
+  }
 }
 
 export type ArabicCourseVideo = {
@@ -38,10 +44,16 @@ export type ArabicCourseVideo = {
  * be called only after `userHasArabicCourse()` has confirmed access.
  */
 export async function getArabicCourseVideos(): Promise<ArabicCourseVideo[]> {
-  const rows = await db.query.courseVideo.findMany({
-    where: eq(courseVideo.slug, COURSE_SLUG),
-    orderBy: [asc(courseVideo.position), asc(courseVideo.id)],
-  });
+  let rows;
+  try {
+    rows = await db.query.courseVideo.findMany({
+      where: eq(courseVideo.slug, COURSE_SLUG),
+      orderBy: [asc(courseVideo.position), asc(courseVideo.id)],
+    });
+  } catch (e) {
+    console.error("[arabic-course] getArabicCourseVideos failed:", e);
+    return [];
+  }
   if (!rows.length) return [];
 
   const supabase = createAdminClient();
