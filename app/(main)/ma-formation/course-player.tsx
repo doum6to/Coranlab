@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CheckCircle2, PlayCircle } from "lucide-react";
 
 import type { ArabicCourseVideo } from "@/lib/arabic-course";
+import { toEmbedSrc } from "@/lib/video-embed";
 
 const STORAGE_KEY = "arabic_course_watched";
 
@@ -45,15 +46,26 @@ export function CoursePlayer({ videos }: { videos: ArabicCourseVideo[] }) {
         <div>
           <div className="overflow-hidden rounded-2xl bg-black">
             {active?.url ? (
-              <video
-                key={active.id}
-                src={active.url}
-                controls
-                controlsList="nodownload"
-                onContextMenu={(e) => e.preventDefault()}
-                onEnded={() => active && markWatched(active.id)}
-                className="aspect-video w-full"
-              />
+              active.kind === "embed" ? (
+                <iframe
+                  key={active.id}
+                  src={toEmbedSrc(active.url)}
+                  title={active.title}
+                  className="aspect-video w-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : (
+                <video
+                  key={active.id}
+                  src={active.url}
+                  controls
+                  controlsList="nodownload"
+                  onContextMenu={(e) => e.preventDefault()}
+                  onEnded={() => active && markWatched(active.id)}
+                  className="aspect-video w-full"
+                />
+              )
             ) : (
               <div className="flex aspect-video w-full items-center justify-center text-sm text-white/70">
                 Vidéo indisponible.

@@ -43,9 +43,17 @@ export async function GET(req: Request) {
         "slug" text NOT NULL DEFAULT 'arabic_course',
         "title" text NOT NULL,
         "position" integer NOT NULL DEFAULT 0,
-        "storage_path" text NOT NULL,
+        "storage_path" text NOT NULL DEFAULT '',
         "created_at" timestamp NOT NULL DEFAULT now()
       );
+    `);
+    await db.execute(sql`
+      ALTER TABLE "course_video"
+      ALTER COLUMN "storage_path" SET DEFAULT '';
+    `);
+    await db.execute(sql`
+      ALTER TABLE "course_video"
+      ADD COLUMN IF NOT EXISTS "external_url" text;
     `);
     await db.execute(sql`
       CREATE INDEX IF NOT EXISTS "course_video_slug" ON "course_video" ("slug");

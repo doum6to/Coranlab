@@ -188,6 +188,7 @@ const AdminPremiumPage = async () => {
                     title: v.title,
                     position: v.position,
                     storagePath: v.storagePath,
+                    externalUrl: v.externalUrl ?? null,
                   }))}
                 />
               ),
