@@ -9,9 +9,11 @@ import { ttqTrack } from "@/lib/analytics/tiktok";
 export function BuyButton({
   className,
   label = "Je veux lire l'arabe",
+  priceEuros = 27,
 }: {
   className?: string;
   label?: string;
+  priceEuros?: number;
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +22,7 @@ export function BuyButton({
     setError(null);
     setLoading(true);
     ttqTrack("InitiateCheckout", {
-      value: 27,
+      value: priceEuros,
       currency: "EUR",
       content_id: "arabic_course",
       content_name: "Lire l'arabe en 7h",

@@ -1,17 +1,21 @@
 import { redirect } from "next/navigation";
 
+import { eq } from "drizzle-orm";
+
 import db from "@/db/drizzle";
-import { userSubscription } from "@/db/schema";
+import { coursePurchase, userSubscription } from "@/db/schema";
 import { adminConfigured, isAdminAuthed } from "@/lib/admin-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getOfferSettings } from "@/lib/offer";
 import { getLandingContent } from "@/lib/landing-content";
+import { getArabicLandingContent } from "@/lib/arabic-landing-content";
 
 import { listCourseVideos } from "@/actions/course-videos";
 
 import { UsersTable, type AdminUser } from "./users-table";
 import { OfferSettingsForm } from "./offer-settings-form";
 import { LandingContentForm } from "./landing-content-form";
+import { ArabicLandingForm } from "./arabic-landing-form";
 import { VideosForm } from "./videos-form";
 import { AdminTabs } from "./admin-tabs";
 
@@ -52,6 +56,19 @@ const AdminPremiumPage = async () => {
   // 1. All subscription rows, keyed by userId.
   const subs = await db.select().from(userSubscription);
   const subByUser = new Map(subs.map((s) => [s.userId, s]));
+
+  // 1b. Emails that have access to the standalone arabic course (matched by
+  // email). Resilient: empty set if the product_type column doesn't exist yet.
+  const arabicEmails = new Set<string>();
+  try {
+    const rows = await db
+      .select({ email: coursePurchase.email })
+      .from(coursePurchase)
+      .where(eq(coursePurchase.productType, "arabic_course"));
+    rows.forEach((r) => arabicEmails.add(r.email.toLowerCase()));
+  } catch (e) {
+    console.error("[admin] arabic course emails query failed:", e);
+  }
 
   // 2. All Supabase auth users (paginated).
   const supabase = createAdminClient();
@@ -101,6 +118,9 @@ const AdminPremiumPage = async () => {
         sub && !sub.isLifetime
           ? sub.stripeCurrentPeriodEnd?.toISOString() || null
           : null,
+      hasArabicCourse: u.email
+        ? arabicEmails.has(u.email.toLowerCase())
+        : false,
     };
   });
 
@@ -109,9 +129,10 @@ const AdminPremiumPage = async () => {
 
   const premiumCount = users.filter((u) => u.isPremium).length;
 
-  const [offer, content, videos] = await Promise.all([
+  const [offer, content, arabicContent, videos] = await Promise.all([
     getOfferSettings(),
     getLandingContent(),
+    getArabicLandingContent(),
     listCourseVideos(),
   ]);
 
@@ -149,8 +170,13 @@ const AdminPremiumPage = async () => {
             },
             {
               key: "content",
-              label: "Contenu de la landing",
+              label: "Landing /offre-a-vie",
               node: <LandingContentForm initial={content} />,
+            },
+            {
+              key: "arabic",
+              label: "Landing /lire-larabe",
+              node: <ArabicLandingForm initial={arabicContent} />,
             },
             {
               key: "videos",

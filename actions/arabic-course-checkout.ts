@@ -2,14 +2,19 @@
 
 import { stripe } from "@/lib/stripe";
 import { absoluteUrl } from "@/lib/utils";
+import { getArabicLandingContent } from "@/lib/arabic-landing-content";
 
 /**
  * Stripe Checkout for the standalone "Lire l'arabe en 7h" course — a single
- * 27€ payment, separate from the app premium / ebook offer. Anonymous; the
- * email is collected at checkout.
+ * one-time payment, separate from the app premium / ebook offer. Anonymous;
+ * the email is collected at checkout. The amount is read from the admin-
+ * editable landing content so price stays in sync with what's displayed.
  */
 export async function createArabicCourseCheckoutUrl() {
   try {
+    const content = await getArabicLandingContent();
+    const unitAmount = Math.max(50, Math.round(content.pricing.priceCents) || 2700);
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
@@ -23,7 +28,7 @@ export async function createArabicCourseCheckoutUrl() {
               description:
                 "21 cours en vidéo. Accès à vie, paiement unique.",
             },
-            unit_amount: 2700,
+            unit_amount: unitAmount,
           },
         },
       ],
