@@ -63,8 +63,10 @@ function VideoBox({
     }
     return (
       <video
-        src={url}
+        src={url.includes("#") ? url : `${url}#t=0.1`}
         controls
+        playsInline
+        preload="metadata"
         className={`${ratio} w-full overflow-hidden rounded-2xl border border-white/10 bg-black object-cover ${className ?? ""}`}
       />
     );
