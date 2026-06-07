@@ -9,6 +9,7 @@ import { isEmbedUrl as isEmbed, toEmbedSrc as embedSrc } from "@/lib/video-embed
 import { BuyButton } from "./buy-button";
 import { StickyCta } from "./sticky-cta";
 import { ProgramList } from "./program-list";
+import { Countdown } from "./countdown";
 
 export const dynamic = "force-static";
 export const revalidate = 3600;
@@ -191,6 +192,9 @@ export default async function LireLArabePage() {
               {c.pricing.heading}
             </h2>
             <p className="mt-3 text-sm text-white/60">{c.pricing.subheading}</p>
+            <div className="mt-6">
+              <Countdown label={c.sticky.label} />
+            </div>
           </div>
 
           <div
