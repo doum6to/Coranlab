@@ -68,6 +68,53 @@ export async function POST(req: Request) {
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
 
+    // --- 1a-bis. Standalone "Lire l'arabe en 7h" video course (anonymous) ---
+    if (session.metadata?.productType === "arabic_course") {
+      const email =
+        session.customer_details?.email || session.customer_email;
+      if (!email) {
+        console.error("[Webhook] Arabic course purchase missing email", session.id);
+        return new NextResponse("Email required", { status: 400 });
+      }
+
+      try {
+        await db
+          .insert(coursePurchase)
+          .values({
+            email: email.toLowerCase(),
+            stripeSessionId: session.id,
+            stripeCustomerId: (session.customer as string) || null,
+            stripeSubscriptionId: null,
+            hasAppSubscription: false,
+            productType: "arabic_course",
+            activationToken: crypto.randomUUID(),
+          })
+          .onConflictDoNothing({ target: coursePurchase.stripeSessionId });
+      } catch (err: any) {
+        console.error("[Webhook] DB insert failed for arabic course", err);
+        return new NextResponse(`DB insert error: ${err.message}`, {
+          status: 500,
+        });
+      }
+
+      try {
+        const amountCents = session.amount_total ?? 2700;
+        await ttqServerTrack("CompletePayment", {
+          event_id: session.id,
+          email,
+          value: amountCents / 100,
+          currency: "EUR",
+          contentId: "arabic_course",
+          contentName: "Lire l'arabe en 7h",
+          contentCategory: "course",
+        });
+      } catch (err) {
+        console.error("[Webhook] TikTok tracking failed (arabic)", err);
+      }
+
+      return new NextResponse(null, { status: 200 });
+    }
+
     // --- 1a. Course purchase via /85motscoran (anonymous, no userId) ---
     if (session.metadata?.productType === "course") {
       const email =

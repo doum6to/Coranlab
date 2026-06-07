@@ -5,12 +5,13 @@ import { MobilePremiumButton } from "./mobile-premium-button";
 type Props = {
   streak?: number;
   isPro?: boolean;
+  hasArabicCourse?: boolean;
 };
 
-export const MobileHeader = ({ streak, isPro }: Props) => {
+export const MobileHeader = ({ streak, isPro, hasArabicCourse }: Props) => {
   return (
     <nav className="lg:hidden px-4 h-[50px] flex items-center justify-between bg-white border-b border-brilliant-border fixed top-0 w-full z-50">
-      <MobileSidebar />
+      <MobileSidebar hasArabicCourse={hasArabicCourse} />
 
       {/* Right side */}
       {streak !== undefined && (

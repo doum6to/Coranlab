@@ -3,6 +3,8 @@
 import Link from "next/link";
 import Image from "next/image";
 
+import { GraduationCap } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 import { SidebarItem } from "./sidebar-item";
 import { UserButton } from "./user-button";
@@ -21,9 +23,10 @@ type Props = {
   isPro?: boolean;
   hasActiveSubscription?: boolean;
   streakData?: StreakData;
+  hasArabicCourse?: boolean;
 };
 
-export const Sidebar = ({ className, streak, isPro, hasActiveSubscription, streakData }: Props) => {
+export const Sidebar = ({ className, streak, isPro, hasActiveSubscription, streakData, hasArabicCourse }: Props) => {
   return (
     <div className={cn(
       "flex h-full lg:w-[256px] lg:fixed left-0 top-0 px-4 border-r border-brilliant-border flex-col bg-white",
@@ -61,6 +64,13 @@ export const Sidebar = ({ className, streak, isPro, hasActiveSubscription, strea
           href="/leaderboard"
           icon={LeaderboardIcon}
         />
+        {hasArabicCourse && (
+          <SidebarItem
+            label="Ma formation"
+            href="/ma-formation"
+            icon={GraduationCap}
+          />
+        )}
         <SidebarItem
           label="Paramètres"
           href="/settings"
