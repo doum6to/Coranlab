@@ -5,8 +5,10 @@ import { Check, Clock, Play, ShieldCheck, X } from "lucide-react";
 
 import { formatEuros } from "@/lib/offer";
 import { getArabicLandingContent } from "@/lib/arabic-landing-content";
+import { isEmbedUrl as isEmbed, toEmbedSrc as embedSrc } from "@/lib/video-embed";
 import { BuyButton } from "./buy-button";
 import { StickyCta } from "./sticky-cta";
+import { ProgramList } from "./program-list";
 
 export const dynamic = "force-static";
 export const revalidate = 3600;
@@ -30,34 +32,23 @@ export const metadata: Metadata = {
 
 const TrustIcon = [ShieldCheck, Clock, Check];
 
-function isEmbed(url: string) {
-  return /youtube\.com|youtu\.be|vimeo\.com/i.test(url);
-}
-
-function embedSrc(url: string) {
-  const yt = url.match(
-    /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]{11})/,
-  );
-  if (yt) return `https://www.youtube.com/embed/${yt[1]}`;
-  const vm = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
-  if (vm) return `https://player.vimeo.com/video/${vm[1]}`;
-  return url;
-}
-
 function VideoBox({
   url,
   label,
   className,
+  vertical,
 }: {
   url?: string;
   label: string;
   className?: string;
+  vertical?: boolean;
 }) {
+  const ratio = vertical ? "aspect-[9/16]" : "aspect-video";
   if (url) {
     if (isEmbed(url)) {
       return (
         <div
-          className={`relative aspect-video w-full overflow-hidden rounded-2xl border border-white/10 bg-black ${className ?? ""}`}
+          className={`relative ${ratio} w-full overflow-hidden rounded-2xl border border-white/10 bg-black ${className ?? ""}`}
         >
           <iframe
             src={embedSrc(url)}
@@ -73,13 +64,13 @@ function VideoBox({
       <video
         src={url}
         controls
-        className={`aspect-video w-full overflow-hidden rounded-2xl border border-white/10 bg-black ${className ?? ""}`}
+        className={`${ratio} w-full overflow-hidden rounded-2xl border border-white/10 bg-black object-cover ${className ?? ""}`}
       />
     );
   }
   return (
     <div
-      className={`relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] ${className ?? ""}`}
+      className={`relative flex ${ratio} w-full items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] ${className ?? ""}`}
     >
       <div className="flex flex-col items-center gap-2 text-white/40">
         <span
@@ -88,7 +79,7 @@ function VideoBox({
         >
           <Play className="h-6 w-6 fill-neutral-900 text-neutral-900" />
         </span>
-        <span className="text-xs">{label}</span>
+        <span className="px-3 text-center text-xs">{label}</span>
       </div>
     </div>
   );
@@ -177,9 +168,15 @@ export default async function LireLArabePage() {
             </h2>
             <p className="mt-3 text-white/60">{c.testimonials.subheading}</p>
           </div>
-          <div className="mt-10 grid gap-4 sm:grid-cols-3">
+          {/* Mobile: swipeable carousel of vertical videos. Desktop: 3-up grid. */}
+          <div className="mt-10 -mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-4 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 sm:pb-0">
             {c.testimonials.items.map((t, i) => (
-              <VideoBox key={i} url={t.videoUrl} label={t.label} />
+              <div
+                key={i}
+                className="w-[68%] shrink-0 snap-center sm:w-auto"
+              >
+                <VideoBox url={t.videoUrl} label={t.label} vertical />
+              </div>
             ))}
           </div>
         </div>
@@ -265,20 +262,22 @@ export default async function LireLArabePage() {
             </h2>
             <p className="mt-3 text-white/60">{c.method.subheading}</p>
           </div>
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-10 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
             {c.method.steps.map((s) => (
               <div
                 key={s.n + s.title}
-                className="rounded-2xl border border-white/10 bg-white/[0.03] p-6"
+                className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-6"
               >
                 <span
-                  className="text-3xl font-extrabold"
+                  className="text-2xl sm:text-3xl font-extrabold"
                   style={{ color: GOLD }}
                 >
                   {s.n}
                 </span>
-                <h3 className="mt-3 font-bold text-lg">{s.title}</h3>
-                <p className="mt-2 text-sm text-white/60 leading-relaxed">
+                <h3 className="mt-2 sm:mt-3 font-bold text-base sm:text-lg">
+                  {s.title}
+                </h3>
+                <p className="mt-1.5 sm:mt-2 text-[13px] sm:text-sm text-white/60 leading-relaxed">
                   {s.text}
                 </p>
               </div>
@@ -293,22 +292,7 @@ export default async function LireLArabePage() {
           <h2 className="text-center text-3xl sm:text-4xl font-extrabold">
             {c.program.heading}
           </h2>
-          <div className="mt-8 divide-y divide-white/10 overflow-hidden rounded-2xl border border-white/10">
-            {c.program.chapters.map((ch, i) => (
-              <div
-                key={ch + i}
-                className="flex items-center gap-4 px-4 py-3.5 sm:px-6"
-              >
-                <span
-                  className="w-7 shrink-0 text-sm font-bold tabular-nums"
-                  style={{ color: GOLD }}
-                >
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <span className="text-sm text-white/85">{ch}</span>
-              </div>
-            ))}
-          </div>
+          <ProgramList chapters={c.program.chapters} />
         </div>
       </section>
 

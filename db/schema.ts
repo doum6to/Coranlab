@@ -210,15 +210,17 @@ export const appSetting = pgTable("app_setting", {
 });
 
 // Video lessons for a standalone video course (e.g. "Lire l'arabe en 7h").
-// Files live in a PRIVATE Supabase Storage bucket; only `storagePath` is kept
-// here and access is served through short-lived signed URLs. `slug` lets the
-// table hold more than one course later.
+// A lesson is EITHER an uploaded file in a PRIVATE Supabase Storage bucket
+// (served via short-lived signed URLs from `storagePath`) OR an external link
+// (`externalUrl` — YouTube/Vimeo/MP4). `slug` lets the table hold more than
+// one course later.
 export const courseVideo = pgTable("course_video", {
   id: serial("id").primaryKey(),
   slug: text("slug").notNull().default("arabic_course"),
   title: text("title").notNull(),
   position: integer("position").notNull().default(0),
-  storagePath: text("storage_path").notNull(),
+  storagePath: text("storage_path").notNull().default(""),
+  externalUrl: text("external_url"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 }, (t) => ({
   slugIdx: index("course_video_slug").on(t.slug),

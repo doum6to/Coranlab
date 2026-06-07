@@ -6,6 +6,7 @@ import { coursePurchase, courseVideo } from "@/db/schema";
 import { currentUser } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { COURSE_VIDEO_BUCKET, ARABIC_COURSE_SLUG as COURSE_SLUG } from "@/lib/course-videos";
+import { isEmbedUrl } from "@/lib/video-embed";
 const SIGNED_URL_TTL = 60 * 60 * 4; // 4 hours
 
 /**
@@ -37,11 +38,14 @@ export type ArabicCourseVideo = {
   title: string;
   position: number;
   url: string | null;
+  /** "embed" → render in an iframe (YouTube/Vimeo); "file" → <video>. */
+  kind: "embed" | "file";
 };
 
 /**
- * Returns the course videos with short-lived signed playback URLs. Intended to
- * be called only after `userHasArabicCourse()` has confirmed access.
+ * Returns the course videos ready to play. Uploaded files get a short-lived
+ * signed URL; external links are passed through. Intended to be called only
+ * after `userHasArabicCourse()` has confirmed access.
  */
 export async function getArabicCourseVideos(): Promise<ArabicCourseVideo[]> {
   let rows;
@@ -56,23 +60,39 @@ export async function getArabicCourseVideos(): Promise<ArabicCourseVideo[]> {
   }
   if (!rows.length) return [];
 
-  const supabase = createAdminClient();
-  const paths = rows.map((r) => r.storagePath);
-  const { data, error } = await supabase.storage
-    .from(COURSE_VIDEO_BUCKET)
-    .createSignedUrls(paths, SIGNED_URL_TTL);
-
+  // Sign only the uploaded files (rows with a storage path).
+  const storedPaths = rows
+    .filter((r) => r.storagePath && !r.externalUrl)
+    .map((r) => r.storagePath);
   const urlByPath = new Map<string, string>();
-  if (!error && data) {
-    data.forEach((d, i) => {
-      if (d.signedUrl) urlByPath.set(paths[i], d.signedUrl);
-    });
+  if (storedPaths.length) {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase.storage
+      .from(COURSE_VIDEO_BUCKET)
+      .createSignedUrls(storedPaths, SIGNED_URL_TTL);
+    if (!error && data) {
+      data.forEach((d, i) => {
+        if (d.signedUrl) urlByPath.set(storedPaths[i], d.signedUrl);
+      });
+    }
   }
 
-  return rows.map((r) => ({
-    id: r.id,
-    title: r.title,
-    position: r.position,
-    url: urlByPath.get(r.storagePath) ?? null,
-  }));
+  return rows.map((r) => {
+    if (r.externalUrl) {
+      return {
+        id: r.id,
+        title: r.title,
+        position: r.position,
+        url: r.externalUrl,
+        kind: isEmbedUrl(r.externalUrl) ? "embed" : "file",
+      };
+    }
+    return {
+      id: r.id,
+      title: r.title,
+      position: r.position,
+      url: urlByPath.get(r.storagePath) ?? null,
+      kind: "file",
+    };
+  });
 }

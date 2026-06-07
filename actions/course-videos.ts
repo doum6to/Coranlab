@@ -58,18 +58,25 @@ export async function createVideoUploadUrl(ext: string) {
   }
 }
 
-/** Persists a video row once its file is uploaded. Position auto-increments. */
+/**
+ * Persists a video row. A lesson is either an uploaded file (`storagePath`)
+ * or an external link (`externalUrl` — YouTube/Vimeo/MP4). Position
+ * auto-increments when not provided.
+ */
 export async function saveCourseVideo(input: {
   title: string;
-  storagePath: string;
+  storagePath?: string;
+  externalUrl?: string;
   position?: number;
 }) {
   if (!isAdminAuthed()) return { error: "Unauthorized" } as const;
 
   const title = input.title?.trim();
-  const storagePath = input.storagePath?.trim();
-  if (!title || !storagePath) {
-    return { error: "Titre et fichier requis." } as const;
+  const storagePath = input.storagePath?.trim() || "";
+  const externalUrl = input.externalUrl?.trim() || "";
+  if (!title) return { error: "Titre requis." } as const;
+  if (!storagePath && !externalUrl) {
+    return { error: "Ajoute un fichier OU un lien vidéo." } as const;
   }
 
   try {
@@ -86,6 +93,7 @@ export async function saveCourseVideo(input: {
       slug: COURSE_SLUG,
       title,
       storagePath,
+      externalUrl: externalUrl || null,
       position,
     });
 
@@ -132,8 +140,10 @@ export async function deleteCourseVideo(id: number) {
     });
     if (!row) return { error: "Vidéo introuvable." } as const;
 
-    const supabase = createAdminClient();
-    await supabase.storage.from(COURSE_VIDEO_BUCKET).remove([row.storagePath]);
+    if (row.storagePath) {
+      const supabase = createAdminClient();
+      await supabase.storage.from(COURSE_VIDEO_BUCKET).remove([row.storagePath]);
+    }
     await db.delete(courseVideo).where(eq(courseVideo.id, id));
 
     revalidatePath("/admin/premium");
