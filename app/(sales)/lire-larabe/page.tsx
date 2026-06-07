@@ -140,11 +140,12 @@ export default async function LireLArabePage() {
           </div>
 
           <div className="mt-8 flex flex-col items-center gap-4">
-            <BuyButton
-              className="w-full max-w-[360px]"
-              label={c.hero.ctaLabel}
-              priceEuros={priceEuros}
-            />
+            <a
+              href="#tarifs"
+              className="inline-flex w-full max-w-[360px] items-center justify-center gap-2 rounded-2xl border-b-4 border-[#a9801f] bg-gradient-to-b from-[#e9c15a] to-[#d9a93c] px-8 py-4 text-base font-extrabold uppercase tracking-wide text-neutral-900 shadow-lg transition-all hover:brightness-[1.04] active:translate-y-1 active:border-b-0"
+            >
+              {c.hero.ctaLabel}
+            </a>
             <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-medium text-white/60">
               {c.trust.map((t, i) => {
                 const Icon = TrustIcon[i % TrustIcon.length];
