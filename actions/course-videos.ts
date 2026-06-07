@@ -10,6 +10,31 @@ import { isAdminAuthed } from "@/lib/admin-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { COURSE_VIDEO_BUCKET, ARABIC_COURSE_SLUG as COURSE_SLUG } from "@/lib/course-videos";
 
+/**
+ * Self-healing schema: makes sure the course_video table and its columns
+ * exist before we read/write — so the feature works even if the one-shot
+ * /api/admin/db-setup endpoint was never (re-)run. All statements are
+ * idempotent and cheap.
+ */
+async function ensureCourseVideoSchema() {
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS "course_video" (
+      "id" serial PRIMARY KEY,
+      "slug" text NOT NULL DEFAULT 'arabic_course',
+      "title" text NOT NULL,
+      "position" integer NOT NULL DEFAULT 0,
+      "storage_path" text NOT NULL DEFAULT '',
+      "created_at" timestamp NOT NULL DEFAULT now()
+    );
+  `);
+  await db.execute(
+    sql`ALTER TABLE "course_video" ALTER COLUMN "storage_path" SET DEFAULT '';`,
+  );
+  await db.execute(
+    sql`ALTER TABLE "course_video" ADD COLUMN IF NOT EXISTS "external_url" text;`,
+  );
+}
+
 /** Creates the private bucket if it doesn't exist yet. Idempotent. */
 async function ensureBucket(supabase: ReturnType<typeof createAdminClient>) {
   const { error } = await supabase.storage.createBucket(COURSE_VIDEO_BUCKET, {
@@ -80,6 +105,8 @@ export async function saveCourseVideo(input: {
   }
 
   try {
+    await ensureCourseVideoSchema();
+
     let position = input.position;
     if (typeof position !== "number" || Number.isNaN(position)) {
       const [{ max }] = await db
@@ -159,6 +186,7 @@ export async function deleteCourseVideo(id: number) {
 export async function listCourseVideos() {
   if (!isAdminAuthed()) return [];
   try {
+    await ensureCourseVideoSchema();
     return await db.query.courseVideo.findMany({
       where: eq(courseVideo.slug, COURSE_SLUG),
       orderBy: [asc(courseVideo.position), asc(courseVideo.id)],
