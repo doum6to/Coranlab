@@ -148,8 +148,14 @@ export async function deleteCourseVideo(id: number) {
 /** Admin listing of all videos for the course (ordered). */
 export async function listCourseVideos() {
   if (!isAdminAuthed()) return [];
-  return db.query.courseVideo.findMany({
-    where: eq(courseVideo.slug, COURSE_SLUG),
-    orderBy: [asc(courseVideo.position), asc(courseVideo.id)],
-  });
+  try {
+    return await db.query.courseVideo.findMany({
+      where: eq(courseVideo.slug, COURSE_SLUG),
+      orderBy: [asc(courseVideo.position), asc(courseVideo.id)],
+    });
+  } catch (e) {
+    // Table not created yet (db-setup not run) — degrade gracefully.
+    console.error("[course-videos] listCourseVideos failed:", e);
+    return [];
+  }
 }
