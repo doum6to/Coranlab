@@ -189,6 +189,10 @@ export const coursePurchase = pgTable("course_purchase", {
   stripeCustomerId: text("stripe_customer_id"),
   stripeSubscriptionId: text("stripe_subscription_id"),
   hasAppSubscription: boolean("has_app_subscription").notNull().default(false),
+  // Which product was bought: "app" (premium / ebook bundle) or
+  // "arabic_course" (standalone "Lire l'arabe en 7h" video course). Lets us
+  // gate the right content per buyer.
+  productType: text("product_type").notNull().default("app"),
   linkedUserId: text("linked_user_id"),
   activationToken: text("activation_token").notNull().unique(),
   emailSentAt: timestamp("email_sent_at"),
@@ -204,3 +208,18 @@ export const appSetting = pgTable("app_setting", {
   value: text("value").notNull(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
+
+// Video lessons for a standalone video course (e.g. "Lire l'arabe en 7h").
+// Files live in a PRIVATE Supabase Storage bucket; only `storagePath` is kept
+// here and access is served through short-lived signed URLs. `slug` lets the
+// table hold more than one course later.
+export const courseVideo = pgTable("course_video", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().default("arabic_course"),
+  title: text("title").notNull(),
+  position: integer("position").notNull().default(0),
+  storagePath: text("storage_path").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => ({
+  slugIdx: index("course_video_slug").on(t.slug),
+}));

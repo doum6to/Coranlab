@@ -7,9 +7,12 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getOfferSettings } from "@/lib/offer";
 import { getLandingContent } from "@/lib/landing-content";
 
+import { listCourseVideos } from "@/actions/course-videos";
+
 import { UsersTable, type AdminUser } from "./users-table";
 import { OfferSettingsForm } from "./offer-settings-form";
 import { LandingContentForm } from "./landing-content-form";
+import { VideosForm } from "./videos-form";
 import { AdminTabs } from "./admin-tabs";
 
 export const dynamic = "force-dynamic";
@@ -106,9 +109,10 @@ const AdminPremiumPage = async () => {
 
   const premiumCount = users.filter((u) => u.isPremium).length;
 
-  const [offer, content] = await Promise.all([
+  const [offer, content, videos] = await Promise.all([
     getOfferSettings(),
     getLandingContent(),
+    listCourseVideos(),
   ]);
 
   return (
@@ -147,6 +151,20 @@ const AdminPremiumPage = async () => {
               key: "content",
               label: "Contenu de la landing",
               node: <LandingContentForm initial={content} />,
+            },
+            {
+              key: "videos",
+              label: "Formation vidéo",
+              node: (
+                <VideosForm
+                  initial={videos.map((v) => ({
+                    id: v.id,
+                    title: v.title,
+                    position: v.position,
+                    storagePath: v.storagePath,
+                  }))}
+                />
+              ),
             },
             {
               key: "users",

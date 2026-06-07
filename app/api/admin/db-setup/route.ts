@@ -30,10 +30,31 @@ export async function GET(req: Request) {
         "updated_at" timestamp NOT NULL DEFAULT now()
       );
     `);
+
+    // Standalone video course support: a product_type marker on purchases and
+    // a table of video lessons. Both idempotent.
+    await db.execute(sql`
+      ALTER TABLE "course_purchase"
+      ADD COLUMN IF NOT EXISTS "product_type" text NOT NULL DEFAULT 'app';
+    `);
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "course_video" (
+        "id" serial PRIMARY KEY,
+        "slug" text NOT NULL DEFAULT 'arabic_course',
+        "title" text NOT NULL,
+        "position" integer NOT NULL DEFAULT 0,
+        "storage_path" text NOT NULL,
+        "created_at" timestamp NOT NULL DEFAULT now()
+      );
+    `);
+    await db.execute(sql`
+      CREATE INDEX IF NOT EXISTS "course_video_slug" ON "course_video" ("slug");
+    `);
+
     return NextResponse.json({
       ok: true,
       message:
-        "Table app_setting prête. Tu peux maintenant enregistrer les réglages depuis /admin/premium.",
+        "Tables prêtes (app_setting, course_video + colonne product_type). Tu peux gérer l'offre, le contenu et les vidéos depuis /admin/premium.",
     });
   } catch (e: any) {
     console.error("[db-setup] failed:", e);

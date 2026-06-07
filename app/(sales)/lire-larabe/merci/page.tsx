@@ -44,6 +44,7 @@ async function ensurePurchaseRow(
         stripeCustomerId: (session.customer as string) || null,
         stripeSubscriptionId: null,
         hasAppSubscription: false,
+        productType: "arabic_course",
         activationToken: crypto.randomUUID(),
       })
       .onConflictDoNothing({ target: coursePurchase.stripeSessionId });
@@ -64,6 +65,10 @@ export default async function MerciArabe({
   const { email, amount } = sessionId
     ? await ensurePurchaseRow(sessionId)
     : { email: null, amount: null };
+
+  const signupUrl = email
+    ? `/auth/signup?email=${encodeURIComponent(email)}&locked=1`
+    : "/auth/signup";
 
   return (
     <div className="min-h-screen w-full bg-neutral-950 text-white flex items-center justify-center">
@@ -87,15 +92,35 @@ export default async function MerciArabe({
         </h1>
 
         <p className="text-base sm:text-lg text-neutral-300 max-w-[480px] leading-relaxed">
-          Ton paiement est bien confirmé
+          Dernière étape : crée ton compte
           {email ? (
             <>
               {" "}
-              pour l&apos;adresse{" "}
+              avec l&apos;adresse{" "}
               <span className="font-semibold text-white">{email}</span>
             </>
+          ) : null}{" "}
+          pour accéder à tes 21 cours en vidéo.
+        </p>
+
+        <a
+          href={signupUrl}
+          className="inline-flex w-full max-w-[320px] items-center justify-center rounded-2xl border-b-4 border-[#a9801f] bg-gradient-to-b from-[#e9c15a] to-[#d9a93c] px-8 py-4 text-base font-extrabold uppercase tracking-wide text-neutral-900 shadow-lg transition hover:brightness-105 active:translate-y-1 active:border-b-0"
+        >
+          Créer mon compte
+        </a>
+
+        <p className="max-w-[440px] rounded-2xl border border-[#e0b34a]/30 bg-[#e0b34a]/10 px-4 py-3 text-sm font-medium text-[#f0d089]">
+          ⚠️ Important : crée ton compte avec le{" "}
+          <span className="font-bold">même email que lors de l&apos;achat</span>
+          {email ? (
+            <>
+              {" "}
+              (<span className="font-bold">{email}</span>)
+            </>
           ) : null}
-          . Tu vas recevoir un email avec les accès à tes 21 cours en vidéo.
+          . Tu retrouveras ensuite tes vidéos dans l&apos;onglet{" "}
+          <span className="font-bold">« Ma formation »</span>.
         </p>
 
         <div className="mt-2 rounded-2xl border border-white/10 bg-white/5 p-6 w-full max-w-[480px]">
@@ -105,12 +130,10 @@ export default async function MerciArabe({
             </span>
             <div>
               <p className="text-sm font-semibold text-white">
-                Vérifie ta boîte mail
+                Un email de confirmation arrive aussi
               </p>
               <p className="mt-1 text-sm text-neutral-400 leading-relaxed">
-                Un email avec le lien d&apos;accès à la formation arrive dans
-                quelques minutes. Pense à vérifier tes spams si tu ne le vois
-                pas.
+                Pense à vérifier tes spams si tu ne le vois pas.
               </p>
             </div>
           </div>
