@@ -801,6 +801,11 @@ export function LandingContentForm({ initial }: { initial: LandingContent }) {
               onChange={(v) => patch("offer", { buttonLabel: v })}
             />
             <Field
+              label="Petit texte DANS le bouton (ex : Paiement sécurisé · Garantie 14 jours)"
+              value={c.offer.buttonSub}
+              onChange={(v) => patch("offer", { buttonSub: v })}
+            />
+            <Field
               label="Mention paiement sécurisé"
               value={c.offer.secure}
               onChange={(v) => patch("offer", { secure: v })}

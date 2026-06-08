@@ -123,6 +123,7 @@ export function ProductLanding({
             <BuyButton
               className="mt-6"
               label={content.offer.buttonLabel}
+              subLabel={content.offer.buttonSub}
               priceValue={priceValue}
             />
             <SpotsProgress
@@ -342,6 +343,7 @@ export function ProductLanding({
               <BuyButton
                 className="mt-10"
                 label={content.offer.buttonLabel}
+                subLabel={content.offer.buttonSub}
                 priceValue={priceValue}
               />
               <SpotsProgress

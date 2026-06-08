@@ -114,6 +114,8 @@ export type LandingContent = {
     cycleNote: string;
     features: string[];
     buttonLabel: string;
+    /** Small reassurance line shown INSIDE the CTA buttons, under the label. */
+    buttonSub: string;
     secure: string;
     stickyLabel: string;
   };
@@ -216,6 +218,7 @@ export const LANDING_DEFAULTS: LandingContent = {
       "Accès et téléchargement immédiats",
     ],
     buttonLabel: "Tout recevoir maintenant",
+    buttonSub: "Paiement sécurisé · Garantie de 14 jours",
     secure: "Paiement sécurisé via Stripe",
     stickyLabel: "J'en profite",
   },
