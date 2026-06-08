@@ -433,19 +433,19 @@ export const LANDING_DEFAULTS: LandingContent = {
         text: "Pour méditer et vivre la parole d'Allah au quotidien.",
       },
     ],
-    howHeading: "Comment ça se passe",
+    howHeading: "Comment ça se passe après ton paiement",
     steps: [
       {
-        title: "1. Reçois l'accès",
-        text: "Paiement unique, puis téléchargement immédiat de l'ebook et des bonus.",
+        title: "1. Paiement confirmé",
+        text: "Dès ton paiement validé, ton accès Premium à vie est réservé. Tu arrives sur une page de bienvenue.",
       },
       {
-        title: "2. Apprends l'essentiel",
-        text: "10 mots par jour, en contexte. L'application t'aide à réviser.",
+        title: "2. Crée ton compte",
+        text: "Crée ton compte avec le même email que lors de l'achat — c'est ce qui active automatiquement ton accès à vie.",
       },
       {
-        title: "3. Comprends le Coran",
-        text: "En quelques semaines, le sens apparaît — en prière comme en lecture.",
+        title: "3. Commence à apprendre",
+        text: "Tu accèdes immédiatement à l'application et tu commences le vocabulaire du Coran, niveau par niveau.",
       },
     ],
     compareHeading: "Pourquoi pas un cours classique ?",
