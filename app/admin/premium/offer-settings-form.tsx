@@ -5,6 +5,10 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { updateOfferSettings } from "@/actions/offer-settings";
+import { CURRENCIES, type Currency } from "@/lib/offer";
+import { LOCALES, LOCALE_NAMES, type Locale } from "@/lib/i18n/locales";
+
+type PriceRow = { currency: Currency; price: string; compare: string };
 
 export function OfferSettingsForm({
   initial,
@@ -16,6 +20,7 @@ export function OfferSettingsForm({
     spotsTotal: number;
     variant: "classic" | "letter" | "product";
     pdfRaw: string;
+    pricingByLocale: Record<Locale, PriceRow>;
   };
 }) {
   const router = useRouter();
@@ -27,6 +32,11 @@ export function OfferSettingsForm({
     initial.variant,
   );
   const [pdfRaw, setPdfRaw] = useState(initial.pdfRaw);
+  const [pricing, setPricing] = useState<Record<Locale, PriceRow>>(
+    initial.pricingByLocale,
+  );
+  const setPriceRow = (loc: Locale, patch: Partial<PriceRow>) =>
+    setPricing((p) => ({ ...p, [loc]: { ...p[loc], ...patch } }));
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -68,6 +78,24 @@ export function OfferSettingsForm({
         })
         .filter((l) => l.url.startsWith("http"));
 
+      const pricingByLocale = Object.fromEntries(
+        LOCALES.map((loc) => {
+          const row = pricing[loc];
+          return [
+            loc,
+            {
+              currency: row.currency,
+              priceCents: Math.round(
+                parseFloat(row.price.replace(",", ".")) * 100,
+              ),
+              compareAtCents: Math.round(
+                parseFloat(row.compare.replace(",", ".")) * 100,
+              ),
+            },
+          ];
+        }),
+      ) as Record<Locale, { currency: Currency; priceCents: number; compareAtCents: number }>;
+
       const res = await updateOfferSettings({
         priceCents,
         compareAtCents,
@@ -75,6 +103,7 @@ export function OfferSettingsForm({
         spotsTotal: total,
         variant,
         pdfLinks,
+        pricingByLocale,
       });
       if (res?.error) {
         setMsg({ ok: false, text: res.error });
@@ -144,6 +173,58 @@ export function OfferSettingsForm({
             className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brilliant-green focus:ring-2 focus:ring-brilliant-green/20"
           />
         </label>
+      </div>
+
+      {/* Per-language pricing + currency (product landing + Stripe) */}
+      <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+        <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-neutral-500">
+          Prix par langue (landing produit + Stripe)
+        </span>
+        <p className="mb-3 text-xs text-neutral-400">
+          Le prix affiché sur /offre-a-vie, /en/offre-a-vie et /es/offre-a-vie,
+          et le montant + la devise réellement débités au paiement Stripe.
+        </p>
+        <div className="space-y-2">
+          {LOCALES.map((loc) => (
+            <div
+              key={loc}
+              className="grid grid-cols-[64px_90px_1fr_1fr] items-center gap-2"
+            >
+              <span className="text-sm font-semibold text-neutral-700">
+                {LOCALE_NAMES[loc]}
+              </span>
+              <select
+                value={pricing[loc].currency}
+                onChange={(e) =>
+                  setPriceRow(loc, { currency: e.target.value as Currency })
+                }
+                className="rounded-xl border border-neutral-300 px-2 py-2 text-sm outline-none focus:border-brilliant-green focus:ring-2 focus:ring-brilliant-green/20"
+              >
+                {CURRENCIES.map((cur) => (
+                  <option key={cur} value={cur}>
+                    {cur}
+                  </option>
+                ))}
+              </select>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={pricing[loc].price}
+                onChange={(e) => setPriceRow(loc, { price: e.target.value })}
+                placeholder="Prix"
+                className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brilliant-green focus:ring-2 focus:ring-brilliant-green/20"
+              />
+              <input
+                type="text"
+                inputMode="decimal"
+                value={pricing[loc].compare}
+                onChange={(e) => setPriceRow(loc, { compare: e.target.value })}
+                placeholder="Prix barré"
+                className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brilliant-green focus:ring-2 focus:ring-brilliant-green/20"
+              />
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">

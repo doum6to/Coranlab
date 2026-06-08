@@ -168,6 +168,22 @@ const AdminPremiumPage = async () => {
                     pdfRaw: offer.pdfLinks
                       .map((l) => `${l.label} | ${l.url}`)
                       .join("\n"),
+                    pricingByLocale: Object.fromEntries(
+                      (["fr", "en", "es"] as const).map((loc) => {
+                        const p = offer.pricingByLocale[loc];
+                        return [
+                          loc,
+                          {
+                            currency: p.currency,
+                            price: (p.priceCents / 100).toFixed(2),
+                            compare: (p.compareAtCents / 100).toFixed(2),
+                          },
+                        ];
+                      }),
+                    ) as Record<
+                      "fr" | "en" | "es",
+                      { currency: "EUR" | "GBP" | "USD"; price: string; compare: string }
+                    >,
                   }}
                 />
               ),

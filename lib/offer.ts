@@ -4,11 +4,26 @@ import { inArray } from "drizzle-orm";
 
 import db from "@/db/drizzle";
 import { appSetting } from "@/db/schema";
+import { LOCALES, DEFAULT_LOCALE, type Locale } from "@/lib/i18n/locales";
 
 export type LandingVariant = "classic" | "letter" | "product";
 
+/** Currencies the landing offer can be priced and charged in (via Stripe). */
+export const CURRENCIES = ["EUR", "GBP", "USD"] as const;
+export type Currency = (typeof CURRENCIES)[number];
+export function isCurrency(v: unknown): v is Currency {
+  return typeof v === "string" && (CURRENCIES as readonly string[]).includes(v);
+}
+
+/** Price + currency for a single language. */
+export type LocalePrice = {
+  currency: Currency;
+  priceCents: number;
+  compareAtCents: number;
+};
+
 export type OfferSettings = {
-  /** Lifetime price charged at checkout, in cents. */
+  /** Lifetime price charged at checkout, in cents (EUR fallback / FR). */
   priceCents: number;
   /** Struck-through "compare at" price shown next to the price, in cents. */
   compareAtCents: number;
@@ -20,6 +35,8 @@ export type OfferSettings = {
   variant: LandingVariant;
   /** Downloadable PDF links shown in the buyer's account space. */
   pdfLinks: { label: string; url: string }[];
+  /** Per-language price + currency for the landing offer. */
+  pricingByLocale: Record<Locale, LocalePrice>;
 };
 
 export const OFFER_DEFAULTS: OfferSettings = {
@@ -29,6 +46,11 @@ export const OFFER_DEFAULTS: OfferSettings = {
   spotsTotal: 2000,
   variant: "classic",
   pdfLinks: [],
+  pricingByLocale: {
+    fr: { currency: "EUR", priceCents: 1497, compareAtCents: 9900 },
+    en: { currency: "GBP", priceCents: 1497, compareAtCents: 9900 },
+    es: { currency: "EUR", priceCents: 1497, compareAtCents: 9900 },
+  },
 };
 
 const KEYS = {
@@ -38,6 +60,7 @@ const KEYS = {
   total: "offer_spots_total",
   variant: "landing_variant",
   pdf: "pdf_links",
+  pricing: "offer_pricing_by_locale",
 } as const;
 
 const toInt = (v: string | undefined, fallback: number) => {
@@ -65,6 +88,7 @@ export const getOfferSettings = cache(async (): Promise<OfferSettings> => {
           KEYS.total,
           KEYS.variant,
           KEYS.pdf,
+          KEYS.pricing,
         ]),
       );
     const map = new Map(rows.map((r) => [r.key, r.value]));
@@ -78,12 +102,53 @@ export const getOfferSettings = cache(async (): Promise<OfferSettings> => {
     } catch {
       /* keep empty */
     }
+
+    const priceCents = toInt(map.get(KEYS.price), OFFER_DEFAULTS.priceCents);
+    const compareAtCents = toInt(
+      map.get(KEYS.compare),
+      OFFER_DEFAULTS.compareAtCents,
+    );
+
+    // Per-locale pricing: stored override layered over an EUR fallback that
+    // reuses the single global price, so existing setups keep working.
+    const fallback: LocalePrice = {
+      currency: "EUR",
+      priceCents,
+      compareAtCents,
+    };
+    let stored: Record<string, Partial<LocalePrice>> = {};
+    try {
+      const raw = map.get(KEYS.pricing);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === "object") stored = parsed;
+      }
+    } catch {
+      /* keep fallback */
+    }
+    const pricingByLocale = Object.fromEntries(
+      LOCALES.map((loc) => {
+        const s = stored[loc] ?? {};
+        return [
+          loc,
+          {
+            currency: isCurrency(s.currency) ? s.currency : fallback.currency,
+            priceCents:
+              typeof s.priceCents === "number" && s.priceCents >= 0
+                ? s.priceCents
+                : fallback.priceCents,
+            compareAtCents:
+              typeof s.compareAtCents === "number" && s.compareAtCents >= 0
+                ? s.compareAtCents
+                : fallback.compareAtCents,
+          } as LocalePrice,
+        ];
+      }),
+    ) as Record<Locale, LocalePrice>;
+
     return {
-      priceCents: toInt(map.get(KEYS.price), OFFER_DEFAULTS.priceCents),
-      compareAtCents: toInt(
-        map.get(KEYS.compare),
-        OFFER_DEFAULTS.compareAtCents,
-      ),
+      priceCents,
+      compareAtCents,
       spotsJoined: toInt(map.get(KEYS.joined), OFFER_DEFAULTS.spotsJoined),
       spotsTotal: toInt(map.get(KEYS.total), OFFER_DEFAULTS.spotsTotal),
       variant: ((): LandingVariant => {
@@ -91,6 +156,7 @@ export const getOfferSettings = cache(async (): Promise<OfferSettings> => {
         return v === "letter" || v === "product" ? v : "classic";
       })(),
       pdfLinks,
+      pricingByLocale,
     };
   } catch (e) {
     console.error("[offer] getOfferSettings failed, using defaults:", e);
@@ -100,6 +166,14 @@ export const getOfferSettings = cache(async (): Promise<OfferSettings> => {
 
 export const OFFER_KEYS = KEYS;
 
+/** The price + currency for a given language. */
+export function getLocalePrice(
+  offer: OfferSettings,
+  locale: Locale = DEFAULT_LOCALE,
+): LocalePrice {
+  return offer.pricingByLocale[locale] ?? offer.pricingByLocale[DEFAULT_LOCALE];
+}
+
 /** Formats cents as a French price label, dropping a trailing ,00. */
 export function formatEuros(cents: number): string {
   const euros = cents / 100;
@@ -107,4 +181,28 @@ export function formatEuros(cents: number): string {
     ? String(euros)
     : euros.toFixed(2).replace(".", ",");
   return `${label}€`;
+}
+
+const CURRENCY_FORMAT_LOCALE: Record<Currency, string> = {
+  EUR: "fr-FR",
+  GBP: "en-GB",
+  USD: "en-US",
+};
+
+/**
+ * Formats cents in the given currency with its symbol (€, £, $), dropping a
+ * trailing .00. Used for the per-language landing price.
+ */
+export function formatMoney(cents: number, currency: Currency): string {
+  const value = cents / 100;
+  try {
+    return new Intl.NumberFormat(CURRENCY_FORMAT_LOCALE[currency], {
+      style: "currency",
+      currency,
+      minimumFractionDigits: Number.isInteger(value) ? 0 : 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+  } catch {
+    return `${Number.isInteger(value) ? value : value.toFixed(2)} ${currency}`;
+  }
 }

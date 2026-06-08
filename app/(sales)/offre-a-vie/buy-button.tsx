@@ -44,7 +44,7 @@ export function BuyButton({
     });
 
     try {
-      const result = await createAppLifetimeCheckoutUrl();
+      const result = await createAppLifetimeCheckoutUrl(locale);
       if (result.url) {
         window.location.href = result.url;
         return;

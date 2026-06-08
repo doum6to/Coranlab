@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { BadgeCheck, Check, Lock, Star as StarIcon, X } from "lucide-react";
 
-import { formatEuros, type OfferSettings } from "@/lib/offer";
+import { formatMoney, getLocalePrice, type OfferSettings } from "@/lib/offer";
 import type { LandingContent } from "@/lib/landing-content";
 import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/locales";
 import { LANDING_UI } from "@/lib/i18n/landing-ui";
@@ -59,10 +59,11 @@ export function ProductLanding({
   offer: OfferSettings;
   locale?: Locale;
 }) {
-  const { priceCents, compareAtCents, spotsJoined, spotsTotal } = offer;
-  const PRICE = formatEuros(priceCents);
+  const { spotsJoined, spotsTotal } = offer;
+  const { currency, priceCents, compareAtCents } = getLocalePrice(offer, locale);
+  const PRICE = formatMoney(priceCents, currency);
   const COMPARE =
-    compareAtCents > priceCents ? formatEuros(compareAtCents) : null;
+    compareAtCents > priceCents ? formatMoney(compareAtCents, currency) : null;
   const priceValue = priceCents / 100;
   const p = content.product;
   const ui = LANDING_UI[locale];
