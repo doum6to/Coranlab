@@ -38,6 +38,8 @@ export type ArabicLandingContent = {
     savingLabel: string;
     features: string[];
     buttonLabel: string;
+    /** Small reassurance line shown INSIDE the CTA buttons, under the label. */
+    buttonSub: string;
     secure: string;
   };
   method: {
@@ -106,6 +108,7 @@ export const ARABIC_LANDING_DEFAULTS: ArabicLandingContent = {
       "Accès à vie — paiement unique",
     ],
     buttonLabel: "Je veux lire en arabe !",
+    buttonSub: "Paiement sécurisé · Garantie de 14 jours",
     secure: "Paiement unique • Sécurisé • Accès à vie",
   },
   method: {

@@ -355,6 +355,7 @@ export function ArabicLandingForm({ initial }: { initial: ArabicLandingContent }
             <Field label="Texte d'économie" value={c.pricing.savingLabel} onChange={(v) => patch("pricing", { savingLabel: v })} />
             <ListEditor label="Avantages inclus" items={c.pricing.features} onChange={(features) => patch("pricing", { features })} />
             <Field label="Libellé du bouton" value={c.pricing.buttonLabel} onChange={(v) => patch("pricing", { buttonLabel: v })} />
+            <Field label="Petit texte DANS le bouton (ex : Paiement sécurisé · Garantie 14 jours)" value={c.pricing.buttonSub} onChange={(v) => patch("pricing", { buttonSub: v })} />
             <Field label="Mention sécurité (sous le bouton)" value={c.pricing.secure} onChange={(v) => patch("pricing", { secure: v })} />
           </Section>
         )}
