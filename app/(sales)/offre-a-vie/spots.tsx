@@ -1,4 +1,6 @@
-const fmt = (n: number) => n.toLocaleString("fr-FR");
+import { DEFAULT_LOCALE, tpl, type Locale } from "@/lib/i18n/locales";
+import { LANDING_UI } from "@/lib/i18n/landing-ui";
+
 const pct = (joined: number, total: number) =>
   total > 0 ? Math.min(100, Math.round((joined / total) * 100)) : 0;
 
@@ -9,13 +11,17 @@ export function SpotsProgress({
   priceLabel,
   compareLabel,
   tone = "dark",
+  locale = DEFAULT_LOCALE,
 }: {
   joined: number;
   total: number;
   priceLabel: string;
   compareLabel?: string;
   tone?: "dark" | "light";
+  locale?: Locale;
 }) {
+  const ui = LANDING_UI[locale];
+  const fmt = (n: number) => n.toLocaleString(ui.numberLocale);
   const isDark = tone === "dark";
   const left = Math.max(0, total - joined);
   return (
@@ -25,9 +31,7 @@ export function SpotsProgress({
           isDark ? "text-white/75" : "text-neutral-500"
         }`}
       >
-        <span>
-          {fmt(joined)}/{fmt(total)} élèves ont rejoint
-        </span>
+        <span>{tpl(ui.joined, { joined: fmt(joined), total: fmt(total) })}</span>
         <span>{pct(joined, total)}%</span>
       </div>
       <div
@@ -55,7 +59,7 @@ export function SpotsProgress({
             <span className="line-through opacity-60">{compareLabel}</span>
           </>
         ) : null}{" "}
-        — plus que {fmt(left)} places à vie.
+        — {tpl(ui.spotsLeft, { n: fmt(left) })}
       </p>
     </div>
   );
