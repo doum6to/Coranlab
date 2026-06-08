@@ -3,10 +3,10 @@ import { ReviewsMarquee } from "./reviews-marquee";
 import type { LandingReview } from "@/lib/landing-content";
 
 /**
- * Reviews block. When TikTok review screenshots have been uploaded from the
- * admin, they're shown as an infinite auto-scrolling marquee (highest
- * credibility). Otherwise we fall back to the shared screenshot/quote cards
- * plus any admin-editable text reviews.
+ * Reviews block. When review images have been uploaded from the admin, they're
+ * shown as a two-row infinite marquee — top row scrolling left, bottom row
+ * scrolling right (highest credibility). Otherwise we fall back to the shared
+ * screenshot/quote cards plus any admin-editable text reviews.
  */
 export function LandingReviews({
   items,

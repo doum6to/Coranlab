@@ -892,11 +892,13 @@ export function LandingContentForm({ initial }: { initial: LandingContent }) {
           {/* TikTok screenshots → infinite marquee */}
           <div className="rounded-xl border border-neutral-200 bg-white p-3">
             <p className="mb-1 text-sm font-bold text-neutral-800">
-              Captures d&apos;avis TikTok (carrousel défilant)
+              Images d&apos;avis (carrousel sur 2 lignes)
             </p>
             <p className="mb-3 text-xs text-neutral-500">
-              Téléverse tes captures d&apos;écran. Dès qu&apos;il y en a au moins
-              une, elles remplacent les avis écrits et défilent en boucle.
+              Téléverse tes captures d&apos;avis. Dès qu&apos;il y en a au moins
+              une, elles remplacent les avis écrits et défilent en boucle : la
+              ligne du haut vers la gauche, celle du bas vers la droite. Les
+              images sont réparties en alternance entre les deux lignes.
             </p>
             <div className="space-y-2">
               {c.reviews.screenshots.map((g, i) => (

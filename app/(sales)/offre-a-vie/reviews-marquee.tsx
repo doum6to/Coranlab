@@ -1,45 +1,68 @@
 "use client";
 
 /**
- * Infinite, auto-scrolling marquee of TikTok review screenshots. The track
- * holds the list twice and animates -50% for a seamless loop; it pauses on
- * hover. Falls back to nothing when there are no screenshots.
+ * Two-row infinite marquee of uploaded review images. The top row scrolls
+ * right→left and the bottom row scrolls left→right (same keyframe, reversed),
+ * so both move at an identical, synchronised speed. Each track holds its list
+ * twice and animates -50% for a seamless loop; it pauses on hover.
  */
 export function ReviewsMarquee({ images }: { images: string[] }) {
   const clean = images.filter(Boolean);
   if (!clean.length) return null;
 
-  const loop = [...clean, ...clean];
-  // Slower with more images so the speed feels constant.
-  const duration = Math.max(24, clean.length * 7);
+  // Split into two rows; with a single image both rows reuse it.
+  const top = clean.length > 1 ? clean.filter((_, i) => i % 2 === 0) : clean;
+  const bottom = clean.length > 1 ? clean.filter((_, i) => i % 2 === 1) : clean;
+
+  // One duration for both rows so they stay in lock-step. Slower with more
+  // images so the perceived speed feels constant.
+  const duration = Math.max(28, Math.max(top.length, bottom.length) * 9);
 
   return (
-    <div className="group relative -mx-4 overflow-hidden sm:mx-0">
-      {/* edge fades */}
-      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-white to-transparent sm:w-16" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-white to-transparent sm:w-16" />
+    <div className="group relative -mx-4 space-y-4 overflow-hidden sm:mx-0">
+      {/* edge fades spanning both rows */}
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-white to-transparent sm:w-20" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-white to-transparent sm:w-20" />
 
-      <ul
-        className="flex w-max gap-4 px-4 will-change-transform group-hover:[animation-play-state:paused]"
-        style={{
-          animationName: "marqueeX",
-          animationDuration: `${duration}s`,
-          animationTimingFunction: "linear",
-          animationIterationCount: "infinite",
-        }}
-      >
-        {loop.map((src, i) => (
-          <li key={i} className="shrink-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={src}
-              alt="Avis TikTok d'un élève"
-              loading="lazy"
-              className="h-[360px] w-auto rounded-2xl border border-neutral-200 bg-white object-contain shadow-sm sm:h-[420px]"
-            />
-          </li>
-        ))}
-      </ul>
+      <MarqueeRow images={top} duration={duration} />
+      <MarqueeRow images={bottom} duration={duration} reverse />
     </div>
+  );
+}
+
+function MarqueeRow({
+  images,
+  duration,
+  reverse = false,
+}: {
+  images: string[];
+  duration: number;
+  reverse?: boolean;
+}) {
+  const loop = [...images, ...images];
+
+  return (
+    <ul
+      className="flex w-max gap-4 px-4 will-change-transform group-hover:[animation-play-state:paused]"
+      style={{
+        animationName: "marqueeX",
+        animationDuration: `${duration}s`,
+        animationTimingFunction: "linear",
+        animationIterationCount: "infinite",
+        animationDirection: reverse ? "reverse" : "normal",
+      }}
+    >
+      {loop.map((src, i) => (
+        <li key={i} className="shrink-0">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={src}
+            alt="Avis d'un élève"
+            loading="lazy"
+            className="h-[240px] w-auto rounded-2xl border border-neutral-200 bg-white object-contain shadow-sm sm:h-[300px]"
+          />
+        </li>
+      ))}
+    </ul>
   );
 }
