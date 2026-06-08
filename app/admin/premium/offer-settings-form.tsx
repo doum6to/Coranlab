@@ -81,16 +81,17 @@ export function OfferSettingsForm({
       const pricingByLocale = Object.fromEntries(
         LOCALES.map((loc) => {
           const row = pricing[loc];
+          // Empty / invalid price falls back to the global price; empty
+          // compare means "no strike-through" (0), so a blank field never
+          // blocks saving.
+          const pc = Math.round(parseFloat(row.price.replace(",", ".")) * 100);
+          const cc = Math.round(parseFloat(row.compare.replace(",", ".")) * 100);
           return [
             loc,
             {
               currency: row.currency,
-              priceCents: Math.round(
-                parseFloat(row.price.replace(",", ".")) * 100,
-              ),
-              compareAtCents: Math.round(
-                parseFloat(row.compare.replace(",", ".")) * 100,
-              ),
+              priceCents: Number.isFinite(pc) && pc >= 0 ? pc : priceCents,
+              compareAtCents: Number.isFinite(cc) && cc >= 0 ? cc : 0,
             },
           ];
         }),
