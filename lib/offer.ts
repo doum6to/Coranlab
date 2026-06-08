@@ -170,12 +170,19 @@ export const getOfferSettings = cache(async (): Promise<OfferSettings> => {
 
 export const OFFER_KEYS = KEYS;
 
-/** The price + currency for a given language. */
+/** The price + currency for a given language, with a safe fallback. */
 export function getLocalePrice(
   offer: OfferSettings,
   locale: Locale = DEFAULT_LOCALE,
 ): LocalePrice {
-  return offer.pricingByLocale[locale] ?? offer.pricingByLocale[DEFAULT_LOCALE];
+  return (
+    offer.pricingByLocale?.[locale] ??
+    offer.pricingByLocale?.[DEFAULT_LOCALE] ?? {
+      currency: "EUR",
+      priceCents: offer.priceCents,
+      compareAtCents: offer.compareAtCents,
+    }
+  );
 }
 
 /** Formats cents as a French price label, dropping a trailing ,00. */
