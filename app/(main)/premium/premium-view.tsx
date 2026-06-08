@@ -1,14 +1,7 @@
 import Link from "next/link";
 import { X } from "lucide-react";
 
-const BENEFITS = [
-  { label: "Première leçon", free: true, premium: true },
-  { label: "Accès à toutes les leçons", free: false, premium: true },
-  { label: "Apprentissage illimité", free: false, premium: true },
-  { label: "Sans publicités", free: false, premium: true },
-  { label: "Pratique personnalisée", free: false, premium: true },
-  { label: "Accès à tous les cours", free: false, premium: true },
-];
+import { getServerStrings } from "@/lib/i18n/server-t";
 
 const CheckIcon = () => (
   <div className="w-5 h-5 sm:w-7 sm:h-7 rounded-full bg-[#FFD6A5] flex items-center justify-center">
@@ -38,6 +31,15 @@ const CrossIcon = () => (
 );
 
 export const PremiumView = () => {
+  const { t } = getServerStrings();
+  const BENEFITS = [
+    { label: t.premium.benefitFirstLesson, free: true, premium: true },
+    { label: t.premium.benefitAllLessons, free: false, premium: true },
+    { label: t.premium.unlimitedLearning, free: false, premium: true },
+    { label: t.premium.benefitNoAds, free: false, premium: true },
+    { label: t.premium.benefitPersonalized, free: false, premium: true },
+    { label: t.premium.benefitAllCourses, free: false, premium: true },
+  ];
   return (
     <div
       className="fixed inset-0 z-50 overflow-hidden flex flex-col"
@@ -57,7 +59,7 @@ export const PremiumView = () => {
       <div className="flex-1 max-w-lg w-full mx-auto px-4 sm:px-6 py-6 sm:py-12 flex flex-col items-center justify-center gap-4 sm:gap-8">
         {/* Title */}
         <h1 className="text-center text-[22px] leading-[1.15] sm:text-3xl font-extrabold text-brilliant-text font-heading px-2 shrink-0">
-          Passe à la vitesse supérieure avec{" "}
+          {t.premium.upgradeTitlePrefix}{" "}
           <span
             className="bg-clip-text text-transparent"
             style={{
@@ -65,7 +67,7 @@ export const PremiumView = () => {
                 "linear-gradient(90deg, #8B9DFF 0%, #C77DFF 35%, #FF77C8 70%, #FFB24A 100%)",
             }}
           >
-            Premium
+            {t.premium.premium}
           </span>
         </h1>
 
@@ -114,13 +116,13 @@ export const PremiumView = () => {
             >
               {/* Header row */}
               <div className="font-bold text-brilliant-text text-sm sm:text-base py-2.5 sm:py-3 pl-1 sm:pl-2 border-b border-gray-200">
-                Avantages
+                {t.premium.advantages}
               </div>
               <div className="flex items-center justify-center font-bold text-brilliant-muted text-xs sm:text-sm py-2.5 sm:py-3 border-b border-gray-200">
-                Gratuit
+                {t.premium.free}
               </div>
               <div className="flex items-center justify-center font-bold text-brilliant-text text-xs sm:text-sm py-2.5 sm:py-3 border-b border-gray-200">
-                Premium
+                {t.premium.premium}
               </div>
 
               {/* Benefit rows */}
@@ -161,7 +163,7 @@ export const PremiumView = () => {
               boxShadow: "0 4px 0 0 rgba(0, 0, 0, 0.25)",
             }}
           >
-            Devenir Premium
+            {t.premium.becomePremium}
           </Link>
         </div>
       </div>

@@ -3,6 +3,8 @@ import { MobileHeader } from "@/components/mobile-header";
 import { PageReveal } from "@/components/ui/page-reveal";
 import { getUserProgress, getUserSubscription, getStreakData } from "@/db/queries";
 import { userHasArabicCourse } from "@/lib/arabic-course";
+import { LocaleProvider } from "@/components/i18n/locale-provider";
+import { getRequestLocale } from "@/lib/i18n/request-locale";
 
 type Props = {
   children: React.ReactNode;
@@ -19,9 +21,10 @@ const MainLayout = async ({
       userHasArabicCourse(),
     ]);
   const isPro = !!userSubscription?.isActive;
+  const locale = getRequestLocale();
 
   return (
-    <>
+    <LocaleProvider locale={locale}>
       <MobileHeader
         streak={userProgress?.streak}
         isPro={isPro}
@@ -40,7 +43,7 @@ const MainLayout = async ({
           <PageReveal>{children}</PageReveal>
         </div>
       </main>
-    </>
+    </LocaleProvider>
   );
 };
 

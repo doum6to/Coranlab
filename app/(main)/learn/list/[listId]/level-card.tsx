@@ -4,6 +4,7 @@ import { useId } from "react";
 import Link from "next/link";
 import { RiveMascot } from "@/components/rive-mascot";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n/use-t";
 
 type Props = {
   lessonId: number;
@@ -229,6 +230,7 @@ export const LevelCard = ({
   percentage,
   isLast,
 }: Props) => {
+  const t = useT();
   const href = `/lesson/${lessonId}`;
   const state = completed ? "completed" : active ? "active" : "locked";
 
@@ -318,7 +320,7 @@ export const LevelCard = ({
           </div>
         )}
         {completed && (
-          <p className="text-xs font-semibold text-brilliant-green mt-1">Complété ✓</p>
+          <p className="text-xs font-semibold text-brilliant-green mt-1">{t.common.levelCompleted}</p>
         )}
       </div>
     </div>

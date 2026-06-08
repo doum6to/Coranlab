@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { challengeOptions, challenges } from "@/db/schema";
+import { useT } from "@/lib/i18n/use-t";
 
 type Props = {
   challenge: typeof challenges.$inferSelect;
@@ -20,6 +21,7 @@ export const Opposite = ({
   status,
   disabled,
 }: Props) => {
+  const t = useT();
   return (
     <div className="flex flex-col items-center gap-3 sm:gap-6">
       {/* Arabic word */}
@@ -34,7 +36,7 @@ export const Opposite = ({
 
       {/* Instruction */}
       <p className="text-xs sm:text-sm text-brilliant-muted font-medium text-center">
-        Trouve la traduction du contraire
+        {t.lesson.oppositeInstruction}
       </p>
 
       {/* Options */}

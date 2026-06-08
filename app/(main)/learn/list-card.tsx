@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { Lock } from "lucide-react";
 import { getListImage } from "@/lib/list-images";
+import { useT } from "@/lib/i18n/use-t";
+import { tpl } from "@/lib/i18n/locales";
 
 type Props = {
   listId: number;
@@ -35,6 +37,7 @@ export const ListCard = ({
   isPremiumLocked,
   activeLessonId,
 }: Props) => {
+  const t = useT();
   const percentage = totalLevels > 0 ? Math.round((completedLevels / totalLevels) * 100) : 0;
   const isLecons = context === "lecons";
   const href = isPremiumLocked
@@ -44,10 +47,10 @@ export const ListCard = ({
       : `/learn/list/${listId}`;
 
   const buttonLabel = isPremiumLocked
-    ? "Premium"
+    ? t.common.premium
     : isLecons
-      ? (locked ? "Verrouillé" : "Réviser")
-      : (locked ? "Verrouillé" : completed ? "Réviser" : completedLevels > 0 ? "Continuer" : "Commencer");
+      ? (locked ? t.common.locked : t.common.review)
+      : (locked ? t.common.locked : completed ? t.common.review : completedLevels > 0 ? t.common.continue : t.common.start);
 
   const cardContent = (
     <div
@@ -62,7 +65,7 @@ export const ListCard = ({
       {isPremiumLocked && (
         <div className="flex items-center justify-center gap-1.5 mb-2">
           <Lock className="w-3.5 h-3.5 text-brilliant-text" />
-          <span className="text-xs font-bold text-brilliant-text">Premium</span>
+          <span className="text-xs font-bold text-brilliant-text">{t.common.premium}</span>
         </div>
       )}
 
@@ -82,7 +85,7 @@ export const ListCard = ({
               "text-xs font-semibold uppercase tracking-wide mb-2",
               "text-brilliant-green"
             )}>
-              {completed ? "Complétée ✓" : `Niveau ${completedLevels + 1}`}
+              {completed ? t.common.completed : tpl(t.common.levelN, { n: completedLevels + 1 })}
             </p>
           )}
           {!locked && (

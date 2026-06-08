@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import { courses, userProgress } from "@/db/schema";
 import { upsertUserProgress } from "@/actions/user-progress";
+import { useT } from "@/lib/i18n/use-t";
 
 import { Card } from "./card";
 
@@ -15,6 +16,7 @@ type Props = {
 };
 
 export const List = ({ courses, activeCourseId }: Props) => {
+  const t = useT();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
@@ -27,7 +29,7 @@ export const List = ({ courses, activeCourseId }: Props) => {
 
     startTransition(() => {
       upsertUserProgress(id)  
-        .catch(() => toast.error("Une erreur est survenue."));
+        .catch(() => toast.error(t.common.genericError));
     });
   };
 

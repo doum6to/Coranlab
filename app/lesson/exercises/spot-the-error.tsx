@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { challengeOptions, challenges } from "@/db/schema";
+import { useT } from "@/lib/i18n/use-t";
 
 type Props = {
   challenge: typeof challenges.$inferSelect;
@@ -21,6 +22,7 @@ export const SpotTheError = ({
   onSkip,
   disabled,
 }: Props) => {
+  const t = useT();
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [status, setStatus] = useState<"none" | "correct" | "wrong">("none");
 
@@ -128,16 +130,16 @@ export const SpotTheError = ({
       {status === "wrong" && (
         <div className="w-full max-w-md flex flex-col items-center gap-3 mt-2">
           <div className="rounded-2xl bg-red-50 border border-red-200 px-4 py-3 w-full text-center">
-            <p className="text-xs text-red-400 font-semibold mb-1">Pas tout à fait !</p>
+            <p className="text-xs text-red-400 font-semibold mb-1">{t.lesson.notQuite}</p>
             <p className="text-sm font-bold text-brilliant-text">
-              La paire incorrecte était : <span className="font-arabic" dir="rtl">{incorrectOption?.arabicText}</span> = {incorrectOption?.frenchText}
+              {t.lesson.wrongPairLabel} <span className="font-arabic" dir="rtl">{incorrectOption?.arabicText}</span> = {incorrectOption?.frenchText}
             </p>
           </div>
           <button
             onClick={handleContinue}
             className="px-8 py-3 rounded-2xl font-bold text-sm bg-red-500 text-white hover:bg-red-600 shadow-[0_4px_0_0_#b91c1c] transition-all active:translate-y-[3px] active:!shadow-none"
           >
-            Suivant
+            {t.lesson.next}
           </button>
         </div>
       )}

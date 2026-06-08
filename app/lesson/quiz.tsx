@@ -31,8 +31,16 @@ import {
   Opposite,
   SpotTheError,
 } from "./exercises";
+import { useT } from "@/lib/i18n/use-t";
+import { tpl } from "@/lib/i18n/locales";
 
 const TEST_MODE_LIMIT = 5;
+
+/** Renders a string with `\n` as line breaks. */
+const multiline = (s: string) =>
+  s.split("\n").flatMap((line, i) =>
+    i === 0 ? [line] : [<br key={i} />, line],
+  );
 
 type Props = {
   initialPercentage: number;
@@ -442,6 +450,7 @@ function TwinkleStars() {
 /* ─────────────────── Rive completion animation ──────────────────── */
 
 function CompletionRive() {
+  const t = useT();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
@@ -456,7 +465,7 @@ function CompletionRive() {
 
   return (
     <div className="relative mx-auto h-[270px] w-[360px] sm:h-[390px] sm:w-[510px]">
-      <RiveComponent className="h-full w-full" aria-label="Animation de complétion" />
+      <RiveComponent className="h-full w-full" aria-label={t.lesson.completionAnim} />
     </div>
   );
 }
@@ -464,6 +473,7 @@ function CompletionRive() {
 /* ─────────────────── Rive failed animation ──────────────────── */
 
 function FailedRive() {
+  const t = useT();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
@@ -478,7 +488,7 @@ function FailedRive() {
 
   return (
     <div className="relative mx-auto h-[270px] w-[360px] sm:h-[390px] sm:w-[510px]">
-      <RiveComponent className="h-full w-full" aria-label="Animation d'échec" />
+      <RiveComponent className="h-full w-full" aria-label={t.lesson.failAnim} />
     </div>
   );
 }
@@ -506,6 +516,7 @@ function FinishedScreen({
   testMode = false,
   onContinue,
 }: FinishedScreenProps) {
+  const t = useT();
   // In test mode we always celebrate — no failed screen for the demo.
   const celebrate = testMode || passed;
   const { width, height } = useWindowSize();
@@ -546,25 +557,15 @@ function FinishedScreen({
         className="animate-fade-in-up mt-2 text-center text-xl font-bold text-brilliant-text sm:mt-4 sm:text-3xl lg:text-4xl"
         style={{ animationDelay: "0.3s" }}
       >
-        {testMode ? (
-          <>
-            Démo
-            <br />
-            terminée !
-          </>
-        ) : passed ? (
-          <>
-            {levelOrder ? `Niveau ${levelOrder}` : "Leçon"}
-            <br />
-            terminée !
-          </>
-        ) : (
-          <>
-            Pas encore...
-            <br />
-            Tu as obtenu {scorePercentage}%.
-          </>
-        )}
+        {testMode
+          ? multiline(t.lesson.finishedDemoTitle)
+          : passed
+            ? multiline(
+                levelOrder
+                  ? tpl(t.lesson.finishedLevelTitle, { n: levelOrder })
+                  : t.lesson.finishedLessonTitle,
+              )
+            : multiline(tpl(t.lesson.notPassedTitle, { score: scorePercentage }))}
       </h1>
 
       {/* Stats row: XP + Score side by side */}
@@ -575,7 +576,7 @@ function FinishedScreen({
         {/* XP counter with star explosion */}
         <div className="relative">
           <p className="text-center text-xs font-semibold uppercase tracking-widest text-gray-400">
-            Total XP
+            {t.lesson.totalXp}
           </p>
           <div className="relative mt-1 flex items-center justify-center">
             <StarBurst visible={burstFired} />
@@ -595,7 +596,7 @@ function FinishedScreen({
         {/* Score percentage with its own star burst */}
         <div className="relative">
           <p className="text-center text-xs font-semibold uppercase tracking-widest text-gray-400">
-            Score
+            {t.lesson.score}
           </p>
           <div className="relative mt-1 flex items-center justify-center">
             <StarBurst visible={scoreBurstFired} />
@@ -617,15 +618,13 @@ function FinishedScreen({
         <p className="animate-fade-in-up mt-3 text-center text-sm text-gray-500"
           style={{ animationDelay: "0.7s" }}
         >
-          Il faut atteindre 90% de bonnes réponses
-          <br />
-          pour valider ce niveau.
+          {multiline(t.lesson.needScore)}
         </p>
       )}
 
       {saving && (
         <p className="mt-3 text-sm text-gray-400 animate-pulse">
-          Sauvegarde en cours...
+          {t.lesson.saving}
         </p>
       )}
 
@@ -645,7 +644,7 @@ function FinishedScreen({
               boxShadow: "0 4px 0 0 rgba(5, 12, 56, 0.4)",
             }}
           >
-            Débloquer tout
+            {t.lesson.unlockAll}
           </button>
         ) : (
           <>
@@ -653,13 +652,13 @@ function FinishedScreen({
               variant="outline-green"
               onClick={() => window.location.href = `/lesson/${lessonId}`}
             >
-              Pratiquer à nouveau
+              {t.lesson.practiceAgain}
             </ShinyButton>
             <ShinyButton
               variant="green"
               onClick={onContinue}
             >
-              Continuer
+              {t.lesson.continue}
             </ShinyButton>
           </>
         )}

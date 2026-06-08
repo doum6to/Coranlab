@@ -6,6 +6,7 @@ import { CircularProgressbarWithChildren } from "react-circular-progressbar";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/lib/i18n/use-t";
 
 import "react-circular-progressbar/dist/styles.css";
 
@@ -32,6 +33,7 @@ export const ListButton = ({
   completedLevels,
   totalLevels,
 }: Props) => {
+  const t = useT();
   const cycleLength = 8;
   const cycleIndex = index % cycleLength;
 
@@ -73,7 +75,7 @@ export const ListButton = ({
         {current ? (
           <div className="h-[102px] w-[102px] relative">
             <div className="absolute -top-6 left-1/2 -translate-x-1/2 px-3 py-2 border-2 border-brilliant-green font-bold uppercase text-brilliant-green bg-white rounded-xl animate-bounce tracking-wide z-10 text-xs whitespace-nowrap shadow-sm">
-              {completedLevels > 0 ? `${completedLevels}/${totalLevels}` : "Commencer"}
+              {completedLevels > 0 ? `${completedLevels}/${totalLevels}` : t.common.start}
               <div
                 className="absolute left-1/2 -bottom-2 w-0 h-0 border-x-8 border-x-transparent border-t-8 border-t-brilliant-green transform -translate-x-1/2"
               />

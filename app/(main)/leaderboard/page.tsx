@@ -12,8 +12,10 @@ import { LeagueJoinView } from "@/components/league-join-view";
 import { LeagueLeaderboard } from "@/components/league-leaderboard";
 import { LeagueTiersList } from "@/components/league-tiers-list";
 import { LEAGUE_TIERS, type LeagueTier } from "@/lib/league-utils";
+import { getServerStrings } from "@/lib/i18n/server-t";
 
 const LeaderboardPage = async () => {
+  const { t } = getServerStrings();
   const [userProgress, userLeague, weeklyXp] = await Promise.all([
     getUserProgress(),
     getUserLeague(),
@@ -36,7 +38,7 @@ const LeaderboardPage = async () => {
       <FeedWrapper>
         <div className="w-full flex flex-col items-center">
           <h1 className="text-center font-bold text-brilliant-text text-2xl my-6">
-            Classement
+            {t.leaderboard.title}
           </h1>
 
           {hasActiveGroup && members.length > 0 ? (

@@ -4,6 +4,8 @@ import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { challengeOptions } from "@/db/schema";
 import { ShinyButton } from "@/components/ui/shiny-button";
+import { useT } from "@/lib/i18n/use-t";
+import { tpl } from "@/lib/i18n/locales";
 
 type Props = {
   options: typeof challengeOptions.$inferSelect[];
@@ -14,6 +16,7 @@ type Props = {
 type Phase = "learn" | "match";
 
 export const Flashcard = ({ options, onComplete, disabled }: Props) => {
+  const t = useT();
   const pairs = options.filter((o) => o.arabicText && o.frenchText);
 
   // Chunk size: 2 or 4 (always even). Use 2 if <= 4 pairs, else 4.
@@ -108,7 +111,7 @@ export const Flashcard = ({ options, onComplete, disabled }: Props) => {
     return (
       <div className="flex flex-col items-center gap-3 sm:gap-6">
         <p className="text-xs sm:text-sm font-semibold text-brilliant-muted">
-          Découvrez les mots ({chunkIndex + 1}/{chunks.length})
+          {tpl(t.lesson.discoverWords, { current: chunkIndex + 1, total: chunks.length })}
         </p>
         <div className={cn(
           "gap-2 sm:gap-4 w-full max-w-md",
@@ -147,7 +150,7 @@ export const Flashcard = ({ options, onComplete, disabled }: Props) => {
         </div>
         <div className="mt-2 w-full max-w-[200px]">
           <ShinyButton variant="green" onClick={goToMatch} disabled={disabled}>
-            Suivant
+            {t.lesson.next}
           </ShinyButton>
         </div>
       </div>
@@ -158,7 +161,7 @@ export const Flashcard = ({ options, onComplete, disabled }: Props) => {
   return (
     <div className="flex flex-col items-center gap-3 sm:gap-6">
       <p className="text-xs sm:text-sm font-semibold text-brilliant-muted">
-        Reliez les paires ({chunkIndex + 1}/{chunks.length})
+        {tpl(t.lesson.matchPairs, { current: chunkIndex + 1, total: chunks.length })}
       </p>
       <div className="grid grid-cols-2 gap-2 sm:gap-4 w-full max-w-md">
         {/* Left column: Arabic */}

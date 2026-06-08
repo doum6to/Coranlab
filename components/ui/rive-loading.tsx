@@ -3,12 +3,15 @@
 import { useRive, Layout, Fit, Alignment } from "@rive-app/react-canvas";
 import { useState, useEffect } from "react";
 
+import { useT } from "@/lib/i18n/use-t";
+
 /**
  * Full-page loading state powered by loading.riv.
  * Uses the "State Machine loading" state machine.
  * Replaces all skeleton loading screens across the app.
  */
 export const RiveLoading = () => {
+  const t = useT();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
@@ -30,7 +33,7 @@ export const RiveLoading = () => {
   return (
     <div className="flex min-h-[60vh] items-center justify-center">
       <div className="h-48 w-48 sm:h-56 sm:w-56">
-        <RiveComponent className="h-full w-full" aria-label="Chargement" />
+        <RiveComponent className="h-full w-full" aria-label={t.common.loading} />
       </div>
     </div>
   );

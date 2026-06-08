@@ -4,24 +4,26 @@ import Image from "next/image";
 import { quests } from "@/constants";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { getServerStrings } from "@/lib/i18n/server-t";
 
 type Props = {
   points: number;
 };
 
 export const Quests = ({ points }: Props) => {
+  const { t } = getServerStrings();
   return (
     <div className="border border-brilliant-border rounded-2xl p-4 space-y-4 bg-white">
       <div className="flex items-center justify-between w-full space-y-2">
         <h3 className="font-bold text-lg text-brilliant-text">
-          Quêtes
+          {t.quests.title}
         </h3>
         <Link href="/quests">
           <Button
             size="sm"
             variant="primaryOutline"
           >
-            Voir tout
+            {t.common.seeAll}
           </Button>
         </Link>
       </div>

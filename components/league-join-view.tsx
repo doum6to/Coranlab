@@ -3,6 +3,8 @@
 import { LEAGUE_TIERS, TIER_COLORS, TIER_LABELS, MIN_XP_TO_JOIN } from "@/lib/league-utils";
 import { LeagueTierBadge } from "./league-tier-badge";
 import type { LeagueTier } from "@/lib/league-utils";
+import { useT } from "@/lib/i18n/use-t";
+import { tpl } from "@/lib/i18n/locales";
 
 type Props = {
   weeklyXp: number;
@@ -11,6 +13,7 @@ type Props = {
 };
 
 export const LeagueJoinView = ({ weeklyXp, isPending, pendingTier }: Props) => {
+  const t = useT();
   // Returning player with PENDING status — just needs to earn any XP
   if (isPending) {
     return (
@@ -19,15 +22,15 @@ export const LeagueJoinView = ({ weeklyXp, isPending, pendingTier }: Props) => {
 
         <div className="text-center">
           <h2 className="text-xl sm:text-2xl font-bold text-brilliant-text mb-2">
-            Ligue {TIER_LABELS[pendingTier ?? "NIYYA"]}
+            {tpl(t.league.leagueTitle, { tier: TIER_LABELS[pendingTier ?? "NIYYA"] })}
           </h2>
           <p className="text-sm sm:text-base text-brilliant-muted max-w-sm">
-            Commence une leçon pour rejoindre ton groupe de la semaine !
+            {t.league.pendingInstruction}
           </p>
         </div>
 
         <div className="text-center">
-          <p className="text-sm text-brilliant-muted">XP cette semaine</p>
+          <p className="text-sm text-brilliant-muted">{t.league.xpThisWeek}</p>
           <p className="text-2xl font-bold text-brilliant-text">{weeklyXp} XP</p>
         </div>
       </div>
@@ -60,10 +63,10 @@ export const LeagueJoinView = ({ weeklyXp, isPending, pendingTier }: Props) => {
 
       <div className="text-center">
         <h2 className="text-xl sm:text-2xl font-bold text-brilliant-text mb-2">
-          Rejoins une ligue !
+          {t.league.joinLeague}
         </h2>
         <p className="text-sm sm:text-base text-brilliant-muted max-w-sm">
-          Gagne {MIN_XP_TO_JOIN} XP cette semaine pour rejoindre ta première ligue et rivaliser avec d&apos;autres apprenants.
+          {tpl(t.league.joinDesc, { min: MIN_XP_TO_JOIN })}
         </p>
       </div>
 
@@ -83,7 +86,7 @@ export const LeagueJoinView = ({ weeklyXp, isPending, pendingTier }: Props) => {
 
       {/* Tier preview */}
       <div className="w-full max-w-sm mt-4">
-        <p className="text-xs text-brilliant-muted text-center mb-4">Les 10 ligues</p>
+        <p className="text-xs text-brilliant-muted text-center mb-4">{t.league.the10Leagues}</p>
         <div className="grid grid-cols-5 gap-3">
           {LEAGUE_TIERS.map((tier) => (
             <LeagueTierBadge key={tier} tier={tier as LeagueTier} size="sm" />

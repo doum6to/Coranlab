@@ -5,8 +5,10 @@ import { FeedWrapper } from "@/components/feed-wrapper";
 import { getUserProgress } from "@/db/queries";
 import { Progress } from "@/components/ui/progress";
 import { quests } from "@/constants";
+import { getServerStrings } from "@/lib/i18n/server-t";
 
 const QuestsPage = async () => {
+  const { t } = getServerStrings();
   const userProgress = await getUserProgress();
 
   if (!userProgress || !userProgress.activeCourse) {
@@ -24,10 +26,10 @@ const QuestsPage = async () => {
             width={90}
           />
           <h1 className="text-center font-bold text-brilliant-text text-2xl my-6">
-            Quêtes
+            {t.quests.title}
           </h1>
           <p className="text-muted-foreground text-center text-lg mb-6">
-            Complète les quêtes en gagnant des points.
+            {t.quests.subtitle}
           </p>
           <ul className="w-full">
             {quests.map((quest) => {

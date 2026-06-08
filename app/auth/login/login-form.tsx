@@ -7,8 +7,10 @@ import { createClient } from "@/lib/supabase/client";
 import { RiveMascot } from "@/components/rive-mascot";
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { claimPurchase } from "@/actions/claim-purchase";
+import { useT } from "@/lib/i18n/use-t";
 
 export function LoginForm() {
+  const t = useT();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -52,10 +54,10 @@ export function LoginForm() {
             <RiveMascot src="/animations/eyes_down.riv" animationName="eyes down" />
           </div>
           <h1 className="text-2xl font-bold text-brilliant-text font-heading">
-            Bon retour !
+            {t.auth.welcomeBack}
           </h1>
           <p className="text-brilliant-muted text-sm text-center">
-            Connecte-toi pour continuer à apprendre
+            {t.auth.loginSubtitle}
           </p>
         </div>
 
@@ -65,7 +67,7 @@ export function LoginForm() {
               className="text-sm font-medium text-brilliant-text"
               htmlFor="email"
             >
-              E-mail
+              {t.auth.email}
             </label>
             <input
               id="email"
@@ -81,7 +83,7 @@ export function LoginForm() {
               className="text-sm font-medium text-brilliant-text"
               htmlFor="password"
             >
-              Mot de passe
+              {t.auth.password}
             </label>
             <input
               id="password"
@@ -94,17 +96,17 @@ export function LoginForm() {
           </div>
           {error && <p className="text-sm text-rose-500">{error}</p>}
           <ShinyButton type="submit" variant="green" disabled={loading}>
-            {loading ? "Connexion..." : "Se connecter"}
+            {loading ? t.auth.loggingIn : t.auth.login}
           </ShinyButton>
         </form>
 
         <p className="text-center text-sm text-brilliant-muted">
-          Pas encore de compte ?{" "}
+          {t.auth.noAccount}{" "}
           <Link
             href="/auth/signup"
             className="text-[#6967fb] hover:underline font-semibold"
           >
-            S&apos;inscrire
+            {t.auth.signupLink}
           </Link>
         </p>
       </div>

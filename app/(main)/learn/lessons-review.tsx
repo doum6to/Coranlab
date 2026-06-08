@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { BookOpen, Check, PlayCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getServerStrings } from "@/lib/i18n/server-t";
+import { tpl } from "@/lib/i18n/locales";
 
 type UnlockedLesson = {
   id: number;
@@ -14,6 +16,7 @@ type Props = {
 };
 
 export const LessonsReview = ({ lessons }: Props) => {
+  const { t } = getServerStrings();
   if (lessons.length === 0) {
     return null;
   }
@@ -22,9 +25,9 @@ export const LessonsReview = ({ lessons }: Props) => {
     <div className="mt-10">
       <div className="flex items-center gap-x-3 mb-6">
         <BookOpen className="h-7 w-7 text-sky-500" />
-        <h2 className="text-2xl font-bold text-neutral-700">Leçons</h2>
+        <h2 className="text-2xl font-bold text-neutral-700">{t.learn.lessonsHeading}</h2>
         <span className="text-sm text-neutral-400">
-          ({lessons.length} débloquée{lessons.length > 1 ? "s" : ""})
+          ({tpl(lessons.length > 1 ? t.learn.unlockedMany : t.learn.unlockedOne, { n: lessons.length })})
         </span>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -59,7 +62,7 @@ export const LessonsReview = ({ lessons }: Props) => {
                 ? "bg-green-200 text-green-700"
                 : "bg-sky-200 text-sky-700"
             )}>
-              {lesson.completed ? "Réviser" : "En cours"}
+              {lesson.completed ? t.common.review : t.common.inProgress}
             </span>
           </Link>
         ))}
