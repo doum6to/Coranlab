@@ -101,6 +101,7 @@ const fr = {
     title: "Quêtes",
     seeAll: "Voir tout",
     subtitle: "Complète les quêtes en gagnant des points.",
+    earnXp: "Gagner {n} XP",
   },
   premium: {
     unlimitedLearning: "Apprentissage illimité",
@@ -395,6 +396,7 @@ const en: AppStrings = {
     title: "Quests",
     seeAll: "See all",
     subtitle: "Complete quests by earning points.",
+    earnXp: "Earn {n} XP",
   },
   premium: {
     unlimitedLearning: "Unlimited learning",
@@ -684,6 +686,7 @@ const es: AppStrings = {
     title: "Misiones",
     seeAll: "Ver todo",
     subtitle: "Completa las misiones ganando puntos.",
+    earnXp: "Gana {n} XP",
   },
   premium: {
     unlimitedLearning: "Aprendizaje ilimitado",
