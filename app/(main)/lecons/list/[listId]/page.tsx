@@ -72,7 +72,7 @@ const ReviserListPage = async ({ params }: Props) => {
       {data.vocabWords.length > 0 && (
         <div>
           <h2 className="text-lg font-bold text-brilliant-text mb-4">
-            Vocabulaire ({data.vocabWords.length} mots)
+            {tpl(t.learn.vocabularyHeading, { n: data.vocabWords.length })}
           </h2>
           <FlashcardGrid words={data.vocabWords} />
         </div>
