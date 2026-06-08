@@ -109,6 +109,9 @@ export default async function OffreAViePage() {
     <BadgeCheck key="2" className="h-4 w-4" strokeWidth={2} />,
   ];
 
+  const hidden = new Set(content.hidden ?? []);
+  const show = (k: string) => !hidden.has(k);
+
   return (
     <div className="w-full bg-[#FAF8F3] text-neutral-900 font-sans">
       <TrackView />
@@ -263,6 +266,7 @@ export default async function OffreAViePage() {
       {/* ═══════════════════════════════════════════════════════════════ */}
       {/*  TRUST BAR                                                     */}
       {/* ═══════════════════════════════════════════════════════════════ */}
+      {show("trust") && (
       <section className="w-full bg-white border-b border-neutral-200/70">
         <div className="max-w-[1040px] mx-auto px-6 sm:px-8 py-6">
           <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
@@ -278,16 +282,17 @@ export default async function OffreAViePage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* ═══════════════════════════════════════════════════════════════ */}
       {/*  STORY — long-form sales copy                                   */}
       {/* ═══════════════════════════════════════════════════════════════ */}
-      <StorySection data={content.story} />
+      {show("story") && <StorySection data={content.story} />}
 
       {/* ═══════════════════════════════════════════════════════════════ */}
       {/*  ALTERNATING FEATURE ROWS (Duolingo-style)                      */}
       {/* ═══════════════════════════════════════════════════════════════ */}
-      {content.rows.map((r, i) => (
+      {show("rows") && content.rows.map((r, i) => (
         <section
           key={`${r.title}-${i}`}
           className={i % 2 === 0 ? "bg-[#FAF8F3]" : "bg-white"}
@@ -341,6 +346,7 @@ export default async function OffreAViePage() {
       {/* ═══════════════════════════════════════════════════════════════ */}
       {/*  VALUE STACK — ebook + bonuses                                  */}
       {/* ═══════════════════════════════════════════════════════════════ */}
+      {show("valueStack") && (
       <section className="bg-white border-t border-neutral-200/70">
         <div className="max-w-[820px] mx-auto px-6 sm:px-8 py-16 sm:py-24">
           <div className="text-center mb-10">
@@ -422,6 +428,7 @@ export default async function OffreAViePage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* ═══════════════════════════════════════════════════════════════ */}
       {/*  INTERACTIVE DEMO                                               */}
@@ -444,6 +451,7 @@ export default async function OffreAViePage() {
 
           <div className="relative divide-y divide-neutral-900/[0.06]">
             {/* TARIF — price anchor */}
+            {show("priceAnchor") && (
             <div className="max-w-[720px] mx-auto px-6 sm:px-8 py-16 sm:py-20 text-center">
               <p className="text-[11px] tracking-[0.2em] uppercase text-neutral-500">
                 {content.priceAnchor.eyebrow}
@@ -480,8 +488,10 @@ export default async function OffreAViePage() {
                 </div>
               </div>
             </div>
+            )}
 
             {/* AVIS */}
+            {show("reviews") && (
             <div className="max-w-[1100px] mx-auto px-6 sm:px-8 py-16 sm:py-20">
               <div className="text-center mb-12">
                 <p className="text-[11px] tracking-[0.2em] uppercase text-neutral-500">
@@ -496,6 +506,7 @@ export default async function OffreAViePage() {
                 screenshots={content.reviews.screenshots}
               />
             </div>
+            )}
 
             {/* TARIF — offer card */}
             <div
@@ -568,6 +579,7 @@ export default async function OffreAViePage() {
             </div>
 
             {/* FAQ */}
+            {show("faq") && (
             <div className="max-w-[820px] mx-auto px-6 sm:px-8 py-16 sm:py-20">
               <div className="text-center mb-10 sm:mb-12">
                 <p className="text-[11px] tracking-[0.2em] uppercase text-neutral-500">
@@ -579,8 +591,10 @@ export default async function OffreAViePage() {
               </div>
               <Faq items={content.faq.items} />
             </div>
+            )}
 
             {/* FINAL CTA */}
+            {show("finalCta") && (
             <div className="relative max-w-[720px] mx-auto px-6 sm:px-8 py-20 sm:py-24 text-center">
               <ArrowDoodle className="absolute left-10 top-12 h-10 w-10 text-neutral-900 hidden sm:block" />
               <LandingMascot
@@ -606,6 +620,7 @@ export default async function OffreAViePage() {
                 </p>
               </div>
             </div>
+            )}
           </div>
         </div>
       </section>

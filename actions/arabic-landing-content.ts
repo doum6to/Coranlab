@@ -29,6 +29,7 @@ export async function updateArabicLandingContent(content: ArabicLandingContent) 
     comparison: content.comparison ?? d.comparison,
     faq: content.faq ?? d.faq,
     sticky: content.sticky ?? d.sticky,
+    hidden: Array.isArray(content.hidden) ? content.hidden : d.hidden,
   };
 
   // Coerce prices to safe integers (cents).

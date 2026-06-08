@@ -93,10 +93,14 @@ export default async function LireLArabePage() {
   const price = formatEuros(c.pricing.priceCents);
   const compareAt = formatEuros(c.pricing.compareAtCents);
   const priceEuros = c.pricing.priceCents / 100;
+  const hidden = new Set(c.hidden ?? []);
+  const show = (k: string) => !hidden.has(k);
 
   return (
     <div className="w-full bg-neutral-950 text-white">
-      <StickyCta label={c.sticky.label} ctaLabel={c.sticky.ctaLabel} />
+      {show("sticky") && (
+        <StickyCta label={c.sticky.label} ctaLabel={c.sticky.ctaLabel} />
+      )}
 
       {/* HERO */}
       <section className="relative overflow-hidden">
@@ -172,6 +176,7 @@ export default async function LireLArabePage() {
       </section>
 
       {/* TÉMOIGNAGES */}
+      {show("testimonials") && (
       <section className="border-t border-white/10 bg-white/[0.02]">
         <div className="mx-auto max-w-[1000px] px-5 sm:px-8 py-14 sm:py-20">
           <div className="text-center">
@@ -193,8 +198,10 @@ export default async function LireLArabePage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* TARIFS */}
+      {show("pricing") && (
       <section id="tarifs" className="border-t border-white/10">
         <div className="mx-auto max-w-[560px] px-5 sm:px-8 py-16 sm:py-24">
           <div className="text-center mb-8">
@@ -262,8 +269,10 @@ export default async function LireLArabePage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* MÉTHODE */}
+      {show("method") && (
       <section className="border-t border-white/10 bg-white/[0.02]">
         <div className="mx-auto max-w-[1000px] px-5 sm:px-8 py-16 sm:py-20">
           <div className="text-center">
@@ -301,8 +310,10 @@ export default async function LireLArabePage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* CHAPITRES */}
+      {show("program") && (
       <section className="border-t border-white/10">
         <div className="mx-auto max-w-[820px] px-5 sm:px-8 py-16 sm:py-20">
           <h2 className="text-center text-3xl sm:text-4xl font-extrabold">
@@ -311,8 +322,10 @@ export default async function LireLArabePage() {
           <ProgramList chapters={c.program.chapters} />
         </div>
       </section>
+      )}
 
       {/* COMPARISON */}
+      {show("comparison") && (
       <section className="border-t border-white/10 bg-white/[0.02]">
         <div className="mx-auto max-w-[860px] px-5 sm:px-8 py-16 sm:py-20">
           <h2 className="text-center text-3xl sm:text-4xl font-extrabold">
@@ -361,8 +374,10 @@ export default async function LireLArabePage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* FAQ */}
+      {show("faq") && (
       <section className="border-t border-white/10">
         <div className="mx-auto max-w-[760px] px-5 sm:px-8 py-16 sm:py-20">
           <h2 className="text-center text-3xl sm:text-4xl font-extrabold">
@@ -398,6 +413,7 @@ export default async function LireLArabePage() {
           </div>
         </div>
       </section>
+      )}
 
       <div aria-hidden className="h-24" />
     </div>

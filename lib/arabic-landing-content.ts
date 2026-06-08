@@ -67,6 +67,8 @@ export type ArabicLandingContent = {
     label: string;
     ctaLabel: string;
   };
+  /** Section keys hidden on the page (empty = everything visible). */
+  hidden: string[];
 };
 
 export const ARABIC_LANDING_DEFAULTS: ArabicLandingContent = {
@@ -211,6 +213,7 @@ export const ARABIC_LANDING_DEFAULTS: ArabicLandingContent = {
     label: "Offre limitée — fin dans",
     ctaLabel: "J'apprends à lire l'arabe",
   },
+  hidden: [],
 };
 
 export const ARABIC_LANDING_KEY = "arabic_landing_content";

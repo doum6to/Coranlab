@@ -131,6 +131,8 @@ export type LandingContent = {
   story: LandingStory;
   letter: LandingLetter;
   product: LandingProduct;
+  /** Section keys hidden on the page (empty = everything visible). */
+  hidden: string[];
 };
 
 const IMG =
@@ -461,6 +463,7 @@ export const LANDING_DEFAULTS: LandingContent = {
       "Comme beaucoup, je récitais sans comprendre. Je ne voulais pas devenir linguiste — juste comprendre le Livre que je lis chaque jour. Cette méthode est celle que j'aurais aimé avoir.",
     founderImage: "",
   },
+  hidden: [],
 };
 
 export const LANDING_CONTENT_KEY = "landing_content";

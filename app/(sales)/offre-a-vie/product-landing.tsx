@@ -43,6 +43,8 @@ export function ProductLanding({
     compareAtCents > priceCents ? formatEuros(compareAtCents) : null;
   const priceValue = priceCents / 100;
   const p = content.product;
+  const hidden = new Set(content.hidden ?? []);
+  const show = (k: string) => !hidden.has(k);
 
   return (
     <div className="w-full bg-white text-neutral-900 font-sans">
@@ -142,6 +144,7 @@ export function ProductLanding({
       </section>
 
       {/* BENEFITS */}
+      {show("p_benefits") && (
       <section className="bg-[#FAF8F3] border-y border-neutral-200/70">
         <div className="mx-auto max-w-[1000px] px-4 sm:px-6 py-12 sm:py-16">
           <h2 className="text-center font-display font-bold text-2xl sm:text-3xl text-neutral-950">
@@ -164,8 +167,10 @@ export function ProductLanding({
           </div>
         </div>
       </section>
+      )}
 
       {/* INSIDE */}
+      {show("p_inside") && (
       <section className="mx-auto max-w-[1000px] px-4 sm:px-6 py-12 sm:py-16">
         <h2 className="text-center font-display font-bold text-2xl sm:text-3xl text-neutral-950">
           {p.insideHeading}
@@ -199,8 +204,10 @@ export function ProductLanding({
           ))}
         </div>
       </section>
+      )}
 
       {/* HOW */}
+      {show("p_how") && (
       <section className="bg-[#FAF8F3] border-y border-neutral-200/70">
         <div className="mx-auto max-w-[1000px] px-4 sm:px-6 py-12 sm:py-16">
           <h2 className="text-center font-display font-bold text-2xl sm:text-3xl text-neutral-950">
@@ -220,8 +227,10 @@ export function ProductLanding({
           </div>
         </div>
       </section>
+      )}
 
       {/* COMPARISON */}
+      {show("p_compare") && (
       <section className="mx-auto max-w-[760px] px-4 sm:px-6 py-12 sm:py-16">
         <h2 className="text-center font-display font-bold text-2xl sm:text-3xl text-neutral-950">
           {p.compareHeading}
@@ -252,8 +261,10 @@ export function ProductLanding({
           ))}
         </div>
       </section>
+      )}
 
       {/* REVIEWS */}
+      {show("reviews") && (
       <section className="bg-[#FAF8F3] border-y border-neutral-200/70">
         <div className="mx-auto max-w-[1100px] px-4 sm:px-6 py-12 sm:py-16">
           <div className="text-center mb-10">
@@ -270,8 +281,10 @@ export function ProductLanding({
           />
         </div>
       </section>
+      )}
 
       {/* FOUNDER */}
+      {show("p_founder") && (
       <section className="mx-auto max-w-[860px] px-4 sm:px-6 py-12 sm:py-16">
         <div className="grid items-center gap-8 sm:grid-cols-[200px_1fr]">
           <div className="mx-auto sm:mx-0">
@@ -297,6 +310,7 @@ export function ProductLanding({
           </div>
         </div>
       </section>
+      )}
 
       {/* OFFER CARD */}
       <section
@@ -366,6 +380,7 @@ export function ProductLanding({
       </section>
 
       {/* FAQ */}
+      {show("faq") && (
       <section className="mx-auto max-w-[820px] px-4 sm:px-6 py-14 sm:py-20">
         <div className="text-center mb-10">
           <p className="text-[11px] tracking-[0.2em] uppercase text-neutral-500">
@@ -377,6 +392,7 @@ export function ProductLanding({
         </div>
         <Faq items={content.faq.items} />
       </section>
+      )}
 
       <div aria-hidden className="h-24" />
     </div>
