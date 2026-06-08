@@ -257,6 +257,7 @@ export function ArabicLandingForm({ initial }: { initial: ArabicLandingContent }
             <Field label="Pastille" value={c.hero.badge} onChange={(v) => patch("hero", { badge: v })} />
             <Field label="Titre — début" value={c.hero.titleLead} onChange={(v) => patch("hero", { titleLead: v })} />
             <Field label="Titre — mot doré" value={c.hero.titleHighlight} onChange={(v) => patch("hero", { titleHighlight: v })} />
+            <Field label="Titre — fin (ex : ?). Laisse vide pour aucun signe" value={c.hero.titleTail} onChange={(v) => patch("hero", { titleTail: v })} />
             <Field label="Sous-titre" area value={c.hero.subtitle} onChange={(v) => patch("hero", { subtitle: v })} />
             <VideoField label="Vidéo de présentation" value={c.hero.videoUrl} onChange={(v) => patch("hero", { videoUrl: v })} />
             <Field label="Texte affiché si pas de vidéo" value={c.hero.videoLabel} onChange={(v) => patch("hero", { videoLabel: v })} />
