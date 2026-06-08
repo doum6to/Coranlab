@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { challengeOptions, challenges } from "@/db/schema";
 import { ShinyButton } from "@/components/ui/shiny-button";
+import { useT } from "@/lib/i18n/use-t";
 
 type Props = {
   challenge: typeof challenges.$inferSelect;
@@ -22,6 +23,7 @@ export const Anagram = ({
   onSkip,
   disabled,
 }: Props) => {
+  const t = useT();
   const letters = useMemo(() => {
     return options.map((o, idx) => ({
       id: idx,
@@ -104,7 +106,7 @@ export const Anagram = ({
         status === "none" && "border-[#E0E0E0] bg-white"
       )}>
         {selectedLetters.length === 0 && status === "none" && (
-          <span className="text-brilliant-muted text-sm">Cliquez sur les lettres ci-dessous</span>
+          <span className="text-brilliant-muted text-sm">{t.lesson.anagramInstruction}</span>
         )}
         {status === "wrong" ? (
           // Show the correct word when wrong
@@ -180,9 +182,9 @@ export const Anagram = ({
       {status === "wrong" && (
         <div className="w-full max-w-md flex flex-col items-center gap-3 mt-2">
           <div className="rounded-2xl bg-red-50 border border-red-200 px-4 py-3 w-full text-center">
-            <p className="text-xs text-red-400 font-semibold mb-1">Pas tout à fait !</p>
+            <p className="text-xs text-red-400 font-semibold mb-1">{t.lesson.notQuite}</p>
             <p className="text-sm font-bold text-brilliant-text">
-              La bonne réponse était : <span className="font-arabic text-lg" dir="rtl">{targetWord}</span>
+              {t.lesson.correctWasLabel} <span className="font-arabic text-lg" dir="rtl">{targetWord}</span>
             </p>
           </div>
           <button

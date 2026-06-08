@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { challengeOptions, challenges } from "@/db/schema";
+import { useT } from "@/lib/i18n/use-t";
 
 type Props = {
   challenge: typeof challenges.$inferSelect;
@@ -21,6 +22,7 @@ export const FlashRecall = ({
   status,
   disabled,
 }: Props) => {
+  const t = useT();
   const [phase, setPhase] = useState<"show" | "fade" | "answer">("show");
 
   useEffect(() => {
@@ -76,11 +78,11 @@ export const FlashRecall = ({
         <>
           <div className="flex items-center justify-center p-3 sm:p-4 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-300 w-full max-w-[280px]">
             <span className="text-sm sm:text-base text-gray-400 font-medium">
-              Quel était ce mot ?
+              {t.lesson.whatWord}
             </span>
           </div>
           <p className="text-xs sm:text-sm text-brilliant-muted">
-            Choisis la bonne traduction
+            {t.lesson.chooseTranslation}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-3 w-full max-w-md">
             {options.map((option, i) => (

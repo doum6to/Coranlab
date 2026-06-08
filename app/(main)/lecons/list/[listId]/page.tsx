@@ -5,6 +5,8 @@ import { ArrowLeft, BookOpen } from "lucide-react";
 
 import { getListLevels, isListPremiumLocked } from "@/db/queries";
 import { FlashcardGrid } from "@/app/(main)/learn/list/[listId]/flashcard-grid";
+import { getServerStrings } from "@/lib/i18n/server-t";
+import { tpl } from "@/lib/i18n/locales";
 
 type Props = {
   params: {
@@ -13,6 +15,7 @@ type Props = {
 };
 
 const ReviserListPage = async ({ params }: Props) => {
+  const { t } = getServerStrings();
   const listId = parseInt(params.listId);
 
   if (isNaN(listId)) {
@@ -60,7 +63,7 @@ const ReviserListPage = async ({ params }: Props) => {
         <div className="flex items-center justify-center gap-6 text-sm text-brilliant-muted mt-3">
           <div className="flex items-center gap-1.5">
             <BookOpen className="h-4 w-4" />
-            <span>{data.vocabWords.length} Mots</span>
+            <span>{tpl(t.learn.words, { n: data.vocabWords.length })}</span>
           </div>
         </div>
       </div>

@@ -5,6 +5,8 @@ import { ArrowLeft, BookOpen, Layers } from "lucide-react";
 
 import { getListLevels, isListPremiumLocked } from "@/db/queries";
 import { getListImage } from "@/lib/list-images";
+import { getServerStrings } from "@/lib/i18n/server-t";
+import { tpl } from "@/lib/i18n/locales";
 
 import { LevelCard } from "./level-card";
 
@@ -15,6 +17,7 @@ type Props = {
 };
 
 const ListDetailPage = async ({ params }: Props) => {
+  const { t } = getServerStrings();
   const listId = parseInt(params.listId);
 
   if (isNaN(listId)) {
@@ -64,11 +67,11 @@ const ListDetailPage = async ({ params }: Props) => {
         <div className="flex items-center justify-center gap-6 text-sm text-brilliant-muted mt-3">
           <div className="flex items-center gap-1.5">
             <Layers className="h-4 w-4" />
-            <span>{data.totalLevels} Niveaux</span>
+            <span>{tpl(t.learn.levels, { n: data.totalLevels })}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <BookOpen className="h-4 w-4" />
-            <span>{data.vocabWords.length} Mots</span>
+            <span>{tpl(t.learn.words, { n: data.vocabWords.length })}</span>
           </div>
         </div>
       </div>
@@ -84,8 +87,8 @@ const ListDetailPage = async ({ params }: Props) => {
               key={level.id}
               lessonId={level.id}
               levelOrder={level.levelOrder}
-              levelName={`Niveau ${level.levelOrder}`}
-              levelDescription={`${level.completedChallengeCount}/${level.challengeCount} exercices`}
+              levelName={tpl(t.common.levelN, { n: level.levelOrder })}
+              levelDescription={tpl(t.learn.exercises, { done: level.completedChallengeCount, total: level.challengeCount })}
               completed={level.completed}
               locked={isLocked}
               active={isActive}

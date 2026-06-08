@@ -6,6 +6,7 @@ import Image from "next/image";
 import { GraduationCap } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n/use-t";
 import { SidebarItem } from "./sidebar-item";
 import { UserButton } from "./user-button";
 import { StreakCard } from "./streak-card";
@@ -27,6 +28,7 @@ type Props = {
 };
 
 export const Sidebar = ({ className, streak, isPro, hasActiveSubscription, streakData, hasArabicCourse }: Props) => {
+  const t = useT();
   return (
     <div className={cn(
       "flex h-full lg:w-[256px] lg:fixed left-0 top-0 px-4 border-r border-brilliant-border flex-col bg-white",
@@ -50,29 +52,29 @@ export const Sidebar = ({ className, streak, isPro, hasActiveSubscription, strea
 
       <div className="flex flex-col gap-y-2 flex-1">
         <SidebarItem
-          label="Apprendre"
+          label={t.nav.learn}
           href="/learn"
           icon={HomeIcon}
         />
         <SidebarItem
-          label="Leçons"
+          label={t.nav.lessons}
           href="/lecons"
           icon={CoursIcon}
         />
         <SidebarItem
-          label="Classement"
+          label={t.nav.leaderboard}
           href="/leaderboard"
           icon={LeaderboardIcon}
         />
         {hasArabicCourse && (
           <SidebarItem
-            label="Ma formation"
+            label={t.nav.training}
             href="/ma-formation"
             icon={GraduationCap}
           />
         )}
         <SidebarItem
-          label="Paramètres"
+          label={t.nav.settings}
           href="/settings"
           icon={SettingsIcon}
         />
@@ -97,7 +99,7 @@ export const Sidebar = ({ className, streak, isPro, hasActiveSubscription, strea
           >
             <Image src="/unlimited.svg" alt="Premium" height={56} width={56} className="mb-3" />
             <p className="text-xs text-brilliant-muted leading-snug mb-3">
-              <span className="font-bold text-brilliant-text">Débloque toutes les leçons avec Premium</span> pour être plus rapide et intelligent.
+              <span className="font-bold text-brilliant-text">{t.nav.promoStrong}</span> {t.nav.promoRest}
             </p>
             <Link
               href="/premium"
@@ -108,7 +110,7 @@ export const Sidebar = ({ className, streak, isPro, hasActiveSubscription, strea
                 boxShadow: "0 3px 0 0 rgba(5, 12, 56, 0.4)",
               }}
             >
-              Découvrir Premium
+              {t.nav.discoverPremium}
             </Link>
           </div>
         </div>

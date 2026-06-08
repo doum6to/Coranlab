@@ -9,12 +9,15 @@ import {
 } from "@rive-app/react-canvas";
 import { useState, useEffect, useRef } from "react";
 
+import { useT } from "@/lib/i18n/use-t";
+
 /**
  * Wraps page content with a full-screen Rive loading overlay.
  * The overlay plays `loading.riv` ("State Machine loading") and waits
  * until the "clin d'oeil" state fires before cross-fading to children.
  */
 export const PageReveal = ({ children }: { children: React.ReactNode }) => {
+  const t = useT();
   const [mounted, setMounted] = useState(false);
   const [cycleDone, setCycleDone] = useState(false);
   const [overlayHidden, setOverlayHidden] = useState(false);
@@ -83,7 +86,7 @@ export const PageReveal = ({ children }: { children: React.ReactNode }) => {
         aria-hidden={cycleDone}
       >
         <div className="h-48 w-48 sm:h-56 sm:w-56">
-          <RiveComponent className="h-full w-full" aria-label="Chargement" />
+          <RiveComponent className="h-full w-full" aria-label={t.common.loading} />
         </div>
       </div>
 

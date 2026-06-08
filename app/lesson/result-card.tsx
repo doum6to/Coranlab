@@ -2,6 +2,7 @@ import Image from "next/image";
 import { Target } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n/use-t";
 
 type Props = {
   value: number;
@@ -9,6 +10,7 @@ type Props = {
 };
 
 export const ResultCard = ({ value, variant }: Props) => {
+  const t = useT();
   return (
     <div className={cn(
       "rounded-2xl border-2 w-full",
@@ -20,7 +22,7 @@ export const ResultCard = ({ value, variant }: Props) => {
         variant === "score" && "bg-[#6967FB]",
         variant === "points" && "bg-orange-400"
       )}>
-        {variant === "score" ? "Score" : "XP Total"}
+        {variant === "score" ? t.lesson.score : t.lesson.xpTotal}
       </div>
       <div className={cn(
         "rounded-2xl bg-white items-center flex justify-center p-6 font-bold text-lg",

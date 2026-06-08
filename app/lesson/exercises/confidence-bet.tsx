@@ -3,28 +3,13 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { challengeOptions, challenges } from "@/db/schema";
+import { useT } from "@/lib/i18n/use-t";
 
 type BetLevel = "sure" | "hesitant" | "fifty";
 
-const BET_CONFIG: Record<BetLevel, { label: string; description: string; borderColor: string; bgColor: string }> = {
-  sure: {
-    label: "Je suis sûr(e)",
-    description: "+20 XP si correct, -10 XP si faux",
-    borderColor: "border-[#6967FB]",
-    bgColor: "bg-[#f0f0ff]",
-  },
-  hesitant: {
-    label: "J'hésite",
-    description: "+10 XP si correct, -5 XP si faux",
-    borderColor: "border-[#6967FB]",
-    bgColor: "bg-[#f0f0ff]",
-  },
-  fifty: {
-    label: "50/50",
-    description: "+5 XP si correct, 0 XP si faux",
-    borderColor: "border-[#6967FB]",
-    bgColor: "bg-[#f0f0ff]",
-  },
+const BET_STYLE = {
+  borderColor: "border-[#6967FB]",
+  bgColor: "bg-[#f0f0ff]",
 };
 
 type Props = {
@@ -44,6 +29,15 @@ export const ConfidenceBet = ({
   status,
   disabled,
 }: Props) => {
+  const t = useT();
+  const BET_CONFIG: Record<
+    BetLevel,
+    { label: string; description: string; borderColor: string; bgColor: string }
+  > = {
+    sure: { label: t.lesson.confident, description: t.lesson.betSureDesc, ...BET_STYLE },
+    hesitant: { label: t.lesson.hesitant, description: t.lesson.betHesitantDesc, ...BET_STYLE },
+    fifty: { label: "50/50", description: t.lesson.betFiftyDesc, ...BET_STYLE },
+  };
   const [bet, setBet] = useState<BetLevel | null>(null);
   const [phase, setPhase] = useState<"bet" | "answer">("bet");
 
@@ -67,10 +61,10 @@ export const ConfidenceBet = ({
       {phase === "bet" && (
         <>
           <p className="text-xs sm:text-sm text-brilliant-muted text-center font-medium">
-            Avant de voir les réponses, parie sur ta confiance !
+            {t.lesson.betIntro}
           </p>
           <p className="text-[10px] sm:text-xs text-gray-400 text-center">
-            Tu peux gagner plus d&apos;XP... ou en perdre
+            {t.lesson.betSubIntro}
           </p>
 
           <div className="flex flex-col gap-2 sm:gap-3 w-full max-w-sm">
@@ -114,7 +108,7 @@ export const ConfidenceBet = ({
           </div>
 
           <p className="text-xs sm:text-sm text-brilliant-muted">
-            Quelle est la traduction ?
+            {t.lesson.whatTranslation}
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-3 w-full max-w-md">

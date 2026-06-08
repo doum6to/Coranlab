@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n/use-t";
 
 type Props = {
   title: string;
@@ -15,6 +18,7 @@ export const UnitBanner = ({
   variant = "default",
   showReviser = false,
 }: Props) => {
+  const t = useT();
   const isPurple = variant === "purple";
 
   return (
@@ -69,7 +73,7 @@ export const UnitBanner = ({
           className="relative z-10 shrink-0 ml-3 px-4 py-1.5 rounded-xl text-xs font-bold border-2 transition-all hover:opacity-90 bg-[#6967FB] text-white border-[#5755E0]"
           style={{ boxShadow: "0 2px 0 0 #5250D4" }}
         >
-          Réviser
+          {t.common.review}
         </Link>
       )}
     </div>

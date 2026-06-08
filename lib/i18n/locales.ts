@@ -13,6 +13,9 @@ export const LOCALE_NAMES: Record<Locale, string> = {
   es: "Español",
 };
 
+/** Cookie storing the user's explicit language preference (client + server). */
+export const LOCALE_COOKIE_NAME = "locale";
+
 export function isLocale(v: string | null | undefined): v is Locale {
   return !!v && (LOCALES as readonly string[]).includes(v);
 }

@@ -14,6 +14,9 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { createStripeUrl } from "@/actions/user-subscription";
+import { useT } from "@/lib/i18n/use-t";
+import { tpl } from "@/lib/i18n/locales";
+import { LanguageSelector } from "./language-selector";
 
 type Props = {
   userName: string;
@@ -34,6 +37,7 @@ export const SettingsView = ({
   isLifetime,
   documents,
 }: Props) => {
+  const t = useT();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
@@ -55,13 +59,13 @@ export const SettingsView = ({
           }
         })
         .catch(() => {
-          toast.error("Une erreur est survenue");
+          toast.error(t.settings.genericError);
         });
     });
   };
 
   const formattedEndDate = subscriptionEndDate
-    ? new Date(subscriptionEndDate).toLocaleDateString("fr-FR", {
+    ? new Date(subscriptionEndDate).toLocaleDateString(t.settings.dateLocale, {
         day: "numeric",
         month: "long",
         year: "numeric",
@@ -71,7 +75,7 @@ export const SettingsView = ({
   return (
     <div className="px-4 sm:px-6 pb-10">
       <h1 className="text-2xl font-bold text-brilliant-text mb-6">
-        Paramètres
+        {t.settings.title}
       </h1>
 
       <div className="space-y-6 max-w-xl">
@@ -79,7 +83,7 @@ export const SettingsView = ({
         <section className="rounded-2xl border border-brilliant-border bg-white overflow-hidden">
           <div className="px-5 py-4 border-b border-brilliant-border">
             <h2 className="text-sm font-bold text-brilliant-text uppercase tracking-wide">
-              Compte
+              {t.settings.account}
             </h2>
           </div>
 
@@ -88,7 +92,7 @@ export const SettingsView = ({
             <div className="px-5 py-4 flex items-center gap-x-3">
               <User className="h-5 w-5 text-brilliant-muted shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-brilliant-muted">Nom</p>
+                <p className="text-xs text-brilliant-muted">{t.settings.name}</p>
                 <p className="text-sm font-semibold text-brilliant-text truncate">
                   {userName}
                 </p>
@@ -99,7 +103,7 @@ export const SettingsView = ({
             <div className="px-5 py-4 flex items-center gap-x-3">
               <Mail className="h-5 w-5 text-brilliant-muted shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-brilliant-muted">E-mail</p>
+                <p className="text-xs text-brilliant-muted">{t.settings.email}</p>
                 <p className="text-sm font-semibold text-brilliant-text truncate">
                   {email}
                 </p>
@@ -113,7 +117,7 @@ export const SettingsView = ({
           <section className="rounded-2xl border border-brilliant-border bg-white overflow-hidden">
             <div className="px-5 py-4 border-b border-brilliant-border">
               <h2 className="text-sm font-bold text-brilliant-text uppercase tracking-wide">
-                Mes documents
+                {t.settings.myDocuments}
               </h2>
             </div>
             <div className="divide-y divide-brilliant-border">
@@ -140,7 +144,7 @@ export const SettingsView = ({
         <section className="rounded-2xl border border-brilliant-border bg-white overflow-hidden">
           <div className="px-5 py-4 border-b border-brilliant-border">
             <h2 className="text-sm font-bold text-brilliant-text uppercase tracking-wide">
-              Abonnement
+              {t.settings.subscription}
             </h2>
           </div>
 
@@ -160,16 +164,16 @@ export const SettingsView = ({
                   </div>
                   <div>
                     <p className="text-sm font-bold text-brilliant-text">
-                      {isLifetime ? "Premium à vie" : "Premium actif"}
+                      {isLifetime ? t.settings.premiumLifetime : t.settings.premiumActive}
                     </p>
                     {isLifetime ? (
                       <p className="text-xs text-brilliant-muted">
-                        Accès illimité à tous les cours, pour toujours
+                        {t.settings.lifetimeDesc}
                       </p>
                     ) : (
                       formattedEndDate && (
                         <p className="text-xs text-brilliant-muted">
-                          Prochain renouvellement le {formattedEndDate}
+                          {tpl(t.settings.nextRenewal, { date: formattedEndDate })}
                         </p>
                       )
                     )}
@@ -184,9 +188,7 @@ export const SettingsView = ({
                     className="w-full flex items-center justify-center gap-x-2 rounded-xl py-3 text-sm font-bold text-brilliant-text border-2 border-brilliant-border hover:bg-gray-50 transition disabled:opacity-60"
                   >
                     <CreditCard className="h-4 w-4" />
-                    {pending
-                      ? "Chargement..."
-                      : "Gérer mon abonnement"}
+                    {pending ? t.settings.loading : t.settings.manageSubscription}
                   </button>
                 )}
               </div>
@@ -198,10 +200,10 @@ export const SettingsView = ({
                   </div>
                   <div>
                     <p className="text-sm font-bold text-brilliant-text">
-                      Plan gratuit
+                      {t.settings.freePlan}
                     </p>
                     <p className="text-xs text-brilliant-muted">
-                      Accès limité aux leçons
+                      {t.settings.freePlanDesc}
                     </p>
                   </div>
                 </div>
@@ -216,11 +218,21 @@ export const SettingsView = ({
                     boxShadow: "0 3px 0 0 rgba(5, 12, 56, 0.4)",
                   }}
                 >
-                  Passer à Premium
+                  {t.settings.goPremium}
                 </button>
               </div>
             )}
           </div>
+        </section>
+
+        {/* Language Section */}
+        <section className="rounded-2xl border border-brilliant-border bg-white overflow-hidden">
+          <div className="px-5 py-4 border-b border-brilliant-border">
+            <h2 className="text-sm font-bold text-brilliant-text uppercase tracking-wide">
+              {t.settings.language}
+            </h2>
+          </div>
+          <LanguageSelector />
         </section>
 
         {/* Sign out */}
@@ -230,7 +242,7 @@ export const SettingsView = ({
             className="w-full px-5 py-4 flex items-center gap-x-3 text-red-500 hover:bg-red-50 transition"
           >
             <LogOut className="h-5 w-5" />
-            <span className="text-sm font-semibold">Déconnexion</span>
+            <span className="text-sm font-semibold">{t.settings.signOut}</span>
           </button>
         </section>
       </div>

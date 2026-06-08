@@ -9,8 +9,10 @@ import { ShinyButton } from "@/components/ui/shiny-button";
 
 import { createTrialCheckoutUrl } from "@/actions/trial-checkout";
 import { ttqTrack } from "@/lib/analytics/tiktok";
+import { useT } from "@/lib/i18n/use-t";
 
 export function SignUpForm() {
+  const t = useT();
   const searchParams = useSearchParams();
   const prefilledEmail = searchParams.get("email") || "";
   const hasCoursePurchase = Boolean(searchParams.get("course_token"));
@@ -49,7 +51,7 @@ export function SignUpForm() {
       const body = await res.json();
 
       if (!res.ok) {
-        setError(body.error || "Erreur lors de la création du compte.");
+        setError(body.error || t.auth.createError);
         setLoading(false);
         return;
       }
@@ -83,17 +85,14 @@ export function SignUpForm() {
         }
         // Trial checkout failed: fall through to /learn so the user still has
         // a free-tier account. They can try upgrading later from settings.
-        setError(
-          trial.error ||
-            "Inscription réussie mais l'étape paiement a échoué. Tu peux activer l'essai depuis les paramètres."
-        );
+        setError(trial.error || t.auth.paymentFailed);
       }
 
       // 3b. Normal signup: straight to /learn
       router.push("/learn");
       router.refresh();
     } catch {
-      setError("Erreur de connexion au serveur. Réessaie dans quelques instants.");
+      setError(t.auth.serverError);
       setLoading(false);
     }
   };
@@ -106,22 +105,21 @@ export function SignUpForm() {
             <RiveMascot src="/animations/eyes_down.riv" animationName="eyes down" />
           </div>
           <h1 className="text-2xl font-bold text-brilliant-text font-heading">
-            Créer un compte
+            {t.auth.signupTitle}
           </h1>
           <p className="text-brilliant-muted text-sm text-center">
             {hasCoursePurchase
-              ? "Finalise la création de ton compte pour activer ton accès Premium."
+              ? t.auth.signupSubtitlePremium
               : isTrialSignup
-                ? "Étape 1 sur 2 — crée ton compte, puis entre ta CB (aucun prélèvement pendant 7 jours)."
-                : "Commence à apprendre le vocabulaire du Coran aujourd'hui"}
+                ? t.auth.signupSubtitleTrial
+                : t.auth.signupSubtitleDefault}
           </p>
         </div>
 
         {hasCoursePurchase && (
           <div className="rounded-xl border-2 border-b-4 border-[#6967fb]/30 bg-[#6967fb]/5 p-3 text-center">
             <p className="text-xs font-semibold text-[#6967fb]">
-              ✨ Abonnement détecté — ton accès Premium sera activé
-              automatiquement après inscription.
+              {t.auth.premiumDetected}
             </p>
           </div>
         )}
@@ -129,11 +127,10 @@ export function SignUpForm() {
         {isTrialSignup && (
           <div className="rounded-xl border border-[#6967fb]/30 bg-[#6967fb]/5 p-3">
             <p className="text-xs font-semibold text-[#6967fb] text-center tracking-wide uppercase">
-              Essai 7 jours gratuits
+              {t.auth.trialBadge}
             </p>
             <p className="mt-1 text-[11px] text-brilliant-muted text-center leading-relaxed">
-              Tu entreras ta CB à l&apos;étape suivante. Aucun prélèvement
-              pendant 7 jours. Résiliable en 1 clic depuis tes paramètres.
+              {t.auth.trialDesc}
             </p>
           </div>
         )}
@@ -144,7 +141,7 @@ export function SignUpForm() {
               className="text-sm font-medium text-brilliant-text"
               htmlFor="name"
             >
-              Nom
+              {t.auth.name}
             </label>
             <input
               id="name"
@@ -160,7 +157,7 @@ export function SignUpForm() {
               className="text-sm font-medium text-brilliant-text"
               htmlFor="email"
             >
-              E-mail
+              {t.auth.email}
             </label>
             <input
               id="email"
@@ -175,8 +172,7 @@ export function SignUpForm() {
             />
             {lockEmail && (
               <p className="mt-1 text-[11px] text-brilliant-muted">
-                Email utilisé lors de ton achat — ne le modifie pas pour
-                activer ton accès.
+                {t.auth.emailLocked}
               </p>
             )}
           </div>
@@ -185,7 +181,7 @@ export function SignUpForm() {
               className="text-sm font-medium text-brilliant-text"
               htmlFor="password"
             >
-              Mot de passe
+              {t.auth.password}
             </label>
             <input
               id="password"
@@ -199,17 +195,17 @@ export function SignUpForm() {
           </div>
           {error && <p className="text-sm text-rose-500">{error}</p>}
           <ShinyButton type="submit" variant="green" disabled={loading}>
-            {loading ? "Création du compte..." : "S'inscrire"}
+            {loading ? t.auth.creating : t.auth.signup}
           </ShinyButton>
         </form>
 
         <p className="text-center text-sm text-brilliant-muted">
-          Déjà un compte ?{" "}
+          {t.auth.haveAccount}{" "}
           <Link
             href="/auth/login"
             className="text-[#6967fb] hover:underline font-semibold"
           >
-            Se connecter
+            {t.auth.login}
           </Link>
         </p>
       </div>

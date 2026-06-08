@@ -3,8 +3,13 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { finishTutorialAndStartTest } from "@/actions/user-progress";
+import { useT } from "@/lib/i18n/use-t";
 
 const LIME = "#BEF264";
+
+/** Renders a string with `**bold**` segments as <b> nodes. */
+const bold = (s: string) =>
+  s.split("**").map((part, i) => (i % 2 ? <b key={i}>{part}</b> : part));
 
 const BoltSolid = ({ size = 24 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="#0F172A">
@@ -26,6 +31,7 @@ type Step = {
 };
 
 export const WelcomeTutorial = () => {
+  const t = useT();
   const [step, setStep] = useState(0);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
@@ -33,8 +39,8 @@ export const WelcomeTutorial = () => {
   const steps: Step[] = [
     // Step 1: Streaks & Charges
     {
-      title: "Les Streaks",
-      buttonLabel: "Compris !",
+      title: t.tutorial.streaksTitle,
+      buttonLabel: t.tutorial.gotIt,
       content: (
         <div className="flex flex-col items-center gap-5">
           {/* Streak visual */}
@@ -44,8 +50,7 @@ export const WelcomeTutorial = () => {
           </div>
 
           <p className="text-sm text-brilliant-text text-center leading-relaxed max-w-xs">
-            Chaque jour o&ugrave; tu termines une le&ccedil;on, ton <b>streak</b> augmente de 1.
-            Plus ton streak est long, plus tu progresses !
+            {bold(t.tutorial.streaksBody)}
           </p>
 
           {/* Charges visual */}
@@ -55,14 +60,12 @@ export const WelcomeTutorial = () => {
           </div>
 
           <p className="text-sm text-brilliant-text text-center leading-relaxed max-w-xs">
-            Tu as <b>2 chargements</b> de secours. Si tu manques un jour,
-            un chargement est utilis&eacute; pour prot&eacute;ger ton streak.
-            Si les 2 sont vides, ton streak repart &agrave; z&eacute;ro.
+            {bold(t.tutorial.chargesBody)}
           </p>
 
           {/* Days visual */}
           <div className="flex items-center gap-3">
-            {["Lu", "Ma", "Me", "Je", "Ve"].map((d, i) => (
+            {t.tutorial.weekdays.map((d, i) => (
               <div key={d} className="flex flex-col items-center gap-1">
                 <div
                   className="w-9 h-9 rounded-full flex items-center justify-center"
@@ -82,8 +85,8 @@ export const WelcomeTutorial = () => {
 
     // Step 2: Intro to the test exercise
     {
-      title: "On essaie ?",
-      buttonLabel: "Commencer le test",
+      title: t.tutorial.tryTitle,
+      buttonLabel: t.tutorial.startTest,
       content: (
         <div className="flex flex-col items-center gap-5">
           {/* Play icon */}
@@ -94,18 +97,11 @@ export const WelcomeTutorial = () => {
           </div>
 
           <p className="text-sm text-brilliant-text text-center leading-relaxed max-w-xs">
-            On commence par <b>5 exercices rapides</b> pour que tu te
-            familiarises avec Quranlab.
-            <br />
-            Pr&ecirc;t ?
+            {bold(t.tutorial.testBody)}
           </p>
 
           <div className="w-full max-w-xs space-y-2">
-            {[
-              "~1 minute",
-              "Aucun pr\u00e9requis",
-              "Tu apprends d\u00e9j\u00e0 !",
-            ].map((text) => (
+            {[t.tutorial.info1, t.tutorial.info2, t.tutorial.info3].map((text) => (
               <div key={text} className="flex items-center gap-2.5 bg-gray-50 rounded-xl px-4 py-2.5">
                 <div className="w-5 h-5 rounded-full bg-[#BEF264] flex items-center justify-center shrink-0">
                   <svg width="10" height="10" viewBox="0 0 20 20" fill="none">

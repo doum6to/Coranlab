@@ -3,6 +3,7 @@ import { Inter, Manrope, IBM_Plex_Sans_Arabic, Fraunces, Fredoka } from "next/fo
 import Script from "next/script";
 import { Toaster } from "@/components/ui/sonner";
 import { ModalsProvider } from "@/components/modals/modals-provider";
+import { ClientLocaleBoundary } from "@/components/i18n/client-locale-boundary";
 
 import "./globals.css";
 
@@ -130,7 +131,9 @@ export default function RootLayout({
         </Script>
 
         <Toaster />
-        <ModalsProvider />
+        <ClientLocaleBoundary>
+          <ModalsProvider />
+        </ClientLocaleBoundary>
 
         {children}
       </body>

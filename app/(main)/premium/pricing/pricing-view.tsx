@@ -7,6 +7,7 @@ import { X } from "lucide-react";
 import { createStripeUrl } from "@/actions/user-subscription";
 import type { PremiumPlan } from "@/lib/premium";
 import { RiveMascot } from "@/components/rive-mascot";
+import { useT } from "@/lib/i18n/use-t";
 
 const GRADIENT =
   "linear-gradient(135deg, #F7C325 0%, #E350E3 35%, #874DE5 65%, #456DFF 100%)";
@@ -33,7 +34,8 @@ const PlanCard = ({
   selected,
   onClick,
   popular,
-}: PlanCardProps) => (
+  popularLabel,
+}: PlanCardProps & { popularLabel: string }) => (
   <div className="relative">
     {popular && (
       <div className="absolute -top-2.5 sm:-top-3 left-1/2 -translate-x-1/2 z-10">
@@ -41,7 +43,7 @@ const PlanCard = ({
           className="rounded-full text-[8px] sm:text-[10px] font-extrabold tracking-wider uppercase whitespace-nowrap text-white"
           style={{ background: GRADIENT, padding: "3px 10px" }}
         >
-          Populaire
+          {popularLabel}
         </div>
       </div>
     )}
@@ -84,6 +86,7 @@ const PlanCard = ({
 );
 
 export const PricingView = () => {
+  const t = useT();
   const [selected, setSelected] = useState<PremiumPlan>("six_months");
   const [pending, startTransition] = useTransition();
 
@@ -98,22 +101,20 @@ export const PricingView = () => {
           }
         })
         .catch((err) => {
-          toast.error(err?.message || "Une erreur est survenue");
+          toast.error(err?.message || t.pricing.genericError);
         });
     });
   };
 
   const fineprint: Record<PremiumPlan, string> = {
-    three_months:
-      "*Facturé 44,91€ tous les 3 mois. Résiliable à tout moment.",
-    six_months: "*Facturé 71,94€ tous les 6 mois. Résiliable à tout moment.",
-    annual: "*Facturé 119,88€/an. Résiliable à tout moment.",
-    lifetime: "Paiement unique de 299,99€. Aucun renouvellement.",
-    monthly_trial:
-      "*7 jours offerts, puis 14,97€/mois. Résiliable à tout moment.",
+    three_months: t.pricing.finePrint3m,
+    six_months: t.pricing.finePrint6m,
+    annual: t.pricing.finePrintYear,
+    lifetime: t.pricing.finePrintLifetime,
+    monthly_trial: t.pricing.finePrintTrial,
   };
 
-  const ctaLabel = selected === "lifetime" ? "Acheter à vie" : "Devenir Premium";
+  const ctaLabel = selected === "lifetime" ? t.pricing.buyLifetime : t.pricing.becomePremium;
 
   return (
     <div
@@ -144,41 +145,44 @@ export const PricingView = () => {
 
         {/* Title */}
         <h1 className="text-center text-lg leading-tight sm:text-2xl font-extrabold text-brilliant-text font-heading mb-1 px-2 shrink-0">
-          Débloque toute l&apos;expérience Quranlab
+          {t.pricing.heading}
         </h1>
         <p className="text-center text-brilliant-muted text-[11px] sm:text-sm mb-3 sm:mb-6 px-2 shrink-0">
-          Accès complet à tous les cours — et bien plus.
+          {t.pricing.subheading}
         </p>
 
         {/* 3 subscription plans */}
         <div className="grid grid-cols-3 gap-2 sm:gap-4 max-w-xl w-full mx-auto">
           <PlanCard
             plan="three_months"
-            title="3 mois"
+            title={t.pricing.plan3m}
             price="14,97€"
-            priceSuffix="/ mois"
-            subtitle="Renouvelé tous les 3 mois"
+            priceSuffix={t.pricing.perMonth}
+            subtitle={t.pricing.renewedEvery3m}
             selected={selected === "three_months"}
             onClick={() => setSelected("three_months")}
+            popularLabel={t.pricing.popular}
           />
           <PlanCard
             plan="six_months"
-            title="6 mois"
+            title={t.pricing.plan6m}
             price="11,99€"
-            priceSuffix="/ mois*"
-            subtitle="Économise 20%"
+            priceSuffix={t.pricing.perMonthStar}
+            subtitle={t.pricing.save20}
             selected={selected === "six_months"}
             onClick={() => setSelected("six_months")}
             popular
+            popularLabel={t.pricing.popular}
           />
           <PlanCard
             plan="annual"
-            title="Annuel"
+            title={t.pricing.planAnnual}
             price="9,99€"
-            priceSuffix="/ mois*"
-            subtitle="Économise 33%"
+            priceSuffix={t.pricing.perMonthStar}
+            subtitle={t.pricing.save33}
             selected={selected === "annual"}
             onClick={() => setSelected("annual")}
+            popularLabel={t.pricing.popular}
           />
         </div>
 
@@ -189,7 +193,7 @@ export const PricingView = () => {
               className="rounded-full text-[8px] sm:text-[10px] font-extrabold tracking-wider uppercase whitespace-nowrap text-white"
               style={{ background: LIFETIME_GRADIENT, padding: "3px 10px" }}
             >
-              Offre unique
+              {t.pricing.uniqueOffer}
             </div>
           </div>
           <button
@@ -217,10 +221,10 @@ export const PricingView = () => {
                 </div>
                 <div className="min-w-0">
                   <div className="text-sm sm:text-base font-bold text-brilliant-text">
-                    À vie
+                    {t.pricing.lifetime}
                   </div>
                   <div className="text-[10px] sm:text-xs text-brilliant-muted leading-tight">
-                    Paiement unique — Premium pour toujours
+                    {t.pricing.lifetimeLabel}
                   </div>
                 </div>
               </div>
@@ -252,7 +256,7 @@ export const PricingView = () => {
               boxShadow: "0 4px 0 0 rgba(0, 0, 0, 0.25)",
             }}
           >
-            {pending ? "Chargement..." : ctaLabel}
+            {pending ? t.pricing.loading : ctaLabel}
           </button>
         </div>
       </div>

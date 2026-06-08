@@ -12,10 +12,12 @@ import {
 } from "@/components/ui/dialog";
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { useExitModal } from "@/store/use-exit-modal";
+import { useT } from "@/lib/i18n/use-t";
 
 export const ExitModal = () => {
   const [isClient, setIsClient] = useState(false);
   const { isOpen, close } = useExitModal();
+  const t = useT();
 
   useEffect(() => setIsClient(true), []);
 
@@ -31,10 +33,10 @@ export const ExitModal = () => {
             <ExitMascot />
           </div>
           <DialogTitle className="text-center font-bold text-xl sm:text-2xl text-brilliant-text">
-            Attends, ne pars pas !
+            {t.exitModal.title}
           </DialogTitle>
           <DialogDescription className="text-center text-sm sm:text-base text-brilliant-muted mt-1">
-            Tu es sur le point de quitter la leçon. Es-tu sûr ?
+            {t.exitModal.description}
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-y-3 w-full mt-4">
@@ -42,7 +44,7 @@ export const ExitModal = () => {
             variant="green"
             onClick={close}
           >
-            Continuer à apprendre
+            {t.exitModal.keepLearning}
           </ShinyButton>
           <ShinyButton
             variant="outline-green"
@@ -51,7 +53,7 @@ export const ExitModal = () => {
               window.location.href = "/learn";
             }}
           >
-            Terminer la session
+            {t.exitModal.endSession}
           </ShinyButton>
         </div>
       </DialogContent>

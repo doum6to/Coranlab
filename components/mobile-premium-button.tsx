@@ -1,6 +1,9 @@
 import Link from "next/link";
 
+import { getServerStrings } from "@/lib/i18n/server-t";
+
 export const MobilePremiumButton = () => {
+  const { t } = getServerStrings();
   return (
     <Link
       href="/premium"
@@ -12,7 +15,7 @@ export const MobilePremiumButton = () => {
         boxShadow: "0 2px 0 0 rgba(5, 12, 56, 0.4)",
       }}
     >
-      Devenir Premium
+      {t.premium.becomePremium}
     </Link>
   );
 };

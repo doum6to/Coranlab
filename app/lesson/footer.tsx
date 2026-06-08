@@ -3,6 +3,7 @@ import { CheckCircle, XCircle } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { ShinyButton } from "@/components/ui/shiny-button";
+import { useT } from "@/lib/i18n/use-t";
 
 type Props = {
   onCheck: () => void;
@@ -19,6 +20,7 @@ export const Footer = ({
   lessonId,
   correctAnswer,
 }: Props) => {
+  const t = useT();
   useKey("Enter", onCheck, {}, [onCheck]);
 
   return (
@@ -32,18 +34,18 @@ export const Footer = ({
         {status === "correct" && (
           <div className="text-brilliant-green font-bold text-sm sm:text-base lg:text-2xl flex items-center">
             <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 lg:h-10 lg:w-10 mr-2 sm:mr-4" />
-            Bien joué !
+            {t.lesson.goodJob}
           </div>
         )}
         {status === "wrong" && (
           <div className="flex flex-col gap-0.5">
             <div className="text-rose-500 font-bold text-sm sm:text-base lg:text-2xl flex items-center">
               <XCircle className="h-5 w-5 sm:h-6 sm:w-6 lg:h-10 lg:w-10 mr-2 sm:mr-4 shrink-0" />
-              Pas tout à fait !
+              {t.lesson.notQuite}
             </div>
             {correctAnswer && (
               <p className="text-rose-400 text-xs sm:text-sm ml-7 sm:ml-10 lg:ml-14">
-                Bonne réponse : <span className="font-semibold">{correctAnswer}</span>
+                {t.lesson.correctAnswerLabel} <span className="font-semibold">{correctAnswer}</span>
               </p>
             )}
           </div>
@@ -54,7 +56,7 @@ export const Footer = ({
               variant="outline-green"
               onClick={() => window.location.href = `/lesson/${lessonId}`}
             >
-              Pratiquer à nouveau
+              {t.lesson.practiceAgain}
             </ShinyButton>
           </div>
         )}
@@ -64,10 +66,10 @@ export const Footer = ({
             disabled={disabled}
             onClick={onCheck}
           >
-            {status === "none" && "Vérifier"}
-            {status === "correct" && "Suivant"}
-            {status === "wrong" && "Suivant"}
-            {status === "completed" && "Continuer"}
+            {status === "none" && t.lesson.check}
+            {status === "correct" && t.lesson.next}
+            {status === "wrong" && t.lesson.next}
+            {status === "completed" && t.lesson.continue}
           </ShinyButton>
         </div>
       </div>
