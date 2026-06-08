@@ -10,6 +10,16 @@ import { LandingReviews } from "./reviews";
 import { SpotsProgress } from "./spots";
 import { ProductGallery } from "./product-gallery";
 
+/**
+ * Screenshots of the real post-payment flow, paired with the "Comment ça se
+ * passe" steps by index: paiement confirmé → création du compte → l'app.
+ */
+const HOW_SHOTS = [
+  "/onboarding/1-paiement.jpeg",
+  "/onboarding/2-compte.jpeg",
+  "/onboarding/3-app.jpeg",
+];
+
 function Placeholder({ className }: { className?: string }) {
   return (
     <div
@@ -206,24 +216,41 @@ export function ProductLanding({
       </section>
       )}
 
-      {/* HOW */}
+      {/* HOW — post-payment onboarding, illustrated with real screenshots */}
       {show("p_how") && (
       <section className="bg-[#FAF8F3] border-y border-neutral-200/70">
         <div className="mx-auto max-w-[1000px] px-4 sm:px-6 py-12 sm:py-16">
           <h2 className="text-center font-display font-bold text-2xl sm:text-3xl text-neutral-950">
             {p.howHeading}
           </h2>
-          <div className="mt-8 grid gap-4 sm:grid-cols-3">
-            {p.steps.map((s) => (
-              <div key={s.title} className="rounded-3xl bg-white p-6">
-                <h3 className="font-display font-bold text-lg text-neutral-950">
-                  {s.title}
-                </h3>
-                <p className="mt-2 text-sm text-neutral-600 leading-relaxed">
-                  {s.text}
-                </p>
-              </div>
-            ))}
+          <div className="mt-10 grid gap-8 sm:grid-cols-3">
+            {p.steps.map((s, i) => {
+              const shot = HOW_SHOTS[i];
+              return (
+                <div key={s.title} className="flex flex-col items-center text-center">
+                  {shot ? (
+                    <div className="relative mb-5 w-[180px] overflow-hidden rounded-[28px] border-[6px] border-neutral-900 bg-white shadow-xl">
+                      <Image
+                        src={shot}
+                        alt={s.title}
+                        width={360}
+                        height={720}
+                        className="h-auto w-full"
+                      />
+                    </div>
+                  ) : null}
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#6967fb] text-sm font-bold text-white">
+                    {i + 1}
+                  </span>
+                  <h3 className="mt-3 font-display font-bold text-lg text-neutral-950">
+                    {s.title.replace(/^\d+\.\s*/, "")}
+                  </h3>
+                  <p className="mt-2 text-sm text-neutral-600 leading-relaxed">
+                    {s.text}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
