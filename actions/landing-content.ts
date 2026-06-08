@@ -33,6 +33,9 @@ export async function updateLandingContent(content: LandingContent) {
     story: content.story ?? LANDING_DEFAULTS.story,
     letter: content.letter ?? LANDING_DEFAULTS.letter,
     product: content.product ?? LANDING_DEFAULTS.product,
+    hidden: Array.isArray(content.hidden)
+      ? content.hidden
+      : LANDING_DEFAULTS.hidden,
   };
 
   try {

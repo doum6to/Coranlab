@@ -11,6 +11,7 @@ import type {
   LandingReview,
   LandingRow,
 } from "@/lib/landing-content";
+import { LANDING_SECTIONS } from "@/lib/landing-sections";
 
 const inputCls =
   "w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brilliant-green focus:ring-2 focus:ring-brilliant-green/20";
@@ -151,6 +152,7 @@ function Section({
 }
 
 const TABS = [
+  ["sections", "Sections (afficher/masquer)"],
   ["hero", "Hero"],
   ["trust", "Confiance"],
   ["rows", "Sections"],
@@ -230,6 +232,49 @@ export function LandingContentForm({ initial }: { initial: LandingContent }) {
       </div>
 
       <div className="space-y-4 pb-20">
+        {/* SECTIONS VISIBILITY */}
+        {tab === "sections" && (
+        <Section title="Sections de la page (afficher / masquer)">
+          <p className="text-sm text-neutral-500">
+            Décoche une section pour la masquer. Les sections sont regroupées
+            par variante de landing (Classique / Lettre / Produit).
+          </p>
+          {LANDING_SECTIONS.map((grp) => (
+            <div key={grp.group} className="mt-2">
+              <p className="mb-2 text-xs font-bold uppercase tracking-wide text-neutral-400">
+                {grp.group}
+              </p>
+              <div className="space-y-2">
+                {grp.items.map((s) => {
+                  const visible = !(c.hidden ?? []).includes(s.key);
+                  return (
+                    <label
+                      key={s.key}
+                      className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white px-4 py-3"
+                    >
+                      <span className="text-sm font-semibold text-neutral-800">
+                        {s.label}
+                      </span>
+                      <input
+                        type="checkbox"
+                        checked={visible}
+                        onChange={(e) => {
+                          const cur = new Set(c.hidden ?? []);
+                          if (e.target.checked) cur.delete(s.key);
+                          else cur.add(s.key);
+                          setC((p) => ({ ...p, hidden: Array.from(cur) }));
+                        }}
+                        className="h-5 w-5 rounded border-neutral-300"
+                      />
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </Section>
+        )}
+
         {/* HERO */}
         {tab === "hero" && (
         <Section title="Hero">

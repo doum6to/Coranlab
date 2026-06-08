@@ -68,6 +68,8 @@ export function LetterLanding({
     compareAtCents > priceCents ? formatEuros(compareAtCents) : null;
   const priceValue = priceCents / 100;
   const L = content.letter;
+  const hidden = new Set(content.hidden ?? []);
+  const show = (k: string) => !hidden.has(k);
 
   return (
     <div className="w-full bg-[#FAF8F3] text-neutral-900 font-sans">
@@ -128,6 +130,7 @@ export function LetterLanding({
       </section>
 
       {/* INSIGHT */}
+      {show("l_insight") && (
       <section className="bg-white">
         <div className="mx-auto max-w-[720px] px-6 sm:px-8 py-14 sm:py-20">
           <h2 className="font-display font-bold text-2xl sm:text-3xl text-neutral-950">
@@ -139,8 +142,10 @@ export function LetterLanding({
           <LetterImage src={L.image2} alt="" />
         </div>
       </section>
+      )}
 
       {/* HOW */}
+      {show("l_how") && (
       <section className="bg-[#FAF8F3] border-t border-neutral-200/70">
         <div className="mx-auto max-w-[720px] px-6 sm:px-8 py-14 sm:py-20">
           <h2 className="font-display font-bold text-2xl sm:text-3xl text-neutral-950">
@@ -151,8 +156,10 @@ export function LetterLanding({
           </div>
         </div>
       </section>
+      )}
 
       {/* BONUSES */}
+      {show("l_bonuses") && (
       <section className="bg-white border-t border-neutral-200/70">
         <div className="mx-auto max-w-[820px] px-6 sm:px-8 py-14 sm:py-20">
           <h2 className="text-center font-display font-bold text-2xl sm:text-3xl text-neutral-950">
@@ -187,6 +194,7 @@ export function LetterLanding({
           </div>
         </div>
       </section>
+      )}
 
       {/* TRY IT */}
       <DemoExercise />
@@ -282,6 +290,7 @@ export function LetterLanding({
       </section>
 
       {/* FAQ */}
+      {show("faq") && (
       <section className="bg-[#FAF8F3] border-t border-neutral-200/70">
         <div className="mx-auto max-w-[820px] px-6 sm:px-8 py-16 sm:py-20">
           <div className="text-center mb-10">
@@ -295,6 +304,7 @@ export function LetterLanding({
           <Faq items={content.faq.items} />
         </div>
       </section>
+      )}
 
       <div aria-hidden className="h-24" />
     </div>
