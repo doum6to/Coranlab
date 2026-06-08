@@ -17,6 +17,8 @@ import {
 } from "@/db/schema";
 import { getCurrentWeekStart } from "@/lib/league-utils";
 import { getLast5Days, getToday, daysBetween } from "@/lib/streak-utils";
+import { getRequestLocale } from "@/lib/i18n/request-locale";
+import { translateContent } from "@/lib/i18n/content-i18n";
 
 export const getUserProgress = cache(async () => {
   const { userId } = await auth();
@@ -70,6 +72,7 @@ export const getListsWithLevels = cache(async (): Promise<UnitWithLists[]> => {
   if (!userId || !userProgressData?.activeCourseId) {
     return [];
   }
+  const locale = getRequestLocale();
 
   const [subscription, data] = await Promise.all([
     getUserSubscription(),
@@ -141,7 +144,10 @@ export const getListsWithLevels = cache(async (): Promise<UnitWithLists[]> => {
 
       lists.push({
         listId,
-        listTitle: sortedLessons[0].listTitle || sortedLessons[0].title,
+        listTitle: translateContent(
+          sortedLessons[0].listTitle || sortedLessons[0].title,
+          locale,
+        ),
         levels,
         completedLevels,
         totalLevels: levels.length,
@@ -161,8 +167,8 @@ export const getListsWithLevels = cache(async (): Promise<UnitWithLists[]> => {
 
     return {
       id: unit.id,
-      title: unit.title,
-      description: unit.description,
+      title: translateContent(unit.title, locale),
+      description: translateContent(unit.description, locale),
       order: unit.order,
       lists,
     };
@@ -198,6 +204,7 @@ export const getListLevels = cache(async (listId: number) => {
   if (!userId) {
     return null;
   }
+  const locale = getRequestLocale();
 
   const data = await db.query.lessons.findMany({
     where: eq(lessons.listId, listId),
@@ -272,13 +279,16 @@ export const getListLevels = cache(async (listId: number) => {
 
   return {
     listId,
-    listTitle: data[0].listTitle || data[0].title,
-    unitTitle: data[0].unit.title,
+    listTitle: translateContent(data[0].listTitle || data[0].title, locale),
+    unitTitle: translateContent(data[0].unit.title, locale),
     levels,
     completedLevels: levels.filter((l) => l.completed).length,
     totalLevels: levels.length,
     totalExercises,
-    vocabWords,
+    vocabWords: vocabWords.map((w) => ({
+      ...w,
+      french: translateContent(w.french, locale),
+    })),
   };
 });
 
@@ -419,6 +429,7 @@ export const getLesson = cache(async (id?: number) => {
   if (!userId) {
     return null;
   }
+  const locale = getRequestLocale();
 
   let lessonId = id;
 
@@ -455,7 +466,21 @@ export const getLesson = cache(async (id?: number) => {
       && challenge.challengeProgress.length > 0
       && challenge.challengeProgress.every((progress) => progress.completed)
 
-    return { ...challenge, completed };
+    return {
+      ...challenge,
+      question: translateContent(challenge.question, locale),
+      frenchTranslation: challenge.frenchTranslation
+        ? translateContent(challenge.frenchTranslation, locale)
+        : challenge.frenchTranslation,
+      challengeOptions: challenge.challengeOptions?.map((opt) => ({
+        ...opt,
+        text: translateContent(opt.text, locale),
+        frenchText: opt.frenchText
+          ? translateContent(opt.frenchText, locale)
+          : opt.frenchText,
+      })),
+      completed,
+    };
   });
 
   return { ...data, challenges: normalizedChallenges }
@@ -541,6 +566,7 @@ export const getUnlockedLessons = cache(async () => {
   if (!userId || !userProgressData?.activeCourseId) {
     return [];
   }
+  const locale = getRequestLocale();
 
   const unitsData = await db.query.units.findMany({
     orderBy: (units, { asc }) => [asc(units.order)],
@@ -581,8 +607,8 @@ export const getUnlockedLessons = cache(async () => {
       if (!listMap.has(lid)) {
         listMap.set(lid, {
           listId: lid,
-          listTitle: lesson.listTitle || lesson.title,
-          unitTitle: unit.title,
+          listTitle: translateContent(lesson.listTitle || lesson.title, locale),
+          unitTitle: translateContent(unit.title, locale),
           completedLevels: 0,
           totalLevels: 0,
           hasProgress: false,
