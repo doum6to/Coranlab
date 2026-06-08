@@ -119,7 +119,13 @@ export type LandingContent = {
     secure: string;
     stickyLabel: string;
   };
-  reviews: { eyebrow: string; heading: string; items: LandingReview[] };
+  reviews: {
+    eyebrow: string;
+    heading: string;
+    /** Uploaded TikTok review screenshots shown as an auto-scrolling marquee. */
+    screenshots: string[];
+    items: LandingReview[];
+  };
   faq: { eyebrow: string; heading: string; items: LandingFaq[] };
   finalCta: { heading: string; subtitle: string };
   story: LandingStory;
@@ -225,6 +231,7 @@ export const LANDING_DEFAULTS: LandingContent = {
   reviews: {
     eyebrow: "Avis TikTok vérifiés",
     heading: "Ils ont commencé avant toi",
+    screenshots: [],
     items: [],
   },
   faq: {

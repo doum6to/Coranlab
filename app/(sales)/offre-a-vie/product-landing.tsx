@@ -264,7 +264,10 @@ export function ProductLanding({
               {content.reviews.heading}
             </h2>
           </div>
-          <LandingReviews items={content.reviews.items} />
+          <LandingReviews
+            items={content.reviews.items}
+            screenshots={content.reviews.screenshots}
+          />
         </div>
       </section>
 

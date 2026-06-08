@@ -1,11 +1,24 @@
 import { Testimonials } from "../85motscoran/testimonials";
+import { ReviewsMarquee } from "./reviews-marquee";
 import type { LandingReview } from "@/lib/landing-content";
 
 /**
- * Verified TikTok screenshots (from the shared Testimonials component) plus
- * any admin-editable text reviews appended below.
+ * Reviews block. When TikTok review screenshots have been uploaded from the
+ * admin, they're shown as an infinite auto-scrolling marquee (highest
+ * credibility). Otherwise we fall back to the shared screenshot/quote cards
+ * plus any admin-editable text reviews.
  */
-export function LandingReviews({ items }: { items: LandingReview[] }) {
+export function LandingReviews({
+  items,
+  screenshots = [],
+}: {
+  items: LandingReview[];
+  screenshots?: string[];
+}) {
+  if (screenshots.length > 0) {
+    return <ReviewsMarquee images={screenshots} />;
+  }
+
   return (
     <>
       <Testimonials />

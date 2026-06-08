@@ -170,6 +170,13 @@ h1, h2, h3, h4, h5, h6 {
   animation: premiumGradient 8s linear infinite;
 }
 
+/* Infinite horizontal marquee (TikTok review screenshots). The track holds the
+   list twice, so translating by -50% loops seamlessly. */
+@keyframes marqueeX {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
 .card-flip {
   perspective: 1000px;
 }
