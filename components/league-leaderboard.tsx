@@ -11,6 +11,8 @@ import {
   type LeagueTier,
 } from "@/lib/league-utils";
 import type { LeagueMember } from "@/db/queries";
+import { useT } from "@/lib/i18n/use-t";
+import { tpl } from "@/lib/i18n/locales";
 
 const RANK_COLORS: Record<number, { bg: string; shadow: string; text: string }> = {
   1: { bg: "#FFD700", shadow: "#B8960F", text: "#7A5C00" },
@@ -88,6 +90,7 @@ type Props = {
 };
 
 export const LeagueLeaderboard = ({ tier, members, isTopTier, isBottomTier }: Props) => {
+  const t = useT();
   const totalMembers = members.length;
   const color = TIER_COLORS[tier];
 
@@ -99,7 +102,7 @@ export const LeagueLeaderboard = ({ tier, members, isTopTier, isBottomTier }: Pr
           <LeagueTierBadge tier={tier} size="md" />
           <div>
             <h2 className="text-lg sm:text-xl font-bold text-brilliant-text">
-              Ligue {TIER_LABELS[tier]}
+              {tpl(t.league.leagueTitle, { tier: TIER_LABELS[tier] })}
             </h2>
             <LeagueCountdown />
           </div>
@@ -112,7 +115,7 @@ export const LeagueLeaderboard = ({ tier, members, isTopTier, isBottomTier }: Pr
           <svg width="14" height="14" viewBox="0 0 10 10" fill="#3CC922">
             <path d="M5 1L9 7H1L5 1Z" />
           </svg>
-          <span>Les <b>{PROMOTE_COUNT} premiers</b> montent à la ligue supérieure !</span>
+          <span>{tpl(t.league.promoBanner, { n: PROMOTE_COUNT })}</span>
         </div>
       )}
 
@@ -121,13 +124,13 @@ export const LeagueLeaderboard = ({ tier, members, isTopTier, isBottomTier }: Pr
         {!isTopTier && (
           <div className="flex items-center gap-1">
             <span className="inline-block w-2 h-2 rounded-full bg-[#3CC922]" />
-            <span>Top {PROMOTE_COUNT} promus</span>
+            <span>{tpl(t.league.topPromoted, { n: PROMOTE_COUNT })}</span>
           </div>
         )}
         {!isBottomTier && (
           <div className="flex items-center gap-1">
             <span className="inline-block w-2 h-2 rounded-full bg-[#F43F5E]" />
-            <span>{DEMOTE_COUNT} derniers relégués</span>
+            <span>{tpl(t.league.lastDemoted, { n: DEMOTE_COUNT })}</span>
           </div>
         )}
       </div>
@@ -176,7 +179,7 @@ export const LeagueLeaderboard = ({ tier, members, isTopTier, isBottomTier }: Pr
                 member.isCurrentUser ? "font-bold text-[#6967FB]" : "font-medium text-brilliant-text",
               )}>
                 {member.name}
-                {member.isCurrentUser && " (toi)"}
+                {member.isCurrentUser && ` ${t.league.you}`}
               </p>
 
               {/* XP */}

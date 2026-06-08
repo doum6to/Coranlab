@@ -470,13 +470,23 @@ const WORDS: Record<string, Tr> = {
 
 const CONTENT_TR: Record<string, Tr> = { ...TITLES, ...QUESTIONS, ...WORDS };
 
+// Whitespace-normalized index so DB content that differs only by surrounding
+// or collapsed spaces still resolves to a translation.
+const norm = (s: string) => s.trim().replace(/\s+/g, " ");
+const CONTENT_TR_NORM: Record<string, Tr> = {};
+for (const [k, v] of Object.entries(CONTENT_TR)) CONTENT_TR_NORM[norm(k)] = v;
+
+function lookup(text: string): Tr | undefined {
+  return CONTENT_TR[text] ?? CONTENT_TR_NORM[norm(text)];
+}
+
 const PRATIQUE: Record<Locale, string> = { fr: "Pratique", en: "Practice", es: "Práctica" };
 
 /** Translates one content segment (used for composite "A - B" titles). */
 function translateSegment(seg: string, locale: Exclude<Locale, "fr">): string {
-  const hit = CONTENT_TR[seg];
+  const hit = lookup(seg);
   if (hit) return hit[locale];
-  const m = seg.match(/^Pratique\s+(\d+)$/);
+  const m = seg.trim().match(/^Pratique\s+(\d+)$/);
   if (m) return `${PRATIQUE[locale]} ${m[1]}`;
   return seg;
 }
@@ -491,7 +501,7 @@ export function translateContent(
   locale: Locale,
 ): string {
   if (!text || locale === "fr") return text ?? "";
-  const hit = CONTENT_TR[text];
+  const hit = lookup(text);
   if (hit) return hit[locale];
   if (text.includes(" - ")) {
     return text
