@@ -72,8 +72,9 @@ const QUESTIONS: Record<string, Tr> = {
     es: "Encuentra la palabra árabe correspondiente",
   },
   "Choisissez la bonne traduction": { en: "Choose the right translation", es: "Elige la traducción correcta" },
-  VRAI: { en: "TRUE", es: "VERDADERO" },
-  FAUX: { en: "FALSE", es: "FALSO" },
+  // NB: VRAI/FAUX option values are intentionally NOT translated here — the
+  // VraiFaux exercise looks options up by their canonical "VRAI"/"FAUX" text
+  // and localizes the button labels in the component instead.
   // Lesson title suffixes
   Flashcards: { en: "Flashcards", es: "Tarjetas" },
   "Révision": { en: "Review", es: "Repaso" },

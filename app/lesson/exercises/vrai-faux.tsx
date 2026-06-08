@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { challengeOptions, challenges } from "@/db/schema";
+import { useT } from "@/lib/i18n/use-t";
 
 type Props = {
   challenge: typeof challenges.$inferSelect;
@@ -20,6 +21,9 @@ export const VraiFaux = ({
   status,
   disabled,
 }: Props) => {
+  const t = useT();
+  // Options keep their canonical "VRAI"/"FAUX" value (not translated), so this
+  // lookup works in every language; only the displayed labels are localized.
   const vraiOption = options.find((o) => o.text === "VRAI");
   const fauxOption = options.find((o) => o.text === "FAUX");
 
@@ -73,7 +77,7 @@ export const VraiFaux = ({
                 status !== "none" ? "none" : "0 4px 0 0 #D4D4D4"
             }}
           >
-            VRAI
+            {t.lesson.answerTrue}
           </button>
         )}
         {fauxOption && (
@@ -101,7 +105,7 @@ export const VraiFaux = ({
                 status !== "none" ? "none" : "0 4px 0 0 #D4D4D4"
             }}
           >
-            FAUX
+            {t.lesson.answerFalse}
           </button>
         )}
       </div>
