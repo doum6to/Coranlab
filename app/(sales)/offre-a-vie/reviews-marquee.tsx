@@ -4,7 +4,8 @@
  * Two-row infinite marquee of uploaded review images. The top row scrolls
  * right→left and the bottom row scrolls left→right (same keyframe, reversed),
  * so both move at an identical, synchronised speed. Each track holds its list
- * twice and animates -50% for a seamless loop; it pauses on hover.
+ * twice and animates -50% for a seamless loop, and never pauses (including on
+ * touch/hover) so the motion stays continuous.
  */
 export function ReviewsMarquee({ images }: { images: string[] }) {
   const clean = images.filter(Boolean);
@@ -19,7 +20,7 @@ export function ReviewsMarquee({ images }: { images: string[] }) {
   const duration = Math.max(28, Math.max(top.length, bottom.length) * 9);
 
   return (
-    <div className="group relative -mx-4 space-y-4 overflow-hidden sm:mx-0">
+    <div className="relative -mx-4 space-y-3 overflow-hidden sm:mx-0">
       {/* edge fades spanning both rows */}
       <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-white to-transparent sm:w-20" />
       <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-white to-transparent sm:w-20" />
@@ -43,7 +44,7 @@ function MarqueeRow({
 
   return (
     <ul
-      className="flex w-max gap-4 px-4 will-change-transform group-hover:[animation-play-state:paused]"
+      className="flex w-max gap-3 px-4 will-change-transform"
       style={{
         animationName: "marqueeX",
         animationDuration: `${duration}s`,
@@ -59,7 +60,7 @@ function MarqueeRow({
             src={src}
             alt="Avis d'un élève"
             loading="lazy"
-            className="h-[240px] w-auto rounded-2xl border border-neutral-200 bg-white object-contain shadow-sm sm:h-[300px]"
+            className="h-[150px] w-auto rounded-xl border border-neutral-200 bg-white object-contain shadow-sm sm:h-[190px]"
           />
         </li>
       ))}
