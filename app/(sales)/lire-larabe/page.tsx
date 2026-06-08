@@ -146,9 +146,16 @@ export default async function LireLArabePage() {
           <div className="mt-8 flex flex-col items-center gap-4">
             <a
               href="#tarifs"
-              className="inline-flex w-full max-w-[360px] items-center justify-center gap-2 rounded-2xl border-b-4 border-[#a9801f] bg-gradient-to-b from-[#e9c15a] to-[#d9a93c] px-8 py-4 text-base font-extrabold uppercase tracking-wide text-neutral-900 shadow-lg transition-all hover:brightness-[1.04] active:translate-y-1 active:border-b-0"
+              className="inline-flex w-full max-w-[360px] flex-col items-center justify-center gap-0.5 rounded-2xl border-b-4 border-[#a9801f] bg-gradient-to-b from-[#e9c15a] to-[#d9a93c] px-8 py-3.5 text-neutral-900 shadow-lg transition-all hover:brightness-[1.04] active:translate-y-1 active:border-b-0"
             >
-              {c.hero.ctaLabel}
+              <span className="text-base font-extrabold uppercase tracking-wide">
+                {c.hero.ctaLabel}
+              </span>
+              {c.pricing.buttonSub && (
+                <span className="text-[11px] font-semibold normal-case tracking-normal text-neutral-900/70">
+                  {c.pricing.buttonSub}
+                </span>
+              )}
             </a>
             <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-medium text-white/60">
               {c.trust.map((t, i) => {
@@ -246,6 +253,7 @@ export default async function LireLArabePage() {
             <BuyButton
               className="mt-8"
               label={c.pricing.buttonLabel}
+              subLabel={c.pricing.buttonSub}
               priceEuros={priceEuros}
             />
             <p className="mt-3 text-center text-[11px] text-white/40">
@@ -383,6 +391,7 @@ export default async function LireLArabePage() {
             <BuyButton
               className="mx-auto max-w-[360px]"
               label={c.pricing.buttonLabel}
+              subLabel={c.pricing.buttonSub}
               priceEuros={priceEuros}
             />
             <p className="mt-3 text-[11px] text-white/40">{c.pricing.secure}</p>
