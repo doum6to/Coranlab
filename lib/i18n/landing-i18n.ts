@@ -66,14 +66,17 @@ export const LANDING_I18N: Partial<Record<Locale, Partial<LandingContent>>> = {
         {
           title: "1. Payment confirmed",
           text: "As soon as your payment goes through, your lifetime Premium access is reserved. You land on a welcome page.",
+          image: "/onboarding/1-paiement.jpeg",
         },
         {
           title: "2. Create your account",
           text: "Create your account with the same email you used to buy — that's what automatically activates your lifetime access.",
+          image: "/onboarding/2-compte.jpeg",
         },
         {
           title: "3. Start learning",
           text: "You get immediate access to the app and start the Qur'anic vocabulary, level by level.",
+          image: "/onboarding/3-app.jpeg",
         },
       ],
       compareHeading: "Why not a traditional course?",
@@ -201,14 +204,17 @@ export const LANDING_I18N: Partial<Record<Locale, Partial<LandingContent>>> = {
         {
           title: "1. Pago confirmado",
           text: "En cuanto se valida tu pago, tu acceso Premium de por vida queda reservado. Llegas a una página de bienvenida.",
+          image: "/onboarding/1-paiement.jpeg",
         },
         {
           title: "2. Crea tu cuenta",
           text: "Crea tu cuenta con el mismo correo que usaste en la compra: eso es lo que activa automáticamente tu acceso de por vida.",
+          image: "/onboarding/2-compte.jpeg",
         },
         {
           title: "3. Empieza a aprender",
           text: "Accedes de inmediato a la aplicación y empiezas el vocabulario del Corán, nivel a nivel.",
+          image: "/onboarding/3-app.jpeg",
         },
       ],
       compareHeading: "¿Por qué no un curso tradicional?",
