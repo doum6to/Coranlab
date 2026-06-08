@@ -207,7 +207,7 @@ export default async function OffreAViePage() {
               </h1>
 
               {/* subtitle */}
-              <p className="mt-6 text-base sm:text-lg text-neutral-600 leading-relaxed max-w-[460px] mx-auto">
+              <p className="mt-6 text-base sm:text-lg text-neutral-600 leading-relaxed max-w-[460px] mx-auto whitespace-pre-line">
                 {content.hero.subtitle}
               </p>
 
@@ -350,7 +350,7 @@ export default async function OffreAViePage() {
             <h2 className="mt-3 font-display font-bold text-3xl sm:text-4xl text-neutral-950">
               {content.valueStack.heading}
             </h2>
-            <p className="mt-4 text-base text-neutral-600 max-w-[480px] mx-auto">
+            <p className="mt-4 text-base text-neutral-600 max-w-[480px] mx-auto whitespace-pre-line">
               {content.valueStack.intro}
             </p>
           </div>
@@ -451,7 +451,7 @@ export default async function OffreAViePage() {
               <h2 className="mt-3 font-display font-bold text-3xl sm:text-4xl text-neutral-950">
                 {content.priceAnchor.heading}
               </h2>
-              <p className="mt-5 text-base text-neutral-600 leading-relaxed max-w-[520px] mx-auto">
+              <p className="mt-5 text-base text-neutral-600 leading-relaxed max-w-[520px] mx-auto whitespace-pre-line">
                 {content.priceAnchor.body}
               </p>
 
