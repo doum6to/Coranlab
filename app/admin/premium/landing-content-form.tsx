@@ -821,7 +821,7 @@ export function LandingContentForm({ initial }: { initial: LandingContent }) {
 
         {/* REVIEWS */}
         {tab === "reviews" && (
-        <Section title="Avis (en plus des captures TikTok)">
+        <Section title="Avis">
           <div className="grid gap-3 sm:grid-cols-2">
             <Field
               label="Sur-titre"
@@ -833,6 +833,60 @@ export function LandingContentForm({ initial }: { initial: LandingContent }) {
               value={c.reviews.heading}
               onChange={(v) => patch("reviews", { heading: v })}
             />
+          </div>
+
+          {/* TikTok screenshots → infinite marquee */}
+          <div className="rounded-xl border border-neutral-200 bg-white p-3">
+            <p className="mb-1 text-sm font-bold text-neutral-800">
+              Captures d&apos;avis TikTok (carrousel défilant)
+            </p>
+            <p className="mb-3 text-xs text-neutral-500">
+              Téléverse tes captures d&apos;écran. Dès qu&apos;il y en a au moins
+              une, elles remplacent les avis écrits et défilent en boucle.
+            </p>
+            <div className="space-y-2">
+              {c.reviews.screenshots.map((g, i) => (
+                <div key={i} className="flex items-end gap-2">
+                  <div className="flex-1">
+                    <ImageField
+                      label={`Capture ${i + 1}`}
+                      value={g}
+                      onChange={(v) =>
+                        patch("reviews", {
+                          screenshots: c.reviews.screenshots.map((x, j) =>
+                            j === i ? v : x,
+                          ),
+                        })
+                      }
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      patch("reviews", {
+                        screenshots: c.reviews.screenshots.filter(
+                          (_, j) => j !== i,
+                        ),
+                      })
+                    }
+                    className="pb-2 text-xs font-semibold text-rose-500 hover:underline"
+                  >
+                    Suppr.
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() =>
+                  patch("reviews", {
+                    screenshots: [...c.reviews.screenshots, ""],
+                  })
+                }
+                className="text-xs font-semibold text-brilliant-green hover:underline"
+              >
+                + Ajouter une capture
+              </button>
+            </div>
           </div>
           {c.reviews.items.map((rv, i) => (
             <div
