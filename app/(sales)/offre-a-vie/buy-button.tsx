@@ -14,10 +14,12 @@ import { ttqTrack } from "@/lib/analytics/tiktok";
 export function BuyButton({
   className,
   label = "Obtenir l'accès à vie",
+  subLabel,
   priceValue = 14.97,
 }: {
   className?: string;
   label?: string;
+  subLabel?: string;
   /** Price in € used for the TikTok conversion value. */
   priceValue?: number;
 }) {
@@ -55,10 +57,17 @@ export function BuyButton({
       <button
         onClick={onClick}
         disabled={loading}
-        className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border-b-4 border-[#4a48c4] bg-[#6967fb] px-8 py-4 font-display text-base font-bold uppercase tracking-wide text-white shadow-sm transition-all hover:brightness-[1.05] active:translate-y-1 active:border-b-0 disabled:opacity-70"
+        className="inline-flex w-full flex-col items-center justify-center gap-0.5 rounded-2xl border-b-4 border-[#4a48c4] bg-[#6967fb] px-8 py-3.5 font-display text-white shadow-sm transition-all hover:brightness-[1.05] active:translate-y-1 active:border-b-0 disabled:opacity-70"
       >
-        {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-        {loading ? "Redirection…" : label}
+        <span className="inline-flex items-center gap-2 text-base font-bold uppercase tracking-wide">
+          {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+          {loading ? "Redirection…" : label}
+        </span>
+        {!loading && subLabel && (
+          <span className="text-[11px] font-medium normal-case tracking-normal text-white/80">
+            {subLabel}
+          </span>
+        )}
       </button>
       {error && (
         <p className="mt-3 text-center text-sm text-rose-500">{error}</p>

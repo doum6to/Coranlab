@@ -240,6 +240,7 @@ export function LetterLanding({
               <BuyButton
                 className="mt-10"
                 label={content.offer.buttonLabel}
+                subLabel={content.offer.buttonSub}
                 priceValue={priceValue}
               />
               <SpotsProgress

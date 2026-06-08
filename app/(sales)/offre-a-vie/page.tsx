@@ -234,9 +234,16 @@ export default async function OffreAViePage() {
               <div className="mt-10 flex w-full flex-col gap-3 max-w-[360px] mx-auto">
                 <a
                   href="#offre"
-                  className="inline-flex w-full items-center justify-center rounded-2xl border-b-4 border-[#4a48c4] bg-[#6967fb] px-8 py-4 font-display text-base font-bold uppercase tracking-wide text-white shadow-sm transition-all hover:brightness-[1.05] active:translate-y-1 active:border-b-0"
+                  className="inline-flex w-full flex-col items-center justify-center gap-0.5 rounded-2xl border-b-4 border-[#4a48c4] bg-[#6967fb] px-8 py-3.5 font-display text-white shadow-sm transition-all hover:brightness-[1.05] active:translate-y-1 active:border-b-0"
                 >
-                  {content.hero.ctaPrimary}
+                  <span className="text-base font-bold uppercase tracking-wide">
+                    {content.hero.ctaPrimary}
+                  </span>
+                  {content.offer.buttonSub && (
+                    <span className="text-[11px] font-medium normal-case tracking-normal text-white/80">
+                      {content.offer.buttonSub}
+                    </span>
+                  )}
                 </a>
                 <Link
                   href="/auth/login"
@@ -409,6 +416,7 @@ export default async function OffreAViePage() {
             <BuyButton
               className="w-full max-w-[320px]"
               label={content.offer.buttonLabel}
+              subLabel={content.offer.buttonSub}
               priceValue={priceValue}
             />
           </div>
@@ -536,6 +544,7 @@ export default async function OffreAViePage() {
                   <BuyButton
                     className="mt-10"
                     label={content.offer.buttonLabel}
+                    subLabel={content.offer.buttonSub}
                     priceValue={priceValue}
                   />
 
@@ -587,6 +596,7 @@ export default async function OffreAViePage() {
                   className="w-full"
                   priceValue={priceValue}
                   label={content.offer.buttonLabel}
+                  subLabel={content.offer.buttonSub}
                 />
                 <p className="text-xs text-neutral-500">
                   Accès immédiat · Sécurisé par Stripe
