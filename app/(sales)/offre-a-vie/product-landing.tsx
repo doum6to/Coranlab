@@ -87,7 +87,7 @@ export function ProductLanding({
             <h1 className="mt-3 font-display font-bold text-3xl sm:text-4xl lg:text-5xl leading-tight text-neutral-950">
               {p.title}
             </h1>
-            <p className="mt-3 text-base text-neutral-600 leading-relaxed">
+            <p className="mt-3 text-base text-neutral-600 leading-relaxed whitespace-pre-line">
               {p.subtitle}
             </p>
 
@@ -291,7 +291,7 @@ export function ProductLanding({
             <h2 className="font-display font-bold text-2xl text-neutral-950">
               {p.founderHeading}
             </h2>
-            <p className="mt-3 text-base text-neutral-600 leading-relaxed">
+            <p className="mt-3 text-base text-neutral-600 leading-relaxed whitespace-pre-line">
               {p.founderText}
             </p>
           </div>
