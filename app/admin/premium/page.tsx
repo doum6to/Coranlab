@@ -129,12 +129,16 @@ const AdminPremiumPage = async () => {
 
   const premiumCount = users.filter((u) => u.isPremium).length;
 
-  const [offer, content, arabicContent, videos] = await Promise.all([
-    getOfferSettings(),
-    getLandingContent(),
-    getArabicLandingContent(),
-    listCourseVideos(),
-  ]);
+  const [offer, contentFr, contentEn, contentEs, arabicContent, videos] =
+    await Promise.all([
+      getOfferSettings(),
+      getLandingContent("fr"),
+      getLandingContent("en"),
+      getLandingContent("es"),
+      getArabicLandingContent(),
+      listCourseVideos(),
+    ]);
+  const landingByLocale = { fr: contentFr, en: contentEn, es: contentEs };
 
   return (
     <div className="min-h-screen bg-neutral-50">
@@ -171,7 +175,7 @@ const AdminPremiumPage = async () => {
             {
               key: "content",
               label: "Landing /offre-a-vie",
-              node: <LandingContentForm initial={content} />,
+              node: <LandingContentForm initialByLocale={landingByLocale} />,
             },
             {
               key: "arabic",

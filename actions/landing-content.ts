@@ -6,43 +6,50 @@ import db from "@/db/drizzle";
 import { appSetting } from "@/db/schema";
 import { isAdminAuthed } from "@/lib/admin-auth";
 import {
-  LANDING_CONTENT_KEY,
-  LANDING_DEFAULTS,
+  contentKey,
+  localeBase,
   type LandingContent,
 } from "@/lib/landing-content";
+import { DEFAULT_LOCALE, isLocale, offerPath, type Locale } from "@/lib/i18n/locales";
 
 /**
- * Persists the full landing content document (stored as JSON in app_setting)
- * and revalidates the landing page so the change shows at once. Guarded by
- * the admin session.
+ * Persists the full landing content document for a locale (stored as JSON in
+ * app_setting under a per-locale key) and revalidates that locale's landing
+ * page so the change shows at once. Guarded by the admin session.
  */
-export async function updateLandingContent(content: LandingContent) {
+export async function updateLandingContent(
+  content: LandingContent,
+  locale: Locale = DEFAULT_LOCALE,
+) {
   if (!isAdminAuthed()) throw new Error("Unauthorized");
+  if (!isLocale(locale)) locale = DEFAULT_LOCALE;
 
-  // Keep only the known top-level keys to avoid storing junk.
+  const base = localeBase(locale);
+
+  // Keep only the known top-level keys to avoid storing junk; missing fields
+  // fall back to the locale's base (defaults + built-in translations).
   const clean: LandingContent = {
-    hero: content.hero ?? LANDING_DEFAULTS.hero,
-    trust: content.trust ?? LANDING_DEFAULTS.trust,
-    rows: content.rows ?? LANDING_DEFAULTS.rows,
-    valueStack: content.valueStack ?? LANDING_DEFAULTS.valueStack,
-    priceAnchor: content.priceAnchor ?? LANDING_DEFAULTS.priceAnchor,
-    offer: content.offer ?? LANDING_DEFAULTS.offer,
-    reviews: content.reviews ?? LANDING_DEFAULTS.reviews,
-    faq: content.faq ?? LANDING_DEFAULTS.faq,
-    finalCta: content.finalCta ?? LANDING_DEFAULTS.finalCta,
-    story: content.story ?? LANDING_DEFAULTS.story,
-    letter: content.letter ?? LANDING_DEFAULTS.letter,
-    product: content.product ?? LANDING_DEFAULTS.product,
-    hidden: Array.isArray(content.hidden)
-      ? content.hidden
-      : LANDING_DEFAULTS.hidden,
+    hero: content.hero ?? base.hero,
+    trust: content.trust ?? base.trust,
+    rows: content.rows ?? base.rows,
+    valueStack: content.valueStack ?? base.valueStack,
+    priceAnchor: content.priceAnchor ?? base.priceAnchor,
+    offer: content.offer ?? base.offer,
+    reviews: content.reviews ?? base.reviews,
+    faq: content.faq ?? base.faq,
+    finalCta: content.finalCta ?? base.finalCta,
+    story: content.story ?? base.story,
+    letter: content.letter ?? base.letter,
+    product: content.product ?? base.product,
+    hidden: Array.isArray(content.hidden) ? content.hidden : base.hidden,
   };
 
   try {
     const value = JSON.stringify(clean);
+    const key = contentKey(locale);
     await db
       .insert(appSetting)
-      .values({ key: LANDING_CONTENT_KEY, value, updatedAt: new Date() })
+      .values({ key, value, updatedAt: new Date() })
       .onConflictDoUpdate({
         target: appSetting.key,
         set: { value, updatedAt: new Date() },
@@ -55,7 +62,7 @@ export async function updateLandingContent(content: LandingContent) {
     };
   }
 
-  revalidatePath("/offre-a-vie");
+  revalidatePath(offerPath(locale));
   revalidatePath("/admin/premium");
   return { ok: true };
 }

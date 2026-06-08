@@ -12,6 +12,7 @@ import type {
   LandingRow,
 } from "@/lib/landing-content";
 import { LANDING_SECTIONS } from "@/lib/landing-sections";
+import { LOCALES, LOCALE_NAMES, type Locale } from "@/lib/i18n/locales";
 
 const inputCls =
   "w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brilliant-green focus:ring-2 focus:ring-brilliant-green/20";
@@ -168,12 +169,33 @@ const TABS = [
 ] as const;
 type TabKey = (typeof TABS)[number][0];
 
-export function LandingContentForm({ initial }: { initial: LandingContent }) {
+export function LandingContentForm({
+  initialByLocale,
+}: {
+  initialByLocale: Record<Locale, LandingContent>;
+}) {
   const router = useRouter();
-  const [c, setC] = useState<LandingContent>(initial);
+  // One editable copy per locale; the active locale is edited in place.
+  const [byLocale, setByLocale] =
+    useState<Record<Locale, LandingContent>>(initialByLocale);
+  const [locale, setLocale] = useState<Locale>("fr");
   const [tab, setTab] = useState<TabKey>("hero");
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
+
+  const c = byLocale[locale];
+  const setC = (
+    updater:
+      | LandingContent
+      | ((prev: LandingContent) => LandingContent),
+  ) =>
+    setByLocale((all) => ({
+      ...all,
+      [locale]:
+        typeof updater === "function"
+          ? (updater as (p: LandingContent) => LandingContent)(all[locale])
+          : updater,
+    }));
 
   // Generic helpers to update slices immutably.
   const patch = <K extends keyof LandingContent>(
@@ -229,10 +251,13 @@ export function LandingContentForm({ initial }: { initial: LandingContent }) {
   const onSave = () => {
     setMsg(null);
     startTransition(async () => {
-      const res = await updateLandingContent(c);
+      const res = await updateLandingContent(c, locale);
       if (res?.error) setMsg({ ok: false, text: res.error });
       else {
-        setMsg({ ok: true, text: "Contenu mis à jour ✓" });
+        setMsg({
+          ok: true,
+          text: `Contenu ${LOCALE_NAMES[locale]} mis à jour ✓`,
+        });
         router.refresh();
       }
     });
@@ -244,8 +269,30 @@ export function LandingContentForm({ initial }: { initial: LandingContent }) {
         Contenu de la landing (/offre-a-vie)
       </h2>
       <p className="mb-4 text-sm text-neutral-500">
-        Choisis une section, modifie-la, puis « Mettre à jour ».
+        Choisis la langue, puis une section, modifie-la, puis « Mettre à jour ».
+        Chaque langue se modifie et s&apos;enregistre séparément.
       </p>
+
+      {/* language switcher */}
+      <div className="mb-5 flex flex-wrap items-center gap-2">
+        <span className="text-xs font-semibold uppercase tracking-wide text-neutral-400">
+          Langue
+        </span>
+        {LOCALES.map((l) => (
+          <button
+            key={l}
+            type="button"
+            onClick={() => setLocale(l)}
+            className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition ${
+              locale === l
+                ? "bg-neutral-900 text-white"
+                : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+            }`}
+          >
+            {LOCALE_NAMES[l]}
+          </button>
+        ))}
+      </div>
 
       {/* section tabs */}
       <div className="mb-5 flex flex-wrap gap-2">

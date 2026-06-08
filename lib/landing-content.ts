@@ -491,10 +491,17 @@ function merge(base: any, override: any): any {
 }
 
 /** Per-locale DB key for admin overrides (FR keeps the original key). */
-function contentKey(locale: Locale): string {
+export function contentKey(locale: Locale): string {
   return locale === DEFAULT_LOCALE
     ? LANDING_CONTENT_KEY
     : `${LANDING_CONTENT_KEY}_${locale}`;
+}
+
+/** Base content for a locale: French defaults merged with built-in translations. */
+export function localeBase(locale: Locale): LandingContent {
+  return locale === DEFAULT_LOCALE
+    ? LANDING_DEFAULTS
+    : (merge(LANDING_DEFAULTS, LANDING_I18N[locale] ?? {}) as LandingContent);
 }
 
 /**
@@ -505,10 +512,7 @@ function contentKey(locale: Locale): string {
  */
 export const getLandingContent = cache(
   async (locale: Locale = DEFAULT_LOCALE): Promise<LandingContent> => {
-    const base =
-      locale === DEFAULT_LOCALE
-        ? LANDING_DEFAULTS
-        : (merge(LANDING_DEFAULTS, LANDING_I18N[locale] ?? {}) as LandingContent);
+    const base = localeBase(locale);
     try {
       const row = await db.query.appSetting.findFirst({
         where: eq(appSetting.key, contentKey(locale)),
