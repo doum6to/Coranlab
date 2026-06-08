@@ -17,21 +17,30 @@ export const LOCALE_COOKIE = "locale";
  * the default (French).
  */
 export function getRequestLocale(): Locale {
-  const cookieValue = cookies().get(LOCALE_COOKIE)?.value;
-  if (isLocale(cookieValue)) return cookieValue;
+  try {
+    const cookieValue = cookies().get(LOCALE_COOKIE)?.value;
+    if (isLocale(cookieValue)) return cookieValue;
 
-  const acceptLanguage = headers().get("accept-language");
-  if (acceptLanguage) {
-    for (const part of acceptLanguage.split(",")) {
-      const tag = part.split(";")[0]?.trim();
-      const loc = localeFromBrowser(tag);
-      if (loc) return loc;
+    const acceptLanguage = headers().get("accept-language");
+    if (acceptLanguage) {
+      for (const part of acceptLanguage.split(",")) {
+        const tag = part.split(";")[0]?.trim();
+        const loc = localeFromBrowser(tag);
+        if (loc) return loc;
+      }
     }
+  } catch {
+    // cookies()/headers() can be unavailable in some render contexts —
+    // fall back to the default locale rather than crashing the render.
   }
   return DEFAULT_LOCALE;
 }
 
 /** Whether the user has set an explicit language preference cookie. */
 export function hasLocaleCookie(): boolean {
-  return isLocale(cookies().get(LOCALE_COOKIE)?.value);
+  try {
+    return isLocale(cookies().get(LOCALE_COOKIE)?.value);
+  } catch {
+    return false;
+  }
 }
