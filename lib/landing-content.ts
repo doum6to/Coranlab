@@ -4,6 +4,8 @@ import { eq } from "drizzle-orm";
 
 import db from "@/db/drizzle";
 import { appSetting } from "@/db/schema";
+import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/locales";
+import { LANDING_I18N } from "@/lib/i18n/landing-i18n";
 
 export type LandingRow = {
   image: string;
@@ -488,21 +490,35 @@ function merge(base: any, override: any): any {
   return override == null ? base : override;
 }
 
+/** Per-locale DB key for admin overrides (FR keeps the original key). */
+function contentKey(locale: Locale): string {
+  return locale === DEFAULT_LOCALE
+    ? LANDING_CONTENT_KEY
+    : `${LANDING_CONTENT_KEY}_${locale}`;
+}
+
 /**
- * Reads the admin-editable landing content, deep-merged over the defaults.
- * Resilient: any missing row/table or parse error falls back to defaults so
- * the page never breaks.
+ * Reads the admin-editable landing content for a locale, layering:
+ * French defaults → built-in locale translations → admin DB override.
+ * Resilient: any missing row/table or parse error falls back to the layer
+ * above so the page never breaks.
  */
-export const getLandingContent = cache(async (): Promise<LandingContent> => {
-  try {
-    const row = await db.query.appSetting.findFirst({
-      where: eq(appSetting.key, LANDING_CONTENT_KEY),
-    });
-    if (!row?.value) return LANDING_DEFAULTS;
-    const parsed = JSON.parse(row.value);
-    return merge(LANDING_DEFAULTS, parsed) as LandingContent;
-  } catch (e) {
-    console.error("[landing] getLandingContent failed, using defaults:", e);
-    return LANDING_DEFAULTS;
-  }
-});
+export const getLandingContent = cache(
+  async (locale: Locale = DEFAULT_LOCALE): Promise<LandingContent> => {
+    const base =
+      locale === DEFAULT_LOCALE
+        ? LANDING_DEFAULTS
+        : (merge(LANDING_DEFAULTS, LANDING_I18N[locale] ?? {}) as LandingContent);
+    try {
+      const row = await db.query.appSetting.findFirst({
+        where: eq(appSetting.key, contentKey(locale)),
+      });
+      if (!row?.value) return base;
+      const parsed = JSON.parse(row.value);
+      return merge(base, parsed) as LandingContent;
+    } catch (e) {
+      console.error("[landing] getLandingContent failed, using defaults:", e);
+      return base;
+    }
+  },
+);

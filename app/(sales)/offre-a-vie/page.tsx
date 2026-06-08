@@ -66,7 +66,14 @@ export const metadata: Metadata = {
     description: "Un seul paiement. Toute l'application, pour toujours.",
     images: ["https://www.quranlab.app/hero.png"],
   },
-  alternates: { canonical: "https://www.quranlab.app/offre-a-vie" },
+  alternates: {
+    canonical: "https://www.quranlab.app/offre-a-vie",
+    languages: {
+      fr: "https://www.quranlab.app/offre-a-vie",
+      en: "https://www.quranlab.app/en/offre-a-vie",
+      es: "https://www.quranlab.app/es/offre-a-vie",
+    },
+  },
 };
 
 const avatars = ["/woman.svg", "/man.svg", "/girl.svg", "/boy.svg"];

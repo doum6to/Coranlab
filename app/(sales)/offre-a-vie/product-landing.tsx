@@ -4,11 +4,15 @@ import { BadgeCheck, Check, Lock, Star as StarIcon, X } from "lucide-react";
 
 import { formatEuros, type OfferSettings } from "@/lib/offer";
 import type { LandingContent } from "@/lib/landing-content";
+import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/locales";
+import { LANDING_UI } from "@/lib/i18n/landing-ui";
 import { BuyButton } from "./buy-button";
 import { Faq } from "./faq";
 import { LandingReviews } from "./reviews";
 import { SpotsProgress } from "./spots";
 import { ProductGallery } from "./product-gallery";
+import { LocaleSwitcher } from "./locale-switcher";
+import { LocaleSuggestionBanner } from "./locale-suggestion-banner";
 
 /**
  * Screenshots of the real post-payment flow, paired with the "Comment ça se
@@ -20,12 +24,18 @@ const HOW_SHOTS = [
   "/onboarding/3-app.jpeg",
 ];
 
-function Placeholder({ className }: { className?: string }) {
+function Placeholder({
+  className,
+  label,
+}: {
+  className?: string;
+  label: string;
+}) {
   return (
     <div
       className={`flex items-center justify-center rounded-2xl border-2 border-dashed border-neutral-300 bg-neutral-100 text-xs text-neutral-400 ${className}`}
     >
-      Image à venir
+      {label}
     </div>
   );
 }
@@ -43,9 +53,11 @@ function Stars() {
 export function ProductLanding({
   content,
   offer,
+  locale = DEFAULT_LOCALE,
 }: {
   content: LandingContent;
   offer: OfferSettings;
+  locale?: Locale;
 }) {
   const { priceCents, compareAtCents, spotsJoined, spotsTotal } = offer;
   const PRICE = formatEuros(priceCents);
@@ -53,15 +65,17 @@ export function ProductLanding({
     compareAtCents > priceCents ? formatEuros(compareAtCents) : null;
   const priceValue = priceCents / 100;
   const p = content.product;
+  const ui = LANDING_UI[locale];
   const hidden = new Set(content.hidden ?? []);
   const show = (k: string) => !hidden.has(k);
 
   return (
     <div className="w-full bg-white text-neutral-900 font-sans">
+      <LocaleSuggestionBanner current={locale} />
       {/* top bar */}
       <header className="border-b border-neutral-200">
-        <div className="mx-auto flex max-w-[1100px] items-center justify-between px-4 py-3 sm:px-6">
-          <Link href="/85motscoran" aria-label="Accueil Quranlab">
+        <div className="mx-auto flex max-w-[1100px] items-center justify-between gap-3 px-4 py-3 sm:px-6">
+          <Link href="/85motscoran" aria-label={ui.home}>
             <Image
               src="/quranlab-logo.svg"
               alt="Quranlab"
@@ -71,12 +85,15 @@ export function ProductLanding({
               className="h-8 sm:h-9 w-auto"
             />
           </Link>
-          <Link
-            href="/auth/login"
-            className="rounded-full bg-neutral-950 px-4 py-2 text-xs sm:text-sm font-semibold text-white"
-          >
-            Se connecter
-          </Link>
+          <div className="flex items-center gap-3 sm:gap-4">
+            <LocaleSwitcher current={locale} />
+            <Link
+              href="/auth/login"
+              className="rounded-full bg-neutral-950 px-4 py-2 text-xs sm:text-sm font-semibold text-white"
+            >
+              {ui.login}
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -113,7 +130,7 @@ export function ProductLanding({
                 </span>
               )}
               <span className="rounded-full bg-[#6967fb]/10 px-2.5 py-1 text-xs font-bold text-[#6967fb]">
-                Offre de lancement
+                {ui.launchOffer}
               </span>
             </div>
 
@@ -137,6 +154,7 @@ export function ProductLanding({
               label={content.offer.buttonLabel}
               subLabel={content.offer.buttonSub}
               priceValue={priceValue}
+              locale={locale}
             />
             <SpotsProgress
               tone="light"
@@ -144,6 +162,7 @@ export function ProductLanding({
               total={spotsTotal}
               priceLabel={PRICE}
               compareLabel={COMPARE ?? undefined}
+              locale={locale}
             />
             <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-neutral-500">
               <Lock className="h-3 w-3" strokeWidth={1.5} />
@@ -200,7 +219,7 @@ export function ProductLanding({
                   className="h-24 w-20 shrink-0 rounded-xl object-cover"
                 />
               ) : (
-                <Placeholder className="h-24 w-20 shrink-0" />
+                <Placeholder className="h-24 w-20 shrink-0" label={ui.imageSoon} />
               )}
               <div>
                 <h3 className="font-display font-bold text-neutral-950">
@@ -324,7 +343,7 @@ export function ProductLanding({
                 className="h-40 w-40 rounded-2xl object-cover"
               />
             ) : (
-              <Placeholder className="h-40 w-40" />
+              <Placeholder className="h-40 w-40" label={ui.imageSoon} />
             )}
           </div>
           <div className="text-center sm:text-left">
@@ -363,7 +382,7 @@ export function ProductLanding({
                 <span className="font-display font-bold text-6xl sm:text-7xl tracking-tight">
                   {PRICE}
                 </span>
-                <span className="text-sm text-white/60">une seule fois</span>
+                <span className="text-sm text-white/60">{ui.oneTime}</span>
               </div>
               <p className="mt-2 text-xs text-white/50">
                 {content.offer.cycleNote}
@@ -389,6 +408,7 @@ export function ProductLanding({
                 label={content.offer.buttonLabel}
                 subLabel={content.offer.buttonSub}
                 priceValue={priceValue}
+                locale={locale}
               />
               <SpotsProgress
                 tone="dark"
@@ -396,6 +416,7 @@ export function ProductLanding({
                 total={spotsTotal}
                 priceLabel={PRICE}
                 compareLabel={COMPARE ?? undefined}
+                locale={locale}
               />
               <p className="mt-4 flex items-center justify-center gap-1.5 text-[11px] text-white/40">
                 <Lock className="h-3 w-3" strokeWidth={1.5} />

@@ -5,6 +5,8 @@ import { Loader2 } from "lucide-react";
 
 import { createAppLifetimeCheckoutUrl } from "@/actions/app-lifetime-checkout";
 import { ttqTrack } from "@/lib/analytics/tiktok";
+import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/locales";
+import { LANDING_UI } from "@/lib/i18n/landing-ui";
 
 /**
  * Duolingo-style chunky 3D pressable CTA that starts the 47€ lifetime
@@ -16,15 +18,18 @@ export function BuyButton({
   label = "Obtenir l'accès à vie",
   subLabel,
   priceValue = 14.97,
+  locale = DEFAULT_LOCALE,
 }: {
   className?: string;
   label?: string;
   subLabel?: string;
   /** Price in € used for the TikTok conversion value. */
   priceValue?: number;
+  locale?: Locale;
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const ui = LANDING_UI[locale];
 
   async function onClick() {
     setError(null);
@@ -44,9 +49,9 @@ export function BuyButton({
         window.location.href = result.url;
         return;
       }
-      setError(result.error || "Erreur lors de la création du paiement.");
+      setError(result.error || ui.checkoutError);
     } catch (e: any) {
-      setError(e?.message || "Erreur inconnue.");
+      setError(e?.message || ui.unknownError);
     } finally {
       setLoading(false);
     }
@@ -61,7 +66,7 @@ export function BuyButton({
       >
         <span className="inline-flex items-center gap-2 text-base font-bold uppercase tracking-wide">
           {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-          {loading ? "Redirection…" : label}
+          {loading ? ui.redirecting : label}
         </span>
         {!loading && subLabel && (
           <span className="text-[11px] font-medium normal-case tracking-normal text-white/80">
