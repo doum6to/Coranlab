@@ -2,8 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { getNextResetTime } from "@/lib/league-utils";
+import { useT } from "@/lib/i18n/use-t";
+import { tpl } from "@/lib/i18n/locales";
 
 export const LeagueCountdown = () => {
+  const t = useT();
   const [timeLeft, setTimeLeft] = useState("");
 
   useEffect(() => {
@@ -12,7 +15,7 @@ export const LeagueCountdown = () => {
       const diff = next.getTime() - Date.now();
 
       if (diff <= 0) {
-        setTimeLeft("Bientôt...");
+        setTimeLeft(t.league.countdownSoon);
         return;
       }
 
@@ -20,16 +23,16 @@ export const LeagueCountdown = () => {
       const days = Math.ceil(diff / 86400000);
 
       if (days <= 1) {
-        setTimeLeft("moins d'1 jour");
+        setTimeLeft(t.league.countdownLessThanDay);
       } else {
-        setTimeLeft(`${days} jours`);
+        setTimeLeft(tpl(t.league.countdownDays, { n: days }));
       }
     };
 
     update();
     const interval = setInterval(update, 60000);
     return () => clearInterval(interval);
-  }, []);
+  }, [t]);
 
   return (
     <div className="flex items-center gap-1.5 text-xs sm:text-sm text-brilliant-muted">
@@ -37,7 +40,7 @@ export const LeagueCountdown = () => {
         <circle cx="7" cy="7" r="6" stroke="#999" strokeWidth="1.5" />
         <path d="M7 4V7L9 9" stroke="#999" strokeWidth="1.5" strokeLinecap="round" />
       </svg>
-      <span>Fin dans {timeLeft}</span>
+      <span>{tpl(t.league.countdownEndsIn, { time: timeLeft })}</span>
     </div>
   );
 };

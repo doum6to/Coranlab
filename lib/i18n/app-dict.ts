@@ -196,6 +196,14 @@ const fr = {
     joinDesc:
       "Gagne {min} XP cette semaine pour rejoindre ta première ligue et rivaliser avec d'autres apprenants.",
     the10Leagues: "Les 10 ligues",
+    promoBanner: "Les {n} premiers montent à la ligue supérieure !",
+    topPromoted: "Top {n} promus",
+    lastDemoted: "{n} derniers relégués",
+    you: "(toi)",
+    countdownSoon: "Bientôt...",
+    countdownLessThanDay: "moins d'1 jour",
+    countdownDays: "{n} jours",
+    countdownEndsIn: "Fin dans {time}",
   },
   auth: {
     welcomeBack: "Bon retour !",
@@ -508,6 +516,14 @@ const en: AppStrings = {
     joinDesc:
       "Earn {min} XP this week to join your first league and compete with other learners.",
     the10Leagues: "The 10 leagues",
+    promoBanner: "The top {n} move up to the higher league!",
+    topPromoted: "Top {n} promoted",
+    lastDemoted: "Bottom {n} relegated",
+    you: "(you)",
+    countdownSoon: "Soon...",
+    countdownLessThanDay: "less than 1 day",
+    countdownDays: "{n} days",
+    countdownEndsIn: "Ends in {time}",
   },
   auth: {
     welcomeBack: "Welcome back!",
@@ -817,6 +833,14 @@ const es: AppStrings = {
     joinDesc:
       "Gana {min} XP esta semana para unirte a tu primera liga y competir con otros estudiantes.",
     the10Leagues: "Las 10 ligas",
+    promoBanner: "¡Los {n} primeros suben a la liga superior!",
+    topPromoted: "Top {n} ascienden",
+    lastDemoted: "{n} últimos descienden",
+    you: "(tú)",
+    countdownSoon: "Pronto...",
+    countdownLessThanDay: "menos de 1 día",
+    countdownDays: "{n} días",
+    countdownEndsIn: "Termina en {time}",
   },
   auth: {
     welcomeBack: "¡Bienvenido de nuevo!",
