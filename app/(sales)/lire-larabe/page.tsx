@@ -131,7 +131,8 @@ export default async function LireLArabePage() {
             </span>
             <h1 className="mt-5 text-4xl sm:text-6xl font-extrabold leading-[1.05] tracking-tight">
               {c.hero.titleLead}{" "}
-              <span style={{ color: GOLD }}>{c.hero.titleHighlight}</span> ?
+              <span style={{ color: GOLD }}>{c.hero.titleHighlight}</span>
+              {c.hero.titleTail ? ` ${c.hero.titleTail}` : ""}
             </h1>
             <p className="mt-5 text-lg sm:text-xl text-white/70">
               {c.hero.subtitle}

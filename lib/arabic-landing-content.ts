@@ -14,6 +14,7 @@ export type ArabicLandingContent = {
     badge: string;
     titleLead: string;
     titleHighlight: string;
+    titleTail: string;
     subtitle: string;
     videoUrl: string;
     videoLabel: string;
@@ -71,6 +72,7 @@ export const ARABIC_LANDING_DEFAULTS: ArabicLandingContent = {
     badge: "Méthode Master",
     titleLead: "Comment lire l'arabe en",
     titleHighlight: "moins de 7h",
+    titleTail: "?",
     subtitle: "Sans devoirs, sans stylo et sans cahier…",
     videoUrl: "",
     videoLabel: "Vidéo de présentation (à venir)",
