@@ -192,6 +192,40 @@ export function LandingContentForm({ initial }: { initial: LandingContent }) {
   const setProd = (v: Partial<LandingContent["product"]>) =>
     patch("product", v);
 
+  // Renders afficher/masquer checkboxes for a list of section keys.
+  const renderToggles = (items: { key: string; label: string }[]) => (
+    <div className="space-y-2">
+      {items.map((s) => {
+        const visible = !(c.hidden ?? []).includes(s.key);
+        return (
+          <label
+            key={s.key}
+            className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white px-4 py-3"
+          >
+            <span className="text-sm font-semibold text-neutral-800">
+              {s.label}
+            </span>
+            <input
+              type="checkbox"
+              checked={visible}
+              onChange={(e) => {
+                const cur = new Set(c.hidden ?? []);
+                if (e.target.checked) cur.delete(s.key);
+                else cur.add(s.key);
+                setC((p) => ({ ...p, hidden: Array.from(cur) }));
+              }}
+              className="h-5 w-5 rounded border-neutral-300"
+            />
+          </label>
+        );
+      })}
+    </div>
+  );
+
+  // Section groups keyed by their group label, for embedding inline.
+  const sectionGroup = (label: string) =>
+    LANDING_SECTIONS.find((g) => g.group === label)?.items ?? [];
+
   const onSave = () => {
     setMsg(null);
     startTransition(async () => {
@@ -244,32 +278,7 @@ export function LandingContentForm({ initial }: { initial: LandingContent }) {
               <p className="mb-2 text-xs font-bold uppercase tracking-wide text-neutral-400">
                 {grp.group}
               </p>
-              <div className="space-y-2">
-                {grp.items.map((s) => {
-                  const visible = !(c.hidden ?? []).includes(s.key);
-                  return (
-                    <label
-                      key={s.key}
-                      className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white px-4 py-3"
-                    >
-                      <span className="text-sm font-semibold text-neutral-800">
-                        {s.label}
-                      </span>
-                      <input
-                        type="checkbox"
-                        checked={visible}
-                        onChange={(e) => {
-                          const cur = new Set(c.hidden ?? []);
-                          if (e.target.checked) cur.delete(s.key);
-                          else cur.add(s.key);
-                          setC((p) => ({ ...p, hidden: Array.from(cur) }));
-                        }}
-                        className="h-5 w-5 rounded border-neutral-300"
-                      />
-                    </label>
-                  );
-                })}
-              </div>
+              {renderToggles(grp.items)}
             </div>
           ))}
         </Section>
@@ -1103,6 +1112,17 @@ export function LandingContentForm({ initial }: { initial: LandingContent }) {
         {/* LETTER (V2) */}
         {tab === "letter" && (
         <Section title="Lettre (version 2) — active via « Offre & prix »">
+          <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-4">
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-neutral-500">
+              Afficher / masquer les sections
+            </p>
+            {renderToggles([
+              ...sectionGroup("Variante Lettre (V2)"),
+              ...sectionGroup("Communes (classique & produit)").filter(
+                (s) => s.key === "faq",
+              ),
+            ])}
+          </div>
           <Field
             label="Salutation"
             value={letter.greeting}
@@ -1249,6 +1269,15 @@ export function LandingContentForm({ initial }: { initial: LandingContent }) {
         {/* PRODUCT (V3) */}
         {tab === "product" && (
         <Section title="Produit (version 3) — active via « Offre & prix »">
+          <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-4">
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-neutral-500">
+              Afficher / masquer les sections
+            </p>
+            {renderToggles([
+              ...sectionGroup("Communes (classique & produit)"),
+              ...sectionGroup("Variante Produit (V3)"),
+            ])}
+          </div>
           <Field
             label="Titre"
             value={prod.title}
