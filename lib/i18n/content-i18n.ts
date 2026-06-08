@@ -12,6 +12,8 @@ import type { Locale } from "./locales";
 type Tr = { en: string; es: string };
 
 const TITLES: Record<string, Tr> = {
+  // Course
+  "Vocabulaire du Coran": { en: "Qur'anic Vocabulary", es: "Vocabulario del Corán" },
   // Units + descriptions
   "Partie I : Les Fondements": { en: "Part I: The Foundations", es: "Parte I: Los Fundamentos" },
   "0% à 50% du Coran": { en: "0% to 50% of the Qur'an", es: "0% a 50% del Corán" },
@@ -72,6 +74,22 @@ const QUESTIONS: Record<string, Tr> = {
     es: "Encuentra la palabra árabe correspondiente",
   },
   "Choisissez la bonne traduction": { en: "Choose the right translation", es: "Elige la traducción correcta" },
+  "Mémorise le mot puis choisis sa traduction": {
+    en: "Memorize the word, then choose its translation",
+    es: "Memoriza la palabra y luego elige su traducción",
+  },
+  "Parie sur ta confiance !": {
+    en: "Bet on your confidence!",
+    es: "¡Apuesta por tu confianza!",
+  },
+  "Trouve la paire incorrecte": {
+    en: "Find the incorrect pair",
+    es: "Encuentra la pareja incorrecta",
+  },
+  "Trouve la traduction du contraire": {
+    en: "Find the translation of the opposite",
+    es: "Encuentra la traducción del contrario",
+  },
   // NB: VRAI/FAUX option values are intentionally NOT translated here — the
   // VraiFaux exercise looks options up by their canonical "VRAI"/"FAUX" text
   // and localizes the button labels in the component instead.

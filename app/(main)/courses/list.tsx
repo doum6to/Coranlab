@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 import { courses, userProgress } from "@/db/schema";
 import { upsertUserProgress } from "@/actions/user-progress";
 import { useT } from "@/lib/i18n/use-t";
+import { useLocale } from "@/components/i18n/locale-provider";
+import { translateContent } from "@/lib/i18n/content-i18n";
 
 import { Card } from "./card";
 
@@ -17,6 +19,7 @@ type Props = {
 
 export const List = ({ courses, activeCourseId }: Props) => {
   const t = useT();
+  const locale = useLocale();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
@@ -39,7 +42,7 @@ export const List = ({ courses, activeCourseId }: Props) => {
         <Card
           key={course.id}
           id={course.id}
-          title={course.title}
+          title={translateContent(course.title, locale)}
           imageSrc={course.imageSrc}
           onClick={onClick}
           disabled={pending}

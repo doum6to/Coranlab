@@ -38,6 +38,7 @@ const fr = {
     unlockedMany: "{n} débloquées",
     levels: "{n} Niveaux",
     words: "{n} Mots",
+    vocabularyHeading: "Vocabulaire ({n} mots)",
     exercises: "{done}/{total} exercices",
   },
   course: {
@@ -359,6 +360,7 @@ const en: AppStrings = {
     unlockedMany: "{n} unlocked",
     levels: "{n} Levels",
     words: "{n} Words",
+    vocabularyHeading: "Vocabulary ({n} words)",
     exercises: "{done}/{total} exercises",
   },
   course: {
@@ -675,6 +677,7 @@ const es: AppStrings = {
     unlockedMany: "{n} desbloqueadas",
     levels: "{n} Niveles",
     words: "{n} Palabras",
+    vocabularyHeading: "Vocabulario ({n} palabras)",
     exercises: "{done}/{total} ejercicios",
   },
   course: {
