@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { updateOfferSettings } from "@/actions/offer-settings";
-import { CURRENCIES, type Currency } from "@/lib/offer";
+import { CURRENCIES, type Currency } from "@/lib/currency";
 import { LOCALES, LOCALE_NAMES, type Locale } from "@/lib/i18n/locales";
 
 type PriceRow = { currency: Currency; price: string; compare: string };
