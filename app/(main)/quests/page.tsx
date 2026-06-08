@@ -6,6 +6,7 @@ import { getUserProgress } from "@/db/queries";
 import { Progress } from "@/components/ui/progress";
 import { quests } from "@/constants";
 import { getServerStrings } from "@/lib/i18n/server-t";
+import { tpl } from "@/lib/i18n/locales";
 
 const QuestsPage = async () => {
   const { t } = getServerStrings();
@@ -48,7 +49,7 @@ const QuestsPage = async () => {
                   />
                   <div className="flex flex-col gap-y-2 w-full">
                     <p className="text-neutral-700 text-xl font-bold">
-                      {quest.title}
+                      {tpl(t.quests.earnXp, { n: quest.value })}
                     </p>
                     <Progress value={progress} className="h-3" />
                   </div>

@@ -5,7 +5,8 @@ import { revalidatePath } from "next/cache";
 import db from "@/db/drizzle";
 import { appSetting } from "@/db/schema";
 import { isAdminAuthed } from "@/lib/admin-auth";
-import { OFFER_KEYS } from "@/lib/offer";
+import { OFFER_KEYS, isCurrency, type LocalePrice } from "@/lib/offer";
+import { LOCALES, type Locale } from "@/lib/i18n/locales";
 
 /**
  * Persists the admin-editable offer settings. The lifetime checkout reads
@@ -19,6 +20,7 @@ export async function updateOfferSettings(input: {
   spotsTotal: number;
   variant: "classic" | "letter" | "product";
   pdfLinks: { label: string; url: string }[];
+  pricingByLocale?: Partial<Record<Locale, LocalePrice>>;
 }) {
   if (!isAdminAuthed()) throw new Error("Unauthorized");
 
@@ -44,12 +46,27 @@ export async function updateOfferSettings(input: {
     return { error: "Valeurs invalides." };
   }
 
+  // Sanitize per-language pricing: keep only valid currencies and amounts.
+  const cleanPricing: Record<string, LocalePrice> = {};
+  for (const loc of LOCALES) {
+    const p = input.pricingByLocale?.[loc];
+    if (!p) continue;
+    const pc = Math.round(p.priceCents);
+    const cc = Math.round(p.compareAtCents);
+    if (!isCurrency(p.currency)) continue;
+    if (!Number.isFinite(pc) || pc < 0 || !Number.isFinite(cc) || cc < 0) {
+      return { error: "Prix par langue invalide." };
+    }
+    cleanPricing[loc] = { currency: p.currency, priceCents: pc, compareAtCents: cc };
+  }
+
   const entries: Array<[string, string]> = [
     [OFFER_KEYS.price, String(priceCents)],
     [OFFER_KEYS.compare, String(compareAtCents)],
     [OFFER_KEYS.joined, String(spotsJoined)],
     [OFFER_KEYS.total, String(spotsTotal)],
     [OFFER_KEYS.variant, variant],
+    [OFFER_KEYS.pricing, JSON.stringify(cleanPricing)],
     [
       OFFER_KEYS.pdf,
       JSON.stringify(
@@ -78,8 +95,10 @@ export async function updateOfferSettings(input: {
     };
   }
 
-  // Refresh the landing page (ISR) and the admin so the change shows at once.
+  // Refresh the landing pages (ISR) and the admin so the change shows at once.
   revalidatePath("/offre-a-vie");
+  revalidatePath("/en/offre-a-vie");
+  revalidatePath("/es/offre-a-vie");
   revalidatePath("/admin/premium");
 
   return { ok: true };
