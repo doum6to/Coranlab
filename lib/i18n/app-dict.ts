@@ -296,6 +296,22 @@ const fr = {
     body: "Rejoins des milliers d'apprenants et maîtrise 85% des mots du Coran grâce à des leçons interactives et des exercices adaptés.",
     cta: "Commencer gratuitement",
   },
+  merci: {
+    eyebrow: "Paiement confirmé · Accès à vie",
+    title: "Bienvenue à vie.",
+    bodyNoEmail:
+      "Dernière étape : crée ton compte pour activer ton accès Premium à vie.",
+    bodyWithEmail:
+      "Dernière étape : crée ton compte avec l'adresse {email} pour activer ton accès Premium à vie.",
+    createAccount: "Créer mon compte",
+    warnNoEmail:
+      "⚠️ Important : crée ton compte avec le même email que lors de l'achat, sinon ton accès Premium ne sera pas activé.",
+    warnWithEmail:
+      "⚠️ Important : crée ton compte avec le même email que lors de l'achat ({email}), sinon ton accès Premium ne sera pas activé.",
+    emailComingTitle: "Un email de confirmation arrive aussi",
+    emailComingBody:
+      "Il contient le lien d'activation et tes documents PDF en bonus. Pense à vérifier tes spams si tu ne le vois pas.",
+  },
   langBanner: {
     text: { fr: "Voir le site en français ?", en: "View the site in English?", es: "¿Ver el sitio en español?" },
   },
@@ -590,6 +606,22 @@ const en: AppStrings = {
     body: "Join thousands of learners and master 85% of the words of the Qur'an with interactive lessons and tailored exercises.",
     cta: "Start for free",
   },
+  merci: {
+    eyebrow: "Payment confirmed · Lifetime access",
+    title: "Welcome for life.",
+    bodyNoEmail:
+      "Last step: create your account to activate your lifetime Premium access.",
+    bodyWithEmail:
+      "Last step: create your account with the address {email} to activate your lifetime Premium access.",
+    createAccount: "Create my account",
+    warnNoEmail:
+      "⚠️ Important: create your account with the same email you used to buy, otherwise your Premium access won't be activated.",
+    warnWithEmail:
+      "⚠️ Important: create your account with the same email you used to buy ({email}), otherwise your Premium access won't be activated.",
+    emailComingTitle: "A confirmation email is on its way too",
+    emailComingBody:
+      "It contains the activation link and your bonus PDF documents. Check your spam folder if you don't see it.",
+  },
   langBanner: {
     text: { fr: "Voir le site en français ?", en: "View the site in English?", es: "¿Ver el sitio en español?" },
   },
@@ -882,6 +914,22 @@ const es: AppStrings = {
     heading: "¿Listo para aprender el vocabulario del Corán?",
     body: "Únete a miles de estudiantes y domina el 85% de las palabras del Corán con lecciones interactivas y ejercicios adaptados.",
     cta: "Empezar gratis",
+  },
+  merci: {
+    eyebrow: "Pago confirmado · Acceso de por vida",
+    title: "Bienvenido de por vida.",
+    bodyNoEmail:
+      "Último paso: crea tu cuenta para activar tu acceso Premium de por vida.",
+    bodyWithEmail:
+      "Último paso: crea tu cuenta con la dirección {email} para activar tu acceso Premium de por vida.",
+    createAccount: "Crear mi cuenta",
+    warnNoEmail:
+      "⚠️ Importante: crea tu cuenta con el mismo correo que usaste en la compra, de lo contrario tu acceso Premium no se activará.",
+    warnWithEmail:
+      "⚠️ Importante: crea tu cuenta con el mismo correo que usaste en la compra ({email}), de lo contrario tu acceso Premium no se activará.",
+    emailComingTitle: "También recibirás un correo de confirmación",
+    emailComingBody:
+      "Contiene el enlace de activación y tus documentos PDF de regalo. Revisa tu carpeta de spam si no lo ves.",
   },
   langBanner: {
     text: { fr: "Voir le site en français ?", en: "View the site in English?", es: "¿Ver el sitio en español?" },

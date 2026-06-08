@@ -6,6 +6,9 @@ import db from "@/db/drizzle";
 import { coursePurchase } from "@/db/schema";
 import { stripe } from "@/lib/stripe";
 import { LandingMascot } from "@/components/landing-mascot";
+import { APP_STRINGS } from "@/lib/i18n/app-dict";
+import { DEFAULT_LOCALE, isLocale, tpl, type Locale } from "@/lib/i18n/locales";
+import { getRequestLocale } from "@/lib/i18n/request-locale";
 import { PremiumCta } from "../../85motscoran/premium-cta";
 import { TrackLifetimePurchase } from "./track-lifetime-purchase";
 
@@ -24,10 +27,12 @@ export const metadata: Metadata = {
  */
 async function ensurePurchaseRow(
   sessionId: string,
-): Promise<{ email: string | null; amount: number | null }> {
+): Promise<{ email: string | null; amount: number | null; locale: string | null }> {
   try {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
-    if (session.payment_status !== "paid") return { email: null, amount: null };
+    const locale = (session.metadata?.locale as string) || null;
+    if (session.payment_status !== "paid")
+      return { email: null, amount: null, locale };
 
     const email =
       session.customer_details?.email || session.customer_email || null;
@@ -35,7 +40,7 @@ async function ensurePurchaseRow(
       typeof session.amount_total === "number"
         ? session.amount_total / 100
         : null;
-    if (!email) return { email: null, amount };
+    if (!email) return { email: null, amount, locale };
 
     await db
       .insert(coursePurchase)
@@ -49,10 +54,10 @@ async function ensurePurchaseRow(
       })
       .onConflictDoNothing({ target: coursePurchase.stripeSessionId });
 
-    return { email, amount };
+    return { email, amount, locale };
   } catch (e) {
     console.error("[offre-a-vie/merci] reconcile failed:", e);
-    return { email: null, amount: null };
+    return { email: null, amount: null, locale: null };
   }
 }
 
@@ -62,13 +67,25 @@ export default async function MerciAVie({
   searchParams: { session_id?: string };
 }) {
   const sessionId = searchParams.session_id;
-  const { email, amount } = sessionId
+  const { email, amount, locale: sessionLocale } = sessionId
     ? await ensurePurchaseRow(sessionId)
-    : { email: null, amount: null };
+    : { email: null, amount: null, locale: null };
 
-  const signupUrl = email
-    ? `/auth/signup?email=${encodeURIComponent(email)}&locked=1`
-    : "/auth/signup";
+  // Use the language the buyer purchased in (stored on the Checkout session),
+  // falling back to the request locale.
+  const locale: Locale = isLocale(sessionLocale)
+    ? sessionLocale
+    : getRequestLocale();
+  const t = APP_STRINGS[locale].merci;
+
+  const params = new URLSearchParams();
+  if (email) {
+    params.set("email", email);
+    params.set("locked", "1");
+  }
+  if (locale !== DEFAULT_LOCALE) params.set("lang", locale);
+  const qs = params.toString();
+  const signupUrl = qs ? `/auth/signup?${qs}` : "/auth/signup";
 
   return (
     <div className="min-h-[70vh] w-full bg-[#FAF8F3] text-neutral-900 flex items-center justify-center">
@@ -85,23 +102,15 @@ export default async function MerciAVie({
         />
 
         <p className="text-[11px] tracking-[0.2em] uppercase text-neutral-500">
-          Paiement confirmé · Accès à vie
+          {t.eyebrow}
         </p>
 
         <h1 className="font-serif text-4xl sm:text-5xl leading-[1.05] text-neutral-950 max-w-[540px]">
-          Bienvenue à vie.
+          {t.title}
         </h1>
 
         <p className="text-base sm:text-lg text-neutral-600 max-w-[480px] leading-relaxed">
-          Dernière étape : crée ton compte
-          {email ? (
-            <>
-              {" "}
-              avec l&apos;adresse{" "}
-              <span className="font-semibold text-neutral-900">{email}</span>
-            </>
-          ) : null}{" "}
-          pour activer ton accès Premium à vie.
+          {email ? tpl(t.bodyWithEmail, { email }) : t.bodyNoEmail}
         </p>
 
         <PremiumCta
@@ -110,19 +119,11 @@ export default async function MerciAVie({
           variant="dark"
           className="w-full max-w-[320px]"
         >
-          Créer mon compte
+          {t.createAccount}
         </PremiumCta>
 
         <p className="max-w-[440px] rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm font-medium text-amber-800">
-          ⚠️ Important : crée ton compte avec le{" "}
-          <span className="font-bold">même email que lors de l&apos;achat</span>
-          {email ? (
-            <>
-              {" "}
-              (<span className="font-bold">{email}</span>)
-            </>
-          ) : null}
-          , sinon ton accès Premium ne sera pas activé.
+          {email ? tpl(t.warnWithEmail, { email }) : t.warnNoEmail}
         </p>
 
         <div className="mt-2 rounded-2xl border border-neutral-200 bg-white p-6 w-full max-w-[480px]">
@@ -132,11 +133,10 @@ export default async function MerciAVie({
             </span>
             <div>
               <p className="text-sm font-serif text-neutral-900">
-                Un email de confirmation arrive aussi
+                {t.emailComingTitle}
               </p>
               <p className="mt-1 text-sm text-neutral-600 leading-relaxed">
-                Il contient le lien d&apos;activation et tes documents PDF en
-                bonus. Pense à vérifier tes spams si tu ne le vois pas.
+                {t.emailComingBody}
               </p>
             </div>
           </div>

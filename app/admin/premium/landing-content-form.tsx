@@ -1603,12 +1603,25 @@ export function LandingContentForm({
                   })
                 }
               />
+              <ImageField
+                label="Capture d'écran (téléphone)"
+                value={s.image}
+                onChange={(v) =>
+                  setProd({
+                    steps: prod.steps.map((x, j) =>
+                      j === i ? { ...x, image: v } : x,
+                    ),
+                  })
+                }
+              />
             </div>
           ))}
           <button
             type="button"
             onClick={() =>
-              setProd({ steps: [...prod.steps, { title: "", text: "" }] })
+              setProd({
+                steps: [...prod.steps, { title: "", text: "", image: "" }],
+              })
             }
             className="text-xs font-semibold text-brilliant-green hover:underline"
           >

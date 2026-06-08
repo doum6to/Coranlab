@@ -22,6 +22,8 @@ export type LandingValueItem = {
   value: string;
 };
 export type LandingPair = { title: string; text: string };
+/** A "how it works" step with its own (per-language) screenshot. */
+export type ProductStep = { title: string; text: string; image: string };
 export type LandingStep = { label: string; title: string; text: string };
 export type LandingStat = { k: string; v: string };
 export type LetterBonus = { title: string; image: string; description: string };
@@ -41,7 +43,7 @@ export type LandingProduct = {
   insideHeading: string;
   insideItems: ProductFeature[];
   howHeading: string;
-  steps: LandingPair[];
+  steps: ProductStep[];
   compareHeading: string;
   compareUs: string;
   compareThem: string;
@@ -440,14 +442,17 @@ export const LANDING_DEFAULTS: LandingContent = {
       {
         title: "1. Paiement confirmé",
         text: "Dès ton paiement validé, ton accès Premium à vie est réservé. Tu arrives sur une page de bienvenue.",
+        image: "/onboarding/1-paiement.jpeg",
       },
       {
         title: "2. Crée ton compte",
         text: "Crée ton compte avec le même email que lors de l'achat — c'est ce qui active automatiquement ton accès à vie.",
+        image: "/onboarding/2-compte.jpeg",
       },
       {
         title: "3. Commence à apprendre",
         text: "Tu accèdes immédiatement à l'application et tu commences le vocabulaire du Coran, niveau par niveau.",
+        image: "/onboarding/3-app.jpeg",
       },
     ],
     compareHeading: "Pourquoi pas un cours classique ?",

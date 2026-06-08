@@ -14,16 +14,6 @@ import { ProductGallery } from "./product-gallery";
 import { LocaleSwitcher } from "./locale-switcher";
 import { LocaleSuggestionBanner } from "./locale-suggestion-banner";
 
-/**
- * Screenshots of the real post-payment flow, paired with the "Comment ça se
- * passe" steps by index: paiement confirmé → création du compte → l'app.
- */
-const HOW_SHOTS = [
-  "/onboarding/1-paiement.jpeg",
-  "/onboarding/2-compte.jpeg",
-  "/onboarding/3-app.jpeg",
-];
-
 function Placeholder({
   className,
   label,
@@ -245,13 +235,12 @@ export function ProductLanding({
           </h2>
           <div className="mt-10 grid gap-8 sm:grid-cols-3">
             {p.steps.map((s, i) => {
-              const shot = HOW_SHOTS[i];
               return (
                 <div key={s.title} className="flex flex-col items-center text-center">
-                  {shot ? (
+                  {s.image ? (
                     <div className="relative mb-5 w-[180px] overflow-hidden rounded-[28px] border-[6px] border-neutral-900 bg-white shadow-xl">
                       <Image
-                        src={shot}
+                        src={s.image}
                         alt={s.title}
                         width={360}
                         height={720}

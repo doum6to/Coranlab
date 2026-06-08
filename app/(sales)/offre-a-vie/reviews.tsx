@@ -1,12 +1,13 @@
 import { Testimonials } from "../85motscoran/testimonials";
 import { ReviewsMarquee } from "./reviews-marquee";
+import { TextReviewsMarquee } from "./text-reviews-marquee";
 import type { LandingReview } from "@/lib/landing-content";
 
 /**
- * Reviews block. When review images have been uploaded from the admin, they're
- * shown as a two-row infinite marquee — top row scrolling left, bottom row
- * scrolling right (highest credibility). Otherwise we fall back to the shared
- * screenshot/quote cards plus any admin-editable text reviews.
+ * Reviews block. Admin-added content drives a two-row infinite marquee — image
+ * reviews and/or text reviews, each on its own carousel. As soon as the admin
+ * adds any review, it replaces the hardcoded testimonials. With nothing set, we
+ * fall back to the shared hardcoded testimonials.
  */
 export function LandingReviews({
   items,
@@ -15,36 +16,17 @@ export function LandingReviews({
   items: LandingReview[];
   screenshots?: string[];
 }) {
-  if (screenshots.length > 0) {
-    return <ReviewsMarquee images={screenshots} />;
+  const hasImages = screenshots.length > 0;
+  const hasItems = items.length > 0;
+
+  if (!hasImages && !hasItems) {
+    return <Testimonials />;
   }
 
   return (
-    <>
-      <Testimonials />
-
-      {items.length > 0 && (
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((r, i) => (
-            <div
-              key={`${r.author}-${i}`}
-              className="rounded-3xl border-2 border-neutral-900/10 bg-white p-6"
-            >
-              <p className="text-sm leading-relaxed text-neutral-700">
-                &ldquo;{r.text}&rdquo;
-              </p>
-              <div className="mt-4 flex items-center gap-2">
-                <span className="font-display font-semibold text-neutral-900">
-                  {r.author}
-                </span>
-                {r.handle ? (
-                  <span className="text-xs text-neutral-400">{r.handle}</span>
-                ) : null}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </>
+    <div className="space-y-4">
+      {hasImages && <ReviewsMarquee images={screenshots} />}
+      {hasItems && <TextReviewsMarquee reviews={items} />}
+    </div>
   );
 }
