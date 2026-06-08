@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { VocabList } from "@/db/queries";
+import type { VocabList } from "@/db/queries";
 import { cn } from "@/lib/utils";
 
 import { UnitBanner } from "../learn/unit-banner";

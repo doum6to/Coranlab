@@ -93,6 +93,8 @@ const fr = {
     needScore: "Il faut atteindre 90% de bonnes réponses\npour valider ce niveau.",
     saving: "Sauvegarde en cours...",
     unlockAll: "Débloquer tout",
+    answerTrue: "VRAI",
+    answerFalse: "FAUX",
   },
   leaderboard: {
     title: "Classement",
@@ -388,6 +390,8 @@ const en: AppStrings = {
     needScore: "You need 90% correct answers\nto pass this level.",
     saving: "Saving...",
     unlockAll: "Unlock everything",
+    answerTrue: "TRUE",
+    answerFalse: "FALSE",
   },
   leaderboard: {
     title: "Leaderboard",
@@ -678,6 +682,8 @@ const es: AppStrings = {
     needScore: "Necesitas el 90% de respuestas correctas\npara superar este nivel.",
     saving: "Guardando...",
     unlockAll: "Desbloquear todo",
+    answerTrue: "VERDADERO",
+    answerFalse: "FALSO",
   },
   leaderboard: {
     title: "Clasificación",
