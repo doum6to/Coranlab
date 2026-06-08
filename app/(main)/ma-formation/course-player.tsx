@@ -144,7 +144,8 @@ export function CoursePlayer({ videos }: { videos: ArabicCourseVideo[] }) {
                   key={active.id}
                   src={active.url}
                   controls
-                  controlsList="nodownload"
+                  controlsList="nodownload noremoteplayback noplaybackrate"
+                  disablePictureInPicture
                   onContextMenu={(e) => e.preventDefault()}
                   onEnded={() => active && markWatched(active.id)}
                   className="aspect-video w-full"
