@@ -17,6 +17,7 @@ import { OfferSettingsForm } from "./offer-settings-form";
 import { LandingContentForm } from "./landing-content-form";
 import { ArabicLandingForm } from "./arabic-landing-form";
 import { VideosForm } from "./videos-form";
+import { AnalyticsPanel } from "./analytics-panel";
 import { AdminTabs } from "./admin-tabs";
 
 export const dynamic = "force-dynamic";
@@ -188,6 +189,11 @@ const AdminPremiumPage = async () => {
                   }}
                 />
               ),
+            },
+            {
+              key: "analytics",
+              label: "Analytics",
+              node: <AnalyticsPanel />,
             },
             {
               key: "content",

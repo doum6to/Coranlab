@@ -4,6 +4,8 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
+import { track } from "@/lib/analytics/track";
+
 function Placeholder({ className }: { className?: string }) {
   return (
     <div
@@ -29,6 +31,13 @@ export function ProductGallery({
 }) {
   const [index, setIndex] = useState(0);
   const startX = useRef<number | null>(null);
+  // Fire a single "gallery opened/interacted" event per visit.
+  const interacted = useRef(false);
+  const markGalleryOpen = () => {
+    if (interacted.current) return;
+    interacted.current = true;
+    track("lp_gallery_open");
+  };
 
   if (!images.length) {
     return (
@@ -46,7 +55,10 @@ export function ProductGallery({
   }
 
   const count = images.length;
-  const go = (d: number) => setIndex((p) => (p + d + count) % count);
+  const go = (d: number) => {
+    markGalleryOpen();
+    setIndex((p) => (p + d + count) % count);
+  };
 
   const onStart = (x: number) => {
     startX.current = x;
@@ -117,7 +129,10 @@ export function ProductGallery({
             <button
               key={i}
               type="button"
-              onClick={() => setIndex(i)}
+              onClick={() => {
+                markGalleryOpen();
+                setIndex(i);
+              }}
               className={`aspect-square w-full overflow-hidden rounded-xl border-2 transition ${
                 i === index ? "border-[#6967fb]" : "border-transparent"
               }`}

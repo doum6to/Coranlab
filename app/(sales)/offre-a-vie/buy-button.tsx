@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 
 import { createAppLifetimeCheckoutUrl } from "@/actions/app-lifetime-checkout";
 import { ttqTrack } from "@/lib/analytics/tiktok";
+import { track } from "@/lib/analytics/track";
 import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/locales";
 import { LANDING_UI } from "@/lib/i18n/landing-ui";
 
@@ -35,6 +36,7 @@ export function BuyButton({
     setError(null);
     setLoading(true);
 
+    track("lp_cta_click");
     ttqTrack("InitiateCheckout", {
       value: priceValue,
       currency: "EUR",
@@ -46,6 +48,7 @@ export function BuyButton({
     try {
       const result = await createAppLifetimeCheckoutUrl(locale);
       if (result.url) {
+        track("lp_checkout_start");
         window.location.href = result.url;
         return;
       }
