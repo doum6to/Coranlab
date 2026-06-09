@@ -9,20 +9,23 @@ import {
   contentKey,
   localeBase,
   type LandingContent,
+  type LandingVariantKey,
 } from "@/lib/landing-content";
 import { DEFAULT_LOCALE, isLocale, offerPath, type Locale } from "@/lib/i18n/locales";
 
 /**
- * Persists the full landing content document for a locale (stored as JSON in
- * app_setting under a per-locale key) and revalidates that locale's landing
+ * Persists the full landing content document for a locale + variant (stored as
+ * JSON in app_setting under a per-locale/per-variant key) and revalidates that
  * page so the change shows at once. Guarded by the admin session.
  */
 export async function updateLandingContent(
   content: LandingContent,
   locale: Locale = DEFAULT_LOCALE,
+  variant: LandingVariantKey = "v3",
 ) {
   if (!isAdminAuthed()) throw new Error("Unauthorized");
   if (!isLocale(locale)) locale = DEFAULT_LOCALE;
+  if (variant !== "v4") variant = "v3";
 
   const base = localeBase(locale);
 
@@ -46,7 +49,7 @@ export async function updateLandingContent(
 
   try {
     const value = JSON.stringify(clean);
-    const key = contentKey(locale);
+    const key = contentKey(locale, variant);
     await db
       .insert(appSetting)
       .values({ key, value, updatedAt: new Date() })
@@ -62,7 +65,8 @@ export async function updateLandingContent(
     };
   }
 
-  revalidatePath(offerPath(locale));
+  const path = offerPath(locale);
+  revalidatePath(variant === "v4" ? `${path}-v4` : path);
   revalidatePath("/admin/premium");
   return { ok: true };
 }

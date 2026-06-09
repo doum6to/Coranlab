@@ -495,11 +495,17 @@ function merge(base: any, override: any): any {
   return override == null ? base : override;
 }
 
-/** Per-locale DB key for admin overrides (FR keeps the original key). */
-export function contentKey(locale: Locale): string {
-  return locale === DEFAULT_LOCALE
-    ? LANDING_CONTENT_KEY
-    : `${LANDING_CONTENT_KEY}_${locale}`;
+/** A/B landing variants that share defaults but have separate admin overrides. */
+export type LandingVariantKey = "v3" | "v4";
+
+/** Per-locale + per-variant DB key for admin overrides (V3/FR keeps the original key). */
+export function contentKey(
+  locale: Locale,
+  variant: LandingVariantKey = "v3",
+): string {
+  const base =
+    variant === "v4" ? `${LANDING_CONTENT_KEY}_v4` : LANDING_CONTENT_KEY;
+  return locale === DEFAULT_LOCALE ? base : `${base}_${locale}`;
 }
 
 /** Base content for a locale: French defaults merged with built-in translations. */
@@ -510,17 +516,20 @@ export function localeBase(locale: Locale): LandingContent {
 }
 
 /**
- * Reads the admin-editable landing content for a locale, layering:
+ * Reads the admin-editable landing content for a locale + variant, layering:
  * French defaults → built-in locale translations → admin DB override.
- * Resilient: any missing row/table or parse error falls back to the layer
- * above so the page never breaks.
+ * V4 falls back to the same base as V3, so a fresh V4 is identical until the
+ * admin tweaks it. Resilient: any error falls back to the base.
  */
 export const getLandingContent = cache(
-  async (locale: Locale = DEFAULT_LOCALE): Promise<LandingContent> => {
+  async (
+    locale: Locale = DEFAULT_LOCALE,
+    variant: LandingVariantKey = "v3",
+  ): Promise<LandingContent> => {
     const base = localeBase(locale);
     try {
       const row = await db.query.appSetting.findFirst({
-        where: eq(appSetting.key, contentKey(locale)),
+        where: eq(appSetting.key, contentKey(locale, variant)),
       });
       if (!row?.value) return base;
       const parsed = JSON.parse(row.value);

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { updateLandingContent } from "@/actions/landing-content";
 import type {
   LandingContent,
+  LandingVariantKey,
   LandingFaq,
   LandingReview,
   LandingRow,
@@ -170,31 +171,39 @@ const TABS = [
 type TabKey = (typeof TABS)[number][0];
 
 export function LandingContentForm({
-  initialByLocale,
+  initialByVariant,
 }: {
-  initialByLocale: Record<Locale, LandingContent>;
+  initialByVariant: Record<LandingVariantKey, Record<Locale, LandingContent>>;
 }) {
   const router = useRouter();
-  // One editable copy per locale; the active locale is edited in place.
-  const [byLocale, setByLocale] =
-    useState<Record<Locale, LandingContent>>(initialByLocale);
+  // One editable copy per variant (V3/V4) × locale; the active one is edited.
+  const [byVariant, setByVariant] =
+    useState<Record<LandingVariantKey, Record<Locale, LandingContent>>>(
+      initialByVariant,
+    );
+  const [variant, setVariant] = useState<LandingVariantKey>("v3");
   const [locale, setLocale] = useState<Locale>("fr");
   const [tab, setTab] = useState<TabKey>("hero");
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
 
-  const c = byLocale[locale];
+  const c = byVariant[variant][locale];
   const setC = (
     updater:
       | LandingContent
       | ((prev: LandingContent) => LandingContent),
   ) =>
-    setByLocale((all) => ({
+    setByVariant((all) => ({
       ...all,
-      [locale]:
-        typeof updater === "function"
-          ? (updater as (p: LandingContent) => LandingContent)(all[locale])
-          : updater,
+      [variant]: {
+        ...all[variant],
+        [locale]:
+          typeof updater === "function"
+            ? (updater as (p: LandingContent) => LandingContent)(
+                all[variant][locale],
+              )
+            : updater,
+      },
     }));
 
   // Generic helpers to update slices immutably.
@@ -251,12 +260,12 @@ export function LandingContentForm({
   const onSave = () => {
     setMsg(null);
     startTransition(async () => {
-      const res = await updateLandingContent(c, locale);
+      const res = await updateLandingContent(c, locale, variant);
       if (res?.error) setMsg({ ok: false, text: res.error });
       else {
         setMsg({
           ok: true,
-          text: `Contenu ${LOCALE_NAMES[locale]} mis à jour ✓`,
+          text: `Contenu ${variant.toUpperCase()} · ${LOCALE_NAMES[locale]} mis à jour ✓`,
         });
         router.refresh();
       }
@@ -269,9 +278,30 @@ export function LandingContentForm({
         Contenu de la landing (/offre-a-vie)
       </h2>
       <p className="mb-4 text-sm text-neutral-500">
-        Choisis la langue, puis une section, modifie-la, puis « Mettre à jour ».
-        Chaque langue se modifie et s&apos;enregistre séparément.
+        Choisis la version (A/B), la langue, puis une section, modifie-la, puis
+        « Mettre à jour ». Chaque version + langue s&apos;enregistre séparément.
       </p>
+
+      {/* variant (A/B) switcher */}
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <span className="text-xs font-semibold uppercase tracking-wide text-neutral-400">
+          Version
+        </span>
+        {(["v3", "v4"] as const).map((v) => (
+          <button
+            key={v}
+            type="button"
+            onClick={() => setVariant(v)}
+            className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition ${
+              variant === v
+                ? "bg-[#6967fb] text-white"
+                : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+            }`}
+          >
+            {v === "v3" ? "Produit V3 (/offre-a-vie)" : "Produit V4 (/offre-a-vie-v4)"}
+          </button>
+        ))}
+      </div>
 
       {/* language switcher */}
       <div className="mb-5 flex flex-wrap items-center gap-2">
