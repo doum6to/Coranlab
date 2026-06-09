@@ -59,6 +59,25 @@ export async function GET(req: Request) {
       CREATE INDEX IF NOT EXISTS "course_video_slug" ON "course_video" ("slug");
     `);
 
+    // Visitor-behavior analytics events (admin dashboard).
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "analytics_event" (
+        "id" serial PRIMARY KEY,
+        "event" text NOT NULL,
+        "path" text,
+        "locale" text,
+        "session_id" text,
+        "meta" text,
+        "created_at" timestamp NOT NULL DEFAULT now()
+      );
+    `);
+    await db.execute(sql`
+      CREATE INDEX IF NOT EXISTS "analytics_event_event" ON "analytics_event" ("event");
+    `);
+    await db.execute(sql`
+      CREATE INDEX IF NOT EXISTS "analytics_event_created" ON "analytics_event" ("created_at");
+    `);
+
     return NextResponse.json({
       ok: true,
       message:

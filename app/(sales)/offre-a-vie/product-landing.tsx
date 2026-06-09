@@ -14,6 +14,7 @@ import { ProductGallery } from "./product-gallery";
 import { LocaleSwitcher } from "./locale-switcher";
 import { LocaleSuggestionBanner } from "./locale-suggestion-banner";
 import { PaymentBadges } from "./payment-badges";
+import { LandingAnalytics } from "./landing-analytics";
 
 function Placeholder({
   className,
@@ -63,6 +64,7 @@ export function ProductLanding({
 
   return (
     <div className="w-full bg-white text-neutral-900 font-sans">
+      <LandingAnalytics />
       <LocaleSuggestionBanner current={locale} />
       {/* top bar */}
       <header className="border-b border-neutral-200">
@@ -303,7 +305,7 @@ export function ProductLanding({
 
       {/* REVIEWS */}
       {show("reviews") && (
-      <section className="bg-[#FAF8F3] border-y border-neutral-200/70">
+      <section id="lp-reviews" className="bg-[#FAF8F3] border-y border-neutral-200/70">
         <div className="mx-auto max-w-[1100px] px-4 sm:px-6 py-12 sm:py-16">
           <div className="text-center mb-10">
             <p className="text-[11px] tracking-[0.2em] uppercase text-neutral-500">

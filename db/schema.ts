@@ -209,6 +209,22 @@ export const appSetting = pgTable("app_setting", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+// Lightweight visitor-behavior events (scroll depth, CTA clicks, gallery /
+// reviews interactions) used by the admin "Analytics" dashboard. Anonymous:
+// `sessionId` is a random per-browser id, no PII.
+export const analyticsEvent = pgTable("analytics_event", {
+  id: serial("id").primaryKey(),
+  event: text("event").notNull(),
+  path: text("path"),
+  locale: text("locale"),
+  sessionId: text("session_id"),
+  meta: text("meta"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => ({
+  eventIdx: index("analytics_event_event").on(t.event),
+  createdIdx: index("analytics_event_created").on(t.createdAt),
+}));
+
 // Video lessons for a standalone video course (e.g. "Lire l'arabe en 7h").
 // A lesson is EITHER an uploaded file in a PRIVATE Supabase Storage bucket
 // (served via short-lived signed URLs from `storagePath`) OR an external link
