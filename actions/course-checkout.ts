@@ -29,7 +29,6 @@ export async function createCourseCheckoutUrl(withApp: boolean) {
     if (!withApp) {
       const session = await stripe.checkout.sessions.create({
         mode: "payment",
-        payment_method_types: ["card"],
         line_items: [
           {
             quantity: 1,
@@ -61,7 +60,6 @@ export async function createCourseCheckoutUrl(withApp: boolean) {
     //   - items sans `recurring` → ajoutés à la PREMIÈRE invoice uniquement
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
-      payment_method_types: ["card"],
       line_items: [
         {
           quantity: 1,

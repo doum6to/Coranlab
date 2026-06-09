@@ -106,7 +106,6 @@ export const createStripeUrl = async (
 
     const sessionParams: Record<string, any> = {
       mode: config.mode,
-      payment_method_types: ["card"],
       line_items: [
         {
           quantity: 1,
