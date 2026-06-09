@@ -8,6 +8,7 @@ import { adminConfigured, isAdminAuthed } from "@/lib/admin-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getOfferSettings } from "@/lib/offer";
 import { getLandingContent } from "@/lib/landing-content";
+import { getFunnelContent } from "@/lib/funnel-content";
 import { getArabicLandingContent } from "@/lib/arabic-landing-content";
 
 import { listCourseVideos } from "@/actions/course-videos";
@@ -15,6 +16,7 @@ import { listCourseVideos } from "@/actions/course-videos";
 import { UsersTable, type AdminUser } from "./users-table";
 import { OfferSettingsForm } from "./offer-settings-form";
 import { LandingContentForm } from "./landing-content-form";
+import { FunnelContentForm } from "./funnel-content-form";
 import { ArabicLandingForm } from "./arabic-landing-form";
 import { VideosForm } from "./videos-form";
 import { AnalyticsPanel } from "./analytics-panel";
@@ -138,6 +140,7 @@ const AdminPremiumPage = async () => {
     contentV4Fr,
     contentV4En,
     contentV4Es,
+    funnelContent,
     arabicContent,
     videos,
   ] = await Promise.all([
@@ -148,6 +151,7 @@ const AdminPremiumPage = async () => {
     getLandingContent("fr", "v4"),
     getLandingContent("en", "v4"),
     getLandingContent("es", "v4"),
+    getFunnelContent(),
     getArabicLandingContent(),
     listCourseVideos(),
   ]);
@@ -216,6 +220,11 @@ const AdminPremiumPage = async () => {
                       "fr" | "en" | "es",
                       { currency: "EUR" | "GBP" | "USD"; price: string; compare: string }
                     >,
+                    funnelPrice: {
+                      currency: offer.funnelPrice.currency,
+                      price: (offer.funnelPrice.priceCents / 100).toFixed(2),
+                      compare: (offer.funnelPrice.compareAtCents / 100).toFixed(2),
+                    },
                     paymentBadges: offer.paymentBadges,
                     scarcityMode: offer.scarcityMode,
                     stickyBar: offer.stickyBar,
@@ -232,6 +241,11 @@ const AdminPremiumPage = async () => {
               key: "content",
               label: "Landing /offre-a-vie",
               node: <LandingContentForm initialByVariant={landingByVariant} />,
+            },
+            {
+              key: "funnel",
+              label: "Tunnel (V5)",
+              node: <FunnelContentForm initial={funnelContent} />,
             },
             {
               key: "arabic",
