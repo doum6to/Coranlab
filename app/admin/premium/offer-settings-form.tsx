@@ -26,7 +26,7 @@ export function OfferSettingsForm({
     compareEuros: string;
     spotsJoined: number;
     spotsTotal: number;
-    variant: "classic" | "letter" | "product";
+    variant: "classic" | "letter" | "product" | "funnel";
     pdfRaw: string;
     pricingByLocale: Record<Locale, PriceRow>;
     pricingByLocaleV4: Record<Locale, PriceRow>;
@@ -40,7 +40,9 @@ export function OfferSettingsForm({
   const [compareEuros, setCompareEuros] = useState(initial.compareEuros);
   const [spotsJoined, setSpotsJoined] = useState(String(initial.spotsJoined));
   const [spotsTotal, setSpotsTotal] = useState(String(initial.spotsTotal));
-  const [variant, setVariant] = useState<"classic" | "letter" | "product">(
+  const [variant, setVariant] = useState<
+    "classic" | "letter" | "product" | "funnel"
+  >(
     initial.variant,
   );
   const [pdfRaw, setPdfRaw] = useState(initial.pdfRaw);
@@ -414,6 +416,7 @@ export function OfferSettingsForm({
             ["classic", "Classique (V1)"],
             ["letter", "Lettre (V2)"],
             ["product", "Produit (V3)"],
+            ["funnel", "Tunnel (V5)"],
           ] as const).map(([key, label]) => (
             <button
               key={key}

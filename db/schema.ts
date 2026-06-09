@@ -201,6 +201,26 @@ export const coursePurchase = pgTable("course_purchase", {
   emailIdx: index("course_purchase_email").on(t.email),
 }));
 
+// Leads captured by the "Funnel" landing variant (/offre-a-vie) BEFORE any
+// payment or account: the visitor types their first name + email on step 1 of
+// the try-before-you-buy funnel. One row per email (upserted), with boolean
+// flags marking the furthest step reached so we can measure drop-off and run
+// abandoned-funnel follow-ups. No auth — anonymous at capture time.
+export const funnelLead = pgTable("funnel_lead", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull(),
+  firstName: text("first_name"),
+  locale: text("locale"),
+  // Furthest step reached, for funnel analytics / abandoned-funnel emails.
+  reachedExercise: boolean("reached_exercise").notNull().default(false),
+  reachedOffer: boolean("reached_offer").notNull().default(false),
+  startedCheckout: boolean("started_checkout").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (t) => ({
+  emailIdx: uniqueIndex("funnel_lead_email").on(t.email),
+}));
+
 // Generic key/value store for admin-editable settings (offer price, the
 // scarcity counter, etc.). Kept simple so new settings need no migration.
 export const appSetting = pgTable("app_setting", {

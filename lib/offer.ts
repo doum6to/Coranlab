@@ -17,7 +17,7 @@ import {
 export { CURRENCIES, isCurrency, formatMoney };
 export type { Currency };
 
-export type LandingVariant = "classic" | "letter" | "product";
+export type LandingVariant = "classic" | "letter" | "product" | "funnel";
 
 /** Price + currency for a single language. */
 export type LocalePrice = {
@@ -225,7 +225,9 @@ export const getOfferSettings = cache(async (): Promise<OfferSettings> => {
       spotsTotal: toInt(map.get(KEYS.total), OFFER_DEFAULTS.spotsTotal),
       variant: ((): LandingVariant => {
         const v = map.get(KEYS.variant);
-        return v === "letter" || v === "product" ? v : "classic";
+        return v === "letter" || v === "product" || v === "funnel"
+          ? v
+          : "classic";
       })(),
       pdfLinks,
       pricingByLocale,

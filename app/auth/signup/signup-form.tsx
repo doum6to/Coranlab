@@ -15,6 +15,7 @@ export function SignUpForm() {
   const t = useT();
   const searchParams = useSearchParams();
   const prefilledEmail = searchParams.get("email") || "";
+  const prefilledName = searchParams.get("name") || "";
   const hasCoursePurchase = Boolean(searchParams.get("course_token"));
   const isTrialSignup = searchParams.get("trial") === "true";
   // When arriving from a purchase, lock the email so the account is created
@@ -25,7 +26,7 @@ export function SignUpForm() {
 
   const [email, setEmail] = useState(prefilledEmail);
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
+  const [name, setName] = useState(prefilledName);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();

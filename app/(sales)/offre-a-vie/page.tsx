@@ -16,10 +16,11 @@ import { DemoExercise } from "./demo-exercise";
 import { StorySection } from "./story-section";
 import { LetterLanding } from "./letter-landing";
 import { ProductLanding } from "./product-landing";
+import { FunnelLanding } from "./funnel-landing";
 import { SpotsProgress } from "./spots";
 import { StickySpotsBar } from "./sticky-spots-bar";
 import { ArrowDoodle, Loops, Sparkle, Star } from "./doodles";
-import { getOfferSettings, formatEuros } from "@/lib/offer";
+import { getOfferSettings, getLocalePrice, formatMoney, formatEuros } from "@/lib/offer";
 import { getLandingContent } from "@/lib/landing-content";
 
 // ISR — regenerated on demand when the admin saves the offer settings or
@@ -91,6 +92,21 @@ export default async function OffreAViePage() {
   }
   if (offer.variant === "product") {
     return <ProductLanding content={content} offer={offer} />;
+  }
+  if (offer.variant === "funnel") {
+    const fp = getLocalePrice(offer, "fr", "v3");
+    return (
+      <FunnelLanding
+        priceValue={fp.priceCents / 100}
+        priceLabel={formatMoney(fp.priceCents, fp.currency)}
+        compareLabel={
+          fp.compareAtCents > fp.priceCents
+            ? formatMoney(fp.compareAtCents, fp.currency)
+            : null
+        }
+        paymentBadges={offer.paymentBadges}
+      />
+    );
   }
 
   const { priceCents, compareAtCents, spotsJoined, spotsTotal } = offer;

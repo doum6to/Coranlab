@@ -29,6 +29,7 @@ const CANCEL_PATH: Record<Locale, string> = {
 export async function createAppLifetimeCheckoutUrl(
   locale: Locale = DEFAULT_LOCALE,
   variant: "v3" | "v4" = "v3",
+  lead?: { email?: string; firstName?: string },
 ) {
   try {
     if (!isLocale(locale)) locale = DEFAULT_LOCALE;
@@ -36,8 +37,19 @@ export async function createAppLifetimeCheckoutUrl(
     const offer = await getOfferSettings();
     const { currency, priceCents } = getLocalePrice(offer, locale, variant);
 
+    // When the funnel collected an email/first name up-front, prefill the
+    // Checkout email and remember the first name so the thank-you page can
+    // pre-fill the signup form too. Stripe metadata values must be strings.
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const customerEmail =
+      lead?.email && emailRe.test(lead.email.trim())
+        ? lead.email.trim().toLowerCase()
+        : undefined;
+    const firstName = (lead?.firstName || "").trim().slice(0, 80);
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
+      ...(customerEmail ? { customer_email: customerEmail } : {}),
       line_items: [
         {
           quantity: 1,
@@ -59,6 +71,7 @@ export async function createAppLifetimeCheckoutUrl(
         locale,
         currency,
         variant,
+        ...(firstName ? { firstName } : {}),
       },
       success_url: absoluteUrl(
         "/offre-a-vie/merci?session_id={CHECKOUT_SESSION_ID}",

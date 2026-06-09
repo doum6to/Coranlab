@@ -25,14 +25,22 @@ export const metadata: Metadata = {
  * course_purchase row exists before the buyer signs up — independent of the
  * (async) Stripe webhook. Idempotent: a no-op if the row is already there.
  */
-async function ensurePurchaseRow(
-  sessionId: string,
-): Promise<{ email: string | null; amount: number | null; locale: string | null }> {
+async function ensurePurchaseRow(sessionId: string): Promise<{
+  email: string | null;
+  amount: number | null;
+  locale: string | null;
+  firstName: string | null;
+}> {
   try {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
     const locale = (session.metadata?.locale as string) || null;
+    // First name the funnel collected before checkout (if any), else Stripe's.
+    const firstName =
+      (session.metadata?.firstName as string) ||
+      session.customer_details?.name ||
+      null;
     if (session.payment_status !== "paid")
-      return { email: null, amount: null, locale };
+      return { email: null, amount: null, locale, firstName };
 
     const email =
       session.customer_details?.email || session.customer_email || null;
@@ -40,7 +48,7 @@ async function ensurePurchaseRow(
       typeof session.amount_total === "number"
         ? session.amount_total / 100
         : null;
-    if (!email) return { email: null, amount, locale };
+    if (!email) return { email: null, amount, locale, firstName };
 
     await db
       .insert(coursePurchase)
@@ -54,10 +62,10 @@ async function ensurePurchaseRow(
       })
       .onConflictDoNothing({ target: coursePurchase.stripeSessionId });
 
-    return { email, amount, locale };
+    return { email, amount, locale, firstName };
   } catch (e) {
     console.error("[offre-a-vie/merci] reconcile failed:", e);
-    return { email: null, amount: null, locale: null };
+    return { email: null, amount: null, locale: null, firstName: null };
   }
 }
 
@@ -67,9 +75,14 @@ export default async function MerciAVie({
   searchParams: { session_id?: string };
 }) {
   const sessionId = searchParams.session_id;
-  const { email, amount, locale: sessionLocale } = sessionId
+  const {
+    email,
+    amount,
+    locale: sessionLocale,
+    firstName,
+  } = sessionId
     ? await ensurePurchaseRow(sessionId)
-    : { email: null, amount: null, locale: null };
+    : { email: null, amount: null, locale: null, firstName: null };
 
   // Use the language the buyer purchased in (stored on the Checkout session),
   // falling back to the request locale.
@@ -83,6 +96,7 @@ export default async function MerciAVie({
     params.set("email", email);
     params.set("locked", "1");
   }
+  if (firstName) params.set("name", firstName);
   if (locale !== DEFAULT_LOCALE) params.set("lang", locale);
   const qs = params.toString();
   const signupUrl = qs ? `/auth/signup?${qs}` : "/auth/signup";

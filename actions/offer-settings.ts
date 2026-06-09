@@ -18,7 +18,7 @@ export async function updateOfferSettings(input: {
   compareAtCents: number;
   spotsJoined: number;
   spotsTotal: number;
-  variant: "classic" | "letter" | "product";
+  variant: "classic" | "letter" | "product" | "funnel";
   pdfLinks: { label: string; url: string }[];
   pricingByLocale?: Partial<Record<Locale, LocalePrice>>;
   pricingByLocaleV4?: Partial<Record<Locale, LocalePrice>>;
@@ -33,7 +33,9 @@ export async function updateOfferSettings(input: {
   const spotsJoined = Math.round(input.spotsJoined);
   const spotsTotal = Math.round(input.spotsTotal);
   const variant =
-    input.variant === "letter" || input.variant === "product"
+    input.variant === "letter" ||
+    input.variant === "product" ||
+    input.variant === "funnel"
       ? input.variant
       : "classic";
 
