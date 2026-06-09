@@ -43,8 +43,12 @@ export type OfferSettings = {
   pricingByLocale: Record<Locale, LocalePrice>;
   /** Per-language price for the V4 A/B variant (defaults to V3 per locale). */
   pricingByLocaleV4: Record<Locale, LocalePrice>;
-  /** Independent price for the "funnel" variant (FR-only landing). */
+  /** Independent price for the funnel version A (FR-only landing). */
   funnelPrice: LocalePrice;
+  /** Independent price for the funnel version B (A/B test). */
+  funnelPriceB: LocalePrice;
+  /** Which funnel version is live ("a" or "b"). */
+  funnelVersion: "a" | "b";
   /** Payment-method badges shown on the landing (subset of PAYMENT_BADGE_IDS). */
   paymentBadges: string[];
   /** Scarcity element under the CTA: the spots gauge or a 24h countdown. */
@@ -71,6 +75,8 @@ export const OFFER_DEFAULTS: OfferSettings = {
     es: { currency: "EUR", priceCents: 1497, compareAtCents: 9900 },
   },
   funnelPrice: { currency: "EUR", priceCents: 1497, compareAtCents: 9900 },
+  funnelPriceB: { currency: "EUR", priceCents: 1497, compareAtCents: 9900 },
+  funnelVersion: "a",
   paymentBadges: ["card", "applePay", "paypal", "klarna", "link"],
   scarcityMode: "spots",
   stickyBar: false,
@@ -96,6 +102,8 @@ const KEYS = {
   pricing: "offer_pricing_by_locale",
   pricingV4: "offer_pricing_by_locale_v4",
   funnelPrice: "offer_funnel_price",
+  funnelPriceB: "offer_funnel_price_b",
+  funnelVersion: "funnel_active_version",
   badges: "offer_payment_badges",
   scarcity: "offer_scarcity_mode",
   sticky: "offer_sticky_bar",
@@ -129,6 +137,8 @@ export const getOfferSettings = cache(async (): Promise<OfferSettings> => {
           KEYS.pricing,
           KEYS.pricingV4,
           KEYS.funnelPrice,
+          KEYS.funnelPriceB,
+          KEYS.funnelVersion,
           KEYS.badges,
           KEYS.scarcity,
           KEYS.sticky,
@@ -223,30 +233,37 @@ export const getOfferSettings = cache(async (): Promise<OfferSettings> => {
       (loc) => pricingByLocale[loc],
     );
 
-    // Independent single price for the funnel variant. Falls back to the FR
-    // V3 price when unset, so the funnel works before any override is saved.
-    let funnelPrice: LocalePrice = pricingByLocale[DEFAULT_LOCALE] ?? fallback;
-    try {
-      const raw = map.get(KEYS.funnelPrice);
-      if (raw) {
-        const s = JSON.parse(raw) as Partial<LocalePrice>;
-        if (s && typeof s === "object") {
-          funnelPrice = {
-            currency: isCurrency(s.currency) ? s.currency : funnelPrice.currency,
-            priceCents:
-              typeof s.priceCents === "number" && s.priceCents >= 0
-                ? s.priceCents
-                : funnelPrice.priceCents,
-            compareAtCents:
-              typeof s.compareAtCents === "number" && s.compareAtCents >= 0
-                ? s.compareAtCents
-                : funnelPrice.compareAtCents,
-          };
+    // Independent single prices for the funnel versions (A and B). Each falls
+    // back to the FR V3 price when unset, so the funnel works before any
+    // override is saved.
+    const funnelFallback: LocalePrice = pricingByLocale[DEFAULT_LOCALE] ?? fallback;
+    const parseSinglePrice = (key: string): LocalePrice => {
+      let out = { ...funnelFallback };
+      try {
+        const raw = map.get(key);
+        if (raw) {
+          const s = JSON.parse(raw) as Partial<LocalePrice>;
+          if (s && typeof s === "object") {
+            out = {
+              currency: isCurrency(s.currency) ? s.currency : out.currency,
+              priceCents:
+                typeof s.priceCents === "number" && s.priceCents >= 0
+                  ? s.priceCents
+                  : out.priceCents,
+              compareAtCents:
+                typeof s.compareAtCents === "number" && s.compareAtCents >= 0
+                  ? s.compareAtCents
+                  : out.compareAtCents,
+            };
+          }
         }
+      } catch {
+        /* keep fallback */
       }
-    } catch {
-      /* keep fallback */
-    }
+      return out;
+    };
+    const funnelPrice = parseSinglePrice(KEYS.funnelPrice);
+    const funnelPriceB = parseSinglePrice(KEYS.funnelPriceB);
 
     return {
       priceCents,
@@ -263,6 +280,8 @@ export const getOfferSettings = cache(async (): Promise<OfferSettings> => {
       pricingByLocale,
       pricingByLocaleV4,
       funnelPrice,
+      funnelPriceB,
+      funnelVersion: map.get(KEYS.funnelVersion) === "b" ? "b" : "a",
       paymentBadges,
       scarcityMode: map.get(KEYS.scarcity) === "timer" ? "timer" : "spots",
       stickyBar: map.get(KEYS.sticky) === "true",
@@ -279,12 +298,12 @@ export const OFFER_KEYS = KEYS;
 export function getLocalePrice(
   offer: OfferSettings,
   locale: Locale = DEFAULT_LOCALE,
-  variant: "v3" | "v4" | "funnel" = "v3",
+  variant: "v3" | "v4" | "funnel" | "funnelB" = "v3",
 ): LocalePrice {
-  // The funnel uses a single independent price (FR-only landing).
-  if (variant === "funnel") {
+  // The funnel uses a single independent price per version (FR-only landing).
+  if (variant === "funnel" || variant === "funnelB") {
     return (
-      offer.funnelPrice ??
+      (variant === "funnelB" ? offer.funnelPriceB : offer.funnelPrice) ??
       offer.pricingByLocale?.[DEFAULT_LOCALE] ?? {
         currency: "EUR",
         priceCents: offer.priceCents,

@@ -23,6 +23,7 @@ export async function updateOfferSettings(input: {
   pricingByLocale?: Partial<Record<Locale, LocalePrice>>;
   pricingByLocaleV4?: Partial<Record<Locale, LocalePrice>>;
   funnelPrice?: LocalePrice;
+  funnelPriceB?: LocalePrice;
   paymentBadges?: string[];
   scarcityMode?: "spots" | "timer";
   stickyBar?: boolean;
@@ -81,10 +82,9 @@ export async function updateOfferSettings(input: {
     cleanPricingV4[loc] = { currency: p.currency, priceCents: pc, compareAtCents: cc };
   }
 
-  // Funnel single price (independent, charged by Stripe for the funnel variant).
-  let cleanFunnelPrice: LocalePrice | null = null;
-  if (input.funnelPrice) {
-    const p = input.funnelPrice;
+  // Funnel single prices (independent, charged by Stripe per funnel version).
+  const sanitizeSingle = (p: LocalePrice | undefined): LocalePrice | null | "bad" => {
+    if (!p) return null;
     const pc = Math.round(p.priceCents);
     const cc = Math.round(p.compareAtCents);
     if (
@@ -94,9 +94,14 @@ export async function updateOfferSettings(input: {
       !Number.isFinite(cc) ||
       cc < 0
     ) {
-      return { error: "Prix du tunnel invalide." };
+      return "bad";
     }
-    cleanFunnelPrice = { currency: p.currency, priceCents: pc, compareAtCents: cc };
+    return { currency: p.currency, priceCents: pc, compareAtCents: cc };
+  };
+  const cleanFunnelPrice = sanitizeSingle(input.funnelPrice);
+  const cleanFunnelPriceB = sanitizeSingle(input.funnelPriceB);
+  if (cleanFunnelPrice === "bad" || cleanFunnelPriceB === "bad") {
+    return { error: "Prix du tunnel invalide." };
   }
 
   const entries: Array<[string, string]> = [
@@ -127,9 +132,12 @@ export async function updateOfferSettings(input: {
     ],
   ];
 
-  // Only persist the funnel price when provided, so omitting it never wipes it.
+  // Only persist the funnel prices when provided, so omitting never wipes them.
   if (cleanFunnelPrice) {
     entries.push([OFFER_KEYS.funnelPrice, JSON.stringify(cleanFunnelPrice)]);
+  }
+  if (cleanFunnelPriceB) {
+    entries.push([OFFER_KEYS.funnelPriceB, JSON.stringify(cleanFunnelPriceB)]);
   }
 
   try {

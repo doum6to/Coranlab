@@ -1,11 +1,22 @@
 import "server-only";
 import { cache } from "react";
-import { eq } from "drizzle-orm";
+import { inArray } from "drizzle-orm";
 
 import db from "@/db/drizzle";
 import { appSetting } from "@/db/schema";
 
-/** Admin-editable copy for the "funnel" landing variant (FR-only for now). */
+/** One exercise of the funnel mini-lesson (an easy QCM). */
+export type FunnelExercise = {
+  /** Whether this exercise is shown (admin-toggleable). */
+  enabled: boolean;
+  arabicWord: string;
+  /** Correct translation (also the right answer button). */
+  correct: string;
+  /** Wrong answer buttons. */
+  distractors: string[];
+};
+
+/** Admin-editable copy for one funnel version (A or B). FR-only for now. */
 export type FunnelContent = {
   capture: {
     title: string;
@@ -29,15 +40,12 @@ export type FunnelContent = {
   };
   exercise: {
     prompt: string;
-    arabicWord: string;
-    /** Correct translation (also the right answer button). */
-    correct: string;
-    /** Wrong answer buttons. */
-    distractors: string[];
-    /** Supports the {name} placeholder. */
+    /** Shown after the LAST exercise is solved. Supports {name}. */
     successText: string;
     retryText: string;
     cta: string;
+    /** The mini-lesson: a series of easy QCM (toggle each from the admin). */
+    items: FunnelExercise[];
   };
   offer: {
     /** Supports the {name} placeholder. */
@@ -51,13 +59,21 @@ export type FunnelContent = {
   };
 };
 
-export const FUNNEL_CONTENT_KEY = "funnel_content";
+export type FunnelVersion = "a" | "b";
+
+export const FUNNEL_CONTENT_KEY = "funnel_content"; // version A
+export const FUNNEL_CONTENT_KEY_B = "funnel_content_b"; // version B
+
+const KEY_BY_VERSION: Record<FunnelVersion, string> = {
+  a: FUNNEL_CONTENT_KEY,
+  b: FUNNEL_CONTENT_KEY_B,
+};
 
 export const FUNNEL_DEFAULTS: FunnelContent = {
   capture: {
     title: "Teste Quranlab gratuitement",
     subtitle:
-      "Apprends ton premier mot du Coran en 30 secondes. Sans carte bancaire, sans engagement.",
+      "Apprends tes premiers mots du Coran en moins d'une minute. Sans carte bancaire, sans engagement.",
     firstNameLabel: "Ton prénom",
     firstNamePlaceholder: "Yusuf",
     emailLabel: "Ton e-mail",
@@ -68,7 +84,7 @@ export const FUNNEL_DEFAULTS: FunnelContent = {
   intro: {
     greeting: "Salam alaykoum {name} !\nJe suis Koji.",
     subtitle:
-      "Je vais te faire apprendre ton tout premier mot du Coran, tout de suite. Prêt(e) ?",
+      "Je vais te faire apprendre tes tout premiers mots du Coran, tout de suite. Prêt(e) ?",
     cta: "C'est parti",
   },
   question: {
@@ -82,18 +98,22 @@ export const FUNNEL_DEFAULTS: FunnelContent = {
   },
   exercise: {
     prompt: "Que signifie ce mot ?",
-    arabicWord: "رَبّ",
-    correct: "Seigneur",
-    distractors: ["Le Tout-Puissant", "Le Miséricordieux"],
-    successText: "Bravo {name} ! Premier mot appris 🎉",
+    successText: "Bravo {name} ! Tu as appris tes premiers mots 🎉",
     retryText: "Presque ! Réessaie 👇",
     cta: "Continuer",
+    items: [
+      { enabled: true, arabicWord: "رَبّ", correct: "Seigneur", distractors: ["Le Tout-Puissant", "Le Miséricordieux"] },
+      { enabled: true, arabicWord: "يَوْم", correct: "Jour", distractors: ["Nuit", "Heure"] },
+      { enabled: true, arabicWord: "مَلِك", correct: "Roi", distractors: ["Serviteur", "Prophète"] },
+      { enabled: true, arabicWord: "نَاس", correct: "Les gens", distractors: ["Les anges", "Les croyants"] },
+      { enabled: true, arabicWord: "كِتَاب", correct: "Livre", distractors: ["Parole", "Lumière"] },
+    ],
   },
   offer: {
     kicker: "Bravo {name}, tu apprends vite !",
     title: "Débloque toute l'application Quranlab à vie",
     subtitle:
-      "Tu viens d'apprendre 1 mot. L'application t'en fait apprendre des centaines, avec une méthode qui rend tout évident.",
+      "Tu viens d'apprendre plusieurs mots. L'application t'en fait apprendre des centaines, avec une méthode qui rend tout évident.",
     priceSuffix: "une fois",
     features: [
       "Accès à vie à toute l'application (tous les mots, tous les exercices)",
@@ -109,7 +129,7 @@ export const FUNNEL_DEFAULTS: FunnelContent = {
 /** Deep-merges a stored partial over the defaults (arrays are replaced wholesale). */
 function mergeFunnel(base: FunnelContent, patch: any): FunnelContent {
   if (!patch || typeof patch !== "object") return base;
-  const out: any = Array.isArray(base) ? [...base] : { ...base };
+  const out: any = { ...base };
   for (const key of Object.keys(patch)) {
     const pv = patch[key];
     const bv = (base as any)[key];
@@ -130,19 +150,22 @@ function mergeFunnel(base: FunnelContent, patch: any): FunnelContent {
 }
 
 /**
- * Reads the admin-editable funnel copy, falling back to defaults if the row or
- * table is missing. `cache()` dedupes within a request.
+ * Reads the admin-editable funnel copy for a version (A or B), falling back to
+ * defaults if the row/table is missing. Both versions are fetched in one query.
  */
-export const getFunnelContent = cache(async (): Promise<FunnelContent> => {
-  try {
-    const row = await db.query.appSetting.findFirst({
-      where: eq(appSetting.key, FUNNEL_CONTENT_KEY),
-    });
-    if (!row?.value) return FUNNEL_DEFAULTS;
-    const parsed = JSON.parse(row.value);
-    return mergeFunnel(FUNNEL_DEFAULTS, parsed);
-  } catch (e) {
-    console.error("[funnel] getFunnelContent failed, using defaults:", e);
-    return FUNNEL_DEFAULTS;
-  }
-});
+export const getFunnelContent = cache(
+  async (version: FunnelVersion = "a"): Promise<FunnelContent> => {
+    try {
+      const rows = await db
+        .select()
+        .from(appSetting)
+        .where(inArray(appSetting.key, [KEY_BY_VERSION[version]]));
+      const raw = rows[0]?.value;
+      if (!raw) return FUNNEL_DEFAULTS;
+      return mergeFunnel(FUNNEL_DEFAULTS, JSON.parse(raw));
+    } catch (e) {
+      console.error("[funnel] getFunnelContent failed, using defaults:", e);
+      return FUNNEL_DEFAULTS;
+    }
+  },
+);

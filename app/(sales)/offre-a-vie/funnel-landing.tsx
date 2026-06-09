@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, Check, Loader2, Lock, ShieldCheck } from "lucide-react";
 
 import { OnboardingMascot } from "@/components/onboarding/onboarding-mascot";
@@ -42,6 +42,8 @@ function fillName(str: string, name: string): string {
 
 type FunnelProps = {
   content: FunnelContent;
+  /** Which funnel version's price to charge at checkout. */
+  checkoutVariant: "funnel" | "funnelB";
   /** Price in major units (e.g. 14.97) for the TikTok conversion value. */
   priceValue: number;
   /** Formatted current price, e.g. "14,97 €". */
@@ -54,8 +56,21 @@ type FunnelProps = {
 
 type ExOption = { id: string; label: string; correct: boolean };
 
+function shuffledOptions(correct: string, distractors: string[]): ExOption[] {
+  const opts: ExOption[] = [
+    { id: "correct", label: correct, correct: true },
+    ...distractors.map((d, i) => ({ id: `d${i}`, label: d, correct: false })),
+  ];
+  for (let i = opts.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [opts[i], opts[j]] = [opts[j], opts[i]];
+  }
+  return opts;
+}
+
 export function FunnelLanding({
   content,
+  checkoutVariant,
   priceValue,
   priceLabel,
   compareLabel,
@@ -73,27 +88,30 @@ export function FunnelLanding({
   const [okokReplayKey, setOkokReplayKey] = useState(0);
   const [focusAnswer, setFocusAnswer] = useState<number | null>(null);
 
-  // Exercise — build (and shuffle once) the options from the editable content.
-  const exerciseOptions = useMemo<ExOption[]>(() => {
-    const opts: ExOption[] = [
-      { id: "correct", label: content.exercise.correct, correct: true },
-      ...content.exercise.distractors.map((d, i) => ({
-        id: `d${i}`,
-        label: d,
-        correct: false,
-      })),
-    ];
-    for (let i = opts.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [opts[i], opts[j]] = [opts[j], opts[i]];
-    }
-    return opts;
-  }, [content.exercise.correct, content.exercise.distractors]);
-
-  const [picked, setPicked] = useState<string | null>(null);
-  const exerciseSolved = picked
-    ? exerciseOptions.find((o) => o.id === picked)?.correct === true
-    : false;
+  // Exercise — the enabled items form a short mini-lesson the visitor plays
+  // through, one word at a time. Options are shuffled once per item.
+  const items = useMemo(
+    () =>
+      content.exercise.items.filter(
+        (i) => i.enabled && i.arabicWord.trim() && i.correct.trim(),
+      ),
+    [content.exercise.items],
+  );
+  const itemsOptions = useMemo(
+    () => items.map((it) => shuffledOptions(it.correct, it.distractors)),
+    [items],
+  );
+  const [exIndex, setExIndex] = useState(0);
+  const [exPicked, setExPicked] = useState<string | null>(null);
+  const [allSolved, setAllSolved] = useState(false);
+  const advanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (advanceTimer.current) clearTimeout(advanceTimer.current);
+  }, []);
+  const currentOptions = itemsOptions[exIndex] ?? [];
+  const currentSolved =
+    exPicked != null &&
+    currentOptions.find((o) => o.id === exPicked)?.correct === true;
 
   // Offer / checkout
   const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -154,11 +172,11 @@ export function FunnelLanding({
     setOkokReplayKey((k) => k + 1);
   };
 
-  // ----- Step 4: exercise -----
+  // ----- Step 4: exercise (mini-lesson) -----
   const pickAnswer = (id: string) => {
-    if (exerciseSolved) return; // locked once solved
-    setPicked(id);
-    const correct = exerciseOptions.find((o) => o.id === id)?.correct === true;
+    if (currentSolved || allSolved) return; // can't re-answer a solved item
+    setExPicked(id);
+    const correct = currentOptions.find((o) => o.id === id)?.correct === true;
     try {
       const a = new Audio(correct ? "/correct.wav" : "/incorrect.wav");
       a.volume = correct ? 0.6 : 0.5;
@@ -166,9 +184,18 @@ export function FunnelLanding({
     } catch {
       /* ignore */
     }
-    if (correct) {
-      setOkokReplayKey((k) => k + 1);
+    if (!correct) return; // wrong: keep the step open so they can retry
+    setOkokReplayKey((k) => k + 1);
+    const isLast = exIndex >= items.length - 1;
+    if (isLast) {
+      setAllSolved(true);
       track("funnel_exercise_done");
+    } else {
+      // Brief beat on the correct answer, then advance to the next word.
+      advanceTimer.current = setTimeout(() => {
+        setExIndex((i) => i + 1);
+        setExPicked(null);
+      }, 700);
     }
   };
 
@@ -198,7 +225,7 @@ export function FunnelLanding({
       content_category: "app",
     });
     try {
-      const res = await createAppLifetimeCheckoutUrl("fr", "funnel", {
+      const res = await createAppLifetimeCheckoutUrl("fr", checkoutVariant, {
         email,
         firstName,
       });
@@ -273,9 +300,11 @@ export function FunnelLanding({
         <ExerciseStep
           c={content.exercise}
           name={name}
-          options={exerciseOptions}
-          picked={picked}
-          solved={exerciseSolved}
+          arabicWord={items[exIndex]?.arabicWord ?? ""}
+          options={currentOptions}
+          picked={exPicked}
+          stepLabel={items.length > 1 ? `Mot ${Math.min(exIndex + 1, items.length)}/${items.length}` : null}
+          allSolved={allSolved || items.length === 0}
           replayKey={okokReplayKey}
           onPick={pickAnswer}
           onContinue={goNext}
@@ -483,22 +512,31 @@ function QuestionStep({
 function ExerciseStep({
   c,
   name,
+  arabicWord,
   options,
   picked,
-  solved,
+  stepLabel,
+  allSolved,
   replayKey,
   onPick,
   onContinue,
 }: {
   c: FunnelContent["exercise"];
   name: string;
+  arabicWord: string;
   options: ExOption[];
   picked: string | null;
-  solved: boolean;
+  stepLabel: string | null;
+  allSolved: boolean;
   replayKey: number;
   onPick: (id: string) => void;
   onContinue: () => void;
 }) {
+  // Is the current word answered correctly (locks the buttons + shows reveal)?
+  const currentSolved =
+    picked != null && options.find((o) => o.id === picked)?.correct === true;
+  const locked = currentSolved || allSolved;
+
   return (
     <section className="flex flex-1 flex-col items-center px-6 pb-8 pt-4">
       <div className="flex items-center gap-2">
@@ -506,66 +544,76 @@ function ExerciseStep({
           <OnboardingMascot phase="question" replayKey={replayKey} />
         </div>
         <p className="font-heading text-base font-bold text-neutral-900 sm:text-lg">
-          {solved ? fillName(c.successText, name) : c.prompt}
+          {allSolved ? fillName(c.successText, name) : c.prompt}
         </p>
       </div>
 
-      {/* Arabic word card */}
-      <div
-        className="mt-6 flex w-full max-w-[300px] items-center justify-center rounded-2xl border-2 border-[#E0E0E0] bg-white p-6"
-        style={{ boxShadow: "0 4px 0 0 #D4D4D4" }}
-      >
-        <span
-          className="font-arabic text-4xl text-neutral-900 sm:text-5xl"
-          dir="rtl"
-        >
-          {c.arabicWord}
-        </span>
-      </div>
+      {!allSolved && (
+        <>
+          {stepLabel && (
+            <span className="mt-3 rounded-full bg-[#6967fb]/10 px-3 py-1 text-xs font-bold text-[#6967fb]">
+              {stepLabel}
+            </span>
+          )}
 
-      {/* Options */}
-      <div className="mt-5 grid w-full max-w-md grid-cols-1 gap-2.5">
-        {options.map((o) => {
-          const isPicked = picked === o.id;
-          const revealCorrect = solved && o.correct;
-          return (
-            <button
-              key={o.id}
-              type="button"
-              onClick={() => onPick(o.id)}
-              disabled={solved}
-              className={cn(
-                "h-14 rounded-2xl border-2 px-4 text-base font-semibold transition",
-                isPicked && o.correct &&
-                  "border-brilliant-green bg-brilliant-success text-brilliant-green",
-                isPicked && !o.correct &&
-                  "border-rose-400 bg-rose-50 text-rose-600",
-                !isPicked && revealCorrect &&
-                  "border-brilliant-green bg-brilliant-success text-brilliant-green",
-                !isPicked && !revealCorrect &&
-                  "border-[#E0E0E0] bg-white text-neutral-800 hover:border-[#6967fb]/40",
-                solved && !o.correct && !isPicked && "opacity-40",
-              )}
-              style={{
-                boxShadow:
-                  isPicked || (solved && o.correct) ? "none" : "0 4px 0 0 #D4D4D4",
-              }}
+          {/* Arabic word card */}
+          <div
+            className="mt-4 flex w-full max-w-[300px] items-center justify-center rounded-2xl border-2 border-[#E0E0E0] bg-white p-6"
+            style={{ boxShadow: "0 4px 0 0 #D4D4D4" }}
+          >
+            <span
+              className="font-arabic text-4xl text-neutral-900 sm:text-5xl"
+              dir="rtl"
             >
-              {o.label}
-            </button>
-          );
-        })}
-      </div>
+              {arabicWord}
+            </span>
+          </div>
 
-      {picked && !solved && (
-        <p className="mt-4 text-sm font-medium text-rose-500">{c.retryText}</p>
+          {/* Options */}
+          <div className="mt-5 grid w-full max-w-md grid-cols-1 gap-2.5">
+            {options.map((o) => {
+              const isPicked = picked === o.id;
+              const revealCorrect = currentSolved && o.correct;
+              return (
+                <button
+                  key={o.id}
+                  type="button"
+                  onClick={() => onPick(o.id)}
+                  disabled={locked}
+                  className={cn(
+                    "h-14 rounded-2xl border-2 px-4 text-base font-semibold transition",
+                    isPicked && o.correct &&
+                      "border-brilliant-green bg-brilliant-success text-brilliant-green",
+                    isPicked && !o.correct &&
+                      "border-rose-400 bg-rose-50 text-rose-600",
+                    !isPicked && revealCorrect &&
+                      "border-brilliant-green bg-brilliant-success text-brilliant-green",
+                    !isPicked && !revealCorrect &&
+                      "border-[#E0E0E0] bg-white text-neutral-800 hover:border-[#6967fb]/40",
+                    currentSolved && !o.correct && !isPicked && "opacity-40",
+                  )}
+                  style={{
+                    boxShadow:
+                      isPicked || revealCorrect ? "none" : "0 4px 0 0 #D4D4D4",
+                  }}
+                >
+                  {o.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {picked && !currentSolved && (
+            <p className="mt-4 text-sm font-medium text-rose-500">{c.retryText}</p>
+          )}
+        </>
       )}
 
       <div className="mt-auto w-full max-w-sm pt-8">
         <ShinyButton
-          variant={solved ? "green" : "gray"}
+          variant={allSolved ? "green" : "gray"}
           onClick={onContinue}
-          disabled={!solved}
+          disabled={!allSolved}
         >
           {c.cta}
         </ShinyButton>

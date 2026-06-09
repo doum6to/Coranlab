@@ -140,7 +140,8 @@ const AdminPremiumPage = async () => {
     contentV4Fr,
     contentV4En,
     contentV4Es,
-    funnelContent,
+    funnelContentA,
+    funnelContentB,
     arabicContent,
     videos,
   ] = await Promise.all([
@@ -151,7 +152,8 @@ const AdminPremiumPage = async () => {
     getLandingContent("fr", "v4"),
     getLandingContent("en", "v4"),
     getLandingContent("es", "v4"),
-    getFunnelContent(),
+    getFunnelContent("a"),
+    getFunnelContent("b"),
     getArabicLandingContent(),
     listCourseVideos(),
   ]);
@@ -225,6 +227,11 @@ const AdminPremiumPage = async () => {
                       price: (offer.funnelPrice.priceCents / 100).toFixed(2),
                       compare: (offer.funnelPrice.compareAtCents / 100).toFixed(2),
                     },
+                    funnelPriceB: {
+                      currency: offer.funnelPriceB.currency,
+                      price: (offer.funnelPriceB.priceCents / 100).toFixed(2),
+                      compare: (offer.funnelPriceB.compareAtCents / 100).toFixed(2),
+                    },
                     paymentBadges: offer.paymentBadges,
                     scarcityMode: offer.scarcityMode,
                     stickyBar: offer.stickyBar,
@@ -245,7 +252,13 @@ const AdminPremiumPage = async () => {
             {
               key: "funnel",
               label: "Tunnel (V5)",
-              node: <FunnelContentForm initial={funnelContent} />,
+              node: (
+                <FunnelContentForm
+                  initialA={funnelContentA}
+                  initialB={funnelContentB}
+                  activeVersion={offer.funnelVersion}
+                />
+              ),
             },
             {
               key: "arabic",

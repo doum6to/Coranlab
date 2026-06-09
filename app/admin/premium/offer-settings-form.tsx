@@ -31,6 +31,7 @@ export function OfferSettingsForm({
     pricingByLocale: Record<Locale, PriceRow>;
     pricingByLocaleV4: Record<Locale, PriceRow>;
     funnelPrice: PriceRow;
+    funnelPriceB: PriceRow;
     paymentBadges: string[];
     scarcityMode: "spots" | "timer";
     stickyBar: boolean;
@@ -60,6 +61,9 @@ export function OfferSettingsForm({
   const [funnel, setFunnel] = useState<PriceRow>(initial.funnelPrice);
   const setFunnelRow = (patch: Partial<PriceRow>) =>
     setFunnel((f) => ({ ...f, ...patch }));
+  const [funnelB, setFunnelB] = useState<PriceRow>(initial.funnelPriceB);
+  const setFunnelBRow = (patch: Partial<PriceRow>) =>
+    setFunnelB((f) => ({ ...f, ...patch }));
   const [badges, setBadges] = useState<string[]>(initial.paymentBadges);
   const toggleBadge = (id: string) =>
     setBadges((b) => (b.includes(id) ? b.filter((x) => x !== id) : [...b, id]));
@@ -143,13 +147,17 @@ export function OfferSettingsForm({
         }),
       ) as Record<Locale, { currency: Currency; priceCents: number; compareAtCents: number }>;
 
-      const funnelPc = Math.round(parseFloat(funnel.price.replace(",", ".")) * 100);
-      const funnelCc = Math.round(parseFloat(funnel.compare.replace(",", ".")) * 100);
-      const funnelPrice = {
-        currency: funnel.currency,
-        priceCents: Number.isFinite(funnelPc) && funnelPc >= 0 ? funnelPc : priceCents,
-        compareAtCents: Number.isFinite(funnelCc) && funnelCc >= 0 ? funnelCc : 0,
+      const toPrice = (row: PriceRow) => {
+        const pc = Math.round(parseFloat(row.price.replace(",", ".")) * 100);
+        const cc = Math.round(parseFloat(row.compare.replace(",", ".")) * 100);
+        return {
+          currency: row.currency,
+          priceCents: Number.isFinite(pc) && pc >= 0 ? pc : priceCents,
+          compareAtCents: Number.isFinite(cc) && cc >= 0 ? cc : 0,
+        };
       };
+      const funnelPrice = toPrice(funnel);
+      const funnelPriceB = toPrice(funnelB);
 
       const res = await updateOfferSettings({
         priceCents,
@@ -161,6 +169,7 @@ export function OfferSettingsForm({
         pricingByLocale,
         pricingByLocaleV4,
         funnelPrice,
+        funnelPriceB,
         paymentBadges: badges,
         scarcityMode,
         stickyBar,
@@ -420,43 +429,57 @@ export function OfferSettingsForm({
         </div>
       </div>
 
-      {/* Funnel (V5) single price */}
+      {/* Funnel (V5) prices — version A & B (A/B test) */}
       <div className="mt-4 rounded-xl border border-[#58cc6a]/40 bg-[#58cc6a]/5 p-3">
         <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-[#3fa34d]">
-          Prix du Tunnel (V5)
+          Prix du Tunnel (V5) — Versions A / B
         </span>
         <p className="mb-3 text-xs text-neutral-400">
-          Le prix affiché et débité dans le tunnel /offre-a-vie (variante
-          « Tunnel »). Indépendant des autres versions.
+          Prix affiché et débité dans le tunnel /offre-a-vie. Chaque version a
+          son prix (pour l&apos;A/B test). La version en ligne se choisit dans
+          l&apos;onglet « Tunnel (V5) ».
         </p>
-        <div className="grid grid-cols-[90px_1fr_1fr] items-center gap-2">
-          <select
-            value={funnel.currency}
-            onChange={(e) => setFunnelRow({ currency: e.target.value as Currency })}
-            className="rounded-xl border border-neutral-300 px-2 py-2 text-sm outline-none focus:border-brilliant-green focus:ring-2 focus:ring-brilliant-green/20"
-          >
-            {CURRENCIES.map((cur) => (
-              <option key={cur} value={cur}>
-                {cur}
-              </option>
-            ))}
-          </select>
-          <input
-            type="text"
-            inputMode="decimal"
-            value={funnel.price}
-            onChange={(e) => setFunnelRow({ price: e.target.value })}
-            placeholder="Prix"
-            className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brilliant-green focus:ring-2 focus:ring-brilliant-green/20"
-          />
-          <input
-            type="text"
-            inputMode="decimal"
-            value={funnel.compare}
-            onChange={(e) => setFunnelRow({ compare: e.target.value })}
-            placeholder="Prix barré"
-            className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brilliant-green focus:ring-2 focus:ring-brilliant-green/20"
-          />
+        <div className="space-y-2">
+          {([
+            ["Version A", funnel, setFunnelRow] as const,
+            ["Version B", funnelB, setFunnelBRow] as const,
+          ]).map(([label, row, setRow]) => (
+            <div
+              key={label}
+              className="grid grid-cols-[78px_90px_1fr_1fr] items-center gap-2"
+            >
+              <span className="text-sm font-semibold text-neutral-700">
+                {label}
+              </span>
+              <select
+                value={row.currency}
+                onChange={(e) => setRow({ currency: e.target.value as Currency })}
+                className="rounded-xl border border-neutral-300 px-2 py-2 text-sm outline-none focus:border-brilliant-green focus:ring-2 focus:ring-brilliant-green/20"
+              >
+                {CURRENCIES.map((cur) => (
+                  <option key={cur} value={cur}>
+                    {cur}
+                  </option>
+                ))}
+              </select>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={row.price}
+                onChange={(e) => setRow({ price: e.target.value })}
+                placeholder="Prix"
+                className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brilliant-green focus:ring-2 focus:ring-brilliant-green/20"
+              />
+              <input
+                type="text"
+                inputMode="decimal"
+                value={row.compare}
+                onChange={(e) => setRow({ compare: e.target.value })}
+                placeholder="Prix barré"
+                className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brilliant-green focus:ring-2 focus:ring-brilliant-green/20"
+              />
+            </div>
+          ))}
         </div>
       </div>
 

@@ -5,24 +5,34 @@ import { revalidatePath } from "next/cache";
 import db from "@/db/drizzle";
 import { appSetting } from "@/db/schema";
 import { isAdminAuthed } from "@/lib/admin-auth";
+import { OFFER_KEYS } from "@/lib/offer";
 import {
   FUNNEL_CONTENT_KEY,
+  FUNNEL_CONTENT_KEY_B,
   FUNNEL_DEFAULTS,
   type FunnelContent,
+  type FunnelVersion,
 } from "@/lib/funnel-content";
 
 const s = (v: unknown, fallback = ""): string =>
   typeof v === "string" ? v : fallback;
 
-/**
- * Persists the admin-editable funnel copy as a JSON blob in app_setting.
- * Guarded by the admin session; coerces every field to keep the stored shape
- * valid even if the client sends something odd.
- */
-export async function updateFunnelContent(input: FunnelContent) {
-  if (!isAdminAuthed()) throw new Error("Unauthorized");
-
+/** Coerces an incoming content object into the valid stored shape. */
+function sanitize(input: FunnelContent): FunnelContent {
   const d = FUNNEL_DEFAULTS;
+  const items = (Array.isArray(input.exercise?.items) ? input.exercise.items : [])
+    .map((it) => ({
+      enabled: !!it?.enabled,
+      arabicWord: s(it?.arabicWord),
+      correct: s(it?.correct),
+      distractors: (Array.isArray(it?.distractors) ? it.distractors : [])
+        .map((x) => s(x))
+        .filter((x) => x.trim().length > 0)
+        .slice(0, 4),
+    }))
+    .filter((it) => it.arabicWord.trim() && it.correct.trim())
+    .slice(0, 8);
+
   const clean: FunnelContent = {
     capture: {
       title: s(input.capture?.title, d.capture.title),
@@ -51,18 +61,10 @@ export async function updateFunnelContent(input: FunnelContent) {
     },
     exercise: {
       prompt: s(input.exercise?.prompt, d.exercise.prompt),
-      arabicWord: s(input.exercise?.arabicWord, d.exercise.arabicWord),
-      correct: s(input.exercise?.correct, d.exercise.correct),
-      distractors: (Array.isArray(input.exercise?.distractors)
-        ? input.exercise.distractors
-        : []
-      )
-        .map((x) => s(x))
-        .filter((x) => x.trim().length > 0)
-        .slice(0, 4),
       successText: s(input.exercise?.successText, d.exercise.successText),
       retryText: s(input.exercise?.retryText, d.exercise.retryText),
       cta: s(input.exercise?.cta, d.exercise.cta),
+      items: items.length ? items : d.exercise.items,
     },
     offer: {
       kicker: s(input.offer?.kicker, d.offer.kicker),
@@ -78,26 +80,45 @@ export async function updateFunnelContent(input: FunnelContent) {
     },
   };
 
-  // Ensure the exercise always has at least one wrong option.
-  if (clean.exercise.distractors.length === 0) {
-    clean.exercise.distractors = d.exercise.distractors;
+  if (clean.question.options.length === 0) clean.question.options = d.question.options;
+  // Guarantee at least one enabled exercise so the step is never empty.
+  if (!clean.exercise.items.some((i) => i.enabled) && clean.exercise.items[0]) {
+    clean.exercise.items[0].enabled = true;
   }
-  if (clean.question.options.length === 0) {
-    clean.question.options = d.question.options;
-  }
+  return clean;
+}
+
+/**
+ * Persists both funnel versions (A and B) and which one is live. Guarded by the
+ * admin session; coerces every field to keep the stored shape valid.
+ */
+export async function updateFunnelContent(input: {
+  a: FunnelContent;
+  b: FunnelContent;
+  activeVersion: FunnelVersion;
+}) {
+  if (!isAdminAuthed()) throw new Error("Unauthorized");
+
+  const cleanA = sanitize(input.a);
+  const cleanB = sanitize(input.b);
+  const activeVersion = input.activeVersion === "b" ? "b" : "a";
+
+  const entries: Array<[string, string]> = [
+    [FUNNEL_CONTENT_KEY, JSON.stringify(cleanA)],
+    [FUNNEL_CONTENT_KEY_B, JSON.stringify(cleanB)],
+    [OFFER_KEYS.funnelVersion, activeVersion],
+  ];
 
   try {
-    await db
-      .insert(appSetting)
-      .values({
-        key: FUNNEL_CONTENT_KEY,
-        value: JSON.stringify(clean),
-        updatedAt: new Date(),
-      })
-      .onConflictDoUpdate({
-        target: appSetting.key,
-        set: { value: JSON.stringify(clean), updatedAt: new Date() },
-      });
+    for (const [key, value] of entries) {
+      await db
+        .insert(appSetting)
+        .values({ key, value, updatedAt: new Date() })
+        .onConflictDoUpdate({
+          target: appSetting.key,
+          set: { value, updatedAt: new Date() },
+        });
+    }
   } catch (e: any) {
     console.error("[funnel] updateFunnelContent failed:", e);
     return { error: "Échec de l'enregistrement du contenu du tunnel." };

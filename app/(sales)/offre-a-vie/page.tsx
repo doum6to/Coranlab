@@ -95,11 +95,14 @@ export default async function OffreAViePage() {
     return <ProductLanding content={content} offer={offer} />;
   }
   if (offer.variant === "funnel") {
-    const fp = getLocalePrice(offer, "fr", "funnel");
-    const funnelContent = await getFunnelContent();
+    const version = offer.funnelVersion; // "a" | "b"
+    const checkoutVariant = version === "b" ? "funnelB" : "funnel";
+    const fp = getLocalePrice(offer, "fr", checkoutVariant);
+    const funnelContent = await getFunnelContent(version);
     return (
       <FunnelLanding
         content={funnelContent}
+        checkoutVariant={checkoutVariant}
         priceValue={fp.priceCents / 100}
         priceLabel={formatMoney(fp.priceCents, fp.currency)}
         compareLabel={
