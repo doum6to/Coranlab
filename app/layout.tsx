@@ -158,8 +158,10 @@ fbq('track', 'PageView');
         </noscript>
 
         {/* Microsoft Clarity — heatmaps, scroll maps and session recordings.
-            Defaults to the project id; override with NEXT_PUBLIC_CLARITY_ID. */}
-        <Script id="ms-clarity" strategy="afterInteractive">
+            Defaults to the project id; override with NEXT_PUBLIC_CLARITY_ID.
+            Loaded with `lazyOnload` so it waits for the browser idle period and
+            never competes with first paint / interactivity. */}
+        <Script id="ms-clarity" strategy="lazyOnload">
           {`
 (function(c,l,a,r,i,t,y){
   c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
