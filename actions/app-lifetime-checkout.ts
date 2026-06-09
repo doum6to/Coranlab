@@ -28,12 +28,12 @@ const CANCEL_PATH: Record<Locale, string> = {
  */
 export async function createAppLifetimeCheckoutUrl(
   locale: Locale = DEFAULT_LOCALE,
-  variant: "v3" | "v4" = "v3",
+  variant: "v3" | "v4" | "funnel" = "v3",
   lead?: { email?: string; firstName?: string },
 ) {
   try {
     if (!isLocale(locale)) locale = DEFAULT_LOCALE;
-    if (variant !== "v4") variant = "v3";
+    if (variant !== "v4" && variant !== "funnel") variant = "v3";
     const offer = await getOfferSettings();
     const { currency, priceCents } = getLocalePrice(offer, locale, variant);
 

@@ -43,6 +43,8 @@ export type OfferSettings = {
   pricingByLocale: Record<Locale, LocalePrice>;
   /** Per-language price for the V4 A/B variant (defaults to V3 per locale). */
   pricingByLocaleV4: Record<Locale, LocalePrice>;
+  /** Independent price for the "funnel" variant (FR-only landing). */
+  funnelPrice: LocalePrice;
   /** Payment-method badges shown on the landing (subset of PAYMENT_BADGE_IDS). */
   paymentBadges: string[];
   /** Scarcity element under the CTA: the spots gauge or a 24h countdown. */
@@ -68,6 +70,7 @@ export const OFFER_DEFAULTS: OfferSettings = {
     en: { currency: "GBP", priceCents: 1497, compareAtCents: 9900 },
     es: { currency: "EUR", priceCents: 1497, compareAtCents: 9900 },
   },
+  funnelPrice: { currency: "EUR", priceCents: 1497, compareAtCents: 9900 },
   paymentBadges: ["card", "applePay", "paypal", "klarna", "link"],
   scarcityMode: "spots",
   stickyBar: false,
@@ -92,6 +95,7 @@ const KEYS = {
   pdf: "pdf_links",
   pricing: "offer_pricing_by_locale",
   pricingV4: "offer_pricing_by_locale_v4",
+  funnelPrice: "offer_funnel_price",
   badges: "offer_payment_badges",
   scarcity: "offer_scarcity_mode",
   sticky: "offer_sticky_bar",
@@ -124,6 +128,7 @@ export const getOfferSettings = cache(async (): Promise<OfferSettings> => {
           KEYS.pdf,
           KEYS.pricing,
           KEYS.pricingV4,
+          KEYS.funnelPrice,
           KEYS.badges,
           KEYS.scarcity,
           KEYS.sticky,
@@ -218,6 +223,31 @@ export const getOfferSettings = cache(async (): Promise<OfferSettings> => {
       (loc) => pricingByLocale[loc],
     );
 
+    // Independent single price for the funnel variant. Falls back to the FR
+    // V3 price when unset, so the funnel works before any override is saved.
+    let funnelPrice: LocalePrice = pricingByLocale[DEFAULT_LOCALE] ?? fallback;
+    try {
+      const raw = map.get(KEYS.funnelPrice);
+      if (raw) {
+        const s = JSON.parse(raw) as Partial<LocalePrice>;
+        if (s && typeof s === "object") {
+          funnelPrice = {
+            currency: isCurrency(s.currency) ? s.currency : funnelPrice.currency,
+            priceCents:
+              typeof s.priceCents === "number" && s.priceCents >= 0
+                ? s.priceCents
+                : funnelPrice.priceCents,
+            compareAtCents:
+              typeof s.compareAtCents === "number" && s.compareAtCents >= 0
+                ? s.compareAtCents
+                : funnelPrice.compareAtCents,
+          };
+        }
+      }
+    } catch {
+      /* keep fallback */
+    }
+
     return {
       priceCents,
       compareAtCents,
@@ -232,6 +262,7 @@ export const getOfferSettings = cache(async (): Promise<OfferSettings> => {
       pdfLinks,
       pricingByLocale,
       pricingByLocaleV4,
+      funnelPrice,
       paymentBadges,
       scarcityMode: map.get(KEYS.scarcity) === "timer" ? "timer" : "spots",
       stickyBar: map.get(KEYS.sticky) === "true",
@@ -248,8 +279,19 @@ export const OFFER_KEYS = KEYS;
 export function getLocalePrice(
   offer: OfferSettings,
   locale: Locale = DEFAULT_LOCALE,
-  variant: "v3" | "v4" = "v3",
+  variant: "v3" | "v4" | "funnel" = "v3",
 ): LocalePrice {
+  // The funnel uses a single independent price (FR-only landing).
+  if (variant === "funnel") {
+    return (
+      offer.funnelPrice ??
+      offer.pricingByLocale?.[DEFAULT_LOCALE] ?? {
+        currency: "EUR",
+        priceCents: offer.priceCents,
+        compareAtCents: offer.compareAtCents,
+      }
+    );
+  }
   const map = variant === "v4" ? offer.pricingByLocaleV4 : offer.pricingByLocale;
   return (
     map?.[locale] ??

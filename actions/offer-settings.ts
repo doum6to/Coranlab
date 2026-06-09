@@ -22,6 +22,7 @@ export async function updateOfferSettings(input: {
   pdfLinks: { label: string; url: string }[];
   pricingByLocale?: Partial<Record<Locale, LocalePrice>>;
   pricingByLocaleV4?: Partial<Record<Locale, LocalePrice>>;
+  funnelPrice?: LocalePrice;
   paymentBadges?: string[];
   scarcityMode?: "spots" | "timer";
   stickyBar?: boolean;
@@ -80,6 +81,24 @@ export async function updateOfferSettings(input: {
     cleanPricingV4[loc] = { currency: p.currency, priceCents: pc, compareAtCents: cc };
   }
 
+  // Funnel single price (independent, charged by Stripe for the funnel variant).
+  let cleanFunnelPrice: LocalePrice | null = null;
+  if (input.funnelPrice) {
+    const p = input.funnelPrice;
+    const pc = Math.round(p.priceCents);
+    const cc = Math.round(p.compareAtCents);
+    if (
+      !isCurrency(p.currency) ||
+      !Number.isFinite(pc) ||
+      pc < 0 ||
+      !Number.isFinite(cc) ||
+      cc < 0
+    ) {
+      return { error: "Prix du tunnel invalide." };
+    }
+    cleanFunnelPrice = { currency: p.currency, priceCents: pc, compareAtCents: cc };
+  }
+
   const entries: Array<[string, string]> = [
     [OFFER_KEYS.price, String(priceCents)],
     [OFFER_KEYS.compare, String(compareAtCents)],
@@ -107,6 +126,11 @@ export async function updateOfferSettings(input: {
       ),
     ],
   ];
+
+  // Only persist the funnel price when provided, so omitting it never wipes it.
+  if (cleanFunnelPrice) {
+    entries.push([OFFER_KEYS.funnelPrice, JSON.stringify(cleanFunnelPrice)]);
+  }
 
   try {
     for (const [key, value] of entries) {

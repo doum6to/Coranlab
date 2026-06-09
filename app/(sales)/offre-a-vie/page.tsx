@@ -22,6 +22,7 @@ import { StickySpotsBar } from "./sticky-spots-bar";
 import { ArrowDoodle, Loops, Sparkle, Star } from "./doodles";
 import { getOfferSettings, getLocalePrice, formatMoney, formatEuros } from "@/lib/offer";
 import { getLandingContent } from "@/lib/landing-content";
+import { getFunnelContent } from "@/lib/funnel-content";
 
 // ISR — regenerated on demand when the admin saves the offer settings or
 // landing content, and at most every 60s otherwise.
@@ -94,9 +95,11 @@ export default async function OffreAViePage() {
     return <ProductLanding content={content} offer={offer} />;
   }
   if (offer.variant === "funnel") {
-    const fp = getLocalePrice(offer, "fr", "v3");
+    const fp = getLocalePrice(offer, "fr", "funnel");
+    const funnelContent = await getFunnelContent();
     return (
       <FunnelLanding
+        content={funnelContent}
         priceValue={fp.priceCents / 100}
         priceLabel={formatMoney(fp.priceCents, fp.currency)}
         compareLabel={

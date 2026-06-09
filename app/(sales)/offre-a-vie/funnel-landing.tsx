@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronLeft, Check, Loader2, Lock, ShieldCheck } from "lucide-react";
 
 import { OnboardingMascot } from "@/components/onboarding/onboarding-mascot";
@@ -10,6 +10,7 @@ import { track } from "@/lib/analytics/track";
 import { ttqTrack } from "@/lib/analytics/tiktok";
 import { createAppLifetimeCheckoutUrl } from "@/actions/app-lifetime-checkout";
 import { captureFunnelLead } from "@/actions/funnel-lead";
+import type { FunnelContent } from "@/lib/funnel-content";
 import { PaymentBadges } from "./payment-badges";
 
 /**
@@ -22,8 +23,8 @@ import { PaymentBadges } from "./payment-badges";
  * After payment the existing /offre-a-vie/merci → /auth/signup → premium flow
  * takes over (the email + first name are carried through to pre-fill signup).
  *
- * No auth, no DB on the client: the lead is recorded via a server action and
- * the price/labels are resolved server-side and passed in as plain props.
+ * All copy comes from the admin-editable FunnelContent; the price/labels are
+ * resolved server-side (the independent "funnel" price) and passed in.
  */
 
 const STEPS = ["capture", "intro", "question", "exercise", "offer"] as const;
@@ -32,7 +33,15 @@ type StepKey = (typeof STEPS)[number];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const STORAGE_KEY = "funnel_lead_v1";
 
+/** Replaces {name}; when the name is empty, also drops the leading space. */
+function fillName(str: string, name: string): string {
+  return name
+    ? str.replace(/\{name\}/g, name)
+    : str.replace(/\s*\{name\}/g, "");
+}
+
 type FunnelProps = {
+  content: FunnelContent;
   /** Price in major units (e.g. 14.97) for the TikTok conversion value. */
   priceValue: number;
   /** Formatted current price, e.g. "14,97 €". */
@@ -43,28 +52,10 @@ type FunnelProps = {
   paymentBadges: string[];
 };
 
-/** The single easy exercise — a 3-option QCM. The first option is correct. */
-const EXERCISE = {
-  arabicWord: "رَبّ",
-  prompt: "Que signifie ce mot ?",
-  options: [
-    { id: "seigneur", label: "Seigneur", correct: true },
-    { id: "puissant", label: "Le Tout-Puissant", correct: false },
-    { id: "misericordieux", label: "Le Miséricordieux", correct: false },
-  ],
-};
-
-const QUESTION = {
-  title: "Pourquoi veux-tu apprendre les mots du Coran ?",
-  options: [
-    { id: "prayer", label: "Comprendre le sens pendant la prière", response: "Magnifique, chaque mot prendra vie !" },
-    { id: "read", label: "Lire le Coran sans traduction", response: "Bravo, un objectif puissant !" },
-    { id: "faith", label: "Approfondir ma foi", response: "Superbe intention, on avance ensemble." },
-    { id: "vocab", label: "Enrichir mon vocabulaire arabe", response: "Excellent, on construit mot à mot !" },
-  ],
-};
+type ExOption = { id: string; label: string; correct: boolean };
 
 export function FunnelLanding({
+  content,
   priceValue,
   priceLabel,
   compareLabel,
@@ -80,12 +71,28 @@ export function FunnelLanding({
 
   // Mascot / question
   const [okokReplayKey, setOkokReplayKey] = useState(0);
-  const [focusAnswer, setFocusAnswer] = useState<string | null>(null);
+  const [focusAnswer, setFocusAnswer] = useState<number | null>(null);
 
-  // Exercise
+  // Exercise — build (and shuffle once) the options from the editable content.
+  const exerciseOptions = useMemo<ExOption[]>(() => {
+    const opts: ExOption[] = [
+      { id: "correct", label: content.exercise.correct, correct: true },
+      ...content.exercise.distractors.map((d, i) => ({
+        id: `d${i}`,
+        label: d,
+        correct: false,
+      })),
+    ];
+    for (let i = opts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [opts[i], opts[j]] = [opts[j], opts[i]];
+    }
+    return opts;
+  }, [content.exercise.correct, content.exercise.distractors]);
+
   const [picked, setPicked] = useState<string | null>(null);
   const exerciseSolved = picked
-    ? EXERCISE.options.find((o) => o.id === picked)?.correct === true
+    ? exerciseOptions.find((o) => o.id === picked)?.correct === true
     : false;
 
   // Offer / checkout
@@ -142,8 +149,8 @@ export function FunnelLanding({
   };
 
   // ----- Step 3: question -----
-  const pickFocus = (id: string) => {
-    setFocusAnswer(id);
+  const pickFocus = (idx: number) => {
+    setFocusAnswer(idx);
     setOkokReplayKey((k) => k + 1);
   };
 
@@ -151,25 +158,17 @@ export function FunnelLanding({
   const pickAnswer = (id: string) => {
     if (exerciseSolved) return; // locked once solved
     setPicked(id);
-    const correct = EXERCISE.options.find((o) => o.id === id)?.correct === true;
+    const correct = exerciseOptions.find((o) => o.id === id)?.correct === true;
+    try {
+      const a = new Audio(correct ? "/correct.wav" : "/incorrect.wav");
+      a.volume = correct ? 0.6 : 0.5;
+      void a.play();
+    } catch {
+      /* ignore */
+    }
     if (correct) {
       setOkokReplayKey((k) => k + 1);
       track("funnel_exercise_done");
-      try {
-        const a = new Audio("/correct.wav");
-        a.volume = 0.6;
-        void a.play();
-      } catch {
-        /* ignore */
-      }
-    } else {
-      try {
-        const a = new Audio("/incorrect.wav");
-        a.volume = 0.5;
-        void a.play();
-      } catch {
-        /* ignore */
-      }
     }
   };
 
@@ -199,7 +198,7 @@ export function FunnelLanding({
       content_category: "app",
     });
     try {
-      const res = await createAppLifetimeCheckoutUrl("fr", "v3", {
+      const res = await createAppLifetimeCheckoutUrl("fr", "funnel", {
         email,
         firstName,
       });
@@ -216,7 +215,7 @@ export function FunnelLanding({
   };
 
   const progress = ((stepIndex + 1) / STEPS.length) * 100;
-  const firstNameNbsp = firstName.trim();
+  const name = firstName.trim();
 
   return (
     <main className="relative flex min-h-[100dvh] flex-col bg-white text-neutral-900">
@@ -243,6 +242,7 @@ export function FunnelLanding({
 
       {step === "capture" && (
         <CaptureStep
+          c={content.capture}
           firstName={firstName}
           email={email}
           emailError={emailError}
@@ -256,11 +256,12 @@ export function FunnelLanding({
       )}
 
       {step === "intro" && (
-        <IntroStep firstName={firstNameNbsp} onContinue={goNext} />
+        <IntroStep c={content.intro} name={name} onContinue={goNext} />
       )}
 
       {step === "question" && (
         <QuestionStep
+          c={content.question}
           answer={focusAnswer}
           replayKey={okokReplayKey}
           onPick={pickFocus}
@@ -270,7 +271,9 @@ export function FunnelLanding({
 
       {step === "exercise" && (
         <ExerciseStep
-          firstName={firstNameNbsp}
+          c={content.exercise}
+          name={name}
+          options={exerciseOptions}
           picked={picked}
           solved={exerciseSolved}
           replayKey={okokReplayKey}
@@ -281,7 +284,8 @@ export function FunnelLanding({
 
       {step === "offer" && (
         <OfferStep
-          firstName={firstNameNbsp}
+          c={content.offer}
+          name={name}
           priceLabel={priceLabel}
           compareLabel={compareLabel}
           paymentBadges={paymentBadges}
@@ -299,6 +303,7 @@ export function FunnelLanding({
 /* -------------------------------------------------------------------------- */
 
 function CaptureStep({
+  c,
   firstName,
   email,
   emailError,
@@ -306,6 +311,7 @@ function CaptureStep({
   onEmail,
   onSubmit,
 }: {
+  c: FunnelContent["capture"];
   firstName: string;
   email: string;
   emailError: string | null;
@@ -319,11 +325,10 @@ function CaptureStep({
         <OnboardingMascot phase="intro" />
       </div>
       <h1 className="mt-2 max-w-[22rem] text-center font-display text-2xl font-bold leading-tight text-neutral-950 sm:text-3xl">
-        Teste Quranlab gratuitement
+        {c.title}
       </h1>
       <p className="mt-3 max-w-[22rem] text-center text-sm leading-relaxed text-neutral-600">
-        Apprends ton premier mot du Coran en 30 secondes. Sans carte bancaire,
-        sans engagement.
+        {c.subtitle}
       </p>
 
       <form
@@ -331,7 +336,7 @@ function CaptureStep({
         className="mt-7 flex w-full max-w-sm flex-1 flex-col"
       >
         <label className="text-sm font-semibold text-neutral-700" htmlFor="fn">
-          Ton prénom
+          {c.firstNameLabel}
         </label>
         <input
           id="fn"
@@ -339,7 +344,7 @@ function CaptureStep({
           autoComplete="given-name"
           value={firstName}
           onChange={(e) => onFirstName(e.target.value)}
-          placeholder="Yusuf"
+          placeholder={c.firstNamePlaceholder}
           required
           className="mt-1 w-full rounded-xl border border-neutral-300 px-4 py-3 text-base outline-none focus:border-[#6967fb] focus:ring-2 focus:ring-[#6967fb]/30"
         />
@@ -348,7 +353,7 @@ function CaptureStep({
           className="mt-4 text-sm font-semibold text-neutral-700"
           htmlFor="em"
         >
-          Ton e-mail
+          {c.emailLabel}
         </label>
         <input
           id="em"
@@ -357,7 +362,7 @@ function CaptureStep({
           autoComplete="email"
           value={email}
           onChange={(e) => onEmail(e.target.value)}
-          placeholder="toi@exemple.com"
+          placeholder={c.emailPlaceholder}
           required
           className={cn(
             "mt-1 w-full rounded-xl border px-4 py-3 text-base outline-none focus:ring-2",
@@ -374,11 +379,11 @@ function CaptureStep({
 
         <div className="mt-auto pt-8">
           <ShinyButton type="submit" variant="dark">
-            Commencer gratuitement
+            {c.cta}
           </ShinyButton>
           <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-neutral-400">
             <Lock className="h-3 w-3" strokeWidth={1.5} />
-            Aucune carte demandée · Tu peux arrêter quand tu veux
+            {c.reassurance}
           </p>
         </div>
       </form>
@@ -387,10 +392,12 @@ function CaptureStep({
 }
 
 function IntroStep({
-  firstName,
+  c,
+  name,
   onContinue,
 }: {
-  firstName: string;
+  c: FunnelContent["intro"];
+  name: string;
   onContinue: () => void;
 }) {
   return (
@@ -398,20 +405,15 @@ function IntroStep({
       <div className="mx-auto h-52 w-52 sm:h-60 sm:w-60">
         <OnboardingMascot phase="intro" />
       </div>
-      <h1 className="mt-4 max-w-[24rem] text-center font-display text-2xl font-bold leading-tight text-neutral-950 sm:text-3xl">
-        {firstName
-          ? `Salam alaykoum ${firstName} !`
-          : "Salam alaykoum !"}
-        <br />
-        Je suis Koji.
+      <h1 className="mt-4 max-w-[24rem] whitespace-pre-line text-center font-display text-2xl font-bold leading-tight text-neutral-950 sm:text-3xl">
+        {fillName(c.greeting, name)}
       </h1>
       <p className="mt-3 max-w-[22rem] text-center text-sm leading-relaxed text-neutral-600">
-        Je vais te faire apprendre ton tout premier mot du Coran, tout de suite.
-        Prêt(e) ?
+        {c.subtitle}
       </p>
       <div className="mt-auto w-full max-w-sm pt-8">
         <ShinyButton variant="dark" onClick={onContinue}>
-          C&apos;est parti
+          {c.cta}
         </ShinyButton>
       </div>
     </section>
@@ -419,17 +421,19 @@ function IntroStep({
 }
 
 function QuestionStep({
+  c,
   answer,
   replayKey,
   onPick,
   onContinue,
 }: {
-  answer: string | null;
+  c: FunnelContent["question"];
+  answer: number | null;
   replayKey: number;
-  onPick: (id: string) => void;
+  onPick: (idx: number) => void;
   onContinue: () => void;
 }) {
-  const selected = QUESTION.options.find((o) => o.id === answer);
+  const selected = answer != null ? c.options[answer] : undefined;
   return (
     <section className="flex flex-1 flex-col px-6 pb-8 pt-4">
       <div className="flex items-center gap-3">
@@ -437,18 +441,18 @@ function QuestionStep({
           <OnboardingMascot phase="question" replayKey={replayKey} />
         </div>
         <h1 className="font-heading text-lg font-bold leading-snug text-neutral-900 sm:text-xl">
-          {selected ? selected.response : QUESTION.title}
+          {selected ? selected.response : c.title}
         </h1>
       </div>
 
       <div className="mt-6 flex flex-col gap-3">
-        {QUESTION.options.map((o) => {
-          const isSel = answer === o.id;
+        {c.options.map((o, idx) => {
+          const isSel = answer === idx;
           return (
             <button
-              key={o.id}
+              key={idx}
               type="button"
-              onClick={() => onPick(o.id)}
+              onClick={() => onPick(idx)}
               className={cn(
                 "rounded-2xl border-2 px-5 py-3.5 text-left text-sm font-semibold transition",
                 isSel
@@ -465,9 +469,9 @@ function QuestionStep({
 
       <div className="mt-auto w-full max-w-sm self-center pt-8">
         <ShinyButton
-          variant={answer ? "dark" : "gray"}
+          variant={answer != null ? "dark" : "gray"}
           onClick={onContinue}
-          disabled={!answer}
+          disabled={answer == null}
         >
           Continuer
         </ShinyButton>
@@ -477,14 +481,18 @@ function QuestionStep({
 }
 
 function ExerciseStep({
-  firstName,
+  c,
+  name,
+  options,
   picked,
   solved,
   replayKey,
   onPick,
   onContinue,
 }: {
-  firstName: string;
+  c: FunnelContent["exercise"];
+  name: string;
+  options: ExOption[];
   picked: string | null;
   solved: boolean;
   replayKey: number;
@@ -498,9 +506,7 @@ function ExerciseStep({
           <OnboardingMascot phase="question" replayKey={replayKey} />
         </div>
         <p className="font-heading text-base font-bold text-neutral-900 sm:text-lg">
-          {solved
-            ? `Bravo${firstName ? " " + firstName : ""} ! Premier mot appris 🎉`
-            : EXERCISE.prompt}
+          {solved ? fillName(c.successText, name) : c.prompt}
         </p>
       </div>
 
@@ -513,13 +519,13 @@ function ExerciseStep({
           className="font-arabic text-4xl text-neutral-900 sm:text-5xl"
           dir="rtl"
         >
-          {EXERCISE.arabicWord}
+          {c.arabicWord}
         </span>
       </div>
 
       {/* Options */}
       <div className="mt-5 grid w-full max-w-md grid-cols-1 gap-2.5">
-        {EXERCISE.options.map((o) => {
+        {options.map((o) => {
           const isPicked = picked === o.id;
           const revealCorrect = solved && o.correct;
           return (
@@ -552,9 +558,7 @@ function ExerciseStep({
       </div>
 
       {picked && !solved && (
-        <p className="mt-4 text-sm font-medium text-rose-500">
-          Presque ! Réessaie 👇
-        </p>
+        <p className="mt-4 text-sm font-medium text-rose-500">{c.retryText}</p>
       )}
 
       <div className="mt-auto w-full max-w-sm pt-8">
@@ -563,22 +567,16 @@ function ExerciseStep({
           onClick={onContinue}
           disabled={!solved}
         >
-          Continuer
+          {c.cta}
         </ShinyButton>
       </div>
     </section>
   );
 }
 
-const OFFER_FEATURES = [
-  "Accès à vie à toute l'application (tous les mots, tous les exercices)",
-  "L'ebook « 85% des mots du Coran » en PDF",
-  "3 bonus offerts pour accélérer ta progression",
-  "Paiement unique — aucun abonnement",
-];
-
 function OfferStep({
-  firstName,
+  c,
+  name,
   priceLabel,
   compareLabel,
   paymentBadges,
@@ -586,7 +584,8 @@ function OfferStep({
   error,
   onBuy,
 }: {
-  firstName: string;
+  c: FunnelContent["offer"];
+  name: string;
   priceLabel: string;
   compareLabel: string | null;
   paymentBadges: string[];
@@ -600,14 +599,13 @@ function OfferStep({
         <OnboardingMascot phase="question" replayKey={1} />
       </div>
       <p className="text-center text-sm font-semibold text-[#6967fb]">
-        {firstName ? `Bravo ${firstName}, tu apprends vite !` : "Bravo, tu apprends vite !"}
+        {fillName(c.kicker, name)}
       </p>
       <h1 className="mt-2 max-w-[26rem] text-center font-display text-2xl font-bold leading-tight text-neutral-950 sm:text-3xl">
-        Débloque toute l&apos;application Quranlab à vie
+        {c.title}
       </h1>
       <p className="mt-2 max-w-[24rem] text-center text-sm leading-relaxed text-neutral-600">
-        Tu viens d&apos;apprendre 1 mot. L&apos;application t&apos;en fait
-        apprendre des centaines, avec une méthode qui rend tout évident.
+        {c.subtitle}
       </p>
 
       {/* Offer card */}
@@ -621,11 +619,11 @@ function OfferStep({
           <span className="font-display text-5xl font-bold tracking-tight text-neutral-950">
             {priceLabel}
           </span>
-          <span className="text-sm text-neutral-500">une fois</span>
+          <span className="text-sm text-neutral-500">{c.priceSuffix}</span>
         </div>
 
         <ul className="mt-5 space-y-2.5">
-          {OFFER_FEATURES.map((f) => (
+          {c.features.map((f) => (
             <li
               key={f}
               className="flex items-start gap-2.5 text-sm text-neutral-700"
@@ -646,7 +644,7 @@ function OfferStep({
           className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-2xl border-b-4 border-[#4a48c4] bg-[#6967fb] px-8 py-4 font-display text-base font-bold uppercase tracking-wide text-white shadow-sm transition-all hover:brightness-[1.05] active:translate-y-1 active:border-b-0 disabled:opacity-70"
         >
           {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-          {loading ? "Redirection…" : "Obtenir l'accès à vie"}
+          {loading ? "Redirection…" : c.cta}
         </button>
 
         {error && (
@@ -655,7 +653,7 @@ function OfferStep({
 
         <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-neutral-500">
           <ShieldCheck className="h-3.5 w-3.5" strokeWidth={1.75} />
-          Paiement sécurisé · Garantie satisfait ou remboursé 30 jours
+          {c.guarantee}
         </p>
         <PaymentBadges badges={paymentBadges} className="mt-3" />
       </div>
