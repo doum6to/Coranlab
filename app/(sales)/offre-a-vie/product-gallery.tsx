@@ -133,15 +133,20 @@ export function ProductGallery({
                 markGalleryOpen();
                 setIndex(i);
               }}
-              className={`aspect-square w-full overflow-hidden rounded-xl border-2 transition ${
+              className={`relative aspect-square w-full overflow-hidden rounded-xl border-2 transition ${
                 i === index ? "border-[#6967fb]" : "border-transparent"
               }`}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              {/* next/image so thumbnails are served as tiny optimized AVIF/WebP
+                  (~a few KB each) instead of the full-resolution originals.
+                  Loading 8 full-size originals here was saturating the
+                  connection and starving the LCP hero image. */}
+              <Image
                 src={img}
                 alt=""
-                className="h-full w-full object-cover"
+                fill
+                sizes="(max-width: 1024px) 22vw, 120px"
+                className="object-cover"
                 draggable={false}
               />
             </button>
