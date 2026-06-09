@@ -200,6 +200,22 @@ const AdminPremiumPage = async () => {
                       "fr" | "en" | "es",
                       { currency: "EUR" | "GBP" | "USD"; price: string; compare: string }
                     >,
+                    pricingByLocaleV4: Object.fromEntries(
+                      (["fr", "en", "es"] as const).map((loc) => {
+                        const p = offer.pricingByLocaleV4[loc];
+                        return [
+                          loc,
+                          {
+                            currency: p.currency,
+                            price: (p.priceCents / 100).toFixed(2),
+                            compare: (p.compareAtCents / 100).toFixed(2),
+                          },
+                        ];
+                      }),
+                    ) as Record<
+                      "fr" | "en" | "es",
+                      { currency: "EUR" | "GBP" | "USD"; price: string; compare: string }
+                    >,
                     paymentBadges: offer.paymentBadges,
                   }}
                 />

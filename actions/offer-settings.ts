@@ -21,6 +21,7 @@ export async function updateOfferSettings(input: {
   variant: "classic" | "letter" | "product";
   pdfLinks: { label: string; url: string }[];
   pricingByLocale?: Partial<Record<Locale, LocalePrice>>;
+  pricingByLocaleV4?: Partial<Record<Locale, LocalePrice>>;
   paymentBadges?: string[];
 }) {
   if (!isAdminAuthed()) throw new Error("Unauthorized");
@@ -61,6 +62,20 @@ export async function updateOfferSettings(input: {
     cleanPricing[loc] = { currency: p.currency, priceCents: pc, compareAtCents: cc };
   }
 
+  // Same sanitization for the V4 A/B variant pricing.
+  const cleanPricingV4: Record<string, LocalePrice> = {};
+  for (const loc of LOCALES) {
+    const p = input.pricingByLocaleV4?.[loc];
+    if (!p) continue;
+    const pc = Math.round(p.priceCents);
+    const cc = Math.round(p.compareAtCents);
+    if (!isCurrency(p.currency)) continue;
+    if (!Number.isFinite(pc) || pc < 0 || !Number.isFinite(cc) || cc < 0) {
+      return { error: "Prix V4 par langue invalide." };
+    }
+    cleanPricingV4[loc] = { currency: p.currency, priceCents: pc, compareAtCents: cc };
+  }
+
   const entries: Array<[string, string]> = [
     [OFFER_KEYS.price, String(priceCents)],
     [OFFER_KEYS.compare, String(compareAtCents)],
@@ -68,6 +83,7 @@ export async function updateOfferSettings(input: {
     [OFFER_KEYS.total, String(spotsTotal)],
     [OFFER_KEYS.variant, variant],
     [OFFER_KEYS.pricing, JSON.stringify(cleanPricing)],
+    [OFFER_KEYS.pricingV4, JSON.stringify(cleanPricingV4)],
     [
       OFFER_KEYS.badges,
       JSON.stringify(

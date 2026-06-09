@@ -29,6 +29,7 @@ export function OfferSettingsForm({
     variant: "classic" | "letter" | "product";
     pdfRaw: string;
     pricingByLocale: Record<Locale, PriceRow>;
+    pricingByLocaleV4: Record<Locale, PriceRow>;
     paymentBadges: string[];
   };
 }) {
@@ -46,6 +47,11 @@ export function OfferSettingsForm({
   );
   const setPriceRow = (loc: Locale, patch: Partial<PriceRow>) =>
     setPricing((p) => ({ ...p, [loc]: { ...p[loc], ...patch } }));
+  const [pricingV4, setPricingV4] = useState<Record<Locale, PriceRow>>(
+    initial.pricingByLocaleV4,
+  );
+  const setPriceRowV4 = (loc: Locale, patch: Partial<PriceRow>) =>
+    setPricingV4((p) => ({ ...p, [loc]: { ...p[loc], ...patch } }));
   const [badges, setBadges] = useState<string[]>(initial.paymentBadges);
   const toggleBadge = (id: string) =>
     setBadges((b) => (b.includes(id) ? b.filter((x) => x !== id) : [...b, id]));
@@ -109,6 +115,22 @@ export function OfferSettingsForm({
         }),
       ) as Record<Locale, { currency: Currency; priceCents: number; compareAtCents: number }>;
 
+      const pricingByLocaleV4 = Object.fromEntries(
+        LOCALES.map((loc) => {
+          const row = pricingV4[loc];
+          const pc = Math.round(parseFloat(row.price.replace(",", ".")) * 100);
+          const cc = Math.round(parseFloat(row.compare.replace(",", ".")) * 100);
+          return [
+            loc,
+            {
+              currency: row.currency,
+              priceCents: Number.isFinite(pc) && pc >= 0 ? pc : priceCents,
+              compareAtCents: Number.isFinite(cc) && cc >= 0 ? cc : 0,
+            },
+          ];
+        }),
+      ) as Record<Locale, { currency: Currency; priceCents: number; compareAtCents: number }>;
+
       const res = await updateOfferSettings({
         priceCents,
         compareAtCents,
@@ -117,6 +139,7 @@ export function OfferSettingsForm({
         variant,
         pdfLinks,
         pricingByLocale,
+        pricingByLocaleV4,
         paymentBadges: badges,
       });
       if (res?.error) {
@@ -265,6 +288,58 @@ export function OfferSettingsForm({
                 inputMode="decimal"
                 value={pricing[loc].compare}
                 onChange={(e) => setPriceRow(loc, { compare: e.target.value })}
+                placeholder="Prix barré"
+                className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brilliant-green focus:ring-2 focus:ring-brilliant-green/20"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Per-language pricing for the V4 A/B variant */}
+      <div className="mt-4 rounded-xl border border-[#6967fb]/30 bg-[#6967fb]/5 p-3">
+        <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-[#6967fb]">
+          Prix par langue — Produit V4 (A/B)
+        </span>
+        <p className="mb-3 text-xs text-neutral-400">
+          Le prix affiché et débité sur /offre-a-vie-v4 (+ /en, /es). Indépendant
+          de V3 — change-le pour tester un autre prix.
+        </p>
+        <div className="space-y-2">
+          {LOCALES.map((loc) => (
+            <div
+              key={loc}
+              className="grid grid-cols-[64px_90px_1fr_1fr] items-center gap-2"
+            >
+              <span className="text-sm font-semibold text-neutral-700">
+                {LOCALE_NAMES[loc]}
+              </span>
+              <select
+                value={pricingV4[loc].currency}
+                onChange={(e) =>
+                  setPriceRowV4(loc, { currency: e.target.value as Currency })
+                }
+                className="rounded-xl border border-neutral-300 px-2 py-2 text-sm outline-none focus:border-brilliant-green focus:ring-2 focus:ring-brilliant-green/20"
+              >
+                {CURRENCIES.map((cur) => (
+                  <option key={cur} value={cur}>
+                    {cur}
+                  </option>
+                ))}
+              </select>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={pricingV4[loc].price}
+                onChange={(e) => setPriceRowV4(loc, { price: e.target.value })}
+                placeholder="Prix"
+                className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brilliant-green focus:ring-2 focus:ring-brilliant-green/20"
+              />
+              <input
+                type="text"
+                inputMode="decimal"
+                value={pricingV4[loc].compare}
+                onChange={(e) => setPriceRowV4(loc, { compare: e.target.value })}
                 placeholder="Prix barré"
                 className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brilliant-green focus:ring-2 focus:ring-brilliant-green/20"
               />

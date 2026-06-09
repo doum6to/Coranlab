@@ -26,11 +26,15 @@ const CANCEL_PATH: Record<Locale, string> = {
  *
  * The `offer: "app_lifetime"` tag is for analytics/traceability only.
  */
-export async function createAppLifetimeCheckoutUrl(locale: Locale = DEFAULT_LOCALE) {
+export async function createAppLifetimeCheckoutUrl(
+  locale: Locale = DEFAULT_LOCALE,
+  variant: "v3" | "v4" = "v3",
+) {
   try {
     if (!isLocale(locale)) locale = DEFAULT_LOCALE;
+    if (variant !== "v4") variant = "v3";
     const offer = await getOfferSettings();
-    const { currency, priceCents } = getLocalePrice(offer, locale);
+    const { currency, priceCents } = getLocalePrice(offer, locale, variant);
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
@@ -54,6 +58,7 @@ export async function createAppLifetimeCheckoutUrl(locale: Locale = DEFAULT_LOCA
         offer: "app_lifetime",
         locale,
         currency,
+        variant,
       },
       success_url: absoluteUrl(
         "/offre-a-vie/merci?session_id={CHECKOUT_SESSION_ID}",

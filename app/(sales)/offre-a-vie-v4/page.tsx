@@ -18,5 +18,5 @@ export default async function OffreAVieV4Page() {
     getOfferSettings(),
     getLandingContent("fr", "v4"),
   ]);
-  return <ProductLanding content={content} offer={offer} locale="fr" />;
+  return <ProductLanding content={content} offer={offer} locale="fr" variant="v4" />;
 }

@@ -46,13 +46,15 @@ export function ProductLanding({
   content,
   offer,
   locale = DEFAULT_LOCALE,
+  variant = "v3",
 }: {
   content: LandingContent;
   offer: OfferSettings;
   locale?: Locale;
+  variant?: "v3" | "v4";
 }) {
   const { spotsJoined, spotsTotal } = offer;
-  const { currency, priceCents, compareAtCents } = getLocalePrice(offer, locale);
+  const { currency, priceCents, compareAtCents } = getLocalePrice(offer, locale, variant);
   const PRICE = formatMoney(priceCents, currency);
   const COMPARE =
     compareAtCents > priceCents ? formatMoney(compareAtCents, currency) : null;
@@ -149,6 +151,7 @@ export function ProductLanding({
               subLabel={content.offer.buttonSub}
               priceValue={priceValue}
               locale={locale}
+              variant={variant}
             />
             <SpotsProgress
               tone="light"
@@ -403,6 +406,7 @@ export function ProductLanding({
                 subLabel={content.offer.buttonSub}
                 priceValue={priceValue}
                 locale={locale}
+                variant={variant}
               />
               <SpotsProgress
                 tone="dark"

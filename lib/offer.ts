@@ -39,8 +39,10 @@ export type OfferSettings = {
   variant: LandingVariant;
   /** Downloadable PDF links shown in the buyer's account space. */
   pdfLinks: { label: string; url: string }[];
-  /** Per-language price + currency for the landing offer. */
+  /** Per-language price + currency for the landing offer (V3). */
   pricingByLocale: Record<Locale, LocalePrice>;
+  /** Per-language price for the V4 A/B variant (defaults to V3 per locale). */
+  pricingByLocaleV4: Record<Locale, LocalePrice>;
   /** Payment-method badges shown on the landing (subset of PAYMENT_BADGE_IDS). */
   paymentBadges: string[];
 };
@@ -53,6 +55,11 @@ export const OFFER_DEFAULTS: OfferSettings = {
   variant: "classic",
   pdfLinks: [],
   pricingByLocale: {
+    fr: { currency: "EUR", priceCents: 1497, compareAtCents: 9900 },
+    en: { currency: "GBP", priceCents: 1497, compareAtCents: 9900 },
+    es: { currency: "EUR", priceCents: 1497, compareAtCents: 9900 },
+  },
+  pricingByLocaleV4: {
     fr: { currency: "EUR", priceCents: 1497, compareAtCents: 9900 },
     en: { currency: "GBP", priceCents: 1497, compareAtCents: 9900 },
     es: { currency: "EUR", priceCents: 1497, compareAtCents: 9900 },
@@ -78,6 +85,7 @@ const KEYS = {
   variant: "landing_variant",
   pdf: "pdf_links",
   pricing: "offer_pricing_by_locale",
+  pricingV4: "offer_pricing_by_locale_v4",
   badges: "offer_payment_badges",
 } as const;
 
@@ -107,6 +115,7 @@ export const getOfferSettings = cache(async (): Promise<OfferSettings> => {
           KEYS.variant,
           KEYS.pdf,
           KEYS.pricing,
+          KEYS.pricingV4,
           KEYS.badges,
         ]),
       );
@@ -146,42 +155,58 @@ export const getOfferSettings = cache(async (): Promise<OfferSettings> => {
       OFFER_DEFAULTS.compareAtCents,
     );
 
-    // Per-locale pricing: stored override layered over an EUR fallback that
-    // reuses the single global price, so existing setups keep working.
+    // Per-locale pricing falls back to an EUR map reusing the global price, so
+    // existing setups keep working.
     const fallback: LocalePrice = {
       currency: "EUR",
       priceCents,
       compareAtCents,
     };
-    let stored: Record<string, Partial<LocalePrice>> = {};
-    try {
-      const raw = map.get(KEYS.pricing);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed && typeof parsed === "object") stored = parsed;
+    // Builds a per-locale pricing map from a stored JSON override, falling back
+    // to `fb(loc)` for any missing field.
+    const buildPricing = (
+      key: string,
+      fb: (loc: Locale) => LocalePrice,
+    ): Record<Locale, LocalePrice> => {
+      let parsedStore: Record<string, Partial<LocalePrice>> = {};
+      try {
+        const raw = map.get(key);
+        if (raw) {
+          const p = JSON.parse(raw);
+          if (p && typeof p === "object") parsedStore = p;
+        }
+      } catch {
+        /* keep fallback */
       }
-    } catch {
-      /* keep fallback */
-    }
-    const pricingByLocale = Object.fromEntries(
-      LOCALES.map((loc) => {
-        const s = stored[loc] ?? {};
-        return [
-          loc,
-          {
-            currency: isCurrency(s.currency) ? s.currency : fallback.currency,
-            priceCents:
-              typeof s.priceCents === "number" && s.priceCents >= 0
-                ? s.priceCents
-                : fallback.priceCents,
-            compareAtCents:
-              typeof s.compareAtCents === "number" && s.compareAtCents >= 0
-                ? s.compareAtCents
-                : fallback.compareAtCents,
-          } as LocalePrice,
-        ];
-      }),
-    ) as Record<Locale, LocalePrice>;
+      return Object.fromEntries(
+        LOCALES.map((loc) => {
+          const s = parsedStore[loc] ?? {};
+          const f = fb(loc);
+          return [
+            loc,
+            {
+              currency: isCurrency(s.currency) ? s.currency : f.currency,
+              priceCents:
+                typeof s.priceCents === "number" && s.priceCents >= 0
+                  ? s.priceCents
+                  : f.priceCents,
+              compareAtCents:
+                typeof s.compareAtCents === "number" && s.compareAtCents >= 0
+                  ? s.compareAtCents
+                  : f.compareAtCents,
+            } as LocalePrice,
+          ];
+        }),
+      ) as Record<Locale, LocalePrice>;
+    };
+
+    const pricingByLocale = buildPricing(KEYS.pricing, () => fallback);
+    // V4 falls back per-locale to V3's resolved price, so it stays identical
+    // until the admin sets a different V4 price.
+    const pricingByLocaleV4 = buildPricing(
+      KEYS.pricingV4,
+      (loc) => pricingByLocale[loc],
+    );
 
     return {
       priceCents,
@@ -194,6 +219,7 @@ export const getOfferSettings = cache(async (): Promise<OfferSettings> => {
       })(),
       pdfLinks,
       pricingByLocale,
+      pricingByLocaleV4,
       paymentBadges,
     };
   } catch (e) {
@@ -204,12 +230,15 @@ export const getOfferSettings = cache(async (): Promise<OfferSettings> => {
 
 export const OFFER_KEYS = KEYS;
 
-/** The price + currency for a given language, with a safe fallback. */
+/** The price + currency for a language + landing variant, with safe fallbacks. */
 export function getLocalePrice(
   offer: OfferSettings,
   locale: Locale = DEFAULT_LOCALE,
+  variant: "v3" | "v4" = "v3",
 ): LocalePrice {
+  const map = variant === "v4" ? offer.pricingByLocaleV4 : offer.pricingByLocale;
   return (
+    map?.[locale] ??
     offer.pricingByLocale?.[locale] ??
     offer.pricingByLocale?.[DEFAULT_LOCALE] ?? {
       currency: "EUR",

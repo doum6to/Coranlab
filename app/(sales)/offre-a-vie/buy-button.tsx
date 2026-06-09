@@ -20,6 +20,7 @@ export function BuyButton({
   subLabel,
   priceValue = 14.97,
   locale = DEFAULT_LOCALE,
+  variant = "v3",
 }: {
   className?: string;
   label?: string;
@@ -27,6 +28,8 @@ export function BuyButton({
   /** Price in € used for the TikTok conversion value. */
   priceValue?: number;
   locale?: Locale;
+  /** Landing A/B variant — selects the right price at checkout. */
+  variant?: "v3" | "v4";
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +49,7 @@ export function BuyButton({
     });
 
     try {
-      const result = await createAppLifetimeCheckoutUrl(locale);
+      const result = await createAppLifetimeCheckoutUrl(locale, variant);
       if (result.url) {
         track("lp_checkout_start");
         window.location.href = result.url;
