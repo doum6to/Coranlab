@@ -122,6 +122,8 @@ export type LandingContent = {
     buttonSub: string;
     secure: string;
     stickyLabel: string;
+    /** Urgency line shown in the red sticky bottom bar. */
+    stickyText: string;
   };
   reviews: {
     eyebrow: string;
@@ -233,6 +235,7 @@ export const LANDING_DEFAULTS: LandingContent = {
     buttonSub: "Paiement sécurisé · Garantie de 14 jours",
     secure: "Paiement sécurisé via Stripe",
     stickyLabel: "J'en profite",
+    stickyText: "⚡ L'offre se termine bientôt",
   },
   reviews: {
     eyebrow: "Avis TikTok vérifiés",

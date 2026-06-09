@@ -217,6 +217,8 @@ const AdminPremiumPage = async () => {
                       { currency: "EUR" | "GBP" | "USD"; price: string; compare: string }
                     >,
                     paymentBadges: offer.paymentBadges,
+                    scarcityMode: offer.scarcityMode,
+                    stickyBar: offer.stickyBar,
                   }}
                 />
               ),

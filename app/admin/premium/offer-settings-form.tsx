@@ -31,6 +31,8 @@ export function OfferSettingsForm({
     pricingByLocale: Record<Locale, PriceRow>;
     pricingByLocaleV4: Record<Locale, PriceRow>;
     paymentBadges: string[];
+    scarcityMode: "spots" | "timer";
+    stickyBar: boolean;
   };
 }) {
   const router = useRouter();
@@ -55,6 +57,10 @@ export function OfferSettingsForm({
   const [badges, setBadges] = useState<string[]>(initial.paymentBadges);
   const toggleBadge = (id: string) =>
     setBadges((b) => (b.includes(id) ? b.filter((x) => x !== id) : [...b, id]));
+  const [scarcityMode, setScarcityMode] = useState<"spots" | "timer">(
+    initial.scarcityMode,
+  );
+  const [stickyBar, setStickyBar] = useState<boolean>(initial.stickyBar);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -141,6 +147,8 @@ export function OfferSettingsForm({
         pricingByLocale,
         pricingByLocaleV4,
         paymentBadges: badges,
+        scarcityMode,
+        stickyBar,
       });
       if (res?.error) {
         setMsg({ ok: false, text: res.error });
@@ -241,6 +249,55 @@ export function OfferSettingsForm({
               </button>
             );
           })}
+        </div>
+      </div>
+
+      {/* Scarcity mode + sticky bar */}
+      <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+        <span className="mb-3 block text-xs font-semibold uppercase tracking-wide text-neutral-500">
+          Urgence (landing produit)
+        </span>
+        <div className="space-y-3">
+          <div>
+            <span className="mb-1 block text-xs font-medium text-neutral-600">
+              Élément sous le bouton
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {([
+                ["spots", "Places limitées"],
+                ["timer", "Compte à rebours 24h"],
+              ] as const).map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setScarcityMode(key)}
+                  className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition ${
+                    scarcityMode === key
+                      ? "bg-[#6967fb] text-white"
+                      : "bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-100"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <label className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white px-4 py-3">
+            <span className="text-sm font-semibold text-neutral-800">
+              Barre collante rouge en bas (timer + prix + CTA)
+            </span>
+            <input
+              type="checkbox"
+              checked={stickyBar}
+              onChange={(e) => setStickyBar(e.target.checked)}
+              className="h-5 w-5 rounded border-neutral-300"
+            />
+          </label>
+          <p className="text-xs text-neutral-400">
+            Le texte de la barre (« L&apos;offre se termine bientôt ») et son CTA
+            se modifient par langue dans l&apos;onglet « Landing /offre-a-vie »
+            (section Offre).
+          </p>
         </div>
       </div>
 

@@ -23,6 +23,8 @@ export async function updateOfferSettings(input: {
   pricingByLocale?: Partial<Record<Locale, LocalePrice>>;
   pricingByLocaleV4?: Partial<Record<Locale, LocalePrice>>;
   paymentBadges?: string[];
+  scarcityMode?: "spots" | "timer";
+  stickyBar?: boolean;
 }) {
   if (!isAdminAuthed()) throw new Error("Unauthorized");
 
@@ -84,6 +86,8 @@ export async function updateOfferSettings(input: {
     [OFFER_KEYS.variant, variant],
     [OFFER_KEYS.pricing, JSON.stringify(cleanPricing)],
     [OFFER_KEYS.pricingV4, JSON.stringify(cleanPricingV4)],
+    [OFFER_KEYS.scarcity, input.scarcityMode === "timer" ? "timer" : "spots"],
+    [OFFER_KEYS.sticky, input.stickyBar ? "true" : "false"],
     [
       OFFER_KEYS.badges,
       JSON.stringify(

@@ -108,6 +108,7 @@ export const LANDING_I18N: Partial<Record<Locale, Partial<LandingContent>>> = {
       buttonSub: "Secure payment · 14-day guarantee",
       secure: "Secure payment via Stripe",
       stickyLabel: "Get it",
+      stickyText: "⚡ The offer ends soon",
     },
     reviews: {
       eyebrow: "Verified reviews",
@@ -246,6 +247,7 @@ export const LANDING_I18N: Partial<Record<Locale, Partial<LandingContent>>> = {
       buttonSub: "Pago seguro · Garantía de 14 días",
       secure: "Pago seguro con Stripe",
       stickyLabel: "Lo quiero",
+      stickyText: "⚡ La oferta termina pronto",
     },
     reviews: {
       eyebrow: "Opiniones verificadas",
