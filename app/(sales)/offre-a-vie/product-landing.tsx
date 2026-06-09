@@ -9,7 +9,8 @@ import { LANDING_UI } from "@/lib/i18n/landing-ui";
 import { BuyButton } from "./buy-button";
 import { Faq } from "./faq";
 import { LandingReviews } from "./reviews";
-import { SpotsProgress } from "./spots";
+import { OfferScarcity } from "./offer-scarcity";
+import { StickyOfferBar } from "./sticky-offer-bar";
 import { ProductGallery } from "./product-gallery";
 import { LocaleSwitcher } from "./locale-switcher";
 import { LocaleSuggestionBanner } from "./locale-suggestion-banner";
@@ -153,7 +154,8 @@ export function ProductLanding({
               locale={locale}
               variant={variant}
             />
-            <SpotsProgress
+            <OfferScarcity
+              mode={offer.scarcityMode}
               tone="light"
               joined={spotsJoined}
               total={spotsTotal}
@@ -408,7 +410,8 @@ export function ProductLanding({
                 locale={locale}
                 variant={variant}
               />
-              <SpotsProgress
+              <OfferScarcity
+                mode={offer.scarcityMode}
                 tone="dark"
                 joined={spotsJoined}
                 total={spotsTotal}
@@ -442,6 +445,17 @@ export function ProductLanding({
       )}
 
       <div aria-hidden className="h-24" />
+
+      {offer.stickyBar && (
+        <StickyOfferBar
+          text={content.offer.stickyText}
+          ctaLabel={content.offer.stickyLabel}
+          priceLabel={PRICE}
+          priceValue={priceValue}
+          locale={locale}
+          variant={variant}
+        />
+      )}
     </div>
   );
 }

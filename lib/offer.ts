@@ -45,6 +45,10 @@ export type OfferSettings = {
   pricingByLocaleV4: Record<Locale, LocalePrice>;
   /** Payment-method badges shown on the landing (subset of PAYMENT_BADGE_IDS). */
   paymentBadges: string[];
+  /** Scarcity element under the CTA: the spots gauge or a 24h countdown. */
+  scarcityMode: "spots" | "timer";
+  /** Whether the red sticky offer bar (timer + price + CTA) is shown. */
+  stickyBar: boolean;
 };
 
 export const OFFER_DEFAULTS: OfferSettings = {
@@ -65,6 +69,8 @@ export const OFFER_DEFAULTS: OfferSettings = {
     es: { currency: "EUR", priceCents: 1497, compareAtCents: 9900 },
   },
   paymentBadges: ["card", "applePay", "paypal", "klarna", "link"],
+  scarcityMode: "spots",
+  stickyBar: false,
 };
 
 /** All payment badges that can be shown on the landing (admin-toggleable). */
@@ -87,6 +93,8 @@ const KEYS = {
   pricing: "offer_pricing_by_locale",
   pricingV4: "offer_pricing_by_locale_v4",
   badges: "offer_payment_badges",
+  scarcity: "offer_scarcity_mode",
+  sticky: "offer_sticky_bar",
 } as const;
 
 const toInt = (v: string | undefined, fallback: number) => {
@@ -117,6 +125,8 @@ export const getOfferSettings = cache(async (): Promise<OfferSettings> => {
           KEYS.pricing,
           KEYS.pricingV4,
           KEYS.badges,
+          KEYS.scarcity,
+          KEYS.sticky,
         ]),
       );
     const map = new Map(rows.map((r) => [r.key, r.value]));
@@ -221,6 +231,8 @@ export const getOfferSettings = cache(async (): Promise<OfferSettings> => {
       pricingByLocale,
       pricingByLocaleV4,
       paymentBadges,
+      scarcityMode: map.get(KEYS.scarcity) === "timer" ? "timer" : "spots",
+      stickyBar: map.get(KEYS.sticky) === "true",
     };
   } catch (e) {
     console.error("[offer] getOfferSettings failed, using defaults:", e);

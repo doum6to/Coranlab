@@ -18,6 +18,8 @@ export type LandingUIStrings = {
   joined: string;
   /** Template: "… {n} … left." Rendered after the price as "— …". */
   spotsLeft: string;
+  /** Label before the countdown in the timer scarcity mode. */
+  offerEndsIn: string;
   /** BCP-47 tag used for number formatting. */
   numberLocale: string;
 };
@@ -34,6 +36,7 @@ export const LANDING_UI: Record<Locale, LandingUIStrings> = {
     unknownError: "Erreur inconnue.",
     joined: "{joined}/{total} élèves ont rejoint",
     spotsLeft: "plus que {n} places à vie.",
+    offerEndsIn: "L'offre se termine dans",
     numberLocale: "fr-FR",
   },
   en: {
@@ -47,6 +50,7 @@ export const LANDING_UI: Record<Locale, LandingUIStrings> = {
     unknownError: "Unknown error.",
     joined: "{joined}/{total} students joined",
     spotsLeft: "only {n} lifetime spots left.",
+    offerEndsIn: "Offer ends in",
     numberLocale: "en-US",
   },
   es: {
@@ -60,6 +64,7 @@ export const LANDING_UI: Record<Locale, LandingUIStrings> = {
     unknownError: "Error desconocido.",
     joined: "{joined}/{total} estudiantes se han unido",
     spotsLeft: "solo quedan {n} plazas de por vida.",
+    offerEndsIn: "La oferta termina en",
     numberLocale: "es-ES",
   },
 };
