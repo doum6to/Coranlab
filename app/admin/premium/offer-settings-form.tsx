@@ -10,6 +10,14 @@ import { LOCALES, LOCALE_NAMES, type Locale } from "@/lib/i18n/locales";
 
 type PriceRow = { currency: Currency; price: string; compare: string };
 
+const BADGE_OPTIONS: { id: string; label: string }[] = [
+  { id: "card", label: "Cartes (Visa/Mastercard)" },
+  { id: "applePay", label: "Apple Pay" },
+  { id: "paypal", label: "PayPal" },
+  { id: "klarna", label: "Klarna" },
+  { id: "link", label: "Link" },
+];
+
 export function OfferSettingsForm({
   initial,
 }: {
@@ -21,6 +29,7 @@ export function OfferSettingsForm({
     variant: "classic" | "letter" | "product";
     pdfRaw: string;
     pricingByLocale: Record<Locale, PriceRow>;
+    paymentBadges: string[];
   };
 }) {
   const router = useRouter();
@@ -37,6 +46,9 @@ export function OfferSettingsForm({
   );
   const setPriceRow = (loc: Locale, patch: Partial<PriceRow>) =>
     setPricing((p) => ({ ...p, [loc]: { ...p[loc], ...patch } }));
+  const [badges, setBadges] = useState<string[]>(initial.paymentBadges);
+  const toggleBadge = (id: string) =>
+    setBadges((b) => (b.includes(id) ? b.filter((x) => x !== id) : [...b, id]));
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -105,6 +117,7 @@ export function OfferSettingsForm({
         variant,
         pdfLinks,
         pricingByLocale,
+        paymentBadges: badges,
       });
       if (res?.error) {
         setMsg({ ok: false, text: res.error });
@@ -174,6 +187,38 @@ export function OfferSettingsForm({
             className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brilliant-green focus:ring-2 focus:ring-brilliant-green/20"
           />
         </label>
+      </div>
+
+      {/* Payment badges shown on the landing */}
+      <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+        <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-neutral-500">
+          Badges de paiement (landing)
+        </span>
+        <p className="mb-3 text-xs text-neutral-400">
+          Coche les badges à afficher sous le bouton d&apos;achat. (Active aussi
+          le moyen de paiement dans Stripe pour qu&apos;il fonctionne réellement.)
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {BADGE_OPTIONS.map((b) => {
+            const on = badges.includes(b.id);
+            return (
+              <button
+                key={b.id}
+                type="button"
+                onClick={() => toggleBadge(b.id)}
+                aria-pressed={on}
+                className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${
+                  on
+                    ? "bg-[#6967fb] text-white"
+                    : "bg-white border border-neutral-200 text-neutral-500 hover:bg-neutral-100"
+                }`}
+              >
+                {on ? "✓ " : ""}
+                {b.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Per-language pricing + currency (product landing + Stripe) */}
