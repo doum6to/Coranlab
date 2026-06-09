@@ -172,7 +172,9 @@ export function FunnelContentForm({
             ))}
           </div>
           <p className="mt-2 text-[11px] text-neutral-400">
-            C&apos;est la version affichée aux visiteurs du tunnel.
+            <code>/offre-a-vie</code> affiche cette version.{" "}
+            <code>/offre-a-vie-v4</code> affiche toujours la version B — pour
+            comparer A et B en parallèle (envoie ta pub sur les 2 liens).
           </p>
         </div>
         <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
