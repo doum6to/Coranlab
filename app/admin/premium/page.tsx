@@ -184,6 +184,7 @@ const AdminPremiumPage = async () => {
                       "fr" | "en" | "es",
                       { currency: "EUR" | "GBP" | "USD"; price: string; compare: string }
                     >,
+                    paymentBadges: offer.paymentBadges,
                   }}
                 />
               ),

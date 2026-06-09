@@ -41,6 +41,8 @@ export type OfferSettings = {
   pdfLinks: { label: string; url: string }[];
   /** Per-language price + currency for the landing offer. */
   pricingByLocale: Record<Locale, LocalePrice>;
+  /** Payment-method badges shown on the landing (subset of PAYMENT_BADGE_IDS). */
+  paymentBadges: string[];
 };
 
 export const OFFER_DEFAULTS: OfferSettings = {
@@ -55,7 +57,18 @@ export const OFFER_DEFAULTS: OfferSettings = {
     en: { currency: "GBP", priceCents: 1497, compareAtCents: 9900 },
     es: { currency: "EUR", priceCents: 1497, compareAtCents: 9900 },
   },
+  paymentBadges: ["card", "applePay", "paypal", "klarna", "link"],
 };
+
+/** All payment badges that can be shown on the landing (admin-toggleable). */
+export const PAYMENT_BADGE_IDS = [
+  "card",
+  "applePay",
+  "paypal",
+  "klarna",
+  "link",
+] as const;
+export type PaymentBadgeId = (typeof PAYMENT_BADGE_IDS)[number];
 
 const KEYS = {
   price: "offer_price_cents",
@@ -65,6 +78,7 @@ const KEYS = {
   variant: "landing_variant",
   pdf: "pdf_links",
   pricing: "offer_pricing_by_locale",
+  badges: "offer_payment_badges",
 } as const;
 
 const toInt = (v: string | undefined, fallback: number) => {
@@ -93,6 +107,7 @@ export const getOfferSettings = cache(async (): Promise<OfferSettings> => {
           KEYS.variant,
           KEYS.pdf,
           KEYS.pricing,
+          KEYS.badges,
         ]),
       );
     const map = new Map(rows.map((r) => [r.key, r.value]));
@@ -105,6 +120,24 @@ export const getOfferSettings = cache(async (): Promise<OfferSettings> => {
       }
     } catch {
       /* keep empty */
+    }
+
+    // Payment badges: stored as a JSON array of badge ids; only known ids kept.
+    let paymentBadges: string[] = OFFER_DEFAULTS.paymentBadges;
+    try {
+      const raw = map.get(KEYS.badges);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          paymentBadges = parsed.filter(
+            (b): b is string =>
+              typeof b === "string" &&
+              (PAYMENT_BADGE_IDS as readonly string[]).includes(b),
+          );
+        }
+      }
+    } catch {
+      /* keep defaults */
     }
 
     const priceCents = toInt(map.get(KEYS.price), OFFER_DEFAULTS.priceCents);
@@ -161,6 +194,7 @@ export const getOfferSettings = cache(async (): Promise<OfferSettings> => {
       })(),
       pdfLinks,
       pricingByLocale,
+      paymentBadges,
     };
   } catch (e) {
     console.error("[offer] getOfferSettings failed, using defaults:", e);

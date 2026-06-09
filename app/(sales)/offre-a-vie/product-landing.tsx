@@ -13,6 +13,7 @@ import { SpotsProgress } from "./spots";
 import { ProductGallery } from "./product-gallery";
 import { LocaleSwitcher } from "./locale-switcher";
 import { LocaleSuggestionBanner } from "./locale-suggestion-banner";
+import { PaymentBadges } from "./payment-badges";
 
 function Placeholder({
   className,
@@ -159,6 +160,7 @@ export function ProductLanding({
               <Lock className="h-3 w-3" strokeWidth={1.5} />
               {p.guarantee}
             </p>
+            <PaymentBadges badges={offer.paymentBadges} className="mt-3" />
           </div>
         </div>
       </section>
@@ -412,6 +414,7 @@ export function ProductLanding({
                 <Lock className="h-3 w-3" strokeWidth={1.5} />
                 {content.offer.secure}
               </p>
+              <PaymentBadges badges={offer.paymentBadges} className="mt-4" />
             </div>
           </div>
         </div>

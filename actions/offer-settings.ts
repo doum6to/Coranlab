@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import db from "@/db/drizzle";
 import { appSetting } from "@/db/schema";
 import { isAdminAuthed } from "@/lib/admin-auth";
-import { OFFER_KEYS, isCurrency, type LocalePrice } from "@/lib/offer";
+import { OFFER_KEYS, isCurrency, PAYMENT_BADGE_IDS, type LocalePrice } from "@/lib/offer";
 import { LOCALES, type Locale } from "@/lib/i18n/locales";
 
 /**
@@ -21,6 +21,7 @@ export async function updateOfferSettings(input: {
   variant: "classic" | "letter" | "product";
   pdfLinks: { label: string; url: string }[];
   pricingByLocale?: Partial<Record<Locale, LocalePrice>>;
+  paymentBadges?: string[];
 }) {
   if (!isAdminAuthed()) throw new Error("Unauthorized");
 
@@ -67,6 +68,14 @@ export async function updateOfferSettings(input: {
     [OFFER_KEYS.total, String(spotsTotal)],
     [OFFER_KEYS.variant, variant],
     [OFFER_KEYS.pricing, JSON.stringify(cleanPricing)],
+    [
+      OFFER_KEYS.badges,
+      JSON.stringify(
+        (input.paymentBadges || []).filter((b) =>
+          (PAYMENT_BADGE_IDS as readonly string[]).includes(b),
+        ),
+      ),
+    ],
     [
       OFFER_KEYS.pdf,
       JSON.stringify(
