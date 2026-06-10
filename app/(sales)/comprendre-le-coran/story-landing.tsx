@@ -61,6 +61,36 @@ function AdVideo({ url }: { url: string }) {
 }
 
 /**
+ * Turns a flat cover image into a 3D book mockup with a spine, page edges and
+ * a soft floor shadow — so even a plain cover looks like a tangible product.
+ */
+function BookMockup({ src, alt }: { src: string; alt: string }) {
+  return (
+    <div className="[perspective:1600px]">
+      <div className="relative mx-auto aspect-[3/4] w-[220px] [transform:rotateY(-24deg)_rotateX(4deg)] [transform-style:preserve-3d] sm:w-[240px]">
+        {/* page edges (right side, gives thickness) */}
+        <div className="absolute right-[-14px] top-[1.5%] h-[97%] w-4 rounded-r-[3px] bg-gradient-to-r from-neutral-200 via-white to-neutral-300 [transform:rotateY(34deg)] [transform-origin:left]" />
+        {/* cover */}
+        <div className="relative h-full w-full overflow-hidden rounded-l-[4px] rounded-r-lg shadow-[0_30px_50px_-12px_rgba(0,0,0,0.45)]">
+          <Image
+            src={src}
+            alt={alt}
+            fill
+            sizes="240px"
+            className="object-cover"
+          />
+          {/* spine shading on the left + glossy sheen on the cover */}
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-5 bg-gradient-to-r from-black/35 via-black/10 to-transparent" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-transparent via-transparent to-white/15" />
+        </div>
+        {/* floor shadow */}
+        <div className="absolute -bottom-5 left-1/2 h-5 w-[80%] -translate-x-1/2 rounded-[50%] bg-black/25 blur-md" />
+      </div>
+    </div>
+  );
+}
+
+/**
  * Story-driven sales page for cold TikTok traffic (/comprendre-le-coran).
  * Mirrors the 9-image couple-dialogue ad beat for beat: pain (listening
  * without understanding) → "500 words = 85%" → the book → contextual
@@ -84,6 +114,21 @@ export function StoryLanding({
   priceValue: number;
 }) {
   const c = content;
+
+  // Value anchoring made coherent: sum the per-feature worths (the part after
+  // "|", e.g. "App à vie | 97 €") so the struck "valeur réelle" always equals
+  // what's actually listed. Falls back to the manual text if no values found.
+  const valueSum = c.offerCard.features.reduce((sum, f) => {
+    const after = f.includes("|") ? f.split("|").slice(1).join("|") : "";
+    const n = parseFloat(after.replace(/[^0-9.,]/g, "").replace(",", "."));
+    return sum + (Number.isFinite(n) ? n : 0);
+  }, 0);
+  const computedValueTotal =
+    valueSum > 0
+      ? `Valeur réelle : ${
+          Number.isInteger(valueSum) ? valueSum : valueSum.toFixed(2).replace(".", ",")
+        } €`
+      : c.offerCard.valueTotal;
 
   return (
     <div className="w-full bg-white font-sans text-neutral-900">
@@ -234,15 +279,7 @@ export function StoryLanding({
         <div className="mx-auto grid max-w-[960px] items-center gap-8 px-5 py-12 sm:grid-cols-2 sm:py-16">
           <div className="mx-auto w-full max-w-[320px]">
             {c.book.image ? (
-              <div className="relative aspect-[3/4] w-full overflow-hidden rounded-2xl shadow-xl">
-                <Image
-                  src={c.book.image}
-                  alt={c.book.heading}
-                  fill
-                  sizes="(max-width: 640px) 80vw, 320px"
-                  className="object-cover"
-                />
-              </div>
+              <BookMockup src={c.book.image} alt={c.book.heading} />
             ) : (
               <div className="flex aspect-[3/4] w-full items-center justify-center rounded-2xl border-2 border-dashed border-neutral-300 bg-white text-neutral-300">
                 <BookOpen className="h-16 w-16" strokeWidth={1} />
@@ -355,10 +392,10 @@ export function StoryLanding({
                 {c.offerCard.eyebrow}
               </p>
               {/* Value anchoring: the real worth, struck through, above the price */}
-              {c.offerCard.valueTotal && (
+              {computedValueTotal && (
                 <p className="mt-3 text-sm text-white/60">
                   <span className="line-through decoration-white/40">
-                    {c.offerCard.valueTotal}
+                    {computedValueTotal}
                   </span>
                 </p>
               )}
