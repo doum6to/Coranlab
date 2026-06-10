@@ -25,40 +25,66 @@ export async function AnalyticsPanel() {
   }
 
   // Funnel (V5) lead stats — counts unique captured emails + furthest step.
+  // Leads are read from analytics_event (event='funnel_lead', PII in `meta`),
+  // a table that always exists — so leads show even if funnel_lead couldn't be
+  // created. We aggregate the events per email (latest data + furthest stage).
   let leadStats = { total: 0, ex: 0, offer: 0, checkout: 0 };
   let recentLeads: Array<{
     email: string;
     first_name: string | null;
     focus_choice: string | null;
-    reached_exercise: boolean;
-    reached_offer: boolean;
-    started_checkout: boolean;
+    stage: string;
     created_at: string;
   }> = [];
+  let leadError: string | null = null;
+  const stageRank: Record<string, number> = {
+    lead: 0,
+    exercise: 1,
+    offer: 2,
+    checkout: 3,
+  };
   try {
-    const r1: any = await db.execute(sql`
-      SELECT COUNT(*)::int AS total,
-             COUNT(*) FILTER (WHERE reached_exercise)::int AS ex,
-             COUNT(*) FILTER (WHERE reached_offer)::int AS offer,
-             COUNT(*) FILTER (WHERE started_checkout)::int AS checkout
-      FROM funnel_lead;
+    const r: any = await db.execute(sql`
+      SELECT meta, created_at FROM analytics_event
+      WHERE event = 'funnel_lead' AND meta IS NOT NULL
+      ORDER BY created_at DESC LIMIT 3000;
     `);
-    const row = (r1?.rows ?? r1 ?? [])[0];
-    if (row) {
-      leadStats = {
-        total: Number(row.total) || 0,
-        ex: Number(row.ex) || 0,
-        offer: Number(row.offer) || 0,
-        checkout: Number(row.checkout) || 0,
-      };
+    const rows: any[] = r?.rows ?? r ?? [];
+    const byEmail = new Map<string, (typeof recentLeads)[number]>();
+    for (const row of rows) {
+      let m: any;
+      try {
+        m = JSON.parse(row.meta);
+      } catch {
+        continue;
+      }
+      const email = (m?.email || "").toLowerCase();
+      if (!email) continue;
+      const cur = byEmail.get(email);
+      if (!cur) {
+        byEmail.set(email, {
+          email,
+          first_name: m.firstName || null,
+          focus_choice: m.focusChoice || null,
+          stage: m.stage || "lead",
+          created_at: row.created_at,
+        });
+      } else {
+        if ((stageRank[m.stage] ?? 0) > (stageRank[cur.stage] ?? 0)) cur.stage = m.stage;
+        if (!cur.first_name && m.firstName) cur.first_name = m.firstName;
+        if (!cur.focus_choice && m.focusChoice) cur.focus_choice = m.focusChoice;
+      }
     }
-    const r2: any = await db.execute(sql`
-      SELECT email, first_name, focus_choice, reached_exercise, reached_offer, started_checkout, created_at
-      FROM funnel_lead ORDER BY created_at DESC LIMIT 30;
-    `);
-    recentLeads = r2?.rows ?? r2 ?? [];
-  } catch {
-    /* funnel_lead table may not exist yet — skip silently */
+    const leads = Array.from(byEmail.values());
+    leadStats = {
+      total: leads.length,
+      ex: leads.filter((l) => (stageRank[l.stage] ?? 0) >= 1).length,
+      offer: leads.filter((l) => (stageRank[l.stage] ?? 0) >= 2).length,
+      checkout: leads.filter((l) => (stageRank[l.stage] ?? 0) >= 3).length,
+    };
+    recentLeads = leads.slice(0, 30);
+  } catch (e: any) {
+    leadError = e?.message || String(e);
   }
 
   const n = (k: string) => counts[k] ?? 0;
@@ -165,6 +191,11 @@ export async function AnalyticsPanel() {
           Parcours capture → onboarding → exercice → offre → paiement.
         </p>
 
+        {leadError && (
+          <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+            Lecture des leads impossible : <code>{leadError}</code>
+          </div>
+        )}
         {fView === 0 && leadStats.total === 0 ? (
           <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-600">
             Pas encore de données. Elles apparaîtront dès les premières visites
@@ -217,13 +248,14 @@ export async function AnalyticsPanel() {
                     </thead>
                     <tbody>
                       {recentLeads.map((l, i) => {
-                        const stage = l.started_checkout
-                          ? "Paiement"
-                          : l.reached_offer
-                            ? "Offre"
-                            : l.reached_exercise
-                              ? "Exercice"
-                              : "Email";
+                        const stage =
+                          l.stage === "checkout"
+                            ? "Paiement"
+                            : l.stage === "offer"
+                              ? "Offre"
+                              : l.stage === "exercise"
+                                ? "Exercice"
+                                : "Email";
                         return (
                           <tr key={i} className="border-t border-neutral-100">
                             <td className="px-3 py-2 text-neutral-700">

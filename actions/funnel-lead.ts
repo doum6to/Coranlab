@@ -3,7 +3,7 @@
 import { sql } from "drizzle-orm";
 
 import db from "@/db/drizzle";
-import { funnelLead } from "@/db/schema";
+import { funnelLead, analyticsEvent } from "@/db/schema";
 import { isLocale, DEFAULT_LOCALE, type Locale } from "@/lib/i18n/locales";
 
 /** Step of the funnel a lead has reached (each implies the previous ones). */
@@ -91,19 +91,38 @@ export async function captureFunnelLead(input: {
         },
       });
 
+  // 1) Reliable path: also record the lead in analytics_event (a table that
+  // already exists and is used for tracking), with the PII in `meta`. The admin
+  // analytics reads leads from here, so capture works even if funnel_lead can't
+  // be created (e.g. restricted DB role).
+  let okAny = false;
+  try {
+    await db.insert(analyticsEvent).values({
+      event: "funnel_lead",
+      path: "/offre-a-vie",
+      locale,
+      sessionId: null,
+      meta: JSON.stringify({ email, firstName, focusChoice, stage }),
+    });
+    okAny = true;
+  } catch (e) {
+    console.error("[funnel-lead] analytics_event insert failed:", e);
+  }
+
+  // 2) Structured path: upsert funnel_lead (nice for export), self-healing if
+  // the table/column is missing.
   try {
     await doUpsert();
-    return { ok: true };
-  } catch (e) {
-    // Most likely the table (or focus_choice column) doesn't exist yet — create
-    // it once and retry so leads start recording without any manual setup.
+    okAny = true;
+  } catch {
     try {
       await ensureFunnelLeadTable();
       await doUpsert();
-      return { ok: true };
+      okAny = true;
     } catch (e2) {
-      console.error("[funnel-lead] capture failed after self-heal:", e2);
-      return { ok: false };
+      console.error("[funnel-lead] funnel_lead upsert failed after self-heal:", e2);
     }
   }
+
+  return { ok: okAny };
 }
