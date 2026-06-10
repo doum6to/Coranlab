@@ -9,6 +9,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getOfferSettings } from "@/lib/offer";
 import { getLandingContent } from "@/lib/landing-content";
 import { getFunnelContent } from "@/lib/funnel-content";
+import { getTikTokLandingContent } from "@/lib/tiktok-landing-content";
 import { getArabicLandingContent } from "@/lib/arabic-landing-content";
 
 import { listCourseVideos } from "@/actions/course-videos";
@@ -17,6 +18,7 @@ import { UsersTable, type AdminUser } from "./users-table";
 import { OfferSettingsForm } from "./offer-settings-form";
 import { LandingContentForm } from "./landing-content-form";
 import { FunnelContentForm } from "./funnel-content-form";
+import { TikTokLandingForm } from "./tiktok-landing-form";
 import { ArabicLandingForm } from "./arabic-landing-form";
 import { VideosForm } from "./videos-form";
 import { AnalyticsPanel } from "./analytics-panel";
@@ -142,6 +144,7 @@ const AdminPremiumPage = async () => {
     contentV4Es,
     funnelContentA,
     funnelContentB,
+    tiktokContent,
     arabicContent,
     videos,
   ] = await Promise.all([
@@ -154,6 +157,7 @@ const AdminPremiumPage = async () => {
     getLandingContent("es", "v4"),
     getFunnelContent("a"),
     getFunnelContent("b"),
+    getTikTokLandingContent(),
     getArabicLandingContent(),
     listCourseVideos(),
   ]);
@@ -232,6 +236,11 @@ const AdminPremiumPage = async () => {
                       price: (offer.funnelPriceB.priceCents / 100).toFixed(2),
                       compare: (offer.funnelPriceB.compareAtCents / 100).toFixed(2),
                     },
+                    tiktokPrice: {
+                      currency: offer.tiktokPrice.currency,
+                      price: (offer.tiktokPrice.priceCents / 100).toFixed(2),
+                      compare: (offer.tiktokPrice.compareAtCents / 100).toFixed(2),
+                    },
                     paymentBadges: offer.paymentBadges,
                     scarcityMode: offer.scarcityMode,
                     stickyBar: offer.stickyBar,
@@ -259,6 +268,11 @@ const AdminPremiumPage = async () => {
                   activeVersion={offer.funnelVersion}
                 />
               ),
+            },
+            {
+              key: "tiktok",
+              label: "Landing TikTok",
+              node: <TikTokLandingForm initial={tiktokContent} />,
             },
             {
               key: "arabic",

@@ -32,6 +32,7 @@ export function OfferSettingsForm({
     pricingByLocaleV4: Record<Locale, PriceRow>;
     funnelPrice: PriceRow;
     funnelPriceB: PriceRow;
+    tiktokPrice: PriceRow;
     paymentBadges: string[];
     scarcityMode: "spots" | "timer";
     stickyBar: boolean;
@@ -62,6 +63,9 @@ export function OfferSettingsForm({
   const setFunnelRow = (patch: Partial<PriceRow>) =>
     setFunnel((f) => ({ ...f, ...patch }));
   const [funnelB, setFunnelB] = useState<PriceRow>(initial.funnelPriceB);
+  const [tiktok, setTiktok] = useState<PriceRow>(initial.tiktokPrice);
+  const setTiktokRow = (patch: Partial<PriceRow>) =>
+    setTiktok((f) => ({ ...f, ...patch }));
   const setFunnelBRow = (patch: Partial<PriceRow>) =>
     setFunnelB((f) => ({ ...f, ...patch }));
   const [badges, setBadges] = useState<string[]>(initial.paymentBadges);
@@ -158,6 +162,7 @@ export function OfferSettingsForm({
       };
       const funnelPrice = toPrice(funnel);
       const funnelPriceB = toPrice(funnelB);
+      const tiktokPrice = toPrice(tiktok);
 
       const res = await updateOfferSettings({
         priceCents,
@@ -170,6 +175,7 @@ export function OfferSettingsForm({
         pricingByLocaleV4,
         funnelPrice,
         funnelPriceB,
+        tiktokPrice,
         paymentBadges: badges,
         scarcityMode,
         stickyBar,
@@ -432,17 +438,18 @@ export function OfferSettingsForm({
       {/* Funnel (V5) prices — version A & B (A/B test) */}
       <div className="mt-4 rounded-xl border border-[#58cc6a]/40 bg-[#58cc6a]/5 p-3">
         <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-[#3fa34d]">
-          Prix du Tunnel (V5) — Versions A / B
+          Prix Tunnel (V5) A / B + Landing TikTok
         </span>
         <p className="mb-3 text-xs text-neutral-400">
-          Prix affiché et débité dans le tunnel /offre-a-vie. Chaque version a
-          son prix (pour l&apos;A/B test). La version en ligne se choisit dans
-          l&apos;onglet « Tunnel (V5) ».
+          A/B = tunnel /offre-a-vie (version en ligne dans l&apos;onglet
+          « Tunnel (V5) »). TikTok = la landing /comprendre-le-coran. Chaque
+          prix est indépendant et débité tel quel par Stripe.
         </p>
         <div className="space-y-2">
           {([
             ["Version A", funnel, setFunnelRow] as const,
             ["Version B", funnelB, setFunnelBRow] as const,
+            ["TikTok", tiktok, setTiktokRow] as const,
           ]).map(([label, row, setRow]) => (
             <div
               key={label}
