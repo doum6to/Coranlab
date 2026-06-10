@@ -238,12 +238,68 @@ export function TikTokLandingForm({ initial }: { initial: TikTokLandingContent }
           <Field label="Titre (début)" value={c.hero.title} onChange={(v) => setHero("title", v)} />
           <Field label="Titre (partie violette)" value={c.hero.titleHighlight} onChange={(v) => setHero("titleHighlight", v)} />
           <Field label="Sous-titre" value={c.hero.subtitle} onChange={(v) => setHero("subtitle", v)} textarea />
-          <ImageField label="Illustration (ex. le couple de la pub)" value={c.hero.image} onChange={(v) => setHero("image", v)} />
+          <ImageField label="Illustration (si une seule image)" value={c.hero.image} onChange={(v) => setHero("image", v)} />
+          <div>
+            <span className="mb-1 block text-xs font-semibold text-neutral-600">
+              Slides du carrousel (pub en images)
+            </span>
+            <p className="mb-2 text-[11px] text-neutral-400">
+              Mets les 2-3 premières images de ta pub carrousel : elles
+              s&apos;affichent en carrousel swipable en haut de page (même format
+              que la pub). Prioritaire sur l&apos;illustration seule.
+            </p>
+            {c.hero.images.map((url, i) => (
+              <div key={i} className="mb-2 flex items-start gap-1.5">
+                <div className="flex-1">
+                  <ImageField
+                    label={`Slide ${i + 1}`}
+                    value={url}
+                    onChange={(v) =>
+                      patch((cc) => ({
+                        ...cc,
+                        hero: {
+                          ...cc.hero,
+                          images: cc.hero.images.map((x, idx) => (idx === i ? v : x)),
+                        },
+                      }))
+                    }
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    patch((cc) => ({
+                      ...cc,
+                      hero: {
+                        ...cc.hero,
+                        images: cc.hero.images.filter((_, idx) => idx !== i),
+                      },
+                    }))
+                  }
+                  className="mt-6 text-neutral-400 hover:text-rose-500"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() =>
+                patch((cc) => ({
+                  ...cc,
+                  hero: { ...cc.hero, images: [...cc.hero.images, ""] },
+                }))
+              }
+              className="inline-flex items-center gap-1 text-xs font-semibold text-[#6967fb]"
+            >
+              <Plus className="h-3.5 w-3.5" /> Ajouter une slide
+            </button>
+          </div>
           <Field
             label="Vidéo de la pub (optionnel)"
             value={c.hero.videoUrl}
             onChange={(v) => setHero("videoUrl", v)}
-            hint="Lien TikTok (https://www.tiktok.com/@…/video/…) ou lien direct .mp4. Si rempli, la vidéo remplace l'illustration."
+            hint="UNIQUEMENT un lien TikTok VIDÉO (…/video/…) ou un .mp4 direct. Les liens de carrousels (/photo/) ne marchent pas — utilise les slides ci-dessus. Si rempli, la vidéo passe devant tout."
           />
           <label className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white px-3 py-2.5">
             <span className="text-xs font-semibold text-neutral-600">

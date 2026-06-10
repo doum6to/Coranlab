@@ -27,6 +27,11 @@ export type TikTokLandingContent = {
     ctaSub: string;
     /** Optional hero illustration (e.g. the couple artwork from the ad). */
     image: string;
+    /**
+     * Several ad slides → rendered as a swipeable mini-carousel (mirrors a
+     * TikTok carousel ad). Takes precedence over the single `image`.
+     */
+    images: string[];
     /** Optional ad video: a TikTok URL (embedded) or a direct .mp4 link. */
     videoUrl: string;
     /** Show the price (and strike-through) right above the hero CTA. */
@@ -98,6 +103,7 @@ export const TIKTOK_LANDING_DEFAULTS: TikTokLandingContent = {
     cta: "Je reçois mon livre + mes bonus",
     ctaSub: "Paiement unique · Téléchargement immédiat",
     image: "",
+    images: [],
     videoUrl: "",
     showPrice: true,
     socialProof: "Plus de 1 000 lecteurs et apprenants",

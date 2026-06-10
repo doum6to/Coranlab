@@ -145,15 +145,36 @@ export function StoryLanding({
         <div className="relative mx-auto max-w-[680px] px-5 pb-10 pt-5 text-center sm:pt-7">
         {/* MEDIA FIRST — TikTok traffic is visual: instant recognition of the
             ad creative confirms "you're in the right place" before any text.
-            Video (the actual ad) wins over the still illustration when set. */}
+            Priority: video > swipeable slides (mirrors a carousel ad) > image. */}
         {c.hero.videoUrl ? (
           <div className="mb-5">
             <AdVideo url={c.hero.videoUrl} />
           </div>
-        ) : c.hero.image ? (
+        ) : c.hero.images.length > 1 ? (
+          <div className="mb-5 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {/* leading spacer so slide 1 sits centered with a peek of slide 2 */}
+            <div className="w-[7vw] shrink-0 sm:w-10" aria-hidden />
+            {c.hero.images.map((src, i) => (
+              <div
+                key={i}
+                className="relative aspect-[4/5] w-[78vw] max-w-[330px] shrink-0 snap-center overflow-hidden rounded-3xl"
+              >
+                <Image
+                  src={src}
+                  alt=""
+                  fill
+                  sizes="(max-width: 640px) 78vw, 330px"
+                  className="object-cover"
+                  priority={i === 0}
+                />
+              </div>
+            ))}
+            <div className="w-[7vw] shrink-0 sm:w-10" aria-hidden />
+          </div>
+        ) : c.hero.images[0] || c.hero.image ? (
           <div className="relative mx-auto mb-5 h-[260px] w-full max-w-[460px] overflow-hidden rounded-3xl sm:h-[300px]">
             <Image
-              src={c.hero.image}
+              src={c.hero.images[0] || c.hero.image}
               alt=""
               fill
               sizes="(max-width: 640px) 92vw, 460px"
