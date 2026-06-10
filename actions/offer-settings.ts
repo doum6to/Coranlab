@@ -160,6 +160,7 @@ export async function updateOfferSettings(input: {
 
   // Refresh the landing pages (ISR) and the admin so the change shows at once.
   revalidatePath("/offre-a-vie");
+  revalidatePath("/offre-a-vie-v4");
   revalidatePath("/en/offre-a-vie");
   revalidatePath("/es/offre-a-vie");
   revalidatePath("/admin/premium");

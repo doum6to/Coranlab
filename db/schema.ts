@@ -211,6 +211,8 @@ export const funnelLead = pgTable("funnel_lead", {
   email: text("email").notNull(),
   firstName: text("first_name"),
   locale: text("locale"),
+  // The personalization answer the visitor picked (their "why").
+  focusChoice: text("focus_choice"),
   // Furthest step reached, for funnel analytics / abandoned-funnel emails.
   reachedExercise: boolean("reached_exercise").notNull().default(false),
   reachedOffer: boolean("reached_offer").notNull().default(false),

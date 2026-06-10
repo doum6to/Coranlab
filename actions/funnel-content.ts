@@ -126,6 +126,7 @@ export async function updateFunnelContent(input: {
   }
 
   revalidatePath("/offre-a-vie");
+  revalidatePath("/offre-a-vie-v4");
   revalidatePath("/admin/premium");
   return { ok: true };
 }

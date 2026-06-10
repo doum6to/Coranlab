@@ -78,10 +78,34 @@ export async function GET(req: Request) {
       CREATE INDEX IF NOT EXISTS "analytics_event_created" ON "analytics_event" ("created_at");
     `);
 
+    // Funnel (V5) leads: first name + email captured before payment, plus the
+    // personalization choice and furthest step reached.
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "funnel_lead" (
+        "id" serial PRIMARY KEY,
+        "email" text NOT NULL,
+        "first_name" text,
+        "locale" text,
+        "focus_choice" text,
+        "reached_exercise" boolean NOT NULL DEFAULT false,
+        "reached_offer" boolean NOT NULL DEFAULT false,
+        "started_checkout" boolean NOT NULL DEFAULT false,
+        "created_at" timestamp NOT NULL DEFAULT now(),
+        "updated_at" timestamp NOT NULL DEFAULT now()
+      );
+    `);
+    // In case the table already existed (older db:push) without this column.
+    await db.execute(sql`
+      ALTER TABLE "funnel_lead" ADD COLUMN IF NOT EXISTS "focus_choice" text;
+    `);
+    await db.execute(sql`
+      CREATE UNIQUE INDEX IF NOT EXISTS "funnel_lead_email" ON "funnel_lead" ("email");
+    `);
+
     return NextResponse.json({
       ok: true,
       message:
-        "Tables prêtes (app_setting, course_video + colonne product_type). Tu peux gérer l'offre, le contenu et les vidéos depuis /admin/premium.",
+        "Tables prêtes (app_setting, course_video, analytics_event, funnel_lead). Tu peux gérer l'offre, le contenu, les vidéos et voir les leads du tunnel depuis /admin/premium.",
     });
   } catch (e: any) {
     console.error("[db-setup] failed:", e);

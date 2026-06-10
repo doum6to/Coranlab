@@ -177,6 +177,14 @@ export function FunnelLanding({
   const pickFocus = (idx: number) => {
     setFocusAnswer(idx);
     setOkokReplayKey((k) => k + 1);
+    // Record the choice right away (even if they drop off before the exercise).
+    void captureFunnelLead({
+      email,
+      firstName,
+      locale: "fr",
+      stage: "lead",
+      focusChoice: content.question.options[idx]?.label,
+    });
   };
 
   // ----- Step 4: exercise (mini-lesson) -----
@@ -208,12 +216,14 @@ export function FunnelLanding({
 
   // Record progress as the visitor advances into exercise / offer.
   useEffect(() => {
+    const focusChoice =
+      focusAnswer != null ? content.question.options[focusAnswer]?.label : undefined;
     if (step === "exercise") {
-      void captureFunnelLead({ email, firstName, locale: "fr", stage: "exercise" });
+      void captureFunnelLead({ email, firstName, locale: "fr", stage: "exercise", focusChoice });
     }
     if (step === "offer") {
       track("funnel_offer_view");
-      void captureFunnelLead({ email, firstName, locale: "fr", stage: "offer" });
+      void captureFunnelLead({ email, firstName, locale: "fr", stage: "offer", focusChoice });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
@@ -223,7 +233,14 @@ export function FunnelLanding({
     setCheckoutError(null);
     setCheckoutLoading(true);
     track("funnel_checkout_start");
-    void captureFunnelLead({ email, firstName, locale: "fr", stage: "checkout" });
+    void captureFunnelLead({
+      email,
+      firstName,
+      locale: "fr",
+      stage: "checkout",
+      focusChoice:
+        focusAnswer != null ? content.question.options[focusAnswer]?.label : undefined,
+    });
     ttqTrack("InitiateCheckout", {
       value: priceValue,
       currency: "EUR",

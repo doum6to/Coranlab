@@ -29,6 +29,7 @@ export async function AnalyticsPanel() {
   let recentLeads: Array<{
     email: string;
     first_name: string | null;
+    focus_choice: string | null;
     reached_exercise: boolean;
     reached_offer: boolean;
     started_checkout: boolean;
@@ -52,8 +53,8 @@ export async function AnalyticsPanel() {
       };
     }
     const r2: any = await db.execute(sql`
-      SELECT email, first_name, reached_exercise, reached_offer, started_checkout, created_at
-      FROM funnel_lead ORDER BY created_at DESC LIMIT 20;
+      SELECT email, first_name, focus_choice, reached_exercise, reached_offer, started_checkout, created_at
+      FROM funnel_lead ORDER BY created_at DESC LIMIT 30;
     `);
     recentLeads = r2?.rows ?? r2 ?? [];
   } catch {
@@ -209,6 +210,7 @@ export async function AnalyticsPanel() {
                       <tr>
                         <th className="px-3 py-2 font-semibold">Prénom</th>
                         <th className="px-3 py-2 font-semibold">Email</th>
+                        <th className="px-3 py-2 font-semibold">Objectif (choix)</th>
                         <th className="px-3 py-2 font-semibold">Étape atteinte</th>
                         <th className="px-3 py-2 font-semibold">Date</th>
                       </tr>
@@ -228,6 +230,9 @@ export async function AnalyticsPanel() {
                               {l.first_name || "—"}
                             </td>
                             <td className="px-3 py-2 text-neutral-700">{l.email}</td>
+                            <td className="px-3 py-2 text-neutral-600">
+                              {l.focus_choice || "—"}
+                            </td>
                             <td className="px-3 py-2">
                               <span className="rounded-full bg-[#6967fb]/10 px-2 py-0.5 text-xs font-semibold text-[#6967fb]">
                                 {stage}

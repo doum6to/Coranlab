@@ -22,6 +22,8 @@ export async function captureFunnelLead(input: {
   firstName?: string;
   locale?: string;
   stage?: FunnelStage;
+  /** The personalization answer the visitor picked (their "why"). */
+  focusChoice?: string;
 }): Promise<{ ok: boolean }> {
   const email = (input.email || "").trim().toLowerCase();
   if (!EMAIL_RE.test(email)) return { ok: false };
@@ -29,6 +31,7 @@ export async function captureFunnelLead(input: {
   const firstName = (input.firstName || "").trim().slice(0, 80) || null;
   const locale: Locale = isLocale(input.locale) ? input.locale : DEFAULT_LOCALE;
   const stage = input.stage ?? "lead";
+  const focusChoice = (input.focusChoice || "").trim().slice(0, 200) || null;
 
   const flags = {
     reachedExercise: stage === "exercise" || stage === "offer" || stage === "checkout",
@@ -43,6 +46,7 @@ export async function captureFunnelLead(input: {
         email,
         firstName,
         locale,
+        focusChoice,
         ...flags,
         updatedAt: new Date(),
       })
@@ -51,6 +55,7 @@ export async function captureFunnelLead(input: {
         set: {
           // Keep the first name if we already have one and a later call omits it.
           ...(firstName ? { firstName } : {}),
+          ...(focusChoice ? { focusChoice } : {}),
           locale,
           // Flags are monotonic: once true, stay true (use OR via SQL coalesce
           // by only setting true values).
