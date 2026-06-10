@@ -108,27 +108,31 @@ export const TIKTOK_LANDING_DEFAULTS: TikTokLandingContent = {
     ],
   },
   story: {
-    heading: "Cette conversation, tu l'as peut-être déjà vécue…",
+    heading: "Et toi, ça te parle ?",
     bubbles: [
-      { side: "left", text: "Tu sais, parfois j'écoute le Coran et j'ai honte." },
-      { side: "right", text: "Honte ? Pourquoi ?" },
-      { side: "left", text: "Parce que je sens la beauté… mais je comprends presque rien." },
+      { side: "left", text: "Ça fait des années que je prie… mais je ne comprends pas un mot de ce que je récite." },
+      { side: "right", text: "Tu n'es pas seul. Moi aussi je récitais sans savoir ce que je disais à Allah." },
+      { side: "left", text: "Et pendant le Ramadan, l'imam enchaîne de longues sourates… et je décroche complètement." },
       {
         side: "right",
-        text: "SubhanAllah… moi aussi parfois. Mais tu sais qu'avec juste 500 mots, tu peux comprendre 85% des mots du Coran ?",
+        text: "Jusqu'au jour où on m'a dit : tu n'as pas besoin de tout apprendre. Juste les mots qui reviennent le plus.",
       },
-      { side: "left", text: "Hein ? 500 mots seulement ?? C'est sérieux ??" },
+      { side: "left", text: "Les mots qui reviennent ?" },
       {
         side: "right",
-        text: "Oui… Les mêmes racines reviennent souvent. Si tu les maîtrises, tout devient plus clair. Moi j'ai trouvé un livre qui regroupe ces 500 mots essentiels…",
+        text: "Oui. 500 mots reviennent partout dans le Coran. Tu les maîtrises, et d'un coup tu comprends ce que tu écoutes et ce que tu récites.",
       },
       {
         side: "left",
-        text: "Ça changerait tout pour moi. Comprendre quand الله parle directement.",
+        text: "Donc je pourrais enfin ressentir mes prières… au lieu de les subir.",
+      },
+      {
+        side: "right",
+        text: "Exactement. Et tout commence avec un seul livre. 🤍",
       },
     ],
     closing:
-      "La prochaine fois que tu écouteras le Coran, imagine : tu reconnais les mots, les versets prennent vie, et tu comprends quand الله te parle. C'est exactement ce que ce livre rend possible.",
+      "Imagine ta prochaine prière : tu reconnais les mots, tu comprends ce que tu dis à Allah, et chaque verset prend vie. C'est exactement ce que ce livre rend possible — dès aujourd'hui.",
   },
   method: {
     heading: "Pourquoi 500 mots suffisent",
