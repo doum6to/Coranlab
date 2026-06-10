@@ -20,10 +20,12 @@ export const metadata: Metadata = {
 export default async function OffreAVieV4Page() {
   const offer = await getOfferSettings();
 
-  // Funnel live → this URL hosts funnel version B (independent copy + price).
+  // Funnel live → this URL hosts funnel version B (independent copy + price),
+  // with the product V4 page as its paywall body.
   if (offer.variant === "funnel") {
     const fp = getLocalePrice(offer, "fr", "funnelB");
     const funnelContent = await getFunnelContent("b");
+    const productContent = await getLandingContent("fr", "v4");
     return (
       <FunnelLanding
         content={funnelContent}
@@ -36,6 +38,14 @@ export default async function OffreAVieV4Page() {
             : null
         }
         paymentBadges={offer.paymentBadges}
+        offerSlot={
+          <ProductLanding
+            content={productContent}
+            offer={offer}
+            locale="fr"
+            variant="v4"
+          />
+        }
       />
     );
   }

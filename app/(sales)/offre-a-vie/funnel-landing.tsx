@@ -52,6 +52,12 @@ type FunnelProps = {
   compareLabel: string | null;
   /** Payment-method badges to show under the CTA. */
   paymentBadges: string[];
+  /**
+   * Full product sales page (server-rendered) shown as the paywall body, below
+   * the funnel offer title — V3 for funnel A, V4 for funnel B. When provided it
+   * replaces the simple offer card.
+   */
+  offerSlot?: React.ReactNode;
 };
 
 type ExOption = { id: string; label: string; correct: boolean };
@@ -75,6 +81,7 @@ export function FunnelLanding({
   priceLabel,
   compareLabel,
   paymentBadges,
+  offerSlot,
 }: FunnelProps) {
   const [stepIndex, setStepIndex] = useState(0);
   const step: StepKey = STEPS[stepIndex];
@@ -321,6 +328,7 @@ export function FunnelLanding({
           loading={checkoutLoading}
           error={checkoutError}
           onBuy={startCheckout}
+          offerSlot={offerSlot}
         />
       )}
     </main>
@@ -631,6 +639,7 @@ function OfferStep({
   loading,
   error,
   onBuy,
+  offerSlot,
 }: {
   c: FunnelContent["offer"];
   name: string;
@@ -640,71 +649,74 @@ function OfferStep({
   loading: boolean;
   error: string | null;
   onBuy: () => void;
+  offerSlot?: React.ReactNode;
 }) {
   return (
-    <section className="flex flex-1 flex-col items-center px-5 pb-10 pt-4">
-      <div className="h-24 w-24 sm:h-28 sm:w-28">
-        <OnboardingMascot phase="question" replayKey={1} />
-      </div>
-      <p className="text-center text-sm font-semibold text-[#6967fb]">
-        {fillName(c.kicker, name)}
-      </p>
-      <h1 className="mt-2 max-w-[26rem] text-center font-display text-2xl font-bold leading-tight text-neutral-950 sm:text-3xl">
-        {c.title}
-      </h1>
-      <p className="mt-2 max-w-[24rem] text-center text-sm leading-relaxed text-neutral-600">
-        {c.subtitle}
-      </p>
-
-      {/* Offer card */}
-      <div className="mt-6 w-full max-w-md rounded-3xl border-2 border-neutral-900/10 bg-[#FAF8F3] p-6">
-        <div className="flex items-baseline justify-center gap-2">
-          {compareLabel && (
-            <span className="font-display text-2xl text-neutral-400 line-through">
-              {compareLabel}
-            </span>
-          )}
-          <span className="font-display text-5xl font-bold tracking-tight text-neutral-950">
-            {priceLabel}
-          </span>
-          <span className="text-sm text-neutral-500">{c.priceSuffix}</span>
+    <section className="flex flex-1 flex-col">
+      {/* Header: Koji congratulates + the paywall title */}
+      <div className="flex flex-col items-center px-5 pb-2 pt-4 text-center">
+        <div className="h-24 w-24 sm:h-28 sm:w-28">
+          <OnboardingMascot phase="question" replayKey={1} />
         </div>
-
-        <ul className="mt-5 space-y-2.5">
-          {c.features.map((f) => (
-            <li
-              key={f}
-              className="flex items-start gap-2.5 text-sm text-neutral-700"
-            >
-              <Check
-                className="mt-0.5 h-4 w-4 shrink-0 text-[#58cc6a]"
-                strokeWidth={3}
-              />
-              {f}
-            </li>
-          ))}
-        </ul>
-
-        <button
-          type="button"
-          onClick={onBuy}
-          disabled={loading}
-          className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-2xl border-b-4 border-[#4a48c4] bg-[#6967fb] px-8 py-4 font-display text-base font-bold uppercase tracking-wide text-white shadow-sm transition-all hover:brightness-[1.05] active:translate-y-1 active:border-b-0 disabled:opacity-70"
-        >
-          {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-          {loading ? "Redirection…" : c.cta}
-        </button>
-
-        {error && (
-          <p className="mt-3 text-center text-sm text-rose-500">{error}</p>
-        )}
-
-        <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-neutral-500">
-          <ShieldCheck className="h-3.5 w-3.5" strokeWidth={1.75} />
-          {c.guarantee}
+        <p className="text-sm font-semibold text-[#6967fb]">
+          {fillName(c.kicker, name)}
         </p>
-        <PaymentBadges badges={paymentBadges} className="mt-3" />
+        <h1 className="mt-2 max-w-[26rem] font-display text-2xl font-bold leading-tight text-neutral-950 sm:text-3xl">
+          {c.title}
+        </h1>
+        <p className="mt-2 max-w-[24rem] text-sm leading-relaxed text-neutral-600">
+          {c.subtitle}
+        </p>
       </div>
+
+      {/* Paywall body: the full product sales page (V3 for A, V4 for B). */}
+      {offerSlot ? (
+        <div className="mt-4 w-full">{offerSlot}</div>
+      ) : (
+        /* Fallback simple offer card (only if no product page was provided) */
+        <div className="flex flex-col items-center px-5 pb-10">
+          <div className="mt-4 w-full max-w-md rounded-3xl border-2 border-neutral-900/10 bg-[#FAF8F3] p-6">
+            <div className="flex items-baseline justify-center gap-2">
+              {compareLabel && (
+                <span className="font-display text-2xl text-neutral-400 line-through">
+                  {compareLabel}
+                </span>
+              )}
+              <span className="font-display text-5xl font-bold tracking-tight text-neutral-950">
+                {priceLabel}
+              </span>
+              <span className="text-sm text-neutral-500">{c.priceSuffix}</span>
+            </div>
+
+            <ul className="mt-5 space-y-2.5">
+              {c.features.map((f) => (
+                <li key={f} className="flex items-start gap-2.5 text-sm text-neutral-700">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#58cc6a]" strokeWidth={3} />
+                  {f}
+                </li>
+              ))}
+            </ul>
+
+            <button
+              type="button"
+              onClick={onBuy}
+              disabled={loading}
+              className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-2xl border-b-4 border-[#4a48c4] bg-[#6967fb] px-8 py-4 font-display text-base font-bold uppercase tracking-wide text-white shadow-sm transition-all hover:brightness-[1.05] active:translate-y-1 active:border-b-0 disabled:opacity-70"
+            >
+              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+              {loading ? "Redirection…" : c.cta}
+            </button>
+
+            {error && <p className="mt-3 text-center text-sm text-rose-500">{error}</p>}
+
+            <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-neutral-500">
+              <ShieldCheck className="h-3.5 w-3.5" strokeWidth={1.75} />
+              {c.guarantee}
+            </p>
+            <PaymentBadges badges={paymentBadges} className="mt-3" />
+          </div>
+        </div>
+      )}
     </section>
   );
 }

@@ -49,7 +49,19 @@ export function BuyButton({
     });
 
     try {
-      const result = await createAppLifetimeCheckoutUrl(locale, variant);
+      // If the funnel captured an email/first name earlier, carry them through
+      // so the Checkout email is prefilled and signup is pre-filled afterwards.
+      let lead: { email?: string; firstName?: string } | undefined;
+      try {
+        const raw = sessionStorage.getItem("funnel_lead_v1");
+        if (raw) {
+          const v = JSON.parse(raw) as { email?: string; firstName?: string };
+          if (v?.email) lead = { email: v.email, firstName: v.firstName };
+        }
+      } catch {
+        /* ignore */
+      }
+      const result = await createAppLifetimeCheckoutUrl(locale, variant, lead);
       if (result.url) {
         track("lp_checkout_start");
         window.location.href = result.url;

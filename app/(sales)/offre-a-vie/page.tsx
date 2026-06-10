@@ -99,6 +99,10 @@ export default async function OffreAViePage() {
     const checkoutVariant = version === "b" ? "funnelB" : "funnel";
     const fp = getLocalePrice(offer, "fr", checkoutVariant);
     const funnelContent = await getFunnelContent(version);
+    // Paywall body = the full product sales page (V3 for A, V4 for B).
+    const productVariant = version === "b" ? "v4" : "v3";
+    const productContent =
+      version === "b" ? await getLandingContent("fr", "v4") : content;
     return (
       <FunnelLanding
         content={funnelContent}
@@ -111,6 +115,14 @@ export default async function OffreAViePage() {
             : null
         }
         paymentBadges={offer.paymentBadges}
+        offerSlot={
+          <ProductLanding
+            content={productContent}
+            offer={offer}
+            locale="fr"
+            variant={productVariant}
+          />
+        }
       />
     );
   }
