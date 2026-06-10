@@ -24,6 +24,7 @@ export async function updateOfferSettings(input: {
   pricingByLocaleV4?: Partial<Record<Locale, LocalePrice>>;
   funnelPrice?: LocalePrice;
   funnelPriceB?: LocalePrice;
+  tiktokPrice?: LocalePrice;
   paymentBadges?: string[];
   scarcityMode?: "spots" | "timer";
   stickyBar?: boolean;
@@ -100,8 +101,13 @@ export async function updateOfferSettings(input: {
   };
   const cleanFunnelPrice = sanitizeSingle(input.funnelPrice);
   const cleanFunnelPriceB = sanitizeSingle(input.funnelPriceB);
-  if (cleanFunnelPrice === "bad" || cleanFunnelPriceB === "bad") {
-    return { error: "Prix du tunnel invalide." };
+  const cleanTiktokPrice = sanitizeSingle(input.tiktokPrice);
+  if (
+    cleanFunnelPrice === "bad" ||
+    cleanFunnelPriceB === "bad" ||
+    cleanTiktokPrice === "bad"
+  ) {
+    return { error: "Prix du tunnel / TikTok invalide." };
   }
 
   const entries: Array<[string, string]> = [
@@ -139,6 +145,9 @@ export async function updateOfferSettings(input: {
   if (cleanFunnelPriceB) {
     entries.push([OFFER_KEYS.funnelPriceB, JSON.stringify(cleanFunnelPriceB)]);
   }
+  if (cleanTiktokPrice) {
+    entries.push([OFFER_KEYS.tiktokPrice, JSON.stringify(cleanTiktokPrice)]);
+  }
 
   try {
     for (const [key, value] of entries) {
@@ -161,6 +170,7 @@ export async function updateOfferSettings(input: {
   // Refresh the landing pages (ISR) and the admin so the change shows at once.
   revalidatePath("/offre-a-vie");
   revalidatePath("/offre-a-vie-v4");
+  revalidatePath("/comprendre-le-coran");
   revalidatePath("/en/offre-a-vie");
   revalidatePath("/es/offre-a-vie");
   revalidatePath("/admin/premium");

@@ -28,8 +28,8 @@ export function BuyButton({
   /** Price in € used for the TikTok conversion value. */
   priceValue?: number;
   locale?: Locale;
-  /** Landing A/B variant — selects the right price at checkout. */
-  variant?: "v3" | "v4";
+  /** Landing variant — selects the right price at checkout. */
+  variant?: "v3" | "v4" | "tiktok";
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

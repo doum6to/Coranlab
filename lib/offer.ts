@@ -49,6 +49,8 @@ export type OfferSettings = {
   funnelPriceB: LocalePrice;
   /** Which funnel version is live ("a" or "b"). */
   funnelVersion: "a" | "b";
+  /** Independent price for the TikTok story landing (/comprendre-le-coran). */
+  tiktokPrice: LocalePrice;
   /** Payment-method badges shown on the landing (subset of PAYMENT_BADGE_IDS). */
   paymentBadges: string[];
   /** Scarcity element under the CTA: the spots gauge or a 24h countdown. */
@@ -77,6 +79,7 @@ export const OFFER_DEFAULTS: OfferSettings = {
   funnelPrice: { currency: "EUR", priceCents: 1497, compareAtCents: 9900 },
   funnelPriceB: { currency: "EUR", priceCents: 1497, compareAtCents: 9900 },
   funnelVersion: "a",
+  tiktokPrice: { currency: "EUR", priceCents: 1497, compareAtCents: 9900 },
   paymentBadges: ["card", "applePay", "paypal", "klarna", "link"],
   scarcityMode: "spots",
   stickyBar: false,
@@ -104,6 +107,7 @@ const KEYS = {
   funnelPrice: "offer_funnel_price",
   funnelPriceB: "offer_funnel_price_b",
   funnelVersion: "funnel_active_version",
+  tiktokPrice: "offer_tiktok_price",
   badges: "offer_payment_badges",
   scarcity: "offer_scarcity_mode",
   sticky: "offer_sticky_bar",
@@ -139,6 +143,7 @@ export const getOfferSettings = cache(async (): Promise<OfferSettings> => {
           KEYS.funnelPrice,
           KEYS.funnelPriceB,
           KEYS.funnelVersion,
+          KEYS.tiktokPrice,
           KEYS.badges,
           KEYS.scarcity,
           KEYS.sticky,
@@ -264,6 +269,7 @@ export const getOfferSettings = cache(async (): Promise<OfferSettings> => {
     };
     const funnelPrice = parseSinglePrice(KEYS.funnelPrice);
     const funnelPriceB = parseSinglePrice(KEYS.funnelPriceB);
+    const tiktokPrice = parseSinglePrice(KEYS.tiktokPrice);
 
     return {
       priceCents,
@@ -282,6 +288,7 @@ export const getOfferSettings = cache(async (): Promise<OfferSettings> => {
       funnelPrice,
       funnelPriceB,
       funnelVersion: map.get(KEYS.funnelVersion) === "b" ? "b" : "a",
+      tiktokPrice,
       paymentBadges,
       scarcityMode: map.get(KEYS.scarcity) === "timer" ? "timer" : "spots",
       stickyBar: map.get(KEYS.sticky) === "true",
@@ -298,12 +305,18 @@ export const OFFER_KEYS = KEYS;
 export function getLocalePrice(
   offer: OfferSettings,
   locale: Locale = DEFAULT_LOCALE,
-  variant: "v3" | "v4" | "funnel" | "funnelB" = "v3",
+  variant: "v3" | "v4" | "funnel" | "funnelB" | "tiktok" = "v3",
 ): LocalePrice {
-  // The funnel uses a single independent price per version (FR-only landing).
-  if (variant === "funnel" || variant === "funnelB") {
+  // The funnel/TikTok landings use a single independent price (FR-only).
+  if (variant === "funnel" || variant === "funnelB" || variant === "tiktok") {
+    const single =
+      variant === "funnelB"
+        ? offer.funnelPriceB
+        : variant === "tiktok"
+          ? offer.tiktokPrice
+          : offer.funnelPrice;
     return (
-      (variant === "funnelB" ? offer.funnelPriceB : offer.funnelPrice) ??
+      single ??
       offer.pricingByLocale?.[DEFAULT_LOCALE] ?? {
         currency: "EUR",
         priceCents: offer.priceCents,
