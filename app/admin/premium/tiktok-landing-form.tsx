@@ -145,6 +145,8 @@ export function TikTokLandingForm({ initial }: { initial: TikTokLandingContent }
     patch((c) => ({ ...c, book: { ...c.book, [k]: v } }));
   const setOfferCard = (k: keyof TikTokLandingContent["offerCard"], v: string | string[]) =>
     patch((c) => ({ ...c, offerCard: { ...c.offerCard, [k]: v } }));
+  const setOfferCardTestimonials = (list: { text: string; name: string }[]) =>
+    patch((c) => ({ ...c, offerCard: { ...c.offerCard, testimonials: list } }));
   const setFinal = (k: keyof TikTokLandingContent["finalCta"], v: string) =>
     patch((c) => ({ ...c, finalCta: { ...c.finalCta, [k]: v } }));
 
@@ -237,6 +239,25 @@ export function TikTokLandingForm({ initial }: { initial: TikTokLandingContent }
           <Field label="Titre (partie violette)" value={c.hero.titleHighlight} onChange={(v) => setHero("titleHighlight", v)} />
           <Field label="Sous-titre" value={c.hero.subtitle} onChange={(v) => setHero("subtitle", v)} textarea />
           <ImageField label="Illustration (ex. le couple de la pub)" value={c.hero.image} onChange={(v) => setHero("image", v)} />
+          <Field
+            label="Vidéo de la pub (optionnel)"
+            value={c.hero.videoUrl}
+            onChange={(v) => setHero("videoUrl", v)}
+            hint="Lien TikTok (https://www.tiktok.com/@…/video/…) ou lien direct .mp4. Si rempli, la vidéo remplace l'illustration."
+          />
+          <label className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white px-3 py-2.5">
+            <span className="text-xs font-semibold text-neutral-600">
+              Afficher le prix au-dessus du bouton
+            </span>
+            <input
+              type="checkbox"
+              checked={c.hero.showPrice}
+              onChange={(e) =>
+                patch((cc) => ({ ...cc, hero: { ...cc.hero, showPrice: e.target.checked } }))
+              }
+              className="h-4 w-4"
+            />
+          </label>
           <Field label="Bouton" value={c.hero.cta} onChange={(v) => setHero("cta", v)} />
           <Field label="Sous-texte du bouton" value={c.hero.ctaSub} onChange={(v) => setHero("ctaSub", v)} />
           <Field label="Preuve sociale (sous les étoiles)" value={c.hero.socialProof} onChange={(v) => setHero("socialProof", v)} />
@@ -311,6 +332,48 @@ export function TikTokLandingForm({ initial }: { initial: TikTokLandingContent }
             rows={4}
             textarea
           />
+          <Field label="Titre des extraits" value={c.book.excerptsHeading} onChange={(v) => setBook("excerptsHeading", v)} hint="Ex. : Feuillette quelques pages" />
+          <div>
+            <span className="mb-1 block text-xs font-semibold text-neutral-600">
+              Extraits du livre (captures de pages réelles)
+            </span>
+            <p className="mb-2 text-[11px] text-neutral-400">
+              La meilleure preuve pour un ebook : 2-3 pages montrant un mot, sa
+              traduction contextuelle et un verset exemple.
+            </p>
+            {c.book.excerpts.map((url, i) => (
+              <div key={i} className="mb-2 flex items-start gap-1.5">
+                <div className="flex-1">
+                  <ImageField
+                    label={`Page ${i + 1}`}
+                    value={url}
+                    onChange={(v) =>
+                      setBook(
+                        "excerpts",
+                        c.book.excerpts.map((x, idx) => (idx === i ? v : x)),
+                      )
+                    }
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setBook("excerpts", c.book.excerpts.filter((_, idx) => idx !== i))
+                  }
+                  className="mt-6 text-neutral-400 hover:text-rose-500"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => setBook("excerpts", [...c.book.excerpts, ""])}
+              className="inline-flex items-center gap-1 text-xs font-semibold text-[#6967fb]"
+            >
+              <Plus className="h-3.5 w-3.5" /> Ajouter un extrait
+            </button>
+          </div>
           <Field label="Titre des bonus" value={c.book.bonusHeading} onChange={(v) => setBook("bonusHeading", v)} />
           <Field
             label="Bonus (un par ligne)"
@@ -334,6 +397,72 @@ export function TikTokLandingForm({ initial }: { initial: TikTokLandingContent }
           <Field label="Bouton" value={c.offerCard.cta} onChange={(v) => setOfferCard("cta", v)} />
           <Field label="Sous-texte du bouton" value={c.offerCard.ctaSub} onChange={(v) => setOfferCard("ctaSub", v)} />
           <Field label="Garantie / sécurité" value={c.offerCard.guarantee} onChange={(v) => setOfferCard("guarantee", v)} />
+          <div>
+            <span className="mb-1 block text-xs font-semibold text-neutral-600">
+              Témoignages courts (affichés juste au-dessus du prix)
+            </span>
+            <p className="mb-2 text-[11px] text-neutral-400">
+              Utilise de VRAIS avis clients, courts et spécifiques (ex. « j&apos;ai
+              reconnu 6 mots dans la sourate du vendredi »).
+            </p>
+            {c.offerCard.testimonials.map((t, i) => (
+              <div key={i} className="mb-2 rounded-lg border border-neutral-200 bg-white p-2">
+                <div className="mb-1.5 flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-neutral-500">
+                    Témoignage {i + 1}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setOfferCardTestimonials(
+                        c.offerCard.testimonials.filter((_, idx) => idx !== i),
+                      )
+                    }
+                    className="text-neutral-400 hover:text-rose-500"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+                <textarea
+                  rows={2}
+                  className={inputCls}
+                  value={t.text}
+                  onChange={(e) =>
+                    setOfferCardTestimonials(
+                      c.offerCard.testimonials.map((x, idx) =>
+                        idx === i ? { ...x, text: e.target.value } : x,
+                      ),
+                    )
+                  }
+                  placeholder="Texte de l'avis"
+                />
+                <input
+                  className={`${inputCls} mt-1.5`}
+                  value={t.name}
+                  onChange={(e) =>
+                    setOfferCardTestimonials(
+                      c.offerCard.testimonials.map((x, idx) =>
+                        idx === i ? { ...x, name: e.target.value } : x,
+                      ),
+                    )
+                  }
+                  placeholder="Prénom (ex. Amina)"
+                />
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() =>
+                setOfferCardTestimonials([
+                  ...c.offerCard.testimonials,
+                  { text: "", name: "" },
+                ])
+              }
+              className="inline-flex items-center gap-1 text-xs font-semibold text-[#6967fb]"
+            >
+              <Plus className="h-3.5 w-3.5" /> Ajouter un témoignage
+            </button>
+          </div>
         </Section>
 
         <Section title="6. FAQ + CTA final">

@@ -32,6 +32,8 @@ function sanitize(input: TikTokLandingContent): TikTokLandingContent {
       cta: s(input.hero?.cta, d.hero.cta),
       ctaSub: s(input.hero?.ctaSub, d.hero.ctaSub),
       image: s(input.hero?.image),
+      videoUrl: s(input.hero?.videoUrl),
+      showPrice: input.hero?.showPrice !== false,
       socialProof: s(input.hero?.socialProof, d.hero.socialProof),
     },
     story: {
@@ -56,6 +58,8 @@ function sanitize(input: TikTokLandingContent): TikTokLandingContent {
       text: s(input.book?.text, d.book.text),
       image: s(input.book?.image),
       bullets: list(input.book?.bullets, 8),
+      excerptsHeading: s(input.book?.excerptsHeading, d.book.excerptsHeading),
+      excerpts: list(input.book?.excerpts, 8),
       bonusHeading: s(input.book?.bonusHeading, d.book.bonusHeading),
       bonuses: list(input.book?.bonuses, 8),
     },
@@ -66,6 +70,13 @@ function sanitize(input: TikTokLandingContent): TikTokLandingContent {
       cta: s(input.offerCard?.cta, d.offerCard.cta),
       ctaSub: s(input.offerCard?.ctaSub, d.offerCard.ctaSub),
       guarantee: s(input.offerCard?.guarantee, d.offerCard.guarantee),
+      testimonials: (Array.isArray(input.offerCard?.testimonials)
+        ? input.offerCard.testimonials
+        : []
+      )
+        .map((t) => ({ text: s(t?.text), name: s(t?.name) }))
+        .filter((t) => t.text.trim().length > 0)
+        .slice(0, 6),
     },
     faq: {
       heading: s(input.faq?.heading, d.faq.heading),

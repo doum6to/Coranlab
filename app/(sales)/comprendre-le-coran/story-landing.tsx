@@ -29,6 +29,35 @@ function Stars() {
 }
 
 /**
+ * The ad itself, embedded for continuity: a TikTok URL renders the official
+ * embed iframe; any other URL is treated as a direct video file.
+ */
+function AdVideo({ url }: { url: string }) {
+  const tiktokId = url.match(/tiktok\.com\/.*video\/(\d+)/)?.[1];
+  if (tiktokId) {
+    return (
+      <iframe
+        src={`https://www.tiktok.com/embed/v2/${tiktokId}`}
+        title="Publicité Quranlab"
+        loading="lazy"
+        allow="encrypted-media"
+        className="mx-auto mt-7 aspect-[9/16] w-full max-w-[320px] rounded-3xl border border-neutral-200"
+      />
+    );
+  }
+  return (
+    // eslint-disable-next-line jsx-a11y/media-has-caption
+    <video
+      src={url}
+      controls
+      playsInline
+      preload="metadata"
+      className="mx-auto mt-7 aspect-[9/16] w-full max-w-[320px] rounded-3xl bg-black"
+    />
+  );
+}
+
+/**
  * Story-driven sales page for cold TikTok traffic (/comprendre-le-coran).
  * Mirrors the 9-image couple-dialogue ad beat for beat: pain (listening
  * without understanding) → "500 words = 85%" → the book → contextual
@@ -84,20 +113,21 @@ export function StoryLanding({
           {c.hero.subtitle}
         </p>
 
-        {c.hero.image && (
-          <div className="relative mx-auto mt-6 aspect-square w-full max-w-[340px] overflow-hidden rounded-3xl">
-            <Image
-              src={c.hero.image}
-              alt=""
-              fill
-              sizes="(max-width: 640px) 90vw, 340px"
-              className="object-cover"
-              priority
-            />
+        {/* Price shown up-front: at this ticket the price IS an argument. */}
+        {c.hero.showPrice && (
+          <div className="mt-5 flex items-baseline justify-center gap-2">
+            <span className="font-display text-3xl font-bold text-neutral-950">
+              {priceLabel}
+            </span>
+            {compareLabel && (
+              <span className="text-lg text-neutral-400 line-through">
+                {compareLabel}
+              </span>
+            )}
           </div>
         )}
 
-        <div className="mx-auto mt-6 max-w-[380px]">
+        <div className="mx-auto mt-4 max-w-[380px]">
           <BuyButton
             label={c.hero.cta}
             subLabel={c.hero.ctaSub}
@@ -111,6 +141,23 @@ export function StoryLanding({
           <span className="text-sm text-neutral-500">{c.hero.socialProof}</span>
         </div>
         <PaymentBadges badges={offer.paymentBadges} className="mt-3" />
+
+        {/* Media AFTER the CTA so the buy button stays above the fold. The ad
+            video wins over the still illustration when both are set. */}
+        {c.hero.videoUrl ? (
+          <AdVideo url={c.hero.videoUrl} />
+        ) : c.hero.image ? (
+          <div className="relative mx-auto mt-7 aspect-square w-full max-w-[340px] overflow-hidden rounded-3xl">
+            <Image
+              src={c.hero.image}
+              alt=""
+              fill
+              sizes="(max-width: 640px) 90vw, 340px"
+              className="object-cover"
+              priority
+            />
+          </div>
+        ) : null}
       </section>
 
       {/* STORY — the ad dialogue, bubble for bubble */}
@@ -211,6 +258,32 @@ export function StoryLanding({
             </ul>
           </div>
         </div>
+
+        {/* "Flip through some pages" — real page screenshots, the strongest
+            proof an ebook can give. Hidden until the admin uploads excerpts. */}
+        {c.book.excerpts.length > 0 && (
+          <div className="mx-auto max-w-[960px] px-5 pb-12 sm:pb-16">
+            <h3 className="text-center font-display text-xl font-bold text-neutral-950 sm:text-2xl">
+              {c.book.excerptsHeading}
+            </h3>
+            <div className="mt-5 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2">
+              {c.book.excerpts.map((src, i) => (
+                <div
+                  key={i}
+                  className="relative aspect-[3/4] w-[220px] shrink-0 snap-center overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-md sm:w-[260px]"
+                >
+                  <Image
+                    src={src}
+                    alt={`Extrait du livre — page ${i + 1}`}
+                    fill
+                    sizes="260px"
+                    className="object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </section>
 
       {/* REVIEWS — reuse the V3 admin-uploaded screenshots/reviews */}
@@ -228,6 +301,29 @@ export function StoryLanding({
 
       {/* OFFER CARD */}
       <section id="offre" className="bg-[#FAF8F3] border-t border-neutral-200/70">
+        {/* Short, specific testimonials right where hesitation peaks. */}
+        {c.offerCard.testimonials.length > 0 && (
+          <div className="mx-auto max-w-[680px] px-5 pt-12 sm:pt-16">
+            <div className="grid gap-3 sm:grid-cols-2">
+              {c.offerCard.testimonials.map((t, i) => (
+                <figure
+                  key={i}
+                  className="rounded-2xl border border-neutral-200 bg-white p-4"
+                >
+                  <Stars />
+                  <blockquote className="mt-2 text-sm leading-relaxed text-neutral-700">
+                    « {t.text} »
+                  </blockquote>
+                  {t.name && (
+                    <figcaption className="mt-2 text-xs font-semibold text-neutral-500">
+                      — {t.name}
+                    </figcaption>
+                  )}
+                </figure>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="mx-auto max-w-[560px] px-4 py-14 sm:py-20">
           <div className="relative overflow-hidden rounded-[32px] bg-neutral-950 p-8 text-white sm:p-12">
             <div

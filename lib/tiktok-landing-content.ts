@@ -27,6 +27,10 @@ export type TikTokLandingContent = {
     ctaSub: string;
     /** Optional hero illustration (e.g. the couple artwork from the ad). */
     image: string;
+    /** Optional ad video: a TikTok URL (embedded) or a direct .mp4 link. */
+    videoUrl: string;
+    /** Show the price (and strike-through) right above the hero CTA. */
+    showPrice: boolean;
     socialProof: string;
   };
   story: {
@@ -43,6 +47,9 @@ export type TikTokLandingContent = {
     /** Book/ebook mockup image. */
     image: string;
     bullets: string[];
+    /** "Flip through some pages" — screenshots of real book pages. */
+    excerptsHeading: string;
+    excerpts: string[];
     bonusHeading: string;
     bonuses: string[];
   };
@@ -53,6 +60,8 @@ export type TikTokLandingContent = {
     cta: string;
     ctaSub: string;
     guarantee: string;
+    /** Short, specific testimonials shown right above the offer card. */
+    testimonials: { text: string; name: string }[];
   };
   faq: {
     heading: string;
@@ -77,6 +86,8 @@ export const TIKTOK_LANDING_DEFAULTS: TikTokLandingContent = {
     cta: "Recevoir le livre + les bonus",
     ctaSub: "Paiement unique · Téléchargement immédiat",
     image: "",
+    videoUrl: "",
+    showPrice: true,
     socialProof: "Plus de 1 000 lecteurs et apprenants",
   },
   story: {
@@ -127,6 +138,8 @@ export const TIKTOK_LANDING_DEFAULTS: TikTokLandingContent = {
       "Versets avec exemples pour chaque notion",
       "Format PDF — lisible sur téléphone, tablette et ordinateur",
     ],
+    excerptsHeading: "Feuillette quelques pages",
+    excerpts: [],
     bonusHeading: "Et en bonus, pour t'entraîner chaque jour :",
     bonuses: [
       "Accès à VIE à l'application Quranlab (exercices, révisions, suivi)",
@@ -146,6 +159,8 @@ export const TIKTOK_LANDING_DEFAULTS: TikTokLandingContent = {
     cta: "Recevoir le livre + les bonus",
     ctaSub: "Téléchargement immédiat après paiement",
     guarantee: "Garantie satisfait ou remboursé 30 jours · Paiement sécurisé Stripe",
+    // Intentionally empty: fill with REAL customer quotes from the admin.
+    testimonials: [],
   },
   faq: {
     heading: "Questions fréquentes",
@@ -161,6 +176,14 @@ export const TIKTOK_LANDING_DEFAULTS: TikTokLandingContent = {
       {
         q: "Comment je reçois le livre ?",
         a: "Immédiatement après le paiement : téléchargement direct + un e-mail avec tes accès (livre, bonus et application).",
+      },
+      {
+        q: "Je ne sais pas du tout lire l'arabe, ça marche quand même ?",
+        a: "Oui. Chaque mot est écrit en arabe ET en phonétique (translittération), avec sa traduction française. Tu peux apprendre à l'oreille, puis reconnaître les mots à l'écoute du Coran.",
+      },
+      {
+        q: "C'est un livre papier ou numérique ?",
+        a: "Numérique (PDF) : tu le reçois immédiatement après le paiement et tu le gardes à vie, sur téléphone, tablette ou ordinateur. Rien à attendre, pas de frais de livraison.",
       },
       {
         q: "Et si ça ne me convient pas ?",
