@@ -35,6 +35,10 @@ function sanitize(input: TikTokLandingContent): TikTokLandingContent {
       videoUrl: s(input.hero?.videoUrl),
       showPrice: input.hero?.showPrice !== false,
       socialProof: s(input.hero?.socialProof, d.hero.socialProof),
+      stats: (Array.isArray(input.hero?.stats) ? input.hero.stats : [])
+        .map((st) => ({ value: s(st?.value), label: s(st?.label) }))
+        .filter((st) => st.value.trim().length > 0)
+        .slice(0, 4),
     },
     story: {
       heading: s(input.story?.heading, d.story.heading),
@@ -45,6 +49,7 @@ function sanitize(input: TikTokLandingContent): TikTokLandingContent {
         }))
         .filter((b) => b.text.trim().length > 0)
         .slice(0, 12),
+      closing: s(input.story?.closing),
     },
     method: {
       heading: s(input.method?.heading, d.method.heading),
@@ -67,6 +72,7 @@ function sanitize(input: TikTokLandingContent): TikTokLandingContent {
       eyebrow: s(input.offerCard?.eyebrow, d.offerCard.eyebrow),
       priceSuffix: s(input.offerCard?.priceSuffix, d.offerCard.priceSuffix),
       features: list(input.offerCard?.features, 10),
+      valueTotal: s(input.offerCard?.valueTotal),
       cta: s(input.offerCard?.cta, d.offerCard.cta),
       ctaSub: s(input.offerCard?.ctaSub, d.offerCard.ctaSub),
       guarantee: s(input.offerCard?.guarantee, d.offerCard.guarantee),
@@ -84,6 +90,10 @@ function sanitize(input: TikTokLandingContent): TikTokLandingContent {
         .map((it) => ({ q: s(it?.q), a: s(it?.a) }))
         .filter((it) => it.q.trim().length > 0)
         .slice(0, 10),
+    },
+    guaranteeBox: {
+      title: s(input.guaranteeBox?.title, d.guaranteeBox.title),
+      text: s(input.guaranteeBox?.text, d.guaranteeBox.text),
     },
     finalCta: {
       title: s(input.finalCta?.title, d.finalCta.title),

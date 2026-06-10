@@ -5,8 +5,11 @@ import {
   Check,
   Gift,
   Lock,
+  ShieldCheck,
   Star as StarIcon,
 } from "lucide-react";
+
+import { StickyReveal } from "./sticky-reveal";
 
 import type { OfferSettings } from "@/lib/offer";
 import type { TikTokLandingContent } from "@/lib/tiktok-landing-content";
@@ -84,10 +87,12 @@ export function StoryLanding({
 
   return (
     <div className="w-full bg-white font-sans text-neutral-900">
+      {/* Smooth scrolling for the sticky bar's #offre anchor */}
+      <style>{`html{scroll-behavior:smooth}`}</style>
       <LandingAnalytics />
 
       {/* Logo-only strip (ad traffic: no nav, no login, nothing to leak focus) */}
-      <header className="border-b border-neutral-100">
+      <header className="border-b border-neutral-200/60 bg-[#FAF8F3]">
         <div className="mx-auto flex max-w-[1000px] justify-center px-4 py-3">
           <Image
             src="/quranlab-logo.svg"
@@ -100,8 +105,13 @@ export function StoryLanding({
         </div>
       </header>
 
-      {/* HERO */}
-      <section className="mx-auto max-w-[680px] px-5 pb-10 pt-8 text-center sm:pt-12">
+      {/* HERO — warm cream background + soft violet halo behind the title */}
+      <section className="relative overflow-hidden bg-[#FAF8F3]">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-1/2 top-[-120px] h-[340px] w-[340px] -translate-x-1/2 rounded-full bg-[#6967fb]/15 blur-3xl"
+        />
+        <div className="relative mx-auto max-w-[680px] px-5 pb-10 pt-8 text-center sm:pt-12">
         <p className="text-sm font-semibold text-[#6967fb]">{c.hero.eyebrow}</p>
         <h1 className="mt-3 font-display text-[34px] font-bold leading-[1.1] text-neutral-950 sm:text-5xl">
           {c.hero.title}{" "}
@@ -158,10 +168,27 @@ export function StoryLanding({
             />
           </div>
         ) : null}
+
+        {/* Promise-at-a-glance stats strip */}
+        {c.hero.stats.length > 0 && (
+          <div className="mx-auto mt-8 flex max-w-[440px] items-stretch justify-center divide-x divide-neutral-200 rounded-2xl border border-neutral-200 bg-white py-3 shadow-sm">
+            {c.hero.stats.map((st, i) => (
+              <div key={i} className="flex-1 px-2 text-center">
+                <p className="font-display text-xl font-bold text-[#6967fb]">
+                  {st.value}
+                </p>
+                <p className="mt-0.5 text-[11px] leading-tight text-neutral-500">
+                  {st.label}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+        </div>
       </section>
 
       {/* STORY — the ad dialogue, bubble for bubble */}
-      <section className="bg-[#FAF8F3] border-y border-neutral-200/70">
+      <section className="border-y border-neutral-200/70 bg-white">
         <div className="mx-auto max-w-[560px] px-5 py-12 sm:py-16">
           <h2 className="text-center font-display text-2xl font-bold text-neutral-950 sm:text-3xl">
             {c.story.heading}
@@ -176,7 +203,7 @@ export function StoryLanding({
                   className={`max-w-[85%] rounded-2xl px-4 py-3 text-[15px] leading-relaxed shadow-sm ${
                     b.side === "right"
                       ? "rounded-br-md bg-[#6967fb] text-white"
-                      : "rounded-bl-md border border-neutral-200 bg-white text-neutral-800"
+                      : "rounded-bl-md border border-neutral-200 bg-neutral-50 text-neutral-800"
                   }`}
                 >
                   {b.text}
@@ -184,6 +211,13 @@ export function StoryLanding({
               </div>
             ))}
           </div>
+
+          {/* Future pacing: project the visitor into the after */}
+          {c.story.closing && (
+            <p className="mx-auto mt-8 max-w-[480px] rounded-2xl bg-[#6967fb]/5 px-5 py-4 text-center text-[15px] font-medium leading-relaxed text-neutral-800">
+              {c.story.closing}
+            </p>
+          )}
         </div>
       </section>
 
@@ -334,7 +368,15 @@ export function StoryLanding({
               <p className="text-[11px] uppercase tracking-[0.2em] text-white/50">
                 {c.offerCard.eyebrow}
               </p>
-              <div className="mt-4 flex items-baseline justify-center gap-2">
+              {/* Value anchoring: the real worth, struck through, above the price */}
+              {c.offerCard.valueTotal && (
+                <p className="mt-3 text-sm text-white/60">
+                  <span className="line-through decoration-white/40">
+                    {c.offerCard.valueTotal}
+                  </span>
+                </p>
+              )}
+              <div className="mt-2 flex items-baseline justify-center gap-2">
                 {compareLabel && (
                   <span className="font-display text-3xl text-white/40 line-through">
                     {compareLabel}
@@ -348,13 +390,22 @@ export function StoryLanding({
                 </span>
               </div>
 
-              <ul className="mx-auto mt-8 max-w-[360px] space-y-3 text-left">
-                {c.offerCard.features.map((f) => (
-                  <li key={f} className="flex items-start gap-3 text-sm text-white/90">
-                    <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#a6a5ff]" strokeWidth={2.5} />
-                    {f}
-                  </li>
-                ))}
+              <ul className="mx-auto mt-8 max-w-[380px] space-y-3 text-left">
+                {c.offerCard.features.map((f) => {
+                  // "Text | value" lines render the worth right-aligned.
+                  const [text, value] = f.split("|").map((x) => x.trim());
+                  return (
+                    <li key={f} className="flex items-start gap-3 text-sm text-white/90">
+                      <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#a6a5ff]" strokeWidth={2.5} />
+                      <span className="flex-1">{text}</span>
+                      {value && (
+                        <span className="shrink-0 font-semibold text-[#a6a5ff]">
+                          {value}
+                        </span>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
 
               <BuyButton
@@ -379,6 +430,23 @@ export function StoryLanding({
               </p>
               <PaymentBadges badges={offer.paymentBadges} className="mt-4" />
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* GUARANTEE — risk reversal with visual weight, right after the price */}
+      <section className="mx-auto max-w-[680px] px-5 pt-12 sm:pt-16">
+        <div className="flex flex-col items-center gap-4 rounded-3xl border-2 border-[#58cc6a]/40 bg-[#58cc6a]/5 p-6 text-center sm:flex-row sm:p-7 sm:text-left">
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#58cc6a]/15">
+            <ShieldCheck className="h-8 w-8 text-[#3fa34d]" strokeWidth={1.75} />
+          </span>
+          <div>
+            <h2 className="font-display text-xl font-bold text-neutral-950">
+              {c.guaranteeBox.title}
+            </h2>
+            <p className="mt-1.5 text-sm leading-relaxed text-neutral-600">
+              {c.guaranteeBox.text}
+            </p>
           </div>
         </div>
       </section>
@@ -411,27 +479,30 @@ export function StoryLanding({
       {/* Spacer so the sticky bar never covers the footer CTA */}
       <div aria-hidden className="h-20" />
 
-      {/* Sticky bottom CTA — plain anchor to the offer card (no JS needed) */}
-      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-neutral-200 bg-white/95 px-4 py-3 backdrop-blur">
-        <div className="mx-auto flex max-w-[560px] items-center justify-between gap-3">
-          <div className="flex items-baseline gap-2">
-            {compareLabel && (
-              <span className="text-sm text-neutral-400 line-through">
-                {compareLabel}
+      {/* Sticky bottom CTA — revealed once the visitor scrolls past the hero,
+          so it never covers the primary above-the-fold button. */}
+      <StickyReveal>
+        <div className="border-t border-neutral-200 bg-white/95 px-4 py-3 backdrop-blur">
+          <div className="mx-auto flex max-w-[560px] items-center justify-between gap-3">
+            <div className="flex items-baseline gap-2">
+              {compareLabel && (
+                <span className="text-sm text-neutral-400 line-through">
+                  {compareLabel}
+                </span>
+              )}
+              <span className="font-display text-xl font-bold text-neutral-950">
+                {priceLabel}
               </span>
-            )}
-            <span className="font-display text-xl font-bold text-neutral-950">
-              {priceLabel}
-            </span>
+            </div>
+            <a
+              href="#offre"
+              className="rounded-2xl border-b-4 border-[#4a48c4] bg-[#6967fb] px-6 py-2.5 font-display text-sm font-bold uppercase tracking-wide text-white transition-all hover:brightness-[1.05] active:translate-y-0.5 active:border-b-0"
+            >
+              {c.hero.cta}
+            </a>
           </div>
-          <a
-            href="#offre"
-            className="rounded-2xl border-b-4 border-[#4a48c4] bg-[#6967fb] px-6 py-2.5 font-display text-sm font-bold uppercase tracking-wide text-white transition-all hover:brightness-[1.05] active:translate-y-0.5 active:border-b-0"
-          >
-            {c.hero.cta}
-          </a>
         </div>
-      </div>
+      </StickyReveal>
     </div>
   );
 }

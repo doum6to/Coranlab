@@ -261,6 +261,28 @@ export function TikTokLandingForm({ initial }: { initial: TikTokLandingContent }
           <Field label="Bouton" value={c.hero.cta} onChange={(v) => setHero("cta", v)} />
           <Field label="Sous-texte du bouton" value={c.hero.ctaSub} onChange={(v) => setHero("ctaSub", v)} />
           <Field label="Preuve sociale (sous les étoiles)" value={c.hero.socialProof} onChange={(v) => setHero("socialProof", v)} />
+          <Field
+            label="Stats (une par ligne : Valeur | Légende)"
+            value={c.hero.stats.map((st) => `${st.value} | ${st.label}`).join("\n")}
+            onChange={(v) =>
+              patch((cc) => ({
+                ...cc,
+                hero: {
+                  ...cc.hero,
+                  stats: v
+                    .split("\n")
+                    .map((line) => {
+                      const [value, ...rest] = line.split("|");
+                      return { value: (value || "").trim(), label: rest.join("|").trim() };
+                    })
+                    .filter((st) => st.value),
+                },
+              }))
+            }
+            rows={3}
+            textarea
+            hint="Ex. : 500 | mots essentiels"
+          />
         </Section>
 
         <Section title="2. Conversation (reprend la pub)">
@@ -300,6 +322,13 @@ export function TikTokLandingForm({ initial }: { initial: TikTokLandingContent }
           <button type="button" onClick={addBubble} className="inline-flex items-center gap-1 text-xs font-semibold text-[#6967fb]">
             <Plus className="h-3.5 w-3.5" /> Ajouter une réplique
           </button>
+          <Field
+            label="Phrase de projection (après la conversation)"
+            value={c.story.closing}
+            onChange={(v) => patch((cc) => ({ ...cc, story: { ...cc.story, closing: v } }))}
+            textarea
+            hint="« La prochaine fois que tu écouteras le Coran, imagine… »"
+          />
         </Section>
 
         <Section title="3. Méthode (pourquoi 500 mots)">
@@ -388,11 +417,18 @@ export function TikTokLandingForm({ initial }: { initial: TikTokLandingContent }
           <Field label="Accroche" value={c.offerCard.eyebrow} onChange={(v) => setOfferCard("eyebrow", v)} />
           <Field label="Mention après le prix" value={c.offerCard.priceSuffix} onChange={(v) => setOfferCard("priceSuffix", v)} />
           <Field
-            label="Ce qui est inclus (un par ligne)"
+            label="Ce qui est inclus (un par ligne : Texte | Valeur)"
             value={c.offerCard.features.join("\n")}
             onChange={(v) => setOfferCard("features", v.split("\n"))}
             rows={4}
             textarea
+            hint="La valeur après le | s'affiche à droite (ex. : Le livre (PDF) | 27 €). Sans |, la ligne s'affiche simplement."
+          />
+          <Field
+            label="Valeur totale (barrée au-dessus du prix)"
+            value={c.offerCard.valueTotal}
+            onChange={(v) => setOfferCard("valueTotal", v)}
+            hint="Ex. : Valeur réelle : 141 €. Vide = masquée."
           />
           <Field label="Bouton" value={c.offerCard.cta} onChange={(v) => setOfferCard("cta", v)} />
           <Field label="Sous-texte du bouton" value={c.offerCard.ctaSub} onChange={(v) => setOfferCard("ctaSub", v)} />
@@ -465,7 +501,18 @@ export function TikTokLandingForm({ initial }: { initial: TikTokLandingContent }
           </div>
         </Section>
 
-        <Section title="6. FAQ + CTA final">
+        <Section title="6. Garantie + FAQ + CTA final">
+          <Field
+            label="Titre du bloc garantie"
+            value={c.guaranteeBox.title}
+            onChange={(v) => patch((cc) => ({ ...cc, guaranteeBox: { ...cc.guaranteeBox, title: v } }))}
+          />
+          <Field
+            label="Texte du bloc garantie"
+            value={c.guaranteeBox.text}
+            onChange={(v) => patch((cc) => ({ ...cc, guaranteeBox: { ...cc.guaranteeBox, text: v } }))}
+            textarea
+          />
           <Field label="Titre FAQ" value={c.faq.heading} onChange={(v) => patch((cc) => ({ ...cc, faq: { ...cc.faq, heading: v } }))} />
           {c.faq.items.map((it, i) => (
             <div key={i} className="rounded-lg border border-neutral-200 bg-white p-2">

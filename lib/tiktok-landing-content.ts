@@ -32,10 +32,14 @@ export type TikTokLandingContent = {
     /** Show the price (and strike-through) right above the hero CTA. */
     showPrice: boolean;
     socialProof: string;
+    /** Promise-at-a-glance stats strip (e.g. 500 mots / 85% / 30 j). */
+    stats: { value: string; label: string }[];
   };
   story: {
     heading: string;
     bubbles: StoryBubble[];
+    /** Future-pacing line shown after the dialogue ("imagine dans 30 jours…"). */
+    closing: string;
   };
   method: {
     heading: string;
@@ -56,12 +60,20 @@ export type TikTokLandingContent = {
   offerCard: {
     eyebrow: string;
     priceSuffix: string;
+    /** Each line may carry a value after a pipe: "Le livre (PDF) | 27 €". */
     features: string[];
+    /** Value-anchoring line above the price, e.g. "Valeur réelle : 141 €". */
+    valueTotal: string;
     cta: string;
     ctaSub: string;
     guarantee: string;
     /** Short, specific testimonials shown right above the offer card. */
     testimonials: { text: string; name: string }[];
+  };
+  /** Prominent risk-reversal box shown before the FAQ. */
+  guaranteeBox: {
+    title: string;
+    text: string;
   };
   faq: {
     heading: string;
@@ -89,6 +101,11 @@ export const TIKTOK_LANDING_DEFAULTS: TikTokLandingContent = {
     videoUrl: "",
     showPrice: true,
     socialProof: "Plus de 1 000 lecteurs et apprenants",
+    stats: [
+      { value: "500", label: "mots essentiels" },
+      { value: "85%", label: "des mots du Coran" },
+      { value: "30 j", label: "satisfait ou remboursé" },
+    ],
   },
   story: {
     heading: "Cette conversation, tu l'as peut-être déjà vécue…",
@@ -110,6 +127,8 @@ export const TIKTOK_LANDING_DEFAULTS: TikTokLandingContent = {
         text: "Ça changerait tout pour moi. Comprendre quand الله parle directement.",
       },
     ],
+    closing:
+      "La prochaine fois que tu écouteras le Coran, imagine : tu reconnais les mots, les versets prennent vie, et tu comprends quand الله te parle. C'est exactement ce que ce livre rend possible.",
   },
   method: {
     heading: "Pourquoi 500 mots suffisent",
@@ -151,16 +170,21 @@ export const TIKTOK_LANDING_DEFAULTS: TikTokLandingContent = {
     eyebrow: "Offre de lancement",
     priceSuffix: "une seule fois",
     features: [
-      "Le livre des 500 mots essentiels (PDF)",
-      "Accès à vie à l'application Quranlab",
-      "Les bonus offerts",
-      "Paiement unique — aucun abonnement",
+      "Le livre des 500 mots essentiels (PDF) | 27 €",
+      "Accès à vie à l'application Quranlab | 97 €",
+      "Les du'as coraniques expliquées (PDF) | 17 €",
+      "Mises à jour à vie | offert",
     ],
+    valueTotal: "Valeur réelle : 141 €",
     cta: "Recevoir le livre + les bonus",
     ctaSub: "Téléchargement immédiat après paiement",
     guarantee: "Garantie satisfait ou remboursé 30 jours · Paiement sécurisé Stripe",
     // Intentionally empty: fill with REAL customer quotes from the admin.
     testimonials: [],
+  },
+  guaranteeBox: {
+    title: "Garantie 30 jours, zéro risque",
+    text: "Tu télécharges le livre, tu testes la méthode tranquillement. Si tu n'es pas convaincu(e), un simple e-mail suffit : remboursement complet sous 30 jours, sans aucune question.",
   },
   faq: {
     heading: "Questions fréquentes",
