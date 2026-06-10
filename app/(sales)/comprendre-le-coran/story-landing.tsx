@@ -91,20 +91,6 @@ export function StoryLanding({
       <style>{`html{scroll-behavior:smooth}`}</style>
       <LandingAnalytics />
 
-      {/* Logo-only strip (ad traffic: no nav, no login, nothing to leak focus) */}
-      <header className="border-b border-neutral-200/60 bg-[#FAF8F3]">
-        <div className="mx-auto flex max-w-[1000px] justify-center px-4 py-3">
-          <Image
-            src="/quranlab-logo.svg"
-            alt="Quranlab"
-            width={130}
-            height={40}
-            priority
-            className="h-8 w-auto"
-          />
-        </div>
-      </header>
-
       {/* HERO — warm cream background + soft violet halo behind the title */}
       <section className="relative overflow-hidden bg-[#FAF8F3]">
         <div
