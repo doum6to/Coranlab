@@ -121,6 +121,7 @@ export default async function OffreAViePage() {
             offer={offer}
             locale="fr"
             variant={productVariant}
+            hideHeader
           />
         }
       />

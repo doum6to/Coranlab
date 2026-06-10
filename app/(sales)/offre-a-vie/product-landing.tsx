@@ -48,11 +48,14 @@ export function ProductLanding({
   offer,
   locale = DEFAULT_LOCALE,
   variant = "v3",
+  hideHeader = false,
 }: {
   content: LandingContent;
   offer: OfferSettings;
   locale?: Locale;
   variant?: "v3" | "v4";
+  /** Hide the top bar (logo + login) — used when embedded as the funnel paywall. */
+  hideHeader?: boolean;
 }) {
   const { spotsJoined, spotsTotal } = offer;
   const { currency, priceCents, compareAtCents } = getLocalePrice(offer, locale, variant);
@@ -70,29 +73,31 @@ export function ProductLanding({
       <LandingAnalytics />
       <LocaleSuggestionBanner current={locale} />
       {/* top bar */}
-      <header className="border-b border-neutral-200">
-        <div className="mx-auto flex max-w-[1100px] items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <Link href="/85motscoran" aria-label={ui.home}>
-            <Image
-              src="/quranlab-logo.svg"
-              alt="Quranlab"
-              width={140}
-              height={44}
-              priority
-              className="h-8 sm:h-9 w-auto"
-            />
-          </Link>
-          <div className="flex items-center gap-3 sm:gap-4">
-            <LocaleSwitcher current={locale} />
-            <Link
-              href="/auth/login"
-              className="rounded-full bg-neutral-950 px-4 py-2 text-xs sm:text-sm font-semibold text-white"
-            >
-              {ui.login}
+      {!hideHeader && (
+        <header className="border-b border-neutral-200">
+          <div className="mx-auto flex max-w-[1100px] items-center justify-between gap-3 px-4 py-3 sm:px-6">
+            <Link href="/85motscoran" aria-label={ui.home}>
+              <Image
+                src="/quranlab-logo.svg"
+                alt="Quranlab"
+                width={140}
+                height={44}
+                priority
+                className="h-8 sm:h-9 w-auto"
+              />
             </Link>
+            <div className="flex items-center gap-3 sm:gap-4">
+              <LocaleSwitcher current={locale} />
+              <Link
+                href="/auth/login"
+                className="rounded-full bg-neutral-950 px-4 py-2 text-xs sm:text-sm font-semibold text-white"
+              >
+                {ui.login}
+              </Link>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
+      )}
 
       {/* PRODUCT HERO */}
       <section className="mx-auto max-w-[1100px] px-4 sm:px-6 py-6 sm:py-10">

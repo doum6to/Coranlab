@@ -44,6 +44,7 @@ export default async function OffreAVieV4Page() {
             offer={offer}
             locale="fr"
             variant="v4"
+            hideHeader
           />
         }
       />
