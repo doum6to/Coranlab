@@ -24,6 +24,7 @@ function sanitize(input: FunnelContent): FunnelContent {
     .map((it) => ({
       enabled: !!it?.enabled,
       arabicWord: s(it?.arabicWord),
+      translit: s(it?.translit),
       correct: s(it?.correct),
       distractors: (Array.isArray(it?.distractors) ? it.distractors : [])
         .map((x) => s(x))

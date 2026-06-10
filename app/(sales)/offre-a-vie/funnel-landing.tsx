@@ -308,6 +308,7 @@ export function FunnelLanding({
           c={content.exercise}
           name={name}
           arabicWord={items[exIndex]?.arabicWord ?? ""}
+          translit={items[exIndex]?.translit ?? ""}
           options={currentOptions}
           picked={exPicked}
           stepLabel={items.length > 1 ? `Mot ${Math.min(exIndex + 1, items.length)}/${items.length}` : null}
@@ -521,6 +522,7 @@ function ExerciseStep({
   c,
   name,
   arabicWord,
+  translit,
   options,
   picked,
   stepLabel,
@@ -532,6 +534,7 @@ function ExerciseStep({
   c: FunnelContent["exercise"];
   name: string;
   arabicWord: string;
+  translit: string;
   options: ExOption[];
   picked: string | null;
   stepLabel: string | null;
@@ -566,7 +569,7 @@ function ExerciseStep({
 
           {/* Arabic word card */}
           <div
-            className="mt-4 flex w-full max-w-[300px] items-center justify-center rounded-2xl border-2 border-[#E0E0E0] bg-white p-6"
+            className="mt-4 flex w-full max-w-[300px] flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-[#E0E0E0] bg-white p-6"
             style={{ boxShadow: "0 4px 0 0 #D4D4D4" }}
           >
             <span
@@ -575,6 +578,11 @@ function ExerciseStep({
             >
               {arabicWord}
             </span>
+            {translit && (
+              <span className="text-sm font-medium italic text-neutral-500">
+                {translit}
+              </span>
+            )}
           </div>
 
           {/* Options */}

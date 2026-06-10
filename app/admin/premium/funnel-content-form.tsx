@@ -255,8 +255,9 @@ export function FunnelContentForm({
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
-              <div className="grid grid-cols-2 gap-1.5">
-                <input className={inputCls} dir="rtl" value={it.arabicWord} onChange={(e) => setItem(i, { arabicWord: e.target.value })} placeholder="م; Mot arabe" />
+              <div className="grid grid-cols-3 gap-1.5">
+                <input className={inputCls} dir="rtl" value={it.arabicWord} onChange={(e) => setItem(i, { arabicWord: e.target.value })} placeholder="Mot arabe" />
+                <input className={inputCls} value={it.translit ?? ""} onChange={(e) => setItem(i, { translit: e.target.value })} placeholder="Translittération" />
                 <input className={inputCls} value={it.correct} onChange={(e) => setItem(i, { correct: e.target.value })} placeholder="Bonne réponse" />
               </div>
               <div className="mt-1.5 grid grid-cols-2 gap-1.5">

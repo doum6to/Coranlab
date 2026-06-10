@@ -10,6 +10,8 @@ export type FunnelExercise = {
   /** Whether this exercise is shown (admin-toggleable). */
   enabled: boolean;
   arabicWord: string;
+  /** Phonetic transliteration shown under the Arabic word (e.g. "Rabb"). */
+  translit?: string;
   /** Correct translation (also the right answer button). */
   correct: string;
   /** Wrong answer buttons. */
@@ -102,11 +104,11 @@ export const FUNNEL_DEFAULTS: FunnelContent = {
     retryText: "Presque ! Réessaie 👇",
     cta: "Continuer",
     items: [
-      { enabled: true, arabicWord: "رَبّ", correct: "Seigneur", distractors: ["Le Tout-Puissant", "Le Miséricordieux"] },
-      { enabled: true, arabicWord: "يَوْم", correct: "Jour", distractors: ["Nuit", "Heure"] },
-      { enabled: true, arabicWord: "مَلِك", correct: "Roi", distractors: ["Serviteur", "Prophète"] },
-      { enabled: true, arabicWord: "نَاس", correct: "Les gens", distractors: ["Les anges", "Les croyants"] },
-      { enabled: true, arabicWord: "كِتَاب", correct: "Livre", distractors: ["Parole", "Lumière"] },
+      { enabled: true, arabicWord: "رَبّ", translit: "Rabb", correct: "Seigneur", distractors: ["Le Tout-Puissant", "Le Miséricordieux"] },
+      { enabled: true, arabicWord: "يَوْم", translit: "Yawm", correct: "Jour", distractors: ["Nuit", "Heure"] },
+      { enabled: true, arabicWord: "مَلِك", translit: "Malik", correct: "Roi", distractors: ["Serviteur", "Prophète"] },
+      { enabled: true, arabicWord: "نَاس", translit: "Nās", correct: "Les gens", distractors: ["Les anges", "Les croyants"] },
+      { enabled: true, arabicWord: "كِتَاب", translit: "Kitāb", correct: "Livre", distractors: ["Parole", "Lumière"] },
     ],
   },
   offer: {
