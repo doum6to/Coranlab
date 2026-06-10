@@ -95,7 +95,7 @@ export const TIKTOK_LANDING_DEFAULTS: TikTokLandingContent = {
     titleHighlight: "85% des mots du Coran",
     subtitle:
       "Le livre qui regroupe les 500 mots essentiels du Coran, leur traduction française selon le contexte, et des versets avec exemples. Téléchargement immédiat.",
-    cta: "Recevoir le livre + les bonus",
+    cta: "Je reçois mon livre + mes bonus",
     ctaSub: "Paiement unique · Téléchargement immédiat",
     image: "",
     videoUrl: "",
@@ -180,7 +180,7 @@ export const TIKTOK_LANDING_DEFAULTS: TikTokLandingContent = {
       "Mises à jour à vie | offert",
     ],
     valueTotal: "Valeur réelle : 141 €",
-    cta: "Recevoir le livre + les bonus",
+    cta: "Je reçois mon livre + mes bonus",
     ctaSub: "Téléchargement immédiat après paiement",
     guarantee: "Garantie satisfait ou remboursé 30 jours · Paiement sécurisé Stripe",
     // Intentionally empty: fill with REAL customer quotes from the admin.
@@ -222,7 +222,7 @@ export const TIKTOK_LANDING_DEFAULTS: TikTokLandingContent = {
   finalCta: {
     title: "Viens, on le prend ensemble 🤍",
     subtitle: "Et cette fois, on écoutera et on comprendra.",
-    cta: "Recevoir le livre + les bonus",
+    cta: "Je reçois mon livre + mes bonus",
   },
 };
 

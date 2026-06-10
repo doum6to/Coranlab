@@ -44,7 +44,7 @@ function AdVideo({ url }: { url: string }) {
         title="Publicité Quranlab"
         loading="lazy"
         allow="encrypted-media"
-        className="mx-auto mt-7 aspect-[9/16] w-full max-w-[320px] rounded-3xl border border-neutral-200"
+        className="mx-auto aspect-[9/16] w-full max-w-[300px] rounded-3xl border border-neutral-200"
       />
     );
   }
@@ -55,7 +55,7 @@ function AdVideo({ url }: { url: string }) {
       controls
       playsInline
       preload="metadata"
-      className="mx-auto mt-7 aspect-[9/16] w-full max-w-[320px] rounded-3xl bg-black"
+      className="mx-auto aspect-[9/16] w-full max-w-[300px] rounded-3xl bg-black"
     />
   );
 }
@@ -142,7 +142,27 @@ export function StoryLanding({
           aria-hidden
           className="pointer-events-none absolute left-1/2 top-[-120px] h-[340px] w-[340px] -translate-x-1/2 rounded-full bg-[#6967fb]/15 blur-3xl"
         />
-        <div className="relative mx-auto max-w-[680px] px-5 pb-10 pt-8 text-center sm:pt-12">
+        <div className="relative mx-auto max-w-[680px] px-5 pb-10 pt-5 text-center sm:pt-7">
+        {/* MEDIA FIRST — TikTok traffic is visual: instant recognition of the
+            ad creative confirms "you're in the right place" before any text.
+            Video (the actual ad) wins over the still illustration when set. */}
+        {c.hero.videoUrl ? (
+          <div className="mb-5">
+            <AdVideo url={c.hero.videoUrl} />
+          </div>
+        ) : c.hero.image ? (
+          <div className="relative mx-auto mb-5 h-[260px] w-full max-w-[460px] overflow-hidden rounded-3xl sm:h-[300px]">
+            <Image
+              src={c.hero.image}
+              alt=""
+              fill
+              sizes="(max-width: 640px) 92vw, 460px"
+              className="object-cover"
+              priority
+            />
+          </div>
+        ) : null}
+
         <p className="text-sm font-semibold text-[#6967fb]">{c.hero.eyebrow}</p>
         <h1 className="mt-3 font-display text-[34px] font-bold leading-[1.1] text-neutral-950 sm:text-5xl">
           {c.hero.title}{" "}
@@ -182,23 +202,6 @@ export function StoryLanding({
           <span className="text-sm text-neutral-500">{c.hero.socialProof}</span>
         </div>
         <PaymentBadges badges={offer.paymentBadges} className="mt-3" />
-
-        {/* Media AFTER the CTA so the buy button stays above the fold. The ad
-            video wins over the still illustration when both are set. */}
-        {c.hero.videoUrl ? (
-          <AdVideo url={c.hero.videoUrl} />
-        ) : c.hero.image ? (
-          <div className="relative mx-auto mt-7 aspect-square w-full max-w-[340px] overflow-hidden rounded-3xl">
-            <Image
-              src={c.hero.image}
-              alt=""
-              fill
-              sizes="(max-width: 640px) 90vw, 340px"
-              className="object-cover"
-              priority
-            />
-          </div>
-        ) : null}
 
         {/* Promise-at-a-glance stats strip */}
         {c.hero.stats.length > 0 && (
