@@ -157,7 +157,7 @@ export function StoryLanding({
             {c.hero.images.map((src, i) => (
               <div
                 key={i}
-                className="relative aspect-[4/5] w-[78vw] max-w-[330px] shrink-0 snap-center overflow-hidden rounded-3xl"
+                className="relative aspect-square w-[78vw] max-w-[330px] shrink-0 snap-center overflow-hidden rounded-3xl"
               >
                 <Image
                   src={src}
@@ -172,12 +172,14 @@ export function StoryLanding({
             <div className="w-[7vw] shrink-0 sm:w-10" aria-hidden />
           </div>
         ) : c.hero.images[0] || c.hero.image ? (
-          <div className="relative mx-auto mb-5 h-[260px] w-full max-w-[460px] overflow-hidden rounded-3xl sm:h-[300px]">
+          /* Square frame: shows the (square) ad artwork uncropped — compact
+             enough to keep the headline near the fold. */
+          <div className="relative mx-auto mb-5 aspect-square w-full max-w-[300px] overflow-hidden rounded-3xl sm:max-w-[330px]">
             <Image
               src={c.hero.images[0] || c.hero.image}
               alt=""
               fill
-              sizes="(max-width: 640px) 92vw, 460px"
+              sizes="(max-width: 640px) 80vw, 330px"
               className="object-cover"
               priority
             />
