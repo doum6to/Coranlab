@@ -10,6 +10,7 @@ import type {
   TikTokLandingContent,
   StoryBubble,
 } from "@/lib/tiktok-landing-content";
+import { compressImageFile } from "@/lib/images/compress-client";
 
 const inputCls =
   "w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brilliant-green focus:ring-2 focus:ring-brilliant-green/20";
@@ -59,7 +60,7 @@ function ImageField({
     setUploading(true);
     try {
       const fd = new FormData();
-      fd.append("file", file);
+      fd.append("file", await compressImageFile(file));
       const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
       const text = await res.text();
       let data: { url?: string; error?: string } = {};
