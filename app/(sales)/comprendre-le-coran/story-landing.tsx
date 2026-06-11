@@ -148,6 +148,14 @@ export function StoryLanding({
       {/* Smooth scrolling for the sticky bar's #offre anchor */}
       <style>{`html{scroll-behavior:smooth}`}</style>
       {heroOrigin && <link rel="preconnect" href={heroOrigin} />}
+      {/* Early page-view beacon: fires on HTML parse (BEFORE React hydration),
+          so cold TikTok visitors who bounce in <1s are still counted. Sets a
+          flag so <LandingAnalytics> doesn't double-fire lp_view. */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `(function(){try{if(window.__qlViewSent)return;window.__qlViewSent=1;var k="ql_sid",s;try{s=localStorage.getItem(k);if(!s){s=(self.crypto&&crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2));localStorage.setItem(k,s);}}catch(e){s="anon-"+Math.random().toString(36).slice(2);}var p=JSON.stringify({event:"lp_view",path:location.pathname,locale:document.documentElement.lang||"fr",sessionId:s});if(navigator.sendBeacon){navigator.sendBeacon("/api/track",new Blob([p],{type:"application/json"}));}else{fetch("/api/track",{method:"POST",body:p,headers:{"Content-Type":"application/json"},keepalive:true});}}catch(e){}})();`,
+        }}
+      />
       <LandingAnalytics />
       <TrackViewContent value={priceValue} />
 

@@ -11,7 +11,11 @@ import { track } from "@/lib/analytics/track";
  */
 export function LandingAnalytics() {
   useEffect(() => {
-    track("lp_view");
+    // Skip if an early inline beacon already recorded the view (e.g. the
+    // TikTok landing fires it before hydration so fast-bouncers are counted).
+    if (!(window as any).__qlViewSent) {
+      track("lp_view");
+    }
 
     const fired = new Set<number>();
     const milestones = [25, 50, 75, 100];
