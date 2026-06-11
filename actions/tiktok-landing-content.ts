@@ -138,6 +138,7 @@ export async function updateTikTokLandingContent(input: TikTokLandingContent) {
   }
 
   revalidatePath("/comprendre-le-coran");
+  revalidatePath("/comprendre-le-coran-b");
   revalidatePath("/admin/premium");
   return { ok: true };
 }
