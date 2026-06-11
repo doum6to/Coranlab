@@ -35,6 +35,11 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/blog") ||
     request.nextUrl.pathname.startsWith("/85motscoran") ||
     request.nextUrl.pathname.startsWith("/offre-a-vie") ||
+    // Localized offer landings live under /en and /es (e.g. /en/offre-a-vie,
+    // /es/offre-a-vie-v4) — they must be public too, or cold traffic in those
+    // languages hits the login wall.
+    request.nextUrl.pathname.startsWith("/en/offre-a-vie") ||
+    request.nextUrl.pathname.startsWith("/es/offre-a-vie") ||
     request.nextUrl.pathname.startsWith("/comprendre-le-coran") ||
     request.nextUrl.pathname.startsWith("/lire-larabe") ||
     // Admin API endpoints are token-gated (ADMIN_TOKEN query param) at
