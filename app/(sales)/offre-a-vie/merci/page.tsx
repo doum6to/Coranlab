@@ -5,6 +5,7 @@ import { Mail } from "lucide-react";
 import db from "@/db/drizzle";
 import { coursePurchase } from "@/db/schema";
 import { stripe } from "@/lib/stripe";
+import { recordPurchaseEvent } from "@/lib/analytics/purchase-event";
 import { LandingMascot } from "@/components/landing-mascot";
 import { APP_STRINGS } from "@/lib/i18n/app-dict";
 import { DEFAULT_LOCALE, isLocale, tpl, type Locale } from "@/lib/i18n/locales";
@@ -50,7 +51,7 @@ async function ensurePurchaseRow(sessionId: string): Promise<{
         : null;
     if (!email) return { email: null, amount, locale, firstName };
 
-    await db
+    const inserted = await db
       .insert(coursePurchase)
       .values({
         email: email.toLowerCase(),
@@ -60,7 +61,13 @@ async function ensurePurchaseRow(sessionId: string): Promise<{
         hasAppSubscription: true,
         activationToken: crypto.randomUUID(),
       })
-      .onConflictDoNothing({ target: coursePurchase.stripeSessionId });
+      .onConflictDoNothing({ target: coursePurchase.stripeSessionId })
+      .returning({ id: coursePurchase.id });
+    // Sale analytics, attributed to its landing — only when WE created the
+    // row (exactly-once vs the Stripe webhook).
+    if (inserted.length > 0) {
+      await recordPurchaseEvent(session);
+    }
 
     return { email, amount, locale, firstName };
   } catch (e) {

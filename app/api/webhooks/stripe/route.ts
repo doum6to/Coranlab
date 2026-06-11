@@ -17,6 +17,7 @@ import {
   sendPaymentFailed,
 } from "@/lib/email/send-trial-emails";
 import { ttqServerTrack } from "@/lib/analytics/tiktok-server";
+import { recordPurchaseEvent } from "@/lib/analytics/purchase-event";
 
 /**
  * Opens a Stripe Billing Portal session for the given customer so they can
@@ -131,7 +132,7 @@ export async function POST(req: Request) {
       //    "did the customer actually pay?". If this fails we want Stripe
       //    to retry, so we still throw here.
       try {
-        await db
+        const inserted = await db
           .insert(coursePurchase)
           .values({
             email: email.toLowerCase(),
@@ -142,7 +143,13 @@ export async function POST(req: Request) {
             hasAppSubscription: hasApp,
             activationToken,
           })
-          .onConflictDoNothing({ target: coursePurchase.stripeSessionId });
+          .onConflictDoNothing({ target: coursePurchase.stripeSessionId })
+          .returning({ id: coursePurchase.id });
+        // Sale analytics, attributed to its landing — only when WE created the
+        // row (exactly-once vs the /merci reconcile).
+        if (inserted.length > 0) {
+          await recordPurchaseEvent(session);
+        }
       } catch (err: any) {
         console.error("[Webhook] DB insert failed for course purchase", err);
         return new NextResponse(`DB insert error: ${err.message}`, {

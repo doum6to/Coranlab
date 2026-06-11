@@ -16,6 +16,12 @@ const ALLOWED = new Set([
   "lp_reviews_view",
   "lp_cta_click",
   "lp_checkout_start",
+  // Try-before-you-buy funnel steps (/offre-a-vie "Tunnel" variant).
+  "funnel_view",
+  "funnel_lead",
+  "funnel_exercise_done",
+  "funnel_offer_view",
+  "funnel_checkout_start",
 ]);
 
 const str = (v: unknown, max = 120) =>
