@@ -11,6 +11,7 @@ import {
 
 import { StickyReveal } from "./sticky-reveal";
 import { TrackViewContent } from "./track-view-content";
+import { HeroCarousel } from "./hero-carousel";
 
 import type { OfferSettings } from "@/lib/offer";
 import type { TikTokLandingContent } from "@/lib/tiktok-landing-content";
@@ -177,30 +178,7 @@ export function StoryLanding({
             <AdVideo url={c.hero.videoUrl} />
           </div>
         ) : c.hero.images.length > 1 ? (
-          <div className="mb-5 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {/* leading spacer so slide 1 sits centered with a peek of slide 2 */}
-            <div className="w-[7vw] shrink-0 sm:w-10" aria-hidden />
-            {c.hero.images.map((src, i) => (
-              <div
-                key={i}
-                className="relative aspect-square w-[78vw] max-w-[330px] shrink-0 snap-center overflow-hidden rounded-3xl"
-              >
-                <Image
-                  src={src}
-                  alt=""
-                  fill
-                  sizes="(max-width: 640px) 78vw, 330px"
-                  className="object-cover"
-                  priority={i === 0}
-                  // Uploads are already compressed WebP — skip the Next image
-                  // optimizer so the hero (LCP) isn't blocked by its cold-start
-                  // transcode; serve straight from the Supabase CDN.
-                  unoptimized
-                />
-              </div>
-            ))}
-            <div className="w-[7vw] shrink-0 sm:w-10" aria-hidden />
-          </div>
+          <HeroCarousel images={c.hero.images} />
         ) : c.hero.images[0] || c.hero.image ? (
           /* Square frame: shows the (square) ad artwork uncropped — compact
              enough to keep the headline near the fold. */
