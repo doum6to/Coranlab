@@ -48,6 +48,10 @@ export async function POST(req: Request) {
       supabase.storage.from(BUCKET).upload(path, buffer, {
         contentType,
         upsert: false,
+        // 1 year, immutable: each upload gets a fresh UUID path, so long
+        // caching is safe and fixes the "inefficient cache TTL" audit
+        // (Supabase defaults to 1h).
+        cacheControl: "31536000",
       });
 
     let { error } = await doUpload();

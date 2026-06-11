@@ -131,10 +131,23 @@ export function StoryLanding({
         } €`
       : c.offerCard.valueTotal;
 
+  // Hero image origin (Supabase) — preconnect so DNS+TLS run in parallel with
+  // the HTML/CSS instead of serially before the LCP image's first byte.
+  const heroSrc = c.hero.videoUrl
+    ? null
+    : c.hero.images[0] || c.hero.image || null;
+  let heroOrigin: string | null = null;
+  try {
+    heroOrigin = heroSrc?.startsWith("http") ? new URL(heroSrc).origin : null;
+  } catch {
+    heroOrigin = null;
+  }
+
   return (
     <div className="w-full bg-white font-sans text-neutral-900">
       {/* Smooth scrolling for the sticky bar's #offre anchor */}
       <style>{`html{scroll-behavior:smooth}`}</style>
+      {heroOrigin && <link rel="preconnect" href={heroOrigin} />}
       <LandingAnalytics />
       <TrackViewContent value={priceValue} />
 
