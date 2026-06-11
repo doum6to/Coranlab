@@ -241,6 +241,11 @@ const AdminPremiumPage = async () => {
                       price: (offer.tiktokPrice.priceCents / 100).toFixed(2),
                       compare: (offer.tiktokPrice.compareAtCents / 100).toFixed(2),
                     },
+                    tiktokPriceB: {
+                      currency: offer.tiktokPriceB.currency,
+                      price: (offer.tiktokPriceB.priceCents / 100).toFixed(2),
+                      compare: (offer.tiktokPriceB.compareAtCents / 100).toFixed(2),
+                    },
                     paymentBadges: offer.paymentBadges,
                     scarcityMode: offer.scarcityMode,
                     stickyBar: offer.stickyBar,

@@ -25,6 +25,7 @@ export async function updateOfferSettings(input: {
   funnelPrice?: LocalePrice;
   funnelPriceB?: LocalePrice;
   tiktokPrice?: LocalePrice;
+  tiktokPriceB?: LocalePrice;
   paymentBadges?: string[];
   scarcityMode?: "spots" | "timer";
   stickyBar?: boolean;
@@ -102,10 +103,12 @@ export async function updateOfferSettings(input: {
   const cleanFunnelPrice = sanitizeSingle(input.funnelPrice);
   const cleanFunnelPriceB = sanitizeSingle(input.funnelPriceB);
   const cleanTiktokPrice = sanitizeSingle(input.tiktokPrice);
+  const cleanTiktokPriceB = sanitizeSingle(input.tiktokPriceB);
   if (
     cleanFunnelPrice === "bad" ||
     cleanFunnelPriceB === "bad" ||
-    cleanTiktokPrice === "bad"
+    cleanTiktokPrice === "bad" ||
+    cleanTiktokPriceB === "bad"
   ) {
     return { error: "Prix du tunnel / TikTok invalide." };
   }
@@ -148,6 +151,9 @@ export async function updateOfferSettings(input: {
   if (cleanTiktokPrice) {
     entries.push([OFFER_KEYS.tiktokPrice, JSON.stringify(cleanTiktokPrice)]);
   }
+  if (cleanTiktokPriceB) {
+    entries.push([OFFER_KEYS.tiktokPriceB, JSON.stringify(cleanTiktokPriceB)]);
+  }
 
   try {
     for (const [key, value] of entries) {
@@ -171,6 +177,7 @@ export async function updateOfferSettings(input: {
   revalidatePath("/offre-a-vie");
   revalidatePath("/offre-a-vie-v4");
   revalidatePath("/comprendre-le-coran");
+  revalidatePath("/comprendre-le-coran-b");
   revalidatePath("/en/offre-a-vie");
   revalidatePath("/es/offre-a-vie");
   revalidatePath("/admin/premium");

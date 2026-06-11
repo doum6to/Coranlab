@@ -105,6 +105,7 @@ export function StoryLanding({
   priceLabel,
   compareLabel,
   priceValue,
+  checkoutVariant = "tiktok",
 }: {
   content: TikTokLandingContent;
   /** Reviews reused from the V3 landing content (no re-entry needed). */
@@ -113,6 +114,8 @@ export function StoryLanding({
   priceLabel: string;
   compareLabel: string | null;
   priceValue: number;
+  /** Which TikTok price/variant to charge — "tiktok" (A) or "tiktokB" (B). */
+  checkoutVariant?: "tiktok" | "tiktokB";
 }) {
   const c = content;
 
@@ -244,7 +247,7 @@ export function StoryLanding({
             label={c.hero.cta}
             subLabel={c.hero.ctaSub}
             priceValue={priceValue}
-            variant="tiktok"
+            variant={checkoutVariant}
           />
         </div>
 
@@ -492,7 +495,7 @@ export function StoryLanding({
                 label={c.offerCard.cta}
                 subLabel={c.offerCard.ctaSub}
                 priceValue={priceValue}
-                variant="tiktok"
+                variant={checkoutVariant}
               />
               <OfferScarcity
                 mode={offer.scarcityMode}
@@ -549,7 +552,7 @@ export function StoryLanding({
             <BuyButton
               label={c.finalCta.cta}
               priceValue={priceValue}
-              variant="tiktok"
+              variant={checkoutVariant}
             />
           </div>
         </div>

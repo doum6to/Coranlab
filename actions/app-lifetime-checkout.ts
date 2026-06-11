@@ -28,7 +28,13 @@ const CANCEL_PATH: Record<Locale, string> = {
  */
 export async function createAppLifetimeCheckoutUrl(
   locale: Locale = DEFAULT_LOCALE,
-  variant: "v3" | "v4" | "funnel" | "funnelB" | "tiktok" = "v3",
+  variant:
+    | "v3"
+    | "v4"
+    | "funnel"
+    | "funnelB"
+    | "tiktok"
+    | "tiktokB" = "v3",
   lead?: { email?: string; firstName?: string },
 ) {
   try {
@@ -37,7 +43,8 @@ export async function createAppLifetimeCheckoutUrl(
       variant !== "v4" &&
       variant !== "funnel" &&
       variant !== "funnelB" &&
-      variant !== "tiktok"
+      variant !== "tiktok" &&
+      variant !== "tiktokB"
     )
       variant = "v3";
     const offer = await getOfferSettings();
@@ -86,7 +93,11 @@ export async function createAppLifetimeCheckoutUrl(
         "/offre-a-vie/merci?session_id={CHECKOUT_SESSION_ID}",
       ),
       cancel_url: absoluteUrl(
-        variant === "tiktok" ? "/comprendre-le-coran" : CANCEL_PATH[locale],
+        variant === "tiktok"
+          ? "/comprendre-le-coran"
+          : variant === "tiktokB"
+            ? "/comprendre-le-coran-b"
+            : CANCEL_PATH[locale],
       ),
     });
 

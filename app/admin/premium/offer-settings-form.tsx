@@ -33,6 +33,7 @@ export function OfferSettingsForm({
     funnelPrice: PriceRow;
     funnelPriceB: PriceRow;
     tiktokPrice: PriceRow;
+    tiktokPriceB: PriceRow;
     paymentBadges: string[];
     scarcityMode: "spots" | "timer";
     stickyBar: boolean;
@@ -66,6 +67,9 @@ export function OfferSettingsForm({
   const [tiktok, setTiktok] = useState<PriceRow>(initial.tiktokPrice);
   const setTiktokRow = (patch: Partial<PriceRow>) =>
     setTiktok((f) => ({ ...f, ...patch }));
+  const [tiktokB, setTiktokB] = useState<PriceRow>(initial.tiktokPriceB);
+  const setTiktokBRow = (patch: Partial<PriceRow>) =>
+    setTiktokB((f) => ({ ...f, ...patch }));
   const setFunnelBRow = (patch: Partial<PriceRow>) =>
     setFunnelB((f) => ({ ...f, ...patch }));
   const [badges, setBadges] = useState<string[]>(initial.paymentBadges);
@@ -163,6 +167,7 @@ export function OfferSettingsForm({
       const funnelPrice = toPrice(funnel);
       const funnelPriceB = toPrice(funnelB);
       const tiktokPrice = toPrice(tiktok);
+      const tiktokPriceB = toPrice(tiktokB);
 
       const res = await updateOfferSettings({
         priceCents,
@@ -176,6 +181,7 @@ export function OfferSettingsForm({
         funnelPrice,
         funnelPriceB,
         tiktokPrice,
+        tiktokPriceB,
         paymentBadges: badges,
         scarcityMode,
         stickyBar,
@@ -449,7 +455,8 @@ export function OfferSettingsForm({
           {([
             ["Version A", funnel, setFunnelRow] as const,
             ["Version B", funnelB, setFunnelBRow] as const,
-            ["TikTok", tiktok, setTiktokRow] as const,
+            ["TikTok A", tiktok, setTiktokRow] as const,
+            ["TikTok B", tiktokB, setTiktokBRow] as const,
           ]).map(([label, row, setRow]) => (
             <div
               key={label}

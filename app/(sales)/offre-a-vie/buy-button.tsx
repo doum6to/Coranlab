@@ -29,7 +29,7 @@ export function BuyButton({
   priceValue?: number;
   locale?: Locale;
   /** Landing variant — selects the right price at checkout. */
-  variant?: "v3" | "v4" | "tiktok";
+  variant?: "v3" | "v4" | "tiktok" | "tiktokB";
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
