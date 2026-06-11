@@ -6,7 +6,6 @@ import db from "@/db/drizzle";
 import { coursePurchase } from "@/db/schema";
 import { stripe } from "@/lib/stripe";
 import { recordPurchaseEvent } from "@/lib/analytics/purchase-event";
-import { ttqServerTrack } from "@/lib/analytics/tiktok-server";
 import { LandingMascot } from "@/components/landing-mascot";
 import { APP_STRINGS } from "@/lib/i18n/app-dict";
 import { DEFAULT_LOCALE, isLocale, tpl, type Locale } from "@/lib/i18n/locales";
@@ -65,26 +64,10 @@ async function ensurePurchaseRow(sessionId: string): Promise<{
       .onConflictDoNothing({ target: coursePurchase.stripeSessionId })
       .returning({ id: coursePurchase.id });
     // Sale analytics, attributed to its landing — only when WE created the
-    // row (exactly-once vs the Stripe webhook).
+    // row (exactly-once vs the Stripe webhook). The TikTok CompletePayment is
+    // sent by the webhook only (single server sender, event_id-deduped).
     if (inserted.length > 0) {
       await recordPurchaseEvent(session);
-      // TikTok purchase signal (Conversions optimization). event_id = session
-      // id → dedupes with the webhook/client; whichever path created the row
-      // fires it once. Best-effort.
-      try {
-        await ttqServerTrack("CompletePayment", {
-          event_id: session.id,
-          email,
-          phone: session.customer_details?.phone || undefined,
-          value: typeof amount === "number" ? amount : undefined,
-          currency: (session.currency || "eur").toUpperCase(),
-          contentId: "app_lifetime",
-          contentName: "Quranlab — Accès à vie",
-          contentCategory: "app",
-        });
-      } catch (e) {
-        console.error("[merci] TikTok CompletePayment failed:", e);
-      }
     }
 
     return { email, amount, locale, firstName };
