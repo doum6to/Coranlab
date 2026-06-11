@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { StickyReveal } from "./sticky-reveal";
+import { TrackViewContent } from "./track-view-content";
 
 import type { OfferSettings } from "@/lib/offer";
 import type { TikTokLandingContent } from "@/lib/tiktok-landing-content";
@@ -135,6 +136,7 @@ export function StoryLanding({
       {/* Smooth scrolling for the sticky bar's #offre anchor */}
       <style>{`html{scroll-behavior:smooth}`}</style>
       <LandingAnalytics />
+      <TrackViewContent value={priceValue} />
 
       {/* HERO — warm cream background + soft violet halo behind the title */}
       <section className="relative overflow-hidden bg-[#FAF8F3]">
