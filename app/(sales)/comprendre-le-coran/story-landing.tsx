@@ -168,6 +168,10 @@ export function StoryLanding({
                   sizes="(max-width: 640px) 78vw, 330px"
                   className="object-cover"
                   priority={i === 0}
+                  // Uploads are already compressed WebP — skip the Next image
+                  // optimizer so the hero (LCP) isn't blocked by its cold-start
+                  // transcode; serve straight from the Supabase CDN.
+                  unoptimized
                 />
               </div>
             ))}
@@ -184,6 +188,7 @@ export function StoryLanding({
               sizes="(max-width: 640px) 80vw, 330px"
               className="object-cover"
               priority
+              unoptimized
             />
           </div>
         ) : null}
