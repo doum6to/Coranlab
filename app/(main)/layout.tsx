@@ -1,5 +1,6 @@
 import { Sidebar } from "@/components/sidebar";
 import { MobileHeader } from "@/components/mobile-header";
+import { RivePreloads } from "@/components/rive-preloads";
 import { PageReveal } from "@/components/ui/page-reveal";
 import { getUserProgress, getUserSubscription, getStreakData } from "@/db/queries";
 import { userHasArabicCourse } from "@/lib/arabic-course";
@@ -25,6 +26,7 @@ const MainLayout = async ({
 
   return (
     <LocaleProvider locale={locale}>
+      <RivePreloads />
       <MobileHeader
         streak={userProgress?.streak}
         isPro={isPro}

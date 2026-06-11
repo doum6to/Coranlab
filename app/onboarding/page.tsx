@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { OnboardingMascot } from "@/components/onboarding/onboarding-mascot";
+import { RivePreloads } from "@/components/rive-preloads";
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { cn } from "@/lib/utils";
 
@@ -218,6 +219,9 @@ const OnboardingPage = () => {
 
   return (
     <main className="relative flex h-[100dvh] flex-col bg-white">
+      {/* Mascot animations preloaded here (not in the root layout) so the
+          1.36s greeting beat stays in sync with the .riv being cached. */}
+      <RivePreloads />
       {/* Header: back button + progress bar */}
       <header className="flex items-center gap-3 px-4 pt-4">
         <button

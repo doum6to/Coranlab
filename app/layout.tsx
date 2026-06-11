@@ -21,6 +21,8 @@ const ibmPlexArabic = IBM_Plex_Sans_Arabic({
   subsets: ["arabic"],
   variable: "--font-arabic",
   display: "swap",
+  // Loaded on demand: not used on the ad landings' first paint.
+  preload: false,
 });
 // Serif display font for premium marketing surfaces (landing, pricing).
 // Kept out of font-heading so the app UI stays on Manrope.
@@ -29,6 +31,8 @@ const fraunces = Fraunces({
   weight: ["400", "500", "600", "700"],
   variable: "--font-serif",
   display: "swap",
+  // Loaded on demand: not used on the ad landings' first paint.
+  preload: false,
 });
 // Rounded, playful display font for the conversion landing pages.
 const fredoka = Fredoka({
@@ -50,62 +54,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr">
-      <head>
-        {/* Preload the onboarding intro mascot animation so it's already
-            in the browser cache by the time the user lands on /onboarding.
-            Without this, the .riv file starts downloading only when the
-            Rive runtime mounts, which delays the first frame and breaks
-            the sync with timed UI (e.g. the title beat at 1.36s). */}
-        <link
-          rel="preload"
-          href="/animations/hi_ok.riv"
-          as="fetch"
-          crossOrigin="anonymous"
-          type="application/octet-stream"
-        />
-        <link
-          rel="preload"
-          href="/animations/okok.riv"
-          as="fetch"
-          crossOrigin="anonymous"
-          type="application/octet-stream"
-        />
-        <link
-          rel="preload"
-          href="/animations/eyes_down.riv"
-          as="fetch"
-          crossOrigin="anonymous"
-          type="application/octet-stream"
-        />
-        <link
-          rel="preload"
-          href="/animations/mascot_breath.riv"
-          as="fetch"
-          crossOrigin="anonymous"
-          type="application/octet-stream"
-        />
-        <link
-          rel="preload"
-          href="/animations/completed_lvl.riv"
-          as="fetch"
-          crossOrigin="anonymous"
-          type="application/octet-stream"
-        />
-        <link
-          rel="preload"
-          href="/animations/loading.riv"
-          as="fetch"
-          crossOrigin="anonymous"
-          type="application/octet-stream"
-        />
-        <link
-          rel="preload"
-          href="/animations/bad.riv"
-          as="fetch"
-          crossOrigin="anonymous"
-          type="application/octet-stream"
-        />
-      </head>
+      {/* NOTE: the Rive .riv preloads moved out of this root layout into
+          <RivePreloads /> (app pages + onboarding only) so ad landings don't
+          spend their first-paint bandwidth on animations they never play. */}
       <body
         className={`${inter.className} ${inter.variable} ${manrope.variable} ${ibmPlexArabic.variable} ${fraunces.variable} ${fredoka.variable}`}
       >

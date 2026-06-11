@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
+
 /**
  * Two-row infinite marquee of uploaded review images. Both rows render the same
  * images (identical track width) so they share an exact pixel speed: the top
@@ -7,6 +9,10 @@
  * The bottom row is rotated so it doesn't line up as a mirror of the top. Each
  * track holds its list twice and animates -50% for a seamless loop, and never
  * pauses (including on touch/hover) so the motion stays continuous.
+ *
+ * The rows only mount when the section approaches the viewport (600px ahead):
+ * below-the-fold screenshots then load eagerly without ever competing with the
+ * hero (LCP) on the initial connection.
  */
 
 /**
@@ -21,6 +27,29 @@ const optimized = (src: string) =>
   `/_next/image?url=${encodeURIComponent(src)}&w=640&q=70`;
 export function ReviewsMarquee({ images }: { images: string[] }) {
   const clean = images.filter(Boolean);
+  const ref = useRef<HTMLDivElement>(null);
+  const [near, setNear] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (!("IntersectionObserver" in window)) {
+      setNear(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setNear(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "600px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   if (!clean.length) return null;
 
   // Offset the bottom row so the two lines don't read as a mirror image.
@@ -32,9 +61,16 @@ export function ReviewsMarquee({ images }: { images: string[] }) {
   const duration = Math.max(28, clean.length * 9);
 
   return (
-    <div className="-mx-4 space-y-3 overflow-hidden sm:mx-0">
-      <MarqueeRow images={clean} duration={duration} />
-      <MarqueeRow images={bottom} duration={duration} reverse />
+    <div ref={ref} className="-mx-4 space-y-3 overflow-hidden sm:mx-0">
+      {near ? (
+        <>
+          <MarqueeRow images={clean} duration={duration} />
+          <MarqueeRow images={bottom} duration={duration} reverse />
+        </>
+      ) : (
+        /* Height placeholder (2 rows + gap) so revealing causes no layout shift */
+        <div aria-hidden className="h-[312px] sm:h-[392px]" />
+      )}
     </div>
   );
 }
