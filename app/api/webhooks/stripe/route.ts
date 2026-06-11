@@ -156,6 +156,7 @@ export async function POST(req: Request) {
             await ttqServerTrack("CompletePayment", {
               event_id: session.id,
               email,
+              phone: session.customer_details?.phone || undefined,
               value:
                 typeof session.amount_total === "number"
                   ? session.amount_total / 100

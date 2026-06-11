@@ -56,6 +56,9 @@ export async function createAppLifetimeCheckoutUrl(
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       ...(customerEmail ? { customer_email: customerEmail } : {}),
+      // Collect the phone number — strengthens TikTok/Meta advanced matching
+      // (email + phone), which TikTok reports as ~-13% CPA.
+      phone_number_collection: { enabled: true },
       line_items: [
         {
           quantity: 1,

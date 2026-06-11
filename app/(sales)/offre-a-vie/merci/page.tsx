@@ -75,6 +75,7 @@ async function ensurePurchaseRow(sessionId: string): Promise<{
         await ttqServerTrack("CompletePayment", {
           event_id: session.id,
           email,
+          phone: session.customer_details?.phone || undefined,
           value: typeof amount === "number" ? amount : undefined,
           currency: (session.currency || "eur").toUpperCase(),
           contentId: "app_lifetime",

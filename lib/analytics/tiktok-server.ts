@@ -36,6 +36,8 @@ type ServerEventPayload = {
   event_id?: string;
   /** Email of the user (hashed before sending). */
   email?: string;
+  /** Phone in E.164 (e.g. +33...) — hashed before sending. */
+  phone?: string;
   /** Optional user IP (from req headers). */
   ip?: string;
   /** Optional user agent (from req headers). */
@@ -79,6 +81,11 @@ export async function ttqServerTrack(
 
   const user: Record<string, unknown> = {};
   if (payload.email) user.email = [sha256Lower(payload.email)];
+  if (payload.phone) {
+    // E.164, digits + leading '+', no spaces — then hashed.
+    const normalized = payload.phone.replace(/[^\d+]/g, "");
+    if (normalized) user.phone = [sha256Lower(normalized)];
+  }
   if (payload.ip) user.ip = payload.ip;
   if (payload.userAgent) user.user_agent = payload.userAgent;
 
