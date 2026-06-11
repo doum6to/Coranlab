@@ -1,5 +1,6 @@
 import "server-only";
 import type Stripe from "stripe";
+import { and, eq } from "drizzle-orm";
 
 import db from "@/db/drizzle";
 import { analyticsEvent } from "@/db/schema";
@@ -16,19 +17,32 @@ function pathForVariant(variant: string | undefined): string {
  * Checkout Session, attributed to the landing it came from (via the
  * `variant` metadata set at checkout creation).
  *
- * Exactly-once: callers only invoke this when THEIR course_purchase insert
- * actually created the row (insert ... onConflictDoNothing ... returning),
- * so the webhook and the /merci reconcile never both record the same sale.
- * Best-effort: never throws.
+ * Idempotent per Stripe session: the session id is stored in `session_id` and
+ * we skip if a purchase event already exists for it — so the webhook AND the
+ * /merci reconcile (and Stripe retries) can all call this without ever
+ * double-counting a sale. Best-effort: never throws.
  */
 export async function recordPurchaseEvent(session: Stripe.Checkout.Session) {
   try {
+    // Already recorded for this checkout session? → stop (dedupe).
+    const existing = await db
+      .select({ id: analyticsEvent.id })
+      .from(analyticsEvent)
+      .where(
+        and(
+          eq(analyticsEvent.event, "purchase"),
+          eq(analyticsEvent.sessionId, session.id),
+        ),
+      )
+      .limit(1);
+    if (existing.length > 0) return;
+
     const variant = (session.metadata?.variant as string) || "v3";
     await db.insert(analyticsEvent).values({
       event: "purchase",
       path: pathForVariant(variant),
       locale: (session.metadata?.locale as string) || null,
-      sessionId: null,
+      sessionId: session.id,
       meta: JSON.stringify({
         variant,
         amount:
