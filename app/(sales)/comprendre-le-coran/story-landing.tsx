@@ -187,7 +187,7 @@ export function StoryLanding({
         ) : null}
 
         <p className="text-sm font-semibold text-[#6967fb]">{c.hero.eyebrow}</p>
-        <h1 className="mt-3 font-display text-[34px] font-bold leading-[1.1] text-neutral-950 sm:text-5xl">
+        <h1 className="mt-3 font-display text-[26px] font-bold leading-[1.15] text-neutral-950 sm:text-[40px] sm:leading-[1.1]">
           {c.hero.title}{" "}
           <span className="relative inline-block text-[#6967fb]">
             {c.hero.titleHighlight}
