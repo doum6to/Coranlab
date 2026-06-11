@@ -426,7 +426,9 @@ export function StoryLanding({
                 </p>
               )}
               <div className="mt-2 flex items-baseline justify-center gap-2">
-                {compareLabel && (
+                {/* Avoid a double strike-through: when the "valeur réelle"
+                    line is shown above, it already carries the anchor. */}
+                {compareLabel && !computedValueTotal && (
                   <span className="font-display text-3xl text-white/40 line-through">
                     {compareLabel}
                   </span>
