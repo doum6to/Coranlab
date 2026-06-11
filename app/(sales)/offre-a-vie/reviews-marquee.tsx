@@ -8,6 +8,17 @@
  * track holds its list twice and animates -50% for a seamless loop, and never
  * pauses (including on touch/hover) so the motion stays continuous.
  */
+
+/**
+ * Routes an image through the Next.js optimizer at a small width. The uploads
+ * are full-resolution phone screenshots (~12 MP ≈ 45 MB decoded EACH); an
+ * animated track holding 2× all of them blows past mobile GPU memory limits —
+ * which is exactly when Safari/Chrome drop the composited layer (a row goes
+ * blank) or the animation turns to slideshow. A 640px WebP is ~13× lighter.
+ * `w` must be one of next.config's deviceSizes.
+ */
+const optimized = (src: string) =>
+  `/_next/image?url=${encodeURIComponent(src)}&w=640&q=70`;
 export function ReviewsMarquee({ images }: { images: string[] }) {
   const clean = images.filter(Boolean);
   if (!clean.length) return null;
@@ -52,11 +63,14 @@ function MarqueeRow({
     >
       {loop.map((src, i) => (
         <li key={i} className="shrink-0">
+          {/* Eager (not lazy): lazy images inside a moving track arrive late
+              and leave visible holes while the row scrolls. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={src}
+            src={optimized(src)}
             alt="Avis d'un élève"
-            loading="lazy"
+            loading="eager"
+            decoding="async"
             className="h-[150px] w-auto rounded-xl border border-neutral-200 bg-white object-contain shadow-sm sm:h-[190px]"
           />
         </li>
