@@ -33,13 +33,19 @@ export function TrackLifetimePurchase({
     }
 
     ttqIdentify(email);
-    ttqTrack("CompletePayment", {
-      value,
-      currency: "EUR",
-      content_id: "app_lifetime",
-      content_name: "Quranlab — Accès à vie",
-      content_category: "app",
-    });
+    ttqTrack(
+      "CompletePayment",
+      {
+        value,
+        currency: "EUR",
+        content_id: "app_lifetime",
+        content_name: "Quranlab — Accès à vie",
+        content_category: "app",
+      },
+      // Same event_id as the server-side event (Stripe session id) so TikTok
+      // merges browser + server into ONE conversion instead of counting two.
+      sessionId,
+    );
   }, [sessionId, value, email]);
 
   return null;

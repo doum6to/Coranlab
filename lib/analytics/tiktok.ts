@@ -42,7 +42,11 @@ type TikTokEvent =
 declare global {
   interface Window {
     ttq?: {
-      track: (event: string, props?: Record<string, unknown>) => void;
+      track: (
+        event: string,
+        props?: Record<string, unknown>,
+        options?: { event_id?: string },
+      ) => void;
       page: () => void;
       identify?: (info: Record<string, unknown>) => void;
     };
@@ -92,17 +96,24 @@ export function ttqIdentify(email?: string | null) {
   }, RETRY_INTERVAL_MS);
 }
 
-export function ttqTrack(event: TikTokEvent, props?: TikTokProps) {
+export function ttqTrack(
+  event: TikTokEvent,
+  props?: TikTokProps,
+  /** Shared id to dedupe this browser event with the matching server event
+   *  (TikTok Events API). Use the Stripe session id for purchases. */
+  eventId?: string,
+) {
   if (typeof window === "undefined") return;
 
   const start = Date.now();
+  const options = eventId ? { event_id: eventId } : undefined;
 
   const fire = () => {
     const ttq = window.ttq;
     if (ttq && typeof ttq.track === "function") {
       try {
-        ttq.track(event, props as Record<string, unknown> | undefined);
-        debug("fired", event, props);
+        ttq.track(event, props as Record<string, unknown> | undefined, options);
+        debug("fired", event, props, options);
       } catch (e) {
         debug("fire error", e);
       }
