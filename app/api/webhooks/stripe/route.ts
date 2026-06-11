@@ -149,6 +149,25 @@ export async function POST(req: Request) {
         // row (exactly-once vs the /merci reconcile).
         if (inserted.length > 0) {
           await recordPurchaseEvent(session);
+          // TikTok server-side purchase event — this is the signal a
+          // Conversions campaign optimizes on. Best-effort, never fails the
+          // webhook; event_id = session id so it dedupes with any client event.
+          try {
+            await ttqServerTrack("CompletePayment", {
+              event_id: session.id,
+              email,
+              value:
+                typeof session.amount_total === "number"
+                  ? session.amount_total / 100
+                  : undefined,
+              currency: (session.currency || "eur").toUpperCase(),
+              contentId: "app_lifetime",
+              contentName: "Quranlab — Accès à vie",
+              contentCategory: "app",
+            });
+          } catch (err) {
+            console.error("[Webhook] TikTok CompletePayment failed", err);
+          }
         }
       } catch (err: any) {
         console.error("[Webhook] DB insert failed for course purchase", err);
