@@ -100,6 +100,15 @@ export function LoginForm() {
           </ShinyButton>
         </form>
 
+        <p className="text-center text-sm">
+          <Link
+            href="/auth/forgot-password"
+            className="text-brilliant-muted hover:text-[#6967fb] hover:underline"
+          >
+            Mot de passe oublié ?
+          </Link>
+        </p>
+
         <p className="text-center text-sm text-brilliant-muted">
           {t.auth.noAccount}{" "}
           <Link
