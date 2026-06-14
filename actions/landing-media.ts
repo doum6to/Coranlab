@@ -6,24 +6,39 @@ import { isAdminAuthed } from "@/lib/admin-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { LANDING_MEDIA_BUCKET } from "@/lib/course-videos";
 
+const LANDING_MEDIA_MIME = [
+  "video/mp4",
+  "video/quicktime",
+  "video/webm",
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+  "image/gif",
+];
+
 /** Creates the public landing-media bucket if missing. Idempotent. */
 async function ensureBucket(supabase: ReturnType<typeof createAdminClient>) {
   const { error } = await supabase.storage.createBucket(LANDING_MEDIA_BUCKET, {
     public: true,
     fileSizeLimit: 500 * 1024 * 1024,
-    allowedMimeTypes: [
-      "video/mp4",
-      "video/quicktime",
-      "video/webm",
-      "image/png",
-      "image/jpeg",
-      "image/webp",
-      "image/gif",
-    ],
+    allowedMimeTypes: LANDING_MEDIA_MIME,
   });
-  if (error && !/already exists/i.test(error.message)) {
-    throw new Error(`Création du bucket impossible : ${error.message}`);
+  if (!error || /already exists/i.test(error.message)) return;
+
+  // A bucket-level fileSizeLimit can't exceed the project's GLOBAL upload limit
+  // (50 MB by default on the free plan). When that's the case Supabase rejects
+  // the creation with "exceeded the maximum allowed size" — so retry without an
+  // explicit limit, letting the bucket inherit the project's global cap.
+  if (/maximum allowed size|exceeded/i.test(error.message)) {
+    const { error: retryError } = await supabase.storage.createBucket(
+      LANDING_MEDIA_BUCKET,
+      { public: true, allowedMimeTypes: LANDING_MEDIA_MIME },
+    );
+    if (!retryError || /already exists/i.test(retryError.message)) return;
+    throw new Error(`Création du bucket impossible : ${retryError.message}`);
   }
+
+  throw new Error(`Création du bucket impossible : ${error.message}`);
 }
 
 /**
