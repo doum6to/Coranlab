@@ -34,6 +34,7 @@ function sanitize(input: TikTokLandingContent): TikTokLandingContent {
       image: s(input.hero?.image),
       images: list(input.hero?.images, 9),
       videoUrl: s(input.hero?.videoUrl),
+      videoPoster: s(input.hero?.videoPoster),
       showPrice: input.hero?.showPrice !== false,
       socialProof: s(input.hero?.socialProof, d.hero.socialProof),
       stats: (Array.isArray(input.hero?.stats) ? input.hero.stats : [])

@@ -384,6 +384,13 @@ export function TikTokLandingForm({ initial }: { initial: TikTokLandingContent }
             onChange={(v) => setHero("videoUrl", v)}
             hint="Téléverse un .mp4 (envoyé direct vers Supabase, sans limite de taille Vercel) OU colle un lien TikTok VIDÉO (…/video/…). La vidéo s'affiche au format réel (16:9 paysage ou 9:16 vertical) et passe devant les slides. Les liens de carrousels (/photo/) ne marchent pas — utilise les slides ci-dessus."
           />
+          {c.hero.videoUrl && (
+            <ImageField
+              label="Image de preview de la vidéo (optionnel)"
+              value={c.hero.videoPoster}
+              onChange={(v) => setHero("videoPoster", v)}
+            />
+          )}
           <label className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white px-3 py-2.5">
             <span className="text-xs font-semibold text-neutral-600">
               Afficher le prix au-dessus du bouton

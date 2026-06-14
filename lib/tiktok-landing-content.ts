@@ -34,6 +34,12 @@ export type TikTokLandingContent = {
     images: string[];
     /** Optional ad video: a TikTok URL (embedded) or a direct .mp4 link. */
     videoUrl: string;
+    /**
+     * Optional preview image shown in place of the video before play (the
+     * <video> poster). Lets the hero show an attractive still instead of a
+     * black frame, and loads instantly without downloading the video.
+     */
+    videoPoster: string;
     /** Show the price (and strike-through) right above the hero CTA. */
     showPrice: boolean;
     socialProof: string;
@@ -105,6 +111,7 @@ export const TIKTOK_LANDING_DEFAULTS: TikTokLandingContent = {
     image: "",
     images: [],
     videoUrl: "",
+    videoPoster: "",
     showPrice: true,
     socialProof: "Plus de 1 000 lecteurs et apprenants",
     stats: [

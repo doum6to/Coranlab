@@ -147,7 +147,7 @@ export function StoryLanding({
             Priority: video > swipeable slides (mirrors a carousel ad) > image. */}
         {c.hero.videoUrl ? (
           <div className="mb-5">
-            <AdVideo url={c.hero.videoUrl} />
+            <AdVideo url={c.hero.videoUrl} poster={c.hero.videoPoster} />
           </div>
         ) : c.hero.images.length > 1 ? (
           <HeroCarousel images={c.hero.images} />
