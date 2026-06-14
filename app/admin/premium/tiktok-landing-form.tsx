@@ -6,11 +6,14 @@ import { Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { updateTikTokLandingContent } from "@/actions/tiktok-landing-content";
+import { createLandingVideoUploadUrl } from "@/actions/landing-media";
 import type {
   TikTokLandingContent,
   StoryBubble,
 } from "@/lib/tiktok-landing-content";
 import { compressImageFile } from "@/lib/images/compress-client";
+import { createClient } from "@/lib/supabase/client";
+import { LANDING_MEDIA_BUCKET } from "@/lib/course-videos";
 
 const inputCls =
   "w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brilliant-green focus:ring-2 focus:ring-brilliant-green/20";
@@ -118,6 +121,85 @@ function ImageField({
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function VideoField({
+  label,
+  value,
+  onChange,
+  hint,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  hint?: string;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  // Uploads the file DIRECTLY to Supabase via a one-time signed URL, bypassing
+  // the Vercel ~4.5 MB serverless body limit (a video would be rejected by the
+  // regular /api/admin/upload route).
+  const onFile = async (file: File) => {
+    setErr(null);
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop() || "mp4";
+      const signed = await createLandingVideoUploadUrl(ext, "comprendre-le-coran");
+      if ("error" in signed) throw new Error(signed.error);
+      const supabase = createClient();
+      const { error } = await supabase.storage
+        .from(LANDING_MEDIA_BUCKET)
+        .uploadToSignedUrl(signed.path, signed.token, file, {
+          contentType: file.type || "video/mp4",
+        });
+      if (error) throw new Error(error.message);
+      onChange(signed.publicUrl);
+    } catch (e: any) {
+      setErr(e?.message || "Échec de l'upload.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="block">
+      <span className="mb-1 block text-xs font-semibold text-neutral-600">{label}</span>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="URL vidéo (lien TikTok …/video/… ou fichier .mp4)"
+        className={inputCls}
+      />
+      <div className="mt-1 flex items-center gap-3">
+        <label className="cursor-pointer text-xs font-semibold text-brilliant-green hover:underline">
+          {uploading ? "Upload en cours…" : "Téléverser une vidéo (mp4)"}
+          <input
+            type="file"
+            accept="video/*"
+            className="hidden"
+            disabled={uploading}
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) onFile(f);
+            }}
+          />
+        </label>
+        {value && (
+          <button
+            type="button"
+            onClick={() => onChange("")}
+            className="text-xs font-semibold text-rose-500 hover:underline"
+          >
+            Retirer
+          </button>
+        )}
+        {err && <span className="text-xs text-rose-500">{err}</span>}
+      </div>
+      {hint && <span className="mt-1 block text-[11px] text-neutral-400">{hint}</span>}
     </div>
   );
 }
@@ -296,11 +378,11 @@ export function TikTokLandingForm({ initial }: { initial: TikTokLandingContent }
               <Plus className="h-3.5 w-3.5" /> Ajouter une slide
             </button>
           </div>
-          <Field
+          <VideoField
             label="Vidéo de la pub (optionnel)"
             value={c.hero.videoUrl}
             onChange={(v) => setHero("videoUrl", v)}
-            hint="UNIQUEMENT un lien TikTok VIDÉO (…/video/…) ou un .mp4 direct. Les liens de carrousels (/photo/) ne marchent pas — utilise les slides ci-dessus. Si rempli, la vidéo passe devant tout."
+            hint="Téléverse un .mp4 (envoyé direct vers Supabase, sans limite de taille Vercel) OU colle un lien TikTok VIDÉO (…/video/…). La vidéo s'affiche au format réel (16:9 paysage ou 9:16 vertical) et passe devant les slides. Les liens de carrousels (/photo/) ne marchent pas — utilise les slides ci-dessus."
           />
           <label className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white px-3 py-2.5">
             <span className="text-xs font-semibold text-neutral-600">

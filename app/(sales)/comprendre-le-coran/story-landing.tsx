@@ -12,6 +12,7 @@ import {
 import { StickyReveal } from "./sticky-reveal";
 import { TrackViewContent } from "./track-view-content";
 import { HeroCarousel } from "./hero-carousel";
+import { AdVideo } from "./ad-video";
 
 import type { OfferSettings } from "@/lib/offer";
 import type { TikTokLandingContent } from "@/lib/tiktok-landing-content";
@@ -30,35 +31,6 @@ function Stars() {
         <StarIcon key={i} className="h-4 w-4 fill-current" strokeWidth={0} />
       ))}
     </div>
-  );
-}
-
-/**
- * The ad itself, embedded for continuity: a TikTok URL renders the official
- * embed iframe; any other URL is treated as a direct video file.
- */
-function AdVideo({ url }: { url: string }) {
-  const tiktokId = url.match(/tiktok\.com\/.*video\/(\d+)/)?.[1];
-  if (tiktokId) {
-    return (
-      <iframe
-        src={`https://www.tiktok.com/embed/v2/${tiktokId}`}
-        title="Publicité Quranlab"
-        loading="lazy"
-        allow="encrypted-media"
-        className="mx-auto aspect-[9/16] w-full max-w-[300px] rounded-3xl border border-neutral-200"
-      />
-    );
-  }
-  return (
-    // eslint-disable-next-line jsx-a11y/media-has-caption
-    <video
-      src={url}
-      controls
-      playsInline
-      preload="metadata"
-      className="mx-auto aspect-[9/16] w-full max-w-[300px] rounded-3xl bg-black"
-    />
   );
 }
 

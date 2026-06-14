@@ -31,11 +31,12 @@ async function ensureBucket(supabase: ReturnType<typeof createAdminClient>) {
  * DIRECTLY to a PUBLIC Supabase bucket — bypassing the Vercel ~4.5 MB body
  * limit. Returns the future public URL to store in the landing content.
  */
-export async function createLandingVideoUploadUrl(ext: string) {
+export async function createLandingVideoUploadUrl(ext: string, folder = "lire-larabe") {
   if (!isAdminAuthed()) return { error: "Unauthorized" } as const;
 
   const safeExt = (ext || "mp4").toLowerCase().replace(/[^a-z0-9]/g, "") || "mp4";
-  const path = `lire-larabe/${crypto.randomUUID()}.${safeExt}`;
+  const safeFolder = (folder || "lire-larabe").toLowerCase().replace(/[^a-z0-9-]/g, "") || "lire-larabe";
+  const path = `${safeFolder}/${crypto.randomUUID()}.${safeExt}`;
 
   try {
     const supabase = createAdminClient();
