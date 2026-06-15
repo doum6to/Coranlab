@@ -142,14 +142,12 @@ export function StoryLanding({
           className="pointer-events-none absolute left-1/2 top-[-120px] h-[340px] w-[340px] -translate-x-1/2 rounded-full bg-[#6967fb]/15 blur-3xl"
         />
         <div className="relative mx-auto max-w-[680px] px-5 pb-10 pt-5 text-center sm:pt-7">
-        {/* MEDIA FIRST — TikTok traffic is visual: instant recognition of the
-            ad creative confirms "you're in the right place" before any text.
-            Priority: video > swipeable slides (mirrors a carousel ad) > image. */}
-        {c.hero.videoUrl ? (
-          <div className="mb-5">
-            <AdVideo url={c.hero.videoUrl} poster={c.hero.videoPoster} />
-          </div>
-        ) : c.hero.images.length > 1 ? (
+        {/* MEDIA FIRST (image / carousel) — TikTok traffic is visual: instant
+            recognition of the ad creative confirms "you're in the right place".
+            A VIDEO is the exception: it renders AFTER the headline (below) so the
+            hook frames it and the visitor knows what they're watching before they
+            decide to press play. */}
+        {c.hero.videoUrl ? null : c.hero.images.length > 1 ? (
           <HeroCarousel images={c.hero.images} />
         ) : c.hero.images[0] || c.hero.image ? (
           /* Square frame: shows the (square) ad artwork uncropped — compact
@@ -174,6 +172,15 @@ export function StoryLanding({
             {c.hero.titleHighlight}
           </span>
         </h1>
+
+        {/* Video sits between the headline and the description: the title hooks,
+            the video deepens, the description + CTA close. */}
+        {c.hero.videoUrl && (
+          <div className="mt-5">
+            <AdVideo url={c.hero.videoUrl} poster={c.hero.videoPoster} />
+          </div>
+        )}
+
         <p className="mx-auto mt-4 max-w-[520px] text-base leading-relaxed text-neutral-600">
           {c.hero.subtitle}
         </p>
