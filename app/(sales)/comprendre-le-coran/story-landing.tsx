@@ -13,6 +13,8 @@ import { StickyReveal } from "./sticky-reveal";
 import { TrackViewContent } from "./track-view-content";
 import { HeroCarousel } from "./hero-carousel";
 import { AdVideo } from "./ad-video";
+import { CountdownBar } from "./countdown-bar";
+import { SocialProofToasts } from "./social-proof-toasts";
 
 import type { OfferSettings } from "@/lib/offer";
 import type { TikTokLandingContent } from "@/lib/tiktok-landing-content";
@@ -134,6 +136,10 @@ export function StoryLanding({
       />
       <LandingAnalytics />
       <TrackViewContent value={priceValue} />
+
+      {/* FOMO: looping 24 h countdown (sticky top) + random purchase toasts */}
+      <CountdownBar />
+      <SocialProofToasts />
 
       {/* HERO — warm cream background + soft violet halo behind the title */}
       <section className="relative overflow-hidden bg-[#FAF8F3]">
