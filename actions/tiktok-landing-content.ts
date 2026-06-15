@@ -102,6 +102,13 @@ function sanitize(input: TikTokLandingContent): TikTokLandingContent {
       subtitle: s(input.finalCta?.subtitle, d.finalCta.subtitle),
       cta: s(input.finalCta?.cta, d.finalCta.cta),
     },
+    fomo: {
+      countdownEnabled: input.fomo?.countdownEnabled !== false,
+      countdownLabel: s(input.fomo?.countdownLabel, d.fomo.countdownLabel),
+      toastsEnabled: input.fomo?.toastsEnabled !== false,
+      toastProduct: s(input.fomo?.toastProduct, d.fomo.toastProduct),
+      toastNames: list(input.fomo?.toastNames, 100),
+    },
   };
 
   // Never store fully-empty lists for the sections the page depends on.
@@ -111,6 +118,7 @@ function sanitize(input: TikTokLandingContent): TikTokLandingContent {
   if (clean.offerCard.features.length === 0)
     clean.offerCard.features = d.offerCard.features;
   if (clean.faq.items.length === 0) clean.faq.items = d.faq.items;
+  if (clean.fomo.toastNames.length === 0) clean.fomo.toastNames = d.fomo.toastNames;
 
   return clean;
 }

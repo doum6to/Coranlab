@@ -138,8 +138,13 @@ export function StoryLanding({
       <TrackViewContent value={priceValue} />
 
       {/* FOMO: looping 24 h countdown (sticky top) + random purchase toasts */}
-      <CountdownBar />
-      <SocialProofToasts />
+      {c.fomo.countdownEnabled && <CountdownBar label={c.fomo.countdownLabel} />}
+      {c.fomo.toastsEnabled && (
+        <SocialProofToasts
+          product={c.fomo.toastProduct}
+          names={c.fomo.toastNames}
+        />
+      )}
 
       {/* HERO — warm cream background + soft violet halo behind the title */}
       <section className="relative overflow-hidden bg-[#FAF8F3]">

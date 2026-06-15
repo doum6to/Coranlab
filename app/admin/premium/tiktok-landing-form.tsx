@@ -232,6 +232,10 @@ export function TikTokLandingForm({ initial }: { initial: TikTokLandingContent }
     patch((c) => ({ ...c, offerCard: { ...c.offerCard, testimonials: list } }));
   const setFinal = (k: keyof TikTokLandingContent["finalCta"], v: string) =>
     patch((c) => ({ ...c, finalCta: { ...c.finalCta, [k]: v } }));
+  const setFomo = <K extends keyof TikTokLandingContent["fomo"]>(
+    k: K,
+    v: TikTokLandingContent["fomo"][K],
+  ) => patch((c) => ({ ...c, fomo: { ...c.fomo, [k]: v } }));
 
   // Story bubbles
   const setBubble = (i: number, p: Partial<StoryBubble>) =>
@@ -678,6 +682,49 @@ export function TikTokLandingForm({ initial }: { initial: TikTokLandingContent }
           <Field label="Titre CTA final" value={c.finalCta.title} onChange={(v) => setFinal("title", v)} />
           <Field label="Sous-titre CTA final" value={c.finalCta.subtitle} onChange={(v) => setFinal("subtitle", v)} />
           <Field label="Bouton final" value={c.finalCta.cta} onChange={(v) => setFinal("cta", v)} />
+        </Section>
+
+        <Section title="7. Urgence + preuve sociale (FOMO)">
+          <label className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white px-3 py-2.5">
+            <span className="text-xs font-semibold text-neutral-600">
+              Afficher la barre compte à rebours 24h (sticky en haut)
+            </span>
+            <input
+              type="checkbox"
+              checked={c.fomo.countdownEnabled}
+              onChange={(e) => setFomo("countdownEnabled", e.target.checked)}
+            />
+          </label>
+          <Field
+            label="Texte du compte à rebours"
+            value={c.fomo.countdownLabel}
+            onChange={(v) => setFomo("countdownLabel", v)}
+            hint="Le minuteur HH:MM:SS s'affiche automatiquement après ce texte. Il redescend jusqu'à minuit puis repart pour 24h."
+          />
+
+          <label className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white px-3 py-2.5">
+            <span className="text-xs font-semibold text-neutral-600">
+              Afficher les notifications « X a acheté … »
+            </span>
+            <input
+              type="checkbox"
+              checked={c.fomo.toastsEnabled}
+              onChange={(e) => setFomo("toastsEnabled", e.target.checked)}
+            />
+          </label>
+          <Field
+            label="Nom du produit dans les notifications"
+            value={c.fomo.toastProduct}
+            onChange={(v) => setFomo("toastProduct", v)}
+          />
+          <Field
+            label="Prénoms (un par ligne)"
+            value={c.fomo.toastNames.join("\n")}
+            onChange={(v) => setFomo("toastNames", v.split("\n"))}
+            textarea
+            rows={6}
+            hint="Tirés au hasard. Les notifications apparaissent une par une, espacées de 30 à 75 s, pour rester crédibles."
+          />
         </Section>
       </div>
 

@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { BadgeCheck } from "lucide-react";
 
-/** Muslim first names (mixed) used in the social-proof notifications. */
-const NAMES = [
+/** Fallback Muslim first names if the admin list is empty. */
+const DEFAULT_NAMES = [
   "Yassine", "Mohamed", "Amine", "Bilal", "Hamza", "Omar", "Idriss", "Ismaël",
   "Ibrahim", "Younes", "Mehdi", "Anas", "Rayan", "Adam", "Sami", "Karim",
   "Nabil", "Sofiane", "Walid", "Reda", "Fatima", "Aïcha", "Khadija", "Mariam",
@@ -12,7 +12,7 @@ const NAMES = [
   "Maya", "Assia", "Sofia", "Amira", "Rania", "Hanae", "Manel", "Soumaya",
 ];
 
-const PRODUCT = "Guide Comprendre 85% du Coran";
+const DEFAULT_PRODUCT = "Guide Comprendre 85% du Coran";
 
 const rand = (min: number, max: number) => Math.random() * (max - min) + min;
 const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
@@ -24,17 +24,26 @@ type Notif = { name: string; mins: number };
  * deliberately wide and randomized (one at a time, ~30–75 s apart) so it reads
  * as genuine activity, not a spammy fake ticker. Sits above the sticky CTA bar.
  */
-export function SocialProofToasts() {
+export function SocialProofToasts({
+  product,
+  names,
+}: {
+  product?: string;
+  names?: string[];
+}) {
   const [notif, setNotif] = useState<Notif | null>(null);
   const [visible, setVisible] = useState(false);
 
+  const productLabel = product || DEFAULT_PRODUCT;
+
   useEffect(() => {
+    const pool = names && names.length > 0 ? names : DEFAULT_NAMES;
     let showTimer: ReturnType<typeof setTimeout>;
     let hideTimer: ReturnType<typeof setTimeout>;
     let nextTimer: ReturnType<typeof setTimeout>;
 
     const run = () => {
-      setNotif({ name: pick(NAMES), mins: Math.floor(rand(2, 47)) });
+      setNotif({ name: pick(pool), mins: Math.floor(rand(2, 47)) });
       setVisible(true);
       // Stay ~5 s, then fade out…
       hideTimer = setTimeout(() => setVisible(false), 5000);
@@ -50,7 +59,7 @@ export function SocialProofToasts() {
       clearTimeout(hideTimer);
       clearTimeout(nextTimer);
     };
-  }, []);
+  }, [names]);
 
   return (
     <div className="pointer-events-none fixed bottom-24 left-3 z-40 sm:bottom-6 sm:left-5">
@@ -67,7 +76,7 @@ export function SocialProofToasts() {
         <div className="min-w-0 text-left">
           <p className="text-[13px] leading-snug text-neutral-800">
             <span className="font-bold">{notif?.name}</span> a acheté{" "}
-            <span className="font-semibold">{PRODUCT}</span>
+            <span className="font-semibold">{productLabel}</span>
           </p>
           <p className="mt-0.5 text-[11px] text-neutral-400">
             il y a {notif?.mins} min · achat vérifié

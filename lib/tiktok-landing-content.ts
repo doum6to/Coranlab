@@ -95,6 +95,19 @@ export type TikTokLandingContent = {
     subtitle: string;
     cta: string;
   };
+  /** Urgency + social-proof widgets (sticky countdown + purchase toasts). */
+  fomo: {
+    /** Sticky 24h countdown bar at the top of the page. */
+    countdownEnabled: boolean;
+    /** Text before the timer, e.g. "Offre de lancement — se termine dans". */
+    countdownLabel: string;
+    /** Random "X a acheté …" purchase notifications. */
+    toastsEnabled: boolean;
+    /** Product name shown in the notifications. */
+    toastProduct: string;
+    /** First names cycled through the notifications (random order). */
+    toastNames: string[];
+  };
 };
 
 export const TIKTOK_LANDING_KEY = "tiktok_landing_content";
@@ -236,6 +249,20 @@ export const TIKTOK_LANDING_DEFAULTS: TikTokLandingContent = {
     title: "Viens, on le prend ensemble 🤍",
     subtitle: "Et cette fois, on écoutera et on comprendra.",
     cta: "Je reçois mon livre + mes bonus",
+  },
+  fomo: {
+    countdownEnabled: true,
+    countdownLabel: "Offre de lancement — se termine dans",
+    toastsEnabled: true,
+    toastProduct: "Guide Comprendre 85% du Coran",
+    toastNames: [
+      "Yassine", "Mohamed", "Amine", "Bilal", "Hamza", "Omar", "Idriss",
+      "Ismaël", "Ibrahim", "Younes", "Mehdi", "Anas", "Rayan", "Adam", "Sami",
+      "Karim", "Nabil", "Sofiane", "Walid", "Reda", "Fatima", "Aïcha",
+      "Khadija", "Mariam", "Inès", "Sara", "Salma", "Nour", "Imane",
+      "Yasmine", "Leïla", "Lina", "Maya", "Assia", "Sofia", "Amira", "Rania",
+      "Hanae", "Manel", "Soumaya",
+    ],
   },
 };
 
