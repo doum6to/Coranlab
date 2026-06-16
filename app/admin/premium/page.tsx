@@ -11,6 +11,7 @@ import { getLandingContent } from "@/lib/landing-content";
 import { getFunnelContent } from "@/lib/funnel-content";
 import { getTikTokLandingContent } from "@/lib/tiktok-landing-content";
 import { getArabicLandingContent } from "@/lib/arabic-landing-content";
+import { getCoranLandingContent } from "@/lib/coran-landing-content";
 import { getVipSettings } from "@/lib/vip";
 
 import { listCourseVideos } from "@/actions/course-videos";
@@ -21,6 +22,7 @@ import { LandingContentForm } from "./landing-content-form";
 import { FunnelContentForm } from "./funnel-content-form";
 import { TikTokLandingForm } from "./tiktok-landing-form";
 import { ArabicLandingForm } from "./arabic-landing-form";
+import { CoranLandingForm } from "./coran-landing-form";
 import { VideosForm } from "./videos-form";
 import { VipForm } from "./vip-form";
 import { AnalyticsPanel } from "./analytics-panel";
@@ -150,6 +152,7 @@ const AdminPremiumPage = async () => {
     arabicContent,
     videos,
     vipSettings,
+    coranContent,
   ] = await Promise.all([
     getOfferSettings(),
     getLandingContent("fr"),
@@ -164,6 +167,7 @@ const AdminPremiumPage = async () => {
     getArabicLandingContent(),
     listCourseVideos(),
     getVipSettings(),
+    getCoranLandingContent(),
   ]);
   const landingByVariant = {
     v3: { fr: contentFr, en: contentEn, es: contentEs },
@@ -282,6 +286,11 @@ const AdminPremiumPage = async () => {
               key: "tiktok",
               label: "Landing TikTok",
               node: <TikTokLandingForm initial={tiktokContent} />,
+            },
+            {
+              key: "coran",
+              label: "Page /coran (Stan)",
+              node: <CoranLandingForm initial={coranContent} />,
             },
             {
               key: "arabic",

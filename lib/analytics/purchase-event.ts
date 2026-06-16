@@ -9,6 +9,7 @@ import { analyticsEvent } from "@/db/schema";
 function pathForVariant(variant: string | undefined): string {
   if (variant === "tiktok") return "/comprendre-le-coran";
   if (variant === "tiktokB") return "/comprendre-le-coran-b";
+  if (variant === "coran") return "/coran";
   if (variant === "v4" || variant === "funnelB") return "/offre-a-vie-v4";
   return "/offre-a-vie";
 }
