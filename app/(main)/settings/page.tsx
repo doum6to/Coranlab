@@ -5,6 +5,7 @@ import db from "@/db/drizzle";
 import { coursePurchase } from "@/db/schema";
 import { getUserProgress, getUserSubscription } from "@/db/queries";
 import { getOfferSettings } from "@/lib/offer";
+import { getVipSettings, isVipCustomer, cleanDriveUrl } from "@/lib/vip";
 import { auth, currentUser } from "@/lib/supabase/server";
 import { SettingsView } from "./settings-view";
 
@@ -46,6 +47,19 @@ const SettingsPage = async () => {
     ];
   }
   documents = documents.map((d) => ({ ...d, url: cleanDrive(d.url) }));
+
+  // VIP buyers (came from another platform via /acces-vip) get their OWN
+  // dedicated Drive links instead of the standard ones.
+  if (isVipCustomer(userSubscription?.stripeCustomerId)) {
+    const vip = await getVipSettings();
+    if (vip.driveLinks.length) {
+      documents = vip.driveLinks.map((d) => ({
+        label: d.label,
+        url: cleanDriveUrl(d.url),
+      }));
+    }
+  }
+
   const purchase = email
     ? await db.query.coursePurchase.findFirst({
         where: eq(coursePurchase.email, email.toLowerCase()),

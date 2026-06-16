@@ -11,6 +11,7 @@ import { getLandingContent } from "@/lib/landing-content";
 import { getFunnelContent } from "@/lib/funnel-content";
 import { getTikTokLandingContent } from "@/lib/tiktok-landing-content";
 import { getArabicLandingContent } from "@/lib/arabic-landing-content";
+import { getVipSettings } from "@/lib/vip";
 
 import { listCourseVideos } from "@/actions/course-videos";
 
@@ -21,6 +22,7 @@ import { FunnelContentForm } from "./funnel-content-form";
 import { TikTokLandingForm } from "./tiktok-landing-form";
 import { ArabicLandingForm } from "./arabic-landing-form";
 import { VideosForm } from "./videos-form";
+import { VipForm } from "./vip-form";
 import { AnalyticsPanel } from "./analytics-panel";
 import { AdminTabs } from "./admin-tabs";
 
@@ -147,6 +149,7 @@ const AdminPremiumPage = async () => {
     tiktokContent,
     arabicContent,
     videos,
+    vipSettings,
   ] = await Promise.all([
     getOfferSettings(),
     getLandingContent("fr"),
@@ -160,6 +163,7 @@ const AdminPremiumPage = async () => {
     getTikTokLandingContent(),
     getArabicLandingContent(),
     listCourseVideos(),
+    getVipSettings(),
   ]);
   const landingByVariant = {
     v3: { fr: contentFr, en: contentEn, es: contentEs },
@@ -298,6 +302,11 @@ const AdminPremiumPage = async () => {
                   }))}
                 />
               ),
+            },
+            {
+              key: "vip",
+              label: "Accès VIP (lien)",
+              node: <VipForm initial={vipSettings} />,
             },
             {
               key: "users",

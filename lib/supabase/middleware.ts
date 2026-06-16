@@ -42,6 +42,9 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/es/offre-a-vie") ||
     request.nextUrl.pathname.startsWith("/comprendre-le-coran") ||
     request.nextUrl.pathname.startsWith("/lire-larabe") ||
+    // VIP redemption link for buyers coming from another platform: must be
+    // reachable logged-out (the code in ?c= is the gate).
+    request.nextUrl.pathname.startsWith("/acces-vip") ||
     // Admin API endpoints are token-gated (ADMIN_TOKEN query param) at
     // the route level — they must be reachable without a Supabase session.
     request.nextUrl.pathname.startsWith("/api/admin/") ||
