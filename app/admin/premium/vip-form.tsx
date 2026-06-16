@@ -76,33 +76,66 @@ export function VipForm({ initial }: { initial: VipSettings }) {
         />
       </label>
 
-      <label className="block">
+      <div className="block">
         <span className="mb-1 block text-xs font-semibold text-neutral-600">
-          Liens Drive / PDF (un par ligne, format : Libellé | URL)
+          Liens Drive / PDF (réservés aux VIP)
         </span>
-        <textarea
-          rows={5}
-          value={c.driveLinks.map((l) => `${l.label} | ${l.url}`).join("\n")}
-          onChange={(e) =>
-            setC({
-              ...c,
-              driveLinks: e.target.value
-                .split("\n")
-                .map((line) => {
-                  const [label, ...rest] = line.split("|");
-                  return { label: (label || "").trim(), url: rest.join("|").trim() };
-                })
-                .filter((l) => l.url.length > 0),
-            })
-          }
-          className={inputCls}
-          placeholder="Comprendre 85% du Coran (PDF) | https://drive.google.com/drive/folders/…"
-        />
+        <div className="space-y-2">
+          {c.driveLinks.map((l, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <input
+                value={l.label}
+                onChange={(e) =>
+                  setC({
+                    ...c,
+                    driveLinks: c.driveLinks.map((x, idx) =>
+                      idx === i ? { ...x, label: e.target.value } : x,
+                    ),
+                  })
+                }
+                placeholder="Libellé (ex : Comprendre 85% du Coran)"
+                className={`${inputCls} sm:max-w-[40%]`}
+              />
+              <input
+                value={l.url}
+                onChange={(e) =>
+                  setC({
+                    ...c,
+                    driveLinks: c.driveLinks.map((x, idx) =>
+                      idx === i ? { ...x, url: e.target.value } : x,
+                    ),
+                  })
+                }
+                placeholder="Colle le lien Drive ici (https://drive.google.com/…)"
+                className={inputCls}
+              />
+              <button
+                type="button"
+                onClick={() =>
+                  setC({ ...c, driveLinks: c.driveLinks.filter((_, idx) => idx !== i) })
+                }
+                className="shrink-0 rounded-lg px-2 py-1.5 text-xs font-semibold text-rose-500 hover:bg-rose-50"
+              >
+                Retirer
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() =>
+              setC({ ...c, driveLinks: [...c.driveLinks, { label: "", url: "" }] })
+            }
+            className="text-xs font-semibold text-[#6967fb] hover:underline"
+          >
+            + Ajouter un lien
+          </button>
+        </div>
         <span className="mt-1 block text-[11px] text-neutral-400">
           Mets ici le dossier Drive DÉDIÉ aux VIP (différent des autres
-          acheteurs). Révélé uniquement après activation.
+          acheteurs). Révélé uniquement après activation. Le libellé est
+          optionnel — seul le lien est obligatoire.
         </span>
-      </label>
+      </div>
 
       <div className="flex items-center gap-3">
         <Button variant="primary" size="sm" disabled={pending} onClick={onSave}>
