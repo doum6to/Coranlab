@@ -7,9 +7,8 @@ import {
   formatFcfaAmount,
 } from "@/lib/coran-landing-content";
 import { ReviewsMarquee } from "../offre-a-vie/reviews-marquee";
-import { CoranCheckoutEmbed } from "./checkout-embed";
 import { StickyPayBar } from "./sticky-pay-bar";
-import { OrangeMoneyPay } from "./orange-money-pay";
+import { PaymentMethods } from "./payment-methods";
 
 function Stars() {
   return (
@@ -170,9 +169,7 @@ export function CoranLanding({ content }: { content: CoranLandingContent }) {
               </ul>
             )}
 
-            <CoranCheckoutEmbed />
-
-            {c.orangeMoney.enabled && <OrangeMoneyPay om={c.orangeMoney} />}
+            <PaymentMethods omEnabled={c.orangeMoney.enabled} om={c.orangeMoney} />
           </div>
           {c.guarantee && (
             <p className="mt-3 text-center text-xs opacity-60">{c.guarantee}</p>
