@@ -40,6 +40,8 @@ export type CoranLandingContent = {
   reviews: CoranReview[];
   /** Label on the main + sticky payment buttons. */
   ctaLabel: string;
+  /** Show the floating bottom payment bar on scroll. */
+  showStickyBar: boolean;
   /** Reassurance line under the checkout. */
   guarantee: string;
 };
@@ -67,6 +69,7 @@ export const CORAN_LANDING_DEFAULTS: CoranLandingContent = {
     { name: "Nayah", text: "La manière de le lire la plus simple. Barak Allah fikoum." },
   ],
   ctaLabel: "Je reçois mon guide",
+  showStickyBar: true,
   guarantee: "Paiement sécurisé · Téléchargement immédiat · Garantie 30 jours",
 };
 
@@ -112,6 +115,7 @@ function merge(stored: Partial<CoranLandingContent> | null): CoranLandingContent
     reviewImages: Array.isArray(stored.reviewImages) ? stored.reviewImages : d.reviewImages,
     reviews: Array.isArray(stored.reviews) ? stored.reviews : d.reviews,
     ctaLabel: typeof stored.ctaLabel === "string" ? stored.ctaLabel : d.ctaLabel,
+    showStickyBar: stored.showStickyBar !== false,
     guarantee: typeof stored.guarantee === "string" ? stored.guarantee : d.guarantee,
   };
 }

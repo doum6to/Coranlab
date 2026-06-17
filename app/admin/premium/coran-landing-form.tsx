@@ -218,6 +218,12 @@ export function CoranLandingForm({ initial }: { initial: CoranLandingContent }) 
           <span className="mb-1 block text-xs font-semibold text-neutral-600">Texte du bouton (CTA / sticky)</span>
           <input value={c.ctaLabel} onChange={(e) => setC({ ...c, ctaLabel: e.target.value })} className={inputCls} />
         </label>
+        <label className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white px-3 py-2.5">
+          <span className="text-xs font-semibold text-neutral-600">
+            Afficher la barre de paiement flottante (sticky)
+          </span>
+          <input type="checkbox" checked={c.showStickyBar} onChange={(e) => setC({ ...c, showStickyBar: e.target.checked })} />
+        </label>
       </Section>
 
       {/* BODY BLOCKS */}
