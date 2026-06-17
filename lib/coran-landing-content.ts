@@ -19,6 +19,10 @@ export type CoranReview = { name: string; text: string };
 export type CoranLandingContent = {
   /** Banner images shown at the very top (swipeable if several). */
   banners: string[];
+  /** Page background colour (CSS hex). */
+  bgColor: string;
+  /** Main text colour (CSS hex). */
+  textColor: string;
   title: string;
   subtitle: string;
   /** Self-contained price for this page (independent from the other offers). */
@@ -31,6 +35,8 @@ export type CoranLandingContent = {
   /** Free-form body: any mix of text paragraphs and images, in order. */
   body: CoranBlock[];
   reviewsHeading: string;
+  /** Uploaded review screenshots → auto-scrolling marquee (like landing V3). */
+  reviewImages: string[];
   reviews: CoranReview[];
   /** Label on the main + sticky payment buttons. */
   ctaLabel: string;
@@ -42,6 +48,8 @@ export const CORAN_LANDING_KEY = "coran_landing_content";
 
 export const CORAN_LANDING_DEFAULTS: CoranLandingContent = {
   banners: [],
+  bgColor: "#FAF8F3",
+  textColor: "#171717",
   title: "Comprendre 85% du Coran",
   subtitle: "Le guide des 500 mots essentiels pour enfin comprendre ce que tu récites.",
   price: { currency: "EUR", amountCents: 999, compareAtCents: 4900 },
@@ -53,6 +61,7 @@ export const CORAN_LANDING_DEFAULTS: CoranLandingContent = {
     },
   ],
   reviewsHeading: "Ils l'ont adopté",
+  reviewImages: [],
   reviews: [
     { name: "Omar", text: "Je voulais juste tester… mais en 3 jours je reconnais plein de mots dans ma prière. Allahumma barik." },
     { name: "Nayah", text: "La manière de le lire la plus simple. Barak Allah fikoum." },
@@ -81,6 +90,8 @@ function merge(stored: Partial<CoranLandingContent> | null): CoranLandingContent
   if (!stored) return d;
   return {
     banners: Array.isArray(stored.banners) ? stored.banners : d.banners,
+    bgColor: typeof stored.bgColor === "string" ? stored.bgColor : d.bgColor,
+    textColor: typeof stored.textColor === "string" ? stored.textColor : d.textColor,
     title: typeof stored.title === "string" ? stored.title : d.title,
     subtitle: typeof stored.subtitle === "string" ? stored.subtitle : d.subtitle,
     price: {
@@ -98,6 +109,7 @@ function merge(stored: Partial<CoranLandingContent> | null): CoranLandingContent
     body: Array.isArray(stored.body) ? stored.body : d.body,
     reviewsHeading:
       typeof stored.reviewsHeading === "string" ? stored.reviewsHeading : d.reviewsHeading,
+    reviewImages: Array.isArray(stored.reviewImages) ? stored.reviewImages : d.reviewImages,
     reviews: Array.isArray(stored.reviews) ? stored.reviews : d.reviews,
     ctaLabel: typeof stored.ctaLabel === "string" ? stored.ctaLabel : d.ctaLabel,
     guarantee: typeof stored.guarantee === "string" ? stored.guarantee : d.guarantee,

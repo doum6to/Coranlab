@@ -4,6 +4,7 @@ import {
   type CoranLandingContent,
   formatCoranPrice,
 } from "@/lib/coran-landing-content";
+import { ReviewsMarquee } from "../offre-a-vie/reviews-marquee";
 import { CoranCheckoutEmbed } from "./checkout-embed";
 import { StickyPayBar } from "./sticky-pay-bar";
 
@@ -27,8 +28,14 @@ export function CoranLanding({ content }: { content: CoranLandingContent }) {
       ? formatCoranPrice(c.price.compareAtCents, c.price.currency)
       : null;
 
+  const hasImageReviews = c.reviewImages.length > 0;
+  const hasTextReviews = c.reviews.length > 0;
+
   return (
-    <div className="min-h-screen w-full bg-[#FAF8F3] font-sans text-neutral-900">
+    <div
+      className="min-h-screen w-full font-sans"
+      style={{ backgroundColor: c.bgColor, color: c.textColor }}
+    >
       <style>{`html{scroll-behavior:smooth}`}</style>
 
       <div className="mx-auto max-w-[560px] px-4 pb-28 pt-4">
@@ -58,32 +65,20 @@ export function CoranLanding({ content }: { content: CoranLandingContent }) {
 
         {/* TITLE + PRICE */}
         <div className="mt-5">
-          <h1 className="font-display text-2xl font-bold leading-tight text-neutral-950 sm:text-3xl">
+          <h1 className="font-display text-2xl font-bold leading-tight sm:text-3xl">
             {c.title}
           </h1>
           {c.subtitle && (
-            <p className="mt-2 text-[15px] leading-relaxed text-neutral-600">
-              {c.subtitle}
-            </p>
+            <p className="mt-2 text-[15px] leading-relaxed opacity-70">{c.subtitle}</p>
           )}
           {priceLabel && (
             <div className="mt-3 flex items-baseline gap-2">
-              <span className="font-display text-3xl font-bold text-neutral-950">
-                {priceLabel}
-              </span>
+              <span className="font-display text-3xl font-bold">{priceLabel}</span>
               {compareLabel && (
-                <span className="text-lg text-neutral-400 line-through">
-                  {compareLabel}
-                </span>
+                <span className="text-lg line-through opacity-40">{compareLabel}</span>
               )}
             </div>
           )}
-          <a
-            href="#checkout"
-            className="mt-4 block rounded-full bg-[#6967fb] px-6 py-3.5 text-center text-base font-bold text-white shadow-sm transition hover:bg-[#5856e0]"
-          >
-            {c.ctaLabel}
-          </a>
         </div>
 
         {/* BODY (free-form text + images) */}
@@ -99,10 +94,7 @@ export function CoranLanding({ content }: { content: CoranLandingContent }) {
                   className="h-auto w-full rounded-2xl object-cover"
                 />
               ) : (
-                <p
-                  key={i}
-                  className="whitespace-pre-line text-[15px] leading-relaxed text-neutral-700"
-                >
+                <p key={i} className="whitespace-pre-line text-[15px] leading-relaxed opacity-90">
                   {block.text}
                 </p>
               ),
@@ -111,44 +103,41 @@ export function CoranLanding({ content }: { content: CoranLandingContent }) {
         )}
 
         {/* REVIEWS */}
-        {c.reviews.length > 0 && (
+        {(hasImageReviews || hasTextReviews) && (
           <div className="mt-9">
             {c.reviewsHeading && (
-              <h2 className="mb-3 font-display text-lg font-bold text-neutral-950">
-                {c.reviewsHeading}
-              </h2>
+              <h2 className="mb-3 font-display text-lg font-bold">{c.reviewsHeading}</h2>
             )}
-            <div className="space-y-3">
-              {c.reviews.map((r, i) => (
-                <div
-                  key={i}
-                  className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm"
-                >
-                  <Stars />
-                  <p className="mt-2 text-sm leading-relaxed text-neutral-700">
-                    {r.text}
-                  </p>
-                  {r.name && (
-                    <p className="mt-2 text-xs font-semibold text-neutral-500">
-                      {r.name}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
+            {/* Auto-scrolling screenshots (like landing V3) */}
+            {hasImageReviews && <ReviewsMarquee images={c.reviewImages} />}
+            {/* Optional text testimonials */}
+            {hasTextReviews && (
+              <div className={`space-y-3 ${hasImageReviews ? "mt-4" : ""}`}>
+                {c.reviews.map((r, i) => (
+                  <div
+                    key={i}
+                    className="rounded-2xl border border-neutral-200 bg-white p-4 text-neutral-700 shadow-sm"
+                  >
+                    <Stars />
+                    <p className="mt-2 text-sm leading-relaxed">{r.text}</p>
+                    {r.name && (
+                      <p className="mt-2 text-xs font-semibold text-neutral-500">{r.name}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
         {/* CHECKOUT */}
         <div className="mt-10">
-          <h2 className="mb-3 font-display text-xl font-bold text-neutral-950">
-            Finalise ta commande
-          </h2>
+          <h2 className="mb-3 font-display text-xl font-bold">Finalise ta commande</h2>
           <div className="rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
             <CoranCheckoutEmbed />
           </div>
           {c.guarantee && (
-            <p className="mt-3 text-center text-xs text-neutral-500">{c.guarantee}</p>
+            <p className="mt-3 text-center text-xs opacity-60">{c.guarantee}</p>
           )}
         </div>
       </div>

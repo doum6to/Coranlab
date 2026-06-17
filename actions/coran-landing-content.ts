@@ -38,11 +38,18 @@ function sanitize(input: CoranLandingContent): CoranLandingContent {
   const toCents = (n: unknown, fb: number) =>
     typeof n === "number" && Number.isFinite(n) && n >= 0 ? Math.round(n) : fb;
 
+  const hex = (v: unknown, fb: string) => {
+    const c = s(v).trim();
+    return /^#[0-9a-fA-F]{3,8}$/.test(c) ? c : fb;
+  };
+
   return {
     banners: (Array.isArray(input.banners) ? input.banners : [])
       .map((x) => s(x).trim())
       .filter((x) => x.length > 0)
       .slice(0, 8),
+    bgColor: hex(input.bgColor, d.bgColor),
+    textColor: hex(input.textColor, d.textColor),
     title: s(input.title, d.title),
     subtitle: s(input.subtitle, d.subtitle),
     price: {
@@ -53,6 +60,10 @@ function sanitize(input: CoranLandingContent): CoranLandingContent {
     showPrice: input.showPrice !== false,
     body: blocks,
     reviewsHeading: s(input.reviewsHeading, d.reviewsHeading),
+    reviewImages: (Array.isArray(input.reviewImages) ? input.reviewImages : [])
+      .map((x) => s(x).trim())
+      .filter((x) => x.length > 0)
+      .slice(0, 40),
     reviews: (Array.isArray(input.reviews) ? input.reviews : [])
       .map((r) => ({ name: s(r?.name).trim(), text: s(r?.text).trim() }))
       .filter((r) => r.text.length > 0)

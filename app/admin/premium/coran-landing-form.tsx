@@ -12,9 +12,18 @@ import { compressImageFile } from "@/lib/images/compress-client";
 const inputCls =
   "w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brilliant-green focus:ring-2 focus:ring-brilliant-green/20";
 
+// This landing keeps images full quality: send the file untouched. Only
+// oversized files (> ~4 MB, the upload body limit) are gently re-encoded at a
+// large dimension / high quality so the upload still goes through.
+const MAX_RAW_BYTES = 4 * 1024 * 1024;
+async function prepImage(file: File): Promise<File> {
+  if (file.size <= MAX_RAW_BYTES) return file;
+  return compressImageFile(file, 2400, 0.92);
+}
+
 async function uploadImage(file: File): Promise<string> {
   const fd = new FormData();
-  fd.append("file", await compressImageFile(file));
+  fd.append("file", await prepImage(file));
   const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
   const text = await res.text();
   let data: { url?: string; error?: string } = {};
@@ -139,6 +148,36 @@ export function CoranLandingForm({ initial }: { initial: CoranLandingContent }) 
         </div>
       </Section>
 
+      {/* COLORS */}
+      <Section title="Couleurs de la page">
+        <div className="grid grid-cols-2 gap-3">
+          <label className="block">
+            <span className="mb-1 block text-xs font-semibold text-neutral-600">Fond de page</span>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={c.bgColor}
+                onChange={(e) => setC({ ...c, bgColor: e.target.value })}
+                className="h-9 w-12 shrink-0 cursor-pointer rounded-lg border border-neutral-300"
+              />
+              <input value={c.bgColor} onChange={(e) => setC({ ...c, bgColor: e.target.value })} className={inputCls} />
+            </div>
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs font-semibold text-neutral-600">Couleur du texte</span>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={c.textColor}
+                onChange={(e) => setC({ ...c, textColor: e.target.value })}
+                className="h-9 w-12 shrink-0 cursor-pointer rounded-lg border border-neutral-300"
+              />
+              <input value={c.textColor} onChange={(e) => setC({ ...c, textColor: e.target.value })} className={inputCls} />
+            </div>
+          </label>
+        </div>
+      </Section>
+
       {/* TITLE + PRICE */}
       <Section title="Titre & prix">
         <label className="block">
@@ -238,6 +277,30 @@ export function CoranLandingForm({ initial }: { initial: CoranLandingContent }) 
           <span className="mb-1 block text-xs font-semibold text-neutral-600">Titre de la section</span>
           <input value={c.reviewsHeading} onChange={(e) => setC({ ...c, reviewsHeading: e.target.value })} className={inputCls} />
         </label>
+
+        <div>
+          <span className="mb-1 block text-xs font-semibold text-neutral-600">
+            Captures d&apos;avis (carrousel défilant, comme la landing V3)
+          </span>
+          {c.reviewImages.length > 0 && (
+            <div className="mb-2 flex flex-wrap gap-2">
+              {c.reviewImages.map((src, i) => (
+                <div key={i} className="relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={src} alt="" className="h-20 w-auto rounded-lg border border-neutral-200 object-contain" />
+                  <button
+                    type="button"
+                    onClick={() => setC({ ...c, reviewImages: c.reviewImages.filter((_, idx) => idx !== i) })}
+                    className="absolute -right-1.5 -top-1.5 rounded-full bg-rose-500 p-0.5 text-white shadow"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          <ImageUploadButton onUploaded={(url) => setC({ ...c, reviewImages: [...c.reviewImages, url] })} />
+        </div>
         {c.reviews.map((r, i) => (
           <div key={i} className="rounded-lg border border-neutral-200 bg-white p-2">
             <div className="mb-1.5 flex items-center justify-between">
