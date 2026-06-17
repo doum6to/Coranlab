@@ -216,9 +216,23 @@ export function CoranLandingForm({ initial }: { initial: CoranLandingContent }) 
         </label>
         <label className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white px-3 py-2.5">
           <span className="text-xs font-semibold text-neutral-600">
-            Afficher aussi le prix en FCFA (≈, conversion EUR→XOF)
+            Afficher aussi le prix en FCFA
           </span>
           <input type="checkbox" checked={c.showFcfa} onChange={(e) => setC({ ...c, showFcfa: e.target.checked })} />
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-xs font-semibold text-neutral-600">
+            Prix en FCFA (laisse 0 = conversion auto depuis l&apos;euro)
+          </span>
+          <input
+            inputMode="numeric"
+            value={c.fcfaAmount || ""}
+            onChange={(e) =>
+              setC({ ...c, fcfaAmount: parseInt(e.target.value.replace(/[^\d]/g, ""), 10) || 0 })
+            }
+            placeholder="Ex. 5000"
+            className={inputCls}
+          />
         </label>
         <label className="block">
           <span className="mb-1 block text-xs font-semibold text-neutral-600">Texte du bouton (CTA / sticky)</span>

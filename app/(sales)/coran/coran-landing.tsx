@@ -4,6 +4,7 @@ import {
   type CoranLandingContent,
   formatCoranPrice,
   formatFcfaFromEur,
+  formatFcfaAmount,
 } from "@/lib/coran-landing-content";
 import { ReviewsMarquee } from "../offre-a-vie/reviews-marquee";
 import { CoranCheckoutEmbed } from "./checkout-embed";
@@ -31,7 +32,9 @@ export function CoranLanding({ content }: { content: CoranLandingContent }) {
       : null;
   const fcfaLabel =
     c.showPrice && c.showFcfa
-      ? formatFcfaFromEur(c.price.amountCents, c.price.currency)
+      ? c.fcfaAmount > 0
+        ? formatFcfaAmount(c.fcfaAmount)
+        : formatFcfaFromEur(c.price.amountCents, c.price.currency)
       : null;
 
   const hasImageReviews = c.reviewImages.length > 0;

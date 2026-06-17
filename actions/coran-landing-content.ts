@@ -59,6 +59,12 @@ function sanitize(input: CoranLandingContent): CoranLandingContent {
     },
     showPrice: input.showPrice !== false,
     showFcfa: input.showFcfa !== false,
+    fcfaAmount:
+      typeof input.fcfaAmount === "number" &&
+      Number.isFinite(input.fcfaAmount) &&
+      input.fcfaAmount >= 0
+        ? Math.round(input.fcfaAmount)
+        : 0,
     deliverables: (Array.isArray(input.deliverables) ? input.deliverables : [])
       .map((x) => s(x).trim())
       .filter((x) => x.length > 0)

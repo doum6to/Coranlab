@@ -46,6 +46,8 @@ export type CoranLandingContent = {
   showPrice: boolean;
   /** Also show the price converted to FCFA (XOF) in the checkout box. */
   showFcfa: boolean;
+  /** Manual FCFA price (whole FCFA). 0 = auto-convert from the EUR price. */
+  fcfaAmount: number;
   /** "What you get" bullet list shown in the "Finalise ta commande" box. */
   deliverables: string[];
   /** Show the "what you get" list in the checkout box. */
@@ -77,6 +79,7 @@ export const CORAN_LANDING_DEFAULTS: CoranLandingContent = {
   price: { currency: "EUR", amountCents: 999, compareAtCents: 4900 },
   showPrice: true,
   showFcfa: true,
+  fcfaAmount: 0,
   deliverables: [
     "Accès Premium à vie à l'application",
     "Le guide PDF des 500 mots essentiels",
@@ -125,6 +128,13 @@ export function formatCoranPrice(
 /** Fixed CFA franc (XOF) peg: 1 EUR = 655.957 FCFA. */
 export const EUR_TO_XOF = 655.957;
 
+/** Formats a whole FCFA amount → "5 000 FCFA" (space-grouped thousands). */
+export function formatFcfaAmount(amount: number): string {
+  const xof = Math.max(0, Math.round(amount));
+  const grouped = xof.toLocaleString("en-US").replace(/,/g, " ");
+  return `${grouped} FCFA`;
+}
+
 /**
  * Converts a EUR price (in cents) to a "5 500 FCFA" label, rounded to the
  * nearest 5 FCFA. Returns null for non-EUR currencies (no fixed peg).
@@ -161,6 +171,10 @@ function merge(stored: Partial<CoranLandingContent> | null): CoranLandingContent
     },
     showPrice: stored.showPrice !== false,
     showFcfa: stored.showFcfa !== false,
+    fcfaAmount:
+      typeof stored.fcfaAmount === "number" && Number.isFinite(stored.fcfaAmount)
+        ? stored.fcfaAmount
+        : d.fcfaAmount,
     deliverables: Array.isArray(stored.deliverables) ? stored.deliverables : d.deliverables,
     showDeliverables: stored.showDeliverables !== false,
     body: Array.isArray(stored.body) ? stored.body : d.body,
