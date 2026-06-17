@@ -69,6 +69,7 @@ function sanitize(input: CoranLandingContent): CoranLandingContent {
       .filter((r) => r.text.length > 0)
       .slice(0, 30),
     ctaLabel: s(input.ctaLabel, d.ctaLabel),
+    showStickyBar: input.showStickyBar !== false,
     guarantee: s(input.guarantee, d.guarantee),
   };
 }

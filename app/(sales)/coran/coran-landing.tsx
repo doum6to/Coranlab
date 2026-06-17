@@ -142,7 +142,9 @@ export function CoranLanding({ content }: { content: CoranLandingContent }) {
         </div>
       </div>
 
-      <StickyPayBar priceLabel={priceLabel} compareLabel={compareLabel} cta={c.ctaLabel} />
+      {c.showStickyBar && (
+        <StickyPayBar priceLabel={priceLabel} compareLabel={compareLabel} cta={c.ctaLabel} />
+      )}
     </div>
   );
 }
