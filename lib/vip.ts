@@ -59,3 +59,14 @@ export const getVipSettings = cache(async (): Promise<VipSettings> => {
 /** Strips the owner-only "/u/<n>/" account slot from a Google Drive link. */
 export const cleanDriveUrl = (url: string) =>
   url.replace(/drive\.google\.com\/drive\/u\/\d+\//, "drive.google.com/drive/");
+
+/**
+ * The VIP Drive link to put in a buyer's email (first configured link, cleaned).
+ * Returns null when no VIP Drive is set, so callers can fall back to the
+ * standard Drive.
+ */
+export const getVipDriveUrl = cache(async (): Promise<string | null> => {
+  const { driveLinks } = await getVipSettings();
+  const first = driveLinks.find((l) => l.url?.trim());
+  return first ? cleanDriveUrl(first.url) : null;
+});

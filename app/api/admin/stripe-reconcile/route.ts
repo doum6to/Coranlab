@@ -6,6 +6,7 @@ import db from "@/db/drizzle";
 import { coursePurchase } from "@/db/schema";
 import { stripe } from "@/lib/stripe";
 import { sendCoursePurchaseEmail } from "@/lib/email/send-course-email";
+import { getVipDriveUrl } from "@/lib/vip";
 
 /**
  * GET  /api/admin/stripe-reconcile?token=...[&limit=50][&fix=1][&send=1]
@@ -85,6 +86,11 @@ export async function GET(req: Request) {
 
       const hasApp = s.metadata?.hasApp === "true";
       const activationToken = crypto.randomUUID();
+      // /coran buyers get the VIP product (premium + VIP Drive).
+      const isCoran = s.metadata?.variant === "coran";
+      const customerId = isCoran
+        ? `vip_coran_${s.id}`
+        : (s.customer as string) || null;
 
       try {
         await db
@@ -92,7 +98,7 @@ export async function GET(req: Request) {
           .values({
             email: email.toLowerCase(),
             stripeSessionId: s.id,
-            stripeCustomerId: (s.customer as string) || null,
+            stripeCustomerId: customerId,
             stripeSubscriptionId: (s.subscription as string | null) || null,
             hasAppSubscription: hasApp,
             activationToken,
@@ -105,6 +111,7 @@ export async function GET(req: Request) {
             email,
             hasApp,
             activationToken,
+            driveUrl: isCoran ? (await getVipDriveUrl()) ?? undefined : undefined,
           });
           emailResult = r;
           if (r.ok) {

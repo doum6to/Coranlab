@@ -10,6 +10,7 @@ import { absoluteUrl } from "@/lib/utils";
 import { coursePurchase, userSubscription } from "@/db/schema";
 import { upsertSubscriptionRow } from "@/lib/stripe-sync";
 import { sendCoursePurchaseEmail } from "@/lib/email/send-course-email";
+import { getVipDriveUrl } from "@/lib/vip";
 import {
   sendTrialWelcome,
   sendTrialEndingSoon,
@@ -127,6 +128,13 @@ export async function POST(req: Request) {
 
       const hasApp = session.metadata.hasApp === "true";
       const activationToken = crypto.randomUUID();
+      // /coran buyers get the SAME product as other-platform (VIP) buyers:
+      // premium + the dedicated VIP Drive. Tag the purchase with a "vip_"
+      // customer id so the linked subscription is recognised as VIP.
+      const isCoran = session.metadata?.variant === "coran";
+      const customerId = isCoran
+        ? `vip_coran_${session.id}`
+        : (session.customer as string) || null;
 
       // 1. Record the purchase in our DB — this is the source of truth for
       //    "did the customer actually pay?". If this fails we want Stripe
@@ -137,7 +145,7 @@ export async function POST(req: Request) {
           .values({
             email: email.toLowerCase(),
             stripeSessionId: session.id,
-            stripeCustomerId: (session.customer as string) || null,
+            stripeCustomerId: customerId,
             stripeSubscriptionId:
               (session.subscription as string | null) || null,
             hasAppSubscription: hasApp,
@@ -162,10 +170,13 @@ export async function POST(req: Request) {
       //    If Resend rejects (unverified domain, rate limit, etc.), the
       //    purchase is still recorded. We log loudly and let an admin
       //    retry via /api/admin/resend-course-emails.
+      //    /coran buyers get the VIP Drive link in their email.
+      const driveUrl = isCoran ? (await getVipDriveUrl()) ?? undefined : undefined;
       const sendResult = await sendCoursePurchaseEmail({
         email,
         hasApp,
         activationToken,
+        driveUrl,
       });
 
       if (sendResult.ok) {

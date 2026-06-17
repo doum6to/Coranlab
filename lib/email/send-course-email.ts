@@ -6,6 +6,8 @@ type Params = {
   email: string;
   hasApp: boolean;
   activationToken: string;
+  /** Override the Drive link (e.g. the dedicated VIP Drive for /coran buyers). */
+  driveUrl?: string;
 };
 
 /**
@@ -21,11 +23,13 @@ export async function sendCoursePurchaseEmail({
   email,
   hasApp,
   activationToken,
+  driveUrl: driveUrlOverride,
 }:
 Params):
   Promise<{ ok: true; id: string } | { ok: false; error: string; details?: unknown }>
 {
   const driveUrl =
+    driveUrlOverride ||
     process.env.COURSE_DRIVE_URL ||
     "https://drive.google.com/drive/folders/18fn_fDFiavGd4_r4m0xA0i973aPUZe9u";
 

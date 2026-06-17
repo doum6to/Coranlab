@@ -9,6 +9,7 @@ import { coranManualOrder, coursePurchase } from "@/db/schema";
 import { isAdminAuthed } from "@/lib/admin-auth";
 import { getCoranLandingContent } from "@/lib/coran-landing-content";
 import { sendCoursePurchaseEmail } from "@/lib/email/send-course-email";
+import { getVipDriveUrl } from "@/lib/vip";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -105,6 +106,9 @@ export async function approveManualOrder(id: number) {
 
   const activationToken = crypto.randomUUID();
   const sessionId = `om_manual_${order.id}_${crypto.randomUUID()}`;
+  // "vip_" prefix → the linked subscription is treated as VIP, so the buyer
+  // sees the dedicated VIP Drive (same product as other-platform buyers).
+  const vipMarker = `vip_om_${order.id}`;
 
   let purchaseId: number | null = null;
   try {
@@ -113,7 +117,7 @@ export async function approveManualOrder(id: number) {
       .values({
         email: order.email.toLowerCase(),
         stripeSessionId: sessionId,
-        stripeCustomerId: null,
+        stripeCustomerId: vipMarker,
         stripeSubscriptionId: null,
         hasAppSubscription: true,
         activationToken,
@@ -125,11 +129,14 @@ export async function approveManualOrder(id: number) {
     return { error: "Échec de l'attribution de l'accès." };
   }
 
-  // Send the activation email (never blocks approval if it fails).
+  // Send the activation email pointing to the VIP Drive (falls back to the
+  // standard Drive if none is configured). Never blocks approval if it fails.
+  const vipDrive = await getVipDriveUrl();
   const sent = await sendCoursePurchaseEmail({
     email: order.email,
     hasApp: true,
     activationToken,
+    driveUrl: vipDrive ?? undefined,
   });
   if (!sent.ok) {
     console.error(

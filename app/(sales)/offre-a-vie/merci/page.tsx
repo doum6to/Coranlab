@@ -51,12 +51,20 @@ async function ensurePurchaseRow(sessionId: string): Promise<{
         : null;
     if (!email) return { email: null, amount, locale, firstName };
 
+    // /coran buyers get the SAME product as VIP buyers (premium + VIP Drive):
+    // tag the purchase with a "vip_" customer id so the linked subscription is
+    // recognised as VIP. Other lifetime buyers keep their real Stripe customer.
+    const isCoran = session.metadata?.variant === "coran";
+    const customerId = isCoran
+      ? `vip_coran_${session.id}`
+      : (session.customer as string) || null;
+
     const inserted = await db
       .insert(coursePurchase)
       .values({
         email: email.toLowerCase(),
         stripeSessionId: session.id,
-        stripeCustomerId: (session.customer as string) || null,
+        stripeCustomerId: customerId,
         stripeSubscriptionId: null,
         hasAppSubscription: true,
         activationToken: crypto.randomUUID(),

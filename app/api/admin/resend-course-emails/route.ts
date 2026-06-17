@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import db from "@/db/drizzle";
 import { coursePurchase } from "@/db/schema";
 import { sendCoursePurchaseEmail } from "@/lib/email/send-course-email";
+import { getVipDriveUrl, isVipCustomer } from "@/lib/vip";
 
 /**
  * POST /api/admin/resend-course-emails?token=ADMIN_TOKEN&dryRun=0
@@ -58,10 +59,15 @@ export async function POST(req: Request) {
       continue;
     }
 
+    // VIP buyers (incl. /coran) get their dedicated Drive link in the email.
+    const driveUrl = isVipCustomer(row.stripeCustomerId)
+      ? (await getVipDriveUrl()) ?? undefined
+      : undefined;
     const result = await sendCoursePurchaseEmail({
       email: row.email,
       hasApp: row.hasAppSubscription,
       activationToken: row.activationToken,
+      driveUrl,
     });
 
     if (result.ok) {
