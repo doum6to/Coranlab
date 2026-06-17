@@ -1,12 +1,14 @@
-import { Star as StarIcon } from "lucide-react";
+import { Star as StarIcon, Check as CheckIcon } from "lucide-react";
 
 import {
   type CoranLandingContent,
   formatCoranPrice,
+  formatFcfaFromEur,
 } from "@/lib/coran-landing-content";
 import { ReviewsMarquee } from "../offre-a-vie/reviews-marquee";
 import { CoranCheckoutEmbed } from "./checkout-embed";
 import { StickyPayBar } from "./sticky-pay-bar";
+import { OrangeMoneyPay } from "./orange-money-pay";
 
 function Stars() {
   return (
@@ -26,6 +28,10 @@ export function CoranLanding({ content }: { content: CoranLandingContent }) {
   const compareLabel =
     c.showPrice && c.price.compareAtCents > c.price.amountCents
       ? formatCoranPrice(c.price.compareAtCents, c.price.currency)
+      : null;
+  const fcfaLabel =
+    c.showPrice && c.showFcfa
+      ? formatFcfaFromEur(c.price.amountCents, c.price.currency)
       : null;
 
   const hasImageReviews = c.reviewImages.length > 0;
@@ -133,8 +139,37 @@ export function CoranLanding({ content }: { content: CoranLandingContent }) {
         {/* CHECKOUT */}
         <div className="mt-10">
           <h2 className="mb-3 font-display text-xl font-bold">Finalise ta commande</h2>
-          <div className="rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
+          <div className="rounded-2xl border border-neutral-200 bg-white p-4 text-neutral-900 shadow-sm">
+            {/* Price summary (EUR + FCFA) */}
+            {priceLabel && (
+              <div className="mb-3 flex items-baseline gap-2">
+                <span className="text-2xl font-extrabold">{priceLabel}</span>
+                {compareLabel && (
+                  <span className="text-sm text-neutral-400 line-through">{compareLabel}</span>
+                )}
+                {fcfaLabel && (
+                  <span className="ml-auto rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-semibold text-neutral-600">
+                    ≈ {fcfaLabel}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* What you get */}
+            {c.showDeliverables && c.deliverables.length > 0 && (
+              <ul className="mb-4 space-y-1.5">
+                {c.deliverables.map((d, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-neutral-700">
+                    <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" strokeWidth={3} />
+                    <span>{d}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+
             <CoranCheckoutEmbed />
+
+            {c.orangeMoney.enabled && <OrangeMoneyPay om={c.orangeMoney} />}
           </div>
           {c.guarantee && (
             <p className="mt-3 text-center text-xs opacity-60">{c.guarantee}</p>

@@ -102,10 +102,31 @@ export async function GET(req: Request) {
       CREATE UNIQUE INDEX IF NOT EXISTS "funnel_lead_email" ON "funnel_lead" ("email");
     `);
 
+    // Manual Orange Money / Mobile Money orders for the /coran page.
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "coran_manual_order" (
+        "id" serial PRIMARY KEY,
+        "email" text NOT NULL,
+        "tx_id" text NOT NULL,
+        "phone" text,
+        "amount_label" text,
+        "status" text NOT NULL DEFAULT 'pending',
+        "course_purchase_id" integer,
+        "created_at" timestamp NOT NULL DEFAULT now(),
+        "reviewed_at" timestamp
+      );
+    `);
+    await db.execute(sql`
+      CREATE INDEX IF NOT EXISTS "coran_manual_order_status" ON "coran_manual_order" ("status");
+    `);
+    await db.execute(sql`
+      CREATE INDEX IF NOT EXISTS "coran_manual_order_email" ON "coran_manual_order" ("email");
+    `);
+
     return NextResponse.json({
       ok: true,
       message:
-        "Tables prêtes (app_setting, course_video, analytics_event, funnel_lead). Tu peux gérer l'offre, le contenu, les vidéos et voir les leads du tunnel depuis /admin/premium.",
+        "Tables prêtes (app_setting, course_video, analytics_event, funnel_lead, coran_manual_order). Tu peux gérer l'offre, le contenu, les vidéos et voir les leads du tunnel depuis /admin/premium.",
     });
   } catch (e: any) {
     console.error("[db-setup] failed:", e);

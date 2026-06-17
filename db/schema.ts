@@ -201,6 +201,30 @@ export const coursePurchase = pgTable("course_purchase", {
   emailIdx: index("course_purchase_email").on(t.email),
 }));
 
+// Manual Orange Money / Mobile Money orders for the /coran page. The buyer
+// pays to the merchant's OM number, then submits their email + the OM
+// transaction id here. An admin reviews each one and, on approval, creates a
+// course_purchase row (which grants access) and sends the activation email.
+export const coranManualOrder = pgTable("coran_manual_order", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull(),
+  // The Orange Money transaction reference the buyer pasted.
+  txId: text("tx_id").notNull(),
+  // Optional: the phone number the buyer paid from.
+  phone: text("phone"),
+  // Snapshot of the amount the buyer was asked to send (e.g. "5 000 FCFA").
+  amountLabel: text("amount_label"),
+  // "pending" | "approved" | "rejected".
+  status: text("status").notNull().default("pending"),
+  // Set once approved: links to the granted course_purchase row.
+  coursePurchaseId: integer("course_purchase_id"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  reviewedAt: timestamp("reviewed_at"),
+}, (t) => ({
+  statusIdx: index("coran_manual_order_status").on(t.status),
+  emailIdx: index("coran_manual_order_email").on(t.email),
+}));
+
 // Leads captured by the "Funnel" landing variant (/offre-a-vie) BEFORE any
 // payment or account: the visitor types their first name + email on step 1 of
 // the try-before-you-buy funnel. One row per email (upserted), with boolean

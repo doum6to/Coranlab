@@ -58,6 +58,12 @@ function sanitize(input: CoranLandingContent): CoranLandingContent {
       compareAtCents: toCents(input.price?.compareAtCents, d.price.compareAtCents),
     },
     showPrice: input.showPrice !== false,
+    showFcfa: input.showFcfa !== false,
+    deliverables: (Array.isArray(input.deliverables) ? input.deliverables : [])
+      .map((x) => s(x).trim())
+      .filter((x) => x.length > 0)
+      .slice(0, 12),
+    showDeliverables: input.showDeliverables !== false,
     body: blocks,
     reviewsHeading: s(input.reviewsHeading, d.reviewsHeading),
     reviewImages: (Array.isArray(input.reviewImages) ? input.reviewImages : [])
@@ -70,6 +76,12 @@ function sanitize(input: CoranLandingContent): CoranLandingContent {
       .slice(0, 30),
     ctaLabel: s(input.ctaLabel, d.ctaLabel),
     showStickyBar: input.showStickyBar !== false,
+    orangeMoney: {
+      enabled: input.orangeMoney?.enabled === true,
+      number: s(input.orangeMoney?.number).trim().slice(0, 40),
+      amountLabel: s(input.orangeMoney?.amountLabel).trim().slice(0, 40),
+      instructions: s(input.orangeMoney?.instructions, d.orangeMoney.instructions).slice(0, 1000),
+    },
     guarantee: s(input.guarantee, d.guarantee),
   };
 }

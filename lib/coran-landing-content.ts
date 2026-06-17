@@ -12,6 +12,18 @@ export type CoranBlock =
 
 export type CoranReview = { name: string; text: string };
 
+/** Manual Orange Money / Mobile Money payment option (admin-editable). */
+export type CoranOrangeMoney = {
+  /** Show the "Payer avec Orange Money" option on /coran. */
+  enabled: boolean;
+  /** Merchant number the buyer sends money to (e.g. "+221 77 123 45 67"). */
+  number: string;
+  /** Amount to send, shown to the buyer (e.g. "5 000 FCFA"). */
+  amountLabel: string;
+  /** Free-text instructions / steps shown in the payment panel. */
+  instructions: string;
+};
+
 /**
  * Admin-editable content for the Stan.store-style product page (/coran):
  * banners → title → price → free-form body (text/images) → reviews → checkout.
@@ -32,6 +44,12 @@ export type CoranLandingContent = {
     compareAtCents: number;
   };
   showPrice: boolean;
+  /** Also show the price converted to FCFA (XOF) in the checkout box. */
+  showFcfa: boolean;
+  /** "What you get" bullet list shown in the "Finalise ta commande" box. */
+  deliverables: string[];
+  /** Show the "what you get" list in the checkout box. */
+  showDeliverables: boolean;
   /** Free-form body: any mix of text paragraphs and images, in order. */
   body: CoranBlock[];
   reviewsHeading: string;
@@ -42,6 +60,8 @@ export type CoranLandingContent = {
   ctaLabel: string;
   /** Show the floating bottom payment bar on scroll. */
   showStickyBar: boolean;
+  /** Manual Orange Money / Mobile Money payment option. */
+  orangeMoney: CoranOrangeMoney;
   /** Reassurance line under the checkout. */
   guarantee: string;
 };
@@ -56,6 +76,13 @@ export const CORAN_LANDING_DEFAULTS: CoranLandingContent = {
   subtitle: "Le guide des 500 mots essentiels pour enfin comprendre ce que tu récites.",
   price: { currency: "EUR", amountCents: 999, compareAtCents: 4900 },
   showPrice: true,
+  showFcfa: true,
+  deliverables: [
+    "Accès Premium à vie à l'application",
+    "Le guide PDF des 500 mots essentiels",
+    "Accès immédiat envoyé par email",
+  ],
+  showDeliverables: true,
   body: [
     {
       type: "text",
@@ -70,6 +97,13 @@ export const CORAN_LANDING_DEFAULTS: CoranLandingContent = {
   ],
   ctaLabel: "Je reçois mon guide",
   showStickyBar: true,
+  orangeMoney: {
+    enabled: false,
+    number: "",
+    amountLabel: "",
+    instructions:
+      "1. Envoie le montant ci-dessus à ce numéro Orange Money.\n2. Copie l'ID de la transaction (reçu par SMS).\n3. Renseigne ton email + l'ID ci-dessous. Tu recevras ton accès par email après validation.",
+  },
   guarantee: "Paiement sécurisé · Téléchargement immédiat · Garantie 30 jours",
 };
 
@@ -86,6 +120,23 @@ export function formatCoranPrice(
 ): string {
   const v = (amountCents / 100).toFixed(2).replace(".", ",");
   return `${v} ${SYMBOL[currency]}`;
+}
+
+/** Fixed CFA franc (XOF) peg: 1 EUR = 655.957 FCFA. */
+export const EUR_TO_XOF = 655.957;
+
+/**
+ * Converts a EUR price (in cents) to a "5 500 FCFA" label, rounded to the
+ * nearest 5 FCFA. Returns null for non-EUR currencies (no fixed peg).
+ */
+export function formatFcfaFromEur(
+  amountCents: number,
+  currency: CoranLandingContent["price"]["currency"],
+): string | null {
+  if (currency !== "EUR") return null;
+  const raw = (amountCents / 100) * EUR_TO_XOF;
+  const xof = Math.round(raw / 5) * 5;
+  return `${xof.toLocaleString("en-US").replace(/,/g, " ").replace(/ | /g, " ")} FCFA`;
 }
 
 function merge(stored: Partial<CoranLandingContent> | null): CoranLandingContent {
@@ -109,6 +160,9 @@ function merge(stored: Partial<CoranLandingContent> | null): CoranLandingContent
           : d.price.compareAtCents,
     },
     showPrice: stored.showPrice !== false,
+    showFcfa: stored.showFcfa !== false,
+    deliverables: Array.isArray(stored.deliverables) ? stored.deliverables : d.deliverables,
+    showDeliverables: stored.showDeliverables !== false,
     body: Array.isArray(stored.body) ? stored.body : d.body,
     reviewsHeading:
       typeof stored.reviewsHeading === "string" ? stored.reviewsHeading : d.reviewsHeading,
@@ -116,6 +170,21 @@ function merge(stored: Partial<CoranLandingContent> | null): CoranLandingContent
     reviews: Array.isArray(stored.reviews) ? stored.reviews : d.reviews,
     ctaLabel: typeof stored.ctaLabel === "string" ? stored.ctaLabel : d.ctaLabel,
     showStickyBar: stored.showStickyBar !== false,
+    orangeMoney: {
+      enabled: stored.orangeMoney?.enabled === true,
+      number:
+        typeof stored.orangeMoney?.number === "string"
+          ? stored.orangeMoney.number
+          : d.orangeMoney.number,
+      amountLabel:
+        typeof stored.orangeMoney?.amountLabel === "string"
+          ? stored.orangeMoney.amountLabel
+          : d.orangeMoney.amountLabel,
+      instructions:
+        typeof stored.orangeMoney?.instructions === "string"
+          ? stored.orangeMoney.instructions
+          : d.orangeMoney.instructions,
+    },
     guarantee: typeof stored.guarantee === "string" ? stored.guarantee : d.guarantee,
   };
 }

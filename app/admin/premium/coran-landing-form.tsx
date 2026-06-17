@@ -214,6 +214,12 @@ export function CoranLandingForm({ initial }: { initial: CoranLandingContent }) 
           <span className="text-xs font-semibold text-neutral-600">Afficher le prix</span>
           <input type="checkbox" checked={c.showPrice} onChange={(e) => setC({ ...c, showPrice: e.target.checked })} />
         </label>
+        <label className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white px-3 py-2.5">
+          <span className="text-xs font-semibold text-neutral-600">
+            Afficher aussi le prix en FCFA (≈, conversion EUR→XOF)
+          </span>
+          <input type="checkbox" checked={c.showFcfa} onChange={(e) => setC({ ...c, showFcfa: e.target.checked })} />
+        </label>
         <label className="block">
           <span className="mb-1 block text-xs font-semibold text-neutral-600">Texte du bouton (CTA / sticky)</span>
           <input value={c.ctaLabel} onChange={(e) => setC({ ...c, ctaLabel: e.target.value })} className={inputCls} />
@@ -223,6 +229,93 @@ export function CoranLandingForm({ initial }: { initial: CoranLandingContent }) 
             Afficher la barre de paiement flottante (sticky)
           </span>
           <input type="checkbox" checked={c.showStickyBar} onChange={(e) => setC({ ...c, showStickyBar: e.target.checked })} />
+        </label>
+      </Section>
+
+      {/* DELIVERABLES */}
+      <Section title="Ce que le client reçoit (case « Finalise ta commande »)">
+        <label className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white px-3 py-2.5">
+          <span className="text-xs font-semibold text-neutral-600">Afficher cette liste</span>
+          <input
+            type="checkbox"
+            checked={c.showDeliverables}
+            onChange={(e) => setC({ ...c, showDeliverables: e.target.checked })}
+          />
+        </label>
+        <div className="space-y-2">
+          {c.deliverables.map((item, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <input
+                value={item}
+                onChange={(e) =>
+                  setC({ ...c, deliverables: c.deliverables.map((x, idx) => (idx === i ? e.target.value : x)) })
+                }
+                placeholder="Ex. Accès Premium à vie à l'application"
+                className={inputCls}
+              />
+              <button
+                type="button"
+                onClick={() => setC({ ...c, deliverables: c.deliverables.filter((_, idx) => idx !== i) })}
+                className="shrink-0 text-rose-500 hover:text-rose-600"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => setC({ ...c, deliverables: [...c.deliverables, ""] })}
+            className="inline-flex items-center gap-1 text-xs font-semibold text-[#6967fb]"
+          >
+            <Plus className="h-3.5 w-3.5" /> Ajouter un élément
+          </button>
+        </div>
+      </Section>
+
+      {/* ORANGE MONEY (manual) */}
+      <Section title="Paiement Orange Money (manuel)">
+        <p className="text-xs text-neutral-500">
+          Le client envoie l&apos;argent sur ton numéro, puis colle l&apos;ID de transaction.
+          Tu valides ensuite chaque commande dans l&apos;onglet « Commandes Orange Money ».
+        </p>
+        <label className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white px-3 py-2.5">
+          <span className="text-xs font-semibold text-neutral-600">
+            Activer le paiement Orange Money sur /coran
+          </span>
+          <input
+            type="checkbox"
+            checked={c.orangeMoney.enabled}
+            onChange={(e) => setC({ ...c, orangeMoney: { ...c.orangeMoney, enabled: e.target.checked } })}
+          />
+        </label>
+        <div className="grid grid-cols-2 gap-3">
+          <label className="block">
+            <span className="mb-1 block text-xs font-semibold text-neutral-600">Numéro Orange Money</span>
+            <input
+              value={c.orangeMoney.number}
+              onChange={(e) => setC({ ...c, orangeMoney: { ...c.orangeMoney, number: e.target.value } })}
+              placeholder="+221 77 123 45 67"
+              className={inputCls}
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs font-semibold text-neutral-600">Montant à envoyer</span>
+            <input
+              value={c.orangeMoney.amountLabel}
+              onChange={(e) => setC({ ...c, orangeMoney: { ...c.orangeMoney, amountLabel: e.target.value } })}
+              placeholder="5 000 FCFA"
+              className={inputCls}
+            />
+          </label>
+        </div>
+        <label className="block">
+          <span className="mb-1 block text-xs font-semibold text-neutral-600">Instructions (affichées au client)</span>
+          <textarea
+            rows={4}
+            value={c.orangeMoney.instructions}
+            onChange={(e) => setC({ ...c, orangeMoney: { ...c.orangeMoney, instructions: e.target.value } })}
+            className={inputCls}
+          />
         </label>
       </Section>
 
