@@ -134,7 +134,13 @@ export const PricingView = () => {
   };
 
   const onSubscribe = (plan: PremiumPlan = selected) => {
+    // Every multi-month subscription bought here starts with a 7-day free trial
+    // ("essai sur le plan choisi"). Lifetime is a one-time payment → no trial.
+    const withTrial = plan !== "lifetime";
+
     // --- iOS: Apple In-App Purchase (Stripe is forbidden in-app) ---
+    // The free trial is delivered by the App Store "introductory offer"
+    // configured on the product, so there's nothing to pass here.
     if (isIOS) {
       startTransition(async () => {
         const res = await purchasePlan(plan);
@@ -148,9 +154,9 @@ export const PricingView = () => {
       return;
     }
 
-    // --- Web: existing Stripe checkout ---
+    // --- Web: Stripe checkout (trial applied to the chosen plan) ---
     startTransition(() => {
-      createStripeUrl(plan)
+      createStripeUrl(plan, withTrial)
         .then((response) => {
           if ("error" in response) {
             toast.error(response.error);
@@ -187,7 +193,18 @@ export const PricingView = () => {
     monthly_trial: t.pricing.finePrintTrial,
   };
 
-  const ctaLabel = selected === "lifetime" ? t.pricing.buyLifetime : t.pricing.becomePremium;
+  const isTrialPlan = selected !== "lifetime";
+  const ctaLabel = selected === "lifetime"
+    ? t.pricing.buyLifetime
+    : "Commencer — 7 jours gratuits";
+
+  // What the user is billed once the 7-day trial ends (matches the amounts in
+  // actions/user-subscription.ts). No monthly tariff — only the 4 plans.
+  const trialThenLabel: Partial<Record<PremiumPlan, string>> = {
+    three_months: "Gratuit 7 jours, puis 44,91€ tous les 3 mois",
+    six_months: "Gratuit 7 jours, puis 71,94€ tous les 6 mois",
+    annual: "Gratuit 7 jours, puis 119,88€ par an",
+  };
 
   return (
     <div
@@ -220,26 +237,9 @@ export const PricingView = () => {
         <h1 className="text-center text-lg leading-tight sm:text-2xl font-extrabold text-brilliant-text font-heading mb-1 px-2 shrink-0">
           {t.pricing.heading}
         </h1>
-        <p className="text-center text-brilliant-muted text-[11px] sm:text-sm mb-3 sm:mb-4 px-2 shrink-0">
+        <p className="text-center text-brilliant-muted text-[11px] sm:text-sm mb-3 sm:mb-6 px-2 shrink-0">
           {t.pricing.subheading}
         </p>
-
-        {/* Trial-forward: the highest-converting entry point */}
-        <button
-          onClick={() => onSubscribe("monthly_trial")}
-          disabled={pending}
-          className="mb-4 sm:mb-6 w-full max-w-xl rounded-2xl p-[3px] transition-transform duration-100 hover:scale-[1.01] active:scale-[0.98] disabled:opacity-60"
-          style={{ background: GRADIENT }}
-        >
-          <div className="rounded-[14px] bg-white px-4 py-3 sm:py-3.5 text-center">
-            <div className="text-sm sm:text-base font-extrabold text-brilliant-text">
-              Commencer l&apos;essai gratuit — 7 jours
-            </div>
-            <div className="text-[10px] sm:text-xs text-brilliant-muted">
-              Sans engagement · annulable à tout moment · puis 14,97€/mois
-            </div>
-          </div>
-        </button>
 
         {/* 3 subscription plans */}
         <div className="grid grid-cols-3 gap-2 sm:gap-4 max-w-xl w-full mx-auto">
@@ -364,6 +364,13 @@ export const PricingView = () => {
             {pending ? t.pricing.loading : ctaLabel}
           </button>
         </div>
+
+        {/* Trial reassurance — accurate post-trial billing for the chosen plan */}
+        {isTrialPlan && (
+          <p className="text-center text-[10px] sm:text-xs text-brilliant-muted mt-2 shrink-0">
+            {trialThenLabel[selected]} · annulable à tout moment
+          </p>
+        )}
 
         {/* iOS only: "Restore purchases" + legal links (required by Apple) */}
         {isIOS && (

@@ -59,7 +59,8 @@ const PLAN_CONFIG: Record<PremiumPlan, PlanConfig> = {
 };
 
 export const createStripeUrl = async (
-  plan: PremiumPlan = "three_months"
+  plan: PremiumPlan = "three_months",
+  withTrial = false,
 ) => {
   try {
     const { userId } = await auth();
@@ -131,10 +132,18 @@ export const createStripeUrl = async (
     // after `trial_period_days`. Stripe sets subscription.status = "trialing"
     // and current_period_end = trial_end, which flows through our existing
     // webhook logic (no extra handling needed for the trial itself).
-    if (config.mode === "subscription" && config.trial_period_days) {
+    //
+    // The trial can be intrinsic to the plan (config.trial_period_days, e.g.
+    // the legacy monthly_trial) OR requested at call time on ANY multi-month
+    // subscription via `withTrial` — this lets the pricing screen offer "7 days
+    // free, then your chosen plan" without introducing a monthly tariff.
+    const trialDays =
+      config.trial_period_days ??
+      (withTrial && config.mode === "subscription" ? 7 : undefined);
+    if (config.mode === "subscription" && trialDays) {
       sessionParams.subscription_data = {
         ...(sessionParams.subscription_data || {}),
-        trial_period_days: config.trial_period_days,
+        trial_period_days: trialDays,
       };
     }
 
