@@ -11,6 +11,7 @@ import { coursePurchase, userSubscription } from "@/db/schema";
 import { upsertSubscriptionRow } from "@/lib/stripe-sync";
 import { sendCoursePurchaseEmail } from "@/lib/email/send-course-email";
 import { getVipDriveUrl } from "@/lib/vip";
+import { fulfillDriveCardOrder } from "@/lib/drive-product";
 import {
   sendTrialWelcome,
   sendTrialEndingSoon,
@@ -114,6 +115,12 @@ export async function POST(req: Request) {
         console.error("[Webhook] TikTok tracking failed (arabic)", err);
       }
 
+      return new NextResponse(null, { status: 200 });
+    }
+
+    // --- 1aa. Drive-delivery product (e.g. /duas): email a Drive link only ---
+    if (session.metadata?.productType === "drive") {
+      await fulfillDriveCardOrder(session.id);
       return new NextResponse(null, { status: 200 });
     }
 

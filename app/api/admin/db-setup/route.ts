@@ -123,10 +123,34 @@ export async function GET(req: Request) {
       CREATE INDEX IF NOT EXISTS "coran_manual_order_email" ON "coran_manual_order" ("email");
     `);
 
+    // Drive-delivery product orders (e.g. /duas): card + Orange Money.
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "drive_product_order" (
+        "id" serial PRIMARY KEY,
+        "product" text NOT NULL DEFAULT 'duas',
+        "email" text NOT NULL,
+        "source" text NOT NULL DEFAULT 'om',
+        "tx_id" text,
+        "phone" text,
+        "amount_label" text,
+        "status" text NOT NULL DEFAULT 'pending',
+        "stripe_session_id" text UNIQUE,
+        "email_sent_at" timestamp,
+        "created_at" timestamp NOT NULL DEFAULT now(),
+        "reviewed_at" timestamp
+      );
+    `);
+    await db.execute(sql`
+      CREATE INDEX IF NOT EXISTS "drive_product_order_product" ON "drive_product_order" ("product");
+    `);
+    await db.execute(sql`
+      CREATE INDEX IF NOT EXISTS "drive_product_order_status" ON "drive_product_order" ("status");
+    `);
+
     return NextResponse.json({
       ok: true,
       message:
-        "Tables prêtes (app_setting, course_video, analytics_event, funnel_lead, coran_manual_order). Tu peux gérer l'offre, le contenu, les vidéos et voir les leads du tunnel depuis /admin/premium.",
+        "Tables prêtes (app_setting, course_video, analytics_event, funnel_lead, coran_manual_order, drive_product_order). Tu peux gérer l'offre, le contenu, les vidéos et voir les leads du tunnel depuis /admin/premium.",
     });
   } catch (e: any) {
     console.error("[db-setup] failed:", e);

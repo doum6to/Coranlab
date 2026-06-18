@@ -1,0 +1,102 @@
+"use client";
+
+import { useState } from "react";
+
+import { submitDriveOrder } from "@/actions/drive-orders";
+import type { CoranOrangeMoney } from "@/lib/coran-landing-content";
+
+/**
+ * Inline Orange Money form for /duas (manual): the buyer pays the merchant
+ * number, then submits email + OM transaction id. On admin approval the Drive
+ * link is emailed.
+ */
+export function DuasOrangeMoneyForm({ om }: { om: CoranOrangeMoney }) {
+  const [email, setEmail] = useState("");
+  const [txId, setTxId] = useState("");
+  const [phone, setPhone] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const submit = async () => {
+    setErr(null);
+    setBusy(true);
+    try {
+      const res = await submitDriveOrder("duas", { email, txId, phone });
+      if (res?.error) setErr(res.error);
+      else setDone(true);
+    } catch {
+      setErr("Échec de l'envoi. Réessaie.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (done) {
+    return (
+      <div className="rounded-xl border border-[#ffd9b3] bg-[#fff9f3] p-4 text-center">
+        <p className="text-sm font-bold text-[#c2570a]">Paiement reçu 🎉</p>
+        <p className="mt-1 text-xs text-neutral-600">
+          On vérifie ta transaction et tu recevras ton lien par email très vite,
+          in cha Allah. Pense à regarder tes spams.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-xl border border-[#ffd9b3] bg-[#fff9f3] p-4 text-neutral-800">
+      <div className="rounded-lg border border-[#ffd9b3] bg-white p-3 text-sm">
+        {om.amountLabel && (
+          <p>
+            Montant à envoyer :{" "}
+            <span className="font-bold text-[#c2570a]">{om.amountLabel}</span>
+          </p>
+        )}
+        {om.number && (
+          <p className="mt-0.5">
+            Numéro Orange Money :{" "}
+            <span className="font-bold tracking-wide">{om.number}</span>
+          </p>
+        )}
+      </div>
+      {om.instructions && (
+        <p className="mt-3 whitespace-pre-line text-xs leading-relaxed text-neutral-600">
+          {om.instructions}
+        </p>
+      )}
+
+      <div className="mt-3 space-y-2">
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Ton email (pour recevoir le lien)"
+          className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm outline-none focus:border-[#ff7900]"
+        />
+        <input
+          value={txId}
+          onChange={(e) => setTxId(e.target.value)}
+          placeholder="ID de la transaction Orange Money"
+          className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm outline-none focus:border-[#ff7900]"
+        />
+        <input
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="Ton numéro (facultatif)"
+          className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm outline-none focus:border-[#ff7900]"
+        />
+      </div>
+
+      {err && <p className="mt-2 text-xs font-medium text-rose-500">{err}</p>}
+
+      <button
+        onClick={submit}
+        disabled={busy}
+        className="mt-3 w-full rounded-xl bg-[#ff7900] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#e96e00] disabled:opacity-60"
+      >
+        {busy ? "Envoi…" : "J'ai payé, valider ma commande"}
+      </button>
+    </div>
+  );
+}

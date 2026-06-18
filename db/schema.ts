@@ -225,6 +225,32 @@ export const coranManualOrder = pgTable("coran_manual_order", {
   emailIdx: index("coran_manual_order_email").on(t.email),
 }));
 
+// Orders for "drive-delivery" products (e.g. /duas): the buyer pays and simply
+// receives an email with a Google Drive link — no account, no premium. Covers
+// both Stripe card purchases (source "card", status "paid", auto-fulfilled) and
+// manual Orange Money orders (source "om", status pending → approved/rejected).
+export const driveProductOrder = pgTable("drive_product_order", {
+  id: serial("id").primaryKey(),
+  // Product slug (lets one table host several drive products).
+  product: text("product").notNull().default("duas"),
+  email: text("email").notNull(),
+  // "card" (Stripe) | "om" (Orange Money, manual).
+  source: text("source").notNull().default("om"),
+  // Orange Money transaction reference (om source only).
+  txId: text("tx_id"),
+  phone: text("phone"),
+  amountLabel: text("amount_label"),
+  // "pending" | "approved" | "rejected" (om) | "paid" (card).
+  status: text("status").notNull().default("pending"),
+  stripeSessionId: text("stripe_session_id").unique(),
+  emailSentAt: timestamp("email_sent_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  reviewedAt: timestamp("reviewed_at"),
+}, (t) => ({
+  productIdx: index("drive_product_order_product").on(t.product),
+  statusIdx: index("drive_product_order_status").on(t.status),
+}));
+
 // Leads captured by the "Funnel" landing variant (/offre-a-vie) BEFORE any
 // payment or account: the visitor types their first name + email on step 1 of
 // the try-before-you-buy funnel. One row per email (upserted), with boolean

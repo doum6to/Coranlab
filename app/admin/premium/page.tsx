@@ -13,6 +13,8 @@ import { getTikTokLandingContent } from "@/lib/tiktok-landing-content";
 import { getArabicLandingContent } from "@/lib/arabic-landing-content";
 import { getCoranLandingContent } from "@/lib/coran-landing-content";
 import { listManualOrders } from "@/actions/coran-manual-order";
+import { getDuasLandingContent } from "@/lib/duas-landing-content";
+import { listDriveOrders } from "@/actions/drive-orders";
 import { getVipSettings } from "@/lib/vip";
 
 import { listCourseVideos } from "@/actions/course-videos";
@@ -25,6 +27,8 @@ import { TikTokLandingForm } from "./tiktok-landing-form";
 import { ArabicLandingForm } from "./arabic-landing-form";
 import { CoranLandingForm } from "./coran-landing-form";
 import { ManualOrdersForm } from "./manual-orders-form";
+import { DuasLandingForm } from "./duas-landing-form";
+import { DuasOrdersForm } from "./duas-orders-form";
 import { VideosForm } from "./videos-form";
 import { VipForm } from "./vip-form";
 import { AnalyticsPanel } from "./analytics-panel";
@@ -156,6 +160,8 @@ const AdminPremiumPage = async () => {
     vipSettings,
     coranContent,
     manualOrders,
+    duasContent,
+    duasOrders,
   ] = await Promise.all([
     getOfferSettings(),
     getLandingContent("fr"),
@@ -172,6 +178,8 @@ const AdminPremiumPage = async () => {
     getVipSettings(),
     getCoranLandingContent(),
     listManualOrders(),
+    getDuasLandingContent(),
+    listDriveOrders("duas"),
   ]);
   const landingByVariant = {
     v3: { fr: contentFr, en: contentEn, es: contentEs },
@@ -300,6 +308,16 @@ const AdminPremiumPage = async () => {
               key: "coran-orders",
               label: "Commandes Orange Money",
               node: <ManualOrdersForm initial={manualOrders} />,
+            },
+            {
+              key: "duas",
+              label: "Page /duas",
+              node: <DuasLandingForm initial={duasContent} />,
+            },
+            {
+              key: "duas-orders",
+              label: "Commandes /duas",
+              node: <DuasOrdersForm initial={duasOrders} />,
             },
             {
               key: "arabic",

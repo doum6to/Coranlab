@@ -78,9 +78,21 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-export function CoranLandingForm({ initial }: { initial: CoranLandingContent }) {
+type FormContent = CoranLandingContent & { driveLink?: string };
+
+export function CoranLandingForm({
+  initial,
+  saveAction = updateCoranLandingContent,
+  previewUrl = "/coran",
+  showDriveLink = false,
+}: {
+  initial: FormContent;
+  saveAction?: (c: any) => Promise<{ error?: string } | { ok: true } | void>;
+  previewUrl?: string;
+  showDriveLink?: boolean;
+}) {
   const router = useRouter();
-  const [c, setC] = useState<CoranLandingContent>(initial);
+  const [c, setC] = useState<FormContent>(initial);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -105,7 +117,7 @@ export function CoranLandingForm({ initial }: { initial: CoranLandingContent }) 
   const onSave = () =>
     startTransition(async () => {
       setMsg(null);
-      const res = await updateCoranLandingContent(c);
+      const res = (await saveAction(c)) as { error?: string } | undefined;
       if (res?.error) setMsg({ ok: false, text: res.error });
       else {
         setMsg({ ok: true, text: "Enregistré ✓" });
@@ -117,10 +129,25 @@ export function CoranLandingForm({ initial }: { initial: CoranLandingContent }) 
     <div className="space-y-5">
       <p className="text-xs text-neutral-500">
         Page produit façon Stan.store :{" "}
-        <a href="/coran" target="_blank" className="font-semibold text-[#6967fb] hover:underline">
-          /coran
+        <a href={previewUrl} target="_blank" className="font-semibold text-[#6967fb] hover:underline">
+          {previewUrl}
         </a>
       </p>
+
+      {showDriveLink && (
+        <Section title="Livraison — lien Google Drive (envoyé par email)">
+          <p className="text-xs text-neutral-500">
+            À l&apos;achat (carte ou Orange Money validé), l&apos;acheteur reçoit
+            automatiquement un email avec CE lien. Aucun compte ni accès premium.
+          </p>
+          <input
+            value={c.driveLink ?? ""}
+            onChange={(e) => setC({ ...c, driveLink: e.target.value })}
+            placeholder="https://drive.google.com/drive/folders/…"
+            className={inputCls}
+          />
+        </Section>
+      )}
 
       {/* BANNERS */}
       <Section title="Bannières (haut de page)">
