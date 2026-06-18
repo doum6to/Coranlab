@@ -32,7 +32,9 @@ App Store Connect → TestFlight → App Store
 - `mobile/www/index.html` — écran de secours si le site est injoignable.
 - `codemagic.yaml` — pipeline de build & publication cloud (sans Mac).
 - `lib/platform.ts` — détecte si on est dans l'app iOS (sinon : web inchangé).
-- `lib/iap/revenuecat.ts` — fonctions IAP (init, achat, restauration), **inertes sur le web**.
+- `lib/iap/revenuecat.ts` — fonctions IAP (init, prix, achat, restauration), **inertes sur le web**.
+- `app/api/webhooks/revenuecat/route.ts` — octroi/retrait du premium (IAP) dans `user_subscription`.
+- `app/(main)/premium/pricing/pricing-view.tsx` — paywall IAP sur iOS / Stripe sur le web.
 - Scripts npm : `cap:add:ios`, `cap:sync`, `cap:open`.
 
 Le dossier natif `ios/` n'est **pas** committé : il est généré automatiquement
@@ -77,30 +79,45 @@ dans le cloud par `npx cap add ios` au premier build.
 2. **RevenueCat** : crée un projet → ajoute l'app iOS (bundle `app.quranlab`) →
    colle le **App-Specific Shared Secret** (depuis App Store Connect).
 3. RevenueCat : crée une **Entitlement** nommée **`premium`**, attache-lui tes
-   produits, puis crée une **Offering** (« default ») avec les packages.
+   produits, puis crée une **Offering** (« default »). Les **packages** doivent
+   utiliser ces identifiants (mappés dans `lib/iap/revenuecat.ts`) :
+
+   | Plan (app) | Identifiant de package RevenueCat |
+   |---|---|
+   | 3 mois | `$rc_three_month` |
+   | 6 mois | `$rc_six_month` |
+   | Annuel | `$rc_annual` |
+   | À vie | `$rc_lifetime` |
+   | Essai mensuel | `$rc_monthly` |
+
 4. Récupère la **clé publique iOS** RevenueCat (`appl_…`) →
-   mets-la dans la variable `NEXT_PUBLIC_REVENUECAT_IOS_KEY` (voir `.env.local.example`).
-5. **Webhook RevenueCat → notre backend** : crée une route API (ex.
-   `app/api/webhooks/revenuecat/route.ts`) qui, à la réception d'un achat/renouvellement,
-   accorde le premium à l'utilisateur connecté — **réutilise la même logique
-   d'octroi que le webhook Stripe** (table `user_subscription`). C'est la source de vérité.
+   `NEXT_PUBLIC_REVENUECAT_IOS_KEY` (voir `.env.local.example`).
+5. **Webhook RevenueCat** (déjà codé : `app/api/webhooks/revenuecat/route.ts`) :
+   - Dans RevenueCat → **Integrations → Webhooks**, URL =
+     `https://TON-SITE/api/webhooks/revenuecat`.
+   - Mets un header **Authorization** = la valeur de `REVENUECAT_WEBHOOK_SECRET`.
+   - Il accorde/retire le premium dans la **même table `user_subscription`** que
+     Stripe → `getUserSubscription().isActive` fonctionne sans changement.
 
-### Côté interface (à faire dans l'app)
+### Côté interface — ✅ déjà fait
 
-Dans les écrans qui vendent le premium (`app/(main)/premium/…`), branche :
+`app/(main)/premium/pricing/pricing-view.tsx` :
+- sur **iOS** → achat via Apple IAP (`purchasePlan`), prix réels App Store
+  affichés, bouton **« Restaurer mes achats »** + liens légaux (exigés Apple) ;
+- sur le **web** → checkout Stripe inchangé.
 
-```ts
-import { isNativeIOS } from "@/lib/platform";
-import { purchasePremium, restorePurchases } from "@/lib/iap/revenuecat";
+⚠️ **Anti-steering Apple** : dans l'app iOS on **n'affiche aucun lien d'achat
+Stripe** (respecté). Le web garde Stripe normalement.
 
-// if (isNativeIOS()) -> bouton "S'abonner" qui appelle purchasePremium()
-//                       + un bouton "Restaurer mes achats" (exigé par Apple)
-// else               -> le checkout Stripe actuel (inchangé)
-```
+⚠️ **Pages légales** : Apple exige des liens **Conditions d'utilisation** et
+**Confidentialité** fonctionnels sur le paywall. Les routes `/conditions` et
+`/confidentialite` sont référencées mais **n'existent pas encore** — il faut les
+créer (ou changer `PRIVACY_URL` / `TERMS_URL` dans `pricing-view.tsx`). Renseigne
+aussi l'URL de confidentialité dans App Store Connect.
 
-⚠️ **Anti-steering Apple** : dans l'app iOS, **n'affiche aucun lien/bouton**
-renvoyant vers un achat Stripe sur le web (sinon rejet). Le web (Safari) garde
-Stripe normalement.
+### Variables d'environnement à définir (Vercel)
+- `NEXT_PUBLIC_REVENUECAT_IOS_KEY` = clé publique iOS RevenueCat.
+- `REVENUECAT_WEBHOOK_SECRET` = chaîne aléatoire (même valeur côté webhook RevenueCat).
 
 ---
 
@@ -145,6 +162,8 @@ Stripe normalement.
 - [ ] Produits IAP créés + projet RevenueCat + clé `NEXT_PUBLIC_REVENUECAT_IOS_KEY`.
 - [ ] URL de prod exacte pour `CAPACITOR_SERVER_URL`.
 - [ ] Icône app + écran de lancement + captures d'écran App Store.
+- [ ] Pages légales `/conditions` et `/confidentialite` (exigées par Apple).
 
-Quand tu as ces éléments, je peux : écrire le webhook RevenueCat, brancher le
-paywall IAP dans les écrans premium, et ajuster `codemagic.yaml`.
+Le webhook RevenueCat et le paywall IAP sont **déjà codés** : une fois tes
+produits créés et les variables d'env renseignées, ça marche. Préviens-moi quand
+ton compte Apple est actif et on enchaîne (Bundle ID → fiche App Store → build).

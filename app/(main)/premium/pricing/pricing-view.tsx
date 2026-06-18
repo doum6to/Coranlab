@@ -1,13 +1,28 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { X } from "lucide-react";
 import { createStripeUrl } from "@/actions/user-subscription";
 import type { PremiumPlan } from "@/lib/premium";
 import { RiveMascot } from "@/components/rive-mascot";
 import { useT } from "@/lib/i18n/use-t";
+import { isNativeIOS } from "@/lib/platform";
+import { createClient } from "@/lib/supabase/client";
+import {
+  initIAP,
+  getIapPrices,
+  purchasePlan,
+  restorePurchases,
+  PLAN_TO_RC_PACKAGE,
+} from "@/lib/iap/revenuecat";
+
+// TODO: confirm these legal pages exist (required by Apple on a subscription
+// paywall). Create /confidentialite and /conditions, or point to your URLs.
+const PRIVACY_URL = "/confidentialite";
+const TERMS_URL = "/conditions";
 
 const GRADIENT =
   "linear-gradient(135deg, #F7C325 0%, #E350E3 35%, #874DE5 65%, #456DFF 100%)";
@@ -87,10 +102,53 @@ const PlanCard = ({
 
 export const PricingView = () => {
   const t = useT();
+  const router = useRouter();
   const [selected, setSelected] = useState<PremiumPlan>("six_months");
   const [pending, startTransition] = useTransition();
+  const [isIOS] = useState(() => isNativeIOS());
+  // Real App Store prices keyed by RC package id (empty until IAP is set up).
+  const [iosPrices, setIosPrices] = useState<Record<string, string>>({});
+
+  // On iOS: bind RevenueCat to the signed-in user and load store prices.
+  useEffect(() => {
+    if (!isIOS) return;
+    (async () => {
+      try {
+        const supabase = createClient();
+        const { data } = await supabase.auth.getUser();
+        await initIAP(data.user?.id);
+        setIosPrices(await getIapPrices());
+      } catch (e) {
+        console.error("[IAP] init failed:", e);
+      }
+    })();
+  }, [isIOS]);
+
+  // Show the real StoreKit price on iOS (Apple requires it to match), with the
+  // hardcoded web price as a fallback before offerings load.
+  const priceFor = (plan: PremiumPlan, webPrice: string, webSuffix: string) => {
+    const store = isIOS ? iosPrices[PLAN_TO_RC_PACKAGE[plan]] : undefined;
+    return store
+      ? { price: store, priceSuffix: "" }
+      : { price: webPrice, priceSuffix: webSuffix };
+  };
 
   const onSubscribe = () => {
+    // --- iOS: Apple In-App Purchase (Stripe is forbidden in-app) ---
+    if (isIOS) {
+      startTransition(async () => {
+        const res = await purchasePlan(selected);
+        if (res.success) {
+          router.refresh();
+          router.push("/learn");
+        } else if (res.error && res.error !== "cancelled") {
+          toast.error(res.error);
+        }
+      });
+      return;
+    }
+
+    // --- Web: existing Stripe checkout ---
     startTransition(() => {
       createStripeUrl(selected)
         .then((response) => {
@@ -103,6 +161,21 @@ export const PricingView = () => {
         .catch((err) => {
           toast.error(err?.message || t.pricing.genericError);
         });
+    });
+  };
+
+  const onRestore = () => {
+    startTransition(async () => {
+      const res = await restorePurchases();
+      if (res.success) {
+        toast.success("Achats restaurés ✓");
+        router.refresh();
+        router.push("/learn");
+      } else if (res.error) {
+        toast.error(res.error);
+      } else {
+        toast.error("Aucun achat à restaurer.");
+      }
     });
   };
 
@@ -156,8 +229,7 @@ export const PricingView = () => {
           <PlanCard
             plan="three_months"
             title={t.pricing.plan3m}
-            price="14,97€"
-            priceSuffix={t.pricing.perMonth}
+            {...priceFor("three_months", "14,97€", t.pricing.perMonth)}
             subtitle={t.pricing.renewedEvery3m}
             selected={selected === "three_months"}
             onClick={() => setSelected("three_months")}
@@ -166,8 +238,7 @@ export const PricingView = () => {
           <PlanCard
             plan="six_months"
             title={t.pricing.plan6m}
-            price="11,99€"
-            priceSuffix={t.pricing.perMonthStar}
+            {...priceFor("six_months", "11,99€", t.pricing.perMonthStar)}
             subtitle={t.pricing.save20}
             selected={selected === "six_months"}
             onClick={() => setSelected("six_months")}
@@ -177,8 +248,7 @@ export const PricingView = () => {
           <PlanCard
             plan="annual"
             title={t.pricing.planAnnual}
-            price="9,99€"
-            priceSuffix={t.pricing.perMonthStar}
+            {...priceFor("annual", "9,99€", t.pricing.perMonthStar)}
             subtitle={t.pricing.save33}
             selected={selected === "annual"}
             onClick={() => setSelected("annual")}
@@ -233,7 +303,7 @@ export const PricingView = () => {
                   className="text-lg sm:text-2xl font-extrabold bg-clip-text text-transparent"
                   style={{ backgroundImage: LIFETIME_GRADIENT }}
                 >
-                  299,99€
+                  {priceFor("lifetime", "299,99€", "").price}
                 </div>
               </div>
             </div>
@@ -259,6 +329,28 @@ export const PricingView = () => {
             {pending ? t.pricing.loading : ctaLabel}
           </button>
         </div>
+
+        {/* iOS only: "Restore purchases" + legal links (required by Apple) */}
+        {isIOS && (
+          <div className="flex flex-col items-center gap-2 mt-4 shrink-0">
+            <button
+              onClick={onRestore}
+              disabled={pending}
+              className="text-xs sm:text-sm font-semibold text-brilliant-text underline underline-offset-2 disabled:opacity-60"
+            >
+              Restaurer mes achats
+            </button>
+            <div className="flex items-center gap-3 text-[10px] sm:text-xs text-brilliant-muted">
+              <Link href={TERMS_URL} className="underline underline-offset-2">
+                Conditions d&apos;utilisation
+              </Link>
+              <span>·</span>
+              <Link href={PRIVACY_URL} className="underline underline-offset-2">
+                Confidentialité
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
