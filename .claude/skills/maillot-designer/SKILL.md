@@ -1,12 +1,13 @@
 ---
 name: maillot-designer
 description: >-
-  Génère des concepts et des prompts de maillots de football artistiques pour
-  les générateurs d'images IA (Google Flow / Veo, Nano Banana, Midjourney, DALL-E,
-  etc.). À utiliser dès que l'utilisateur veut créer, imaginer, "vectoriser" ou
-  obtenir un prompt pour un maillot / jersey / kit de foot (équipe nationale, club,
-  collab streetwear, concept couture...). Couvre la direction artistique, les
-  palettes, les motifs, la coupe, la mise en scène et la rédaction du prompt final.
+  Génère des concepts et des prompts de vêtements de sport/streetwear artistiques
+  pour les générateurs d'images IA (Google Flow / Veo, Nano Banana, Midjourney,
+  DALL-E, etc.). À utiliser dès que l'utilisateur veut créer, imaginer, "vectoriser"
+  ou obtenir un prompt pour un maillot / jersey / kit de foot OU un survêtement /
+  tracksuit / veste techwear / ensemble (équipe nationale, club, collab streetwear,
+  concept couture, techwear...). Couvre la direction artistique, les palettes, les
+  motifs, la coupe, la mise en scène et la rédaction du prompt final.
 ---
 
 # Maillot Designer — Direction artistique & prompts IA
@@ -139,6 +140,64 @@ jacquard, soft studio lighting, 8k`.
 
 *Résumé FR :* maillot France couture, bleu marine + jacquard fleur de lys ton sur ton,
 col polo blanc, piping or, coq doré en relief, présentation sur cintre fond royal.
+
+## MODULE SURVÊTEMENT / TECHWEAR (vestes & ensembles)
+
+Pour tout survêtement, tracksuit, veste, ensemble (haut + bas). Même méthode en
+4 étapes, mais avec ces briques spécifiques.
+
+### Archétypes survêtement
+
+1. **Techwear flammes** — veste cropped à capuche noire, panels incurvés en dégradé
+   (orange→rouge "flammes", ou bleu) suivant des coutures ergonomiques, mesh gris,
+   logo croix `+` minimal, cordons de serrage. *Réf : Night Lab cropped set.*
+2. **Blokecore halftone** — track jacket noire, graphique en trame de points
+   (halftone) façon flamme/tribal, panels gris réfléchissants, col montant zippé.
+   *Réf : Night Lab halftone.*
+3. **Techwear organique / shell** — veste shell à capuche, panels biomécaniques
+   brillants (bleu/argent) en relief, attaches techniques, vibe outdoor futuriste.
+4. **Varsity wavy / luxe** — veste en cuir, color-block ondulé (noir/crème), broderie
+   script en relief ("Night"), logo croix, coupe oversize. *Réf : Night Lab leather.*
+5. **Total look mono** — ensemble veste + pantalon baggy ton sur ton (souvent noir),
+   1 seul graphique signature, mise en scène lookbook studio.
+
+### Briques survêtement
+
+**Pièces** : veste à capuche cropped · track jacket col montant · shell jacket ·
+veste varsity cuir · short assorti · pantalon baggy / parachute · bonnet (set complet).
+
+**Cols / fermetures** : col montant zippé · capuche à cordons · zip central full-length ·
+poches zippées inclinées · ourlet à cordon élastique.
+
+**Structures / coutures** : **panels ergonomiques incurvés** (signature techwear) ·
+color-block ondulé (wavy) · empiècements épaules · inserts mesh.
+
+**Motifs / textures** : dégradé "flammes" sur panels · halftone (trame de points) ·
+panels réfléchissants 3M · biomécanique brillante · cuir mat.
+
+**Branding** : logo croix `+` minimal · petit swoosh/logo brodé poitrine · script
+brodé dans le dos · code discret (ex. "NL 25") en bas de dos.
+
+**Palettes** : noir + 1 accent (flammes orange-rouge / bleu électrique / crème-jaune).
+Garder très sobre : noir dominant, 1 zone de couleur.
+
+### Mise en scène survêtement
+
+- **À plat sur béton / canapé** (flat lay produit, vibe Vinted/lookbook).
+- **Lookbook studio** : mannequin, fond gris/beige neutre, lumière douce, total look.
+- **Set avant + arrière** posé à plat (montre le graphique dos).
+
+### Exemple complet (Survêtement France — Techwear flammes tricolore)
+
+> "Product flat lay on a raw concrete floor, of a cropped hooded techwear tracksuit set
+> (jacket + matching shorts). Black base with ergonomic curved panels in a blue-white-red
+> tricolor gradient running down the chest and sleeves, grey mesh accents, full-length
+> central zip. Minimal white cross '+' logo on the chest, small embroidered rooster crest.
+> Drawcord elastic hem. Matching shorts with the same curved tricolor panels. Photoreal
+> fabric, technical sportswear, soft even lighting, high detail, no people, 8k."
+
+*Résumé FR :* survêtement France techwear, noir + panels tricolores en dégradé suivant
+des coutures ergonomiques, logo croix, coq brodé, ensemble veste + short, flat lay béton.
 
 ## Règles de qualité
 

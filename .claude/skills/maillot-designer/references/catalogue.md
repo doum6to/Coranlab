@@ -70,6 +70,23 @@
 - **Concept Gucci × adidas (AnIdesign)** — vert sapin + or, monogramme floral all-over, trefoil or,
   écusson rond, fond bois.
 
+## Survêtements / Techwear (vestes & ensembles)
+- **Night Lab — set cropped flammes** — veste cropped à capuche noire + short assorti,
+  panels incurvés dégradé orange→rouge "flammes" sur coutures ergonomiques, mesh gris,
+  logo croix `+` blanc, cordons. Flat lay béton.
+- **Night Lab — track jacket halftone** — noire, graphique flamme/tribal en trame de
+  points argentée, panels gris réfléchissants, col montant zippé, cordons d'ourlet.
+- **Night Lab — total look lookbook** — graphique halftone au dos, pantalon baggy, bonnet,
+  code "NL 25" bas de dos, mise en scène studio fond neutre.
+- **Night Lab — shell jacket bleu** — veste à capuche, panels biomécaniques bleu brillant
+  en relief, logo croix `+`, attaches techniques, flat lay béton.
+- **Night Lab — varsity cuir** — color-block ondulé noir/crème, broderie script "Night"
+  dorée en relief, logo croix, oversize.
+
+### Récurrences techwear
+- Noir dominant + 1 accent · panels ergonomiques incurvés · halftone · réfléchissant 3M ·
+  logo croix `+` minimal · script brodé dos · ensemble haut+bas assorti · flat lay béton.
+
 ## Récurrences fortes (à exploiter en priorité)
 - Cols polo · piping incurvé · OR comme accent premium · symétrie/all-over patterns ·
   dégradés · motifs identitaires · présentation mise en scène · oversize rétro.
