@@ -1,12 +1,17 @@
 "use client";
 
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect, useLayoutEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { VocabList } from "@/db/queries";
 import { cn } from "@/lib/utils";
 
 import { UnitBanner } from "./unit-banner";
 import { ListCard } from "./list-card";
+
+// Run before paint on the client; fall back to useEffect on the server (SSR)
+// so React doesn't warn about useLayoutEffect having no effect there.
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 type Props = {
   id: number;
@@ -26,7 +31,11 @@ export const UnitWithListsView = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  // Initialise from the real viewport so the first client render already knows
+  // whether to scale cards — avoids a full-size → scaled "jump" on mount.
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth < 640 : false,
+  );
 
   const activeListId = lists.find((l) => l.completedLevels < l.totalLevels)?.listId;
 
@@ -34,9 +43,20 @@ export const UnitWithListsView = ({
 
   const updateCardScales = useCallback(() => {
     const el = scrollRef.current;
-    if (!el || !isMobile) return;
+    if (!el) return;
 
     const cards = el.querySelectorAll("[data-list-card]") as NodeListOf<HTMLElement>;
+
+    // Desktop: no scaling. Clear any inline styles left over from mobile (e.g.
+    // after a resize / orientation change) so cards don't stay stuck shrunk.
+    if (!isMobile) {
+      cards.forEach((card) => {
+        card.style.transform = "";
+        card.style.opacity = "";
+      });
+      return;
+    }
+
     const containerCenter = el.scrollLeft + el.clientWidth / 2;
 
     cards.forEach((card) => {
@@ -69,36 +89,44 @@ export const UnitWithListsView = ({
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  useEffect(() => {
+  // Position to the active list + apply card scales BEFORE the first paint.
+  // The (main) layout remounts when returning to /learn (e.g. after a lesson),
+  // so doing this in a layout effect (instant scroll, not "smooth") prevents
+  // the brief flash of full-size / mis-scrolled cards the user could see.
+  useIsomorphicLayoutEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
 
-    const timer = setTimeout(() => {
-      checkScroll();
-      updateCardScales();
-
-      if (activeListId) {
-        const activeIndex = lists.findIndex((l) => l.listId === activeListId);
-        if (activeIndex > 0) {
-          const cards = el.querySelectorAll("[data-list-card]");
-          if (cards[activeIndex]) {
-            const card = cards[activeIndex] as HTMLElement;
-            const scrollPos = card.offsetLeft - (el.clientWidth - card.offsetWidth) / 2;
-            el.scrollTo({ left: Math.max(0, scrollPos), behavior: "smooth" });
-          }
+    if (activeListId) {
+      const activeIndex = lists.findIndex((l) => l.listId === activeListId);
+      if (activeIndex > 0) {
+        const cards = el.querySelectorAll("[data-list-card]");
+        const card = cards[activeIndex] as HTMLElement | undefined;
+        if (card) {
+          el.scrollLeft = Math.max(
+            0,
+            card.offsetLeft - (el.clientWidth - card.offsetWidth) / 2,
+          );
         }
       }
-    }, 50);
+    }
 
+    updateCardScales();
+    checkScroll();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMobile]);
+
+  // Scroll / resize listeners (re-attached if the mobile breakpoint changes).
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
     el.addEventListener("scroll", checkScroll, { passive: true });
     window.addEventListener("resize", checkScroll);
     return () => {
-      clearTimeout(timer);
       el.removeEventListener("scroll", checkScroll);
       window.removeEventListener("resize", checkScroll);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isMobile]);
+  }, [checkScroll]);
 
   const scroll = (direction: "left" | "right") => {
     const el = scrollRef.current;
