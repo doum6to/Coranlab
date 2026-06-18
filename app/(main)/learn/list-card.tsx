@@ -8,6 +8,7 @@ import { Lock } from "lucide-react";
 import { getListImage } from "@/lib/list-images";
 import { useT } from "@/lib/i18n/use-t";
 import { tpl } from "@/lib/i18n/locales";
+import { usePremiumModal } from "@/store/use-premium-modal";
 
 type Props = {
   listId: number;
@@ -38,13 +39,10 @@ export const ListCard = ({
   activeLessonId,
 }: Props) => {
   const t = useT();
+  const openPremium = usePremiumModal((s) => s.open);
   const percentage = totalLevels > 0 ? Math.round((completedLevels / totalLevels) * 100) : 0;
   const isLecons = context === "lecons";
-  const href = isPremiumLocked
-    ? "/premium"
-    : isLecons
-      ? `/lecons/list/${listId}`
-      : `/learn/list/${listId}`;
+  const href = isLecons ? `/lecons/list/${listId}` : `/learn/list/${listId}`;
 
   const buttonLabel = isPremiumLocked
     ? t.common.premium
@@ -130,11 +128,25 @@ export const ListCard = ({
     </div>
   );
 
+  // Premium-locked → open the contextual paywall modal (high-intent moment),
+  // instead of navigating away to the /premium page.
+  if (isPremiumLocked) {
+    return (
+      <button
+        type="button"
+        onClick={() => openPremium(listTitle)}
+        className="block shrink-0 text-left"
+      >
+        {cardContent}
+      </button>
+    );
+  }
+
   return (
     <Link
       href={href}
-      aria-disabled={locked && !isPremiumLocked}
-      style={{ pointerEvents: locked && !isPremiumLocked ? "none" : "auto" }}
+      aria-disabled={locked}
+      style={{ pointerEvents: locked ? "none" : "auto" }}
       className="block shrink-0"
     >
       {cardContent}

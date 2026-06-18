@@ -133,11 +133,11 @@ export const PricingView = () => {
       : { price: webPrice, priceSuffix: webSuffix };
   };
 
-  const onSubscribe = () => {
+  const onSubscribe = (plan: PremiumPlan = selected) => {
     // --- iOS: Apple In-App Purchase (Stripe is forbidden in-app) ---
     if (isIOS) {
       startTransition(async () => {
-        const res = await purchasePlan(selected);
+        const res = await purchasePlan(plan);
         if (res.success) {
           router.refresh();
           router.push("/learn");
@@ -150,7 +150,7 @@ export const PricingView = () => {
 
     // --- Web: existing Stripe checkout ---
     startTransition(() => {
-      createStripeUrl(selected)
+      createStripeUrl(plan)
         .then((response) => {
           if ("error" in response) {
             toast.error(response.error);
@@ -220,9 +220,26 @@ export const PricingView = () => {
         <h1 className="text-center text-lg leading-tight sm:text-2xl font-extrabold text-brilliant-text font-heading mb-1 px-2 shrink-0">
           {t.pricing.heading}
         </h1>
-        <p className="text-center text-brilliant-muted text-[11px] sm:text-sm mb-3 sm:mb-6 px-2 shrink-0">
+        <p className="text-center text-brilliant-muted text-[11px] sm:text-sm mb-3 sm:mb-4 px-2 shrink-0">
           {t.pricing.subheading}
         </p>
+
+        {/* Trial-forward: the highest-converting entry point */}
+        <button
+          onClick={() => onSubscribe("monthly_trial")}
+          disabled={pending}
+          className="mb-4 sm:mb-6 w-full max-w-xl rounded-2xl p-[3px] transition-transform duration-100 hover:scale-[1.01] active:scale-[0.98] disabled:opacity-60"
+          style={{ background: GRADIENT }}
+        >
+          <div className="rounded-[14px] bg-white px-4 py-3 sm:py-3.5 text-center">
+            <div className="text-sm sm:text-base font-extrabold text-brilliant-text">
+              Commencer l&apos;essai gratuit — 7 jours
+            </div>
+            <div className="text-[10px] sm:text-xs text-brilliant-muted">
+              Sans engagement · annulable à tout moment · puis 14,97€/mois
+            </div>
+          </div>
+        </button>
 
         {/* 3 subscription plans */}
         <div className="grid grid-cols-3 gap-2 sm:gap-4 max-w-xl w-full mx-auto">
@@ -315,10 +332,28 @@ export const PricingView = () => {
           {fineprint[selected]}
         </p>
 
+        {/* Social proof */}
+        <div className="mx-auto mt-4 sm:mt-5 max-w-xl w-full shrink-0 rounded-2xl bg-white/70 px-4 py-3 text-center">
+          <div className="flex items-center justify-center gap-1 text-[#f6c343]">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <svg key={i} width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10 1.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L10 15l-5.2 2.7 1-5.8L1.5 7.7l5.9-.9z" />
+              </svg>
+            ))}
+            <span className="ml-1.5 text-[11px] sm:text-xs font-semibold text-brilliant-muted">
+              Adopté par des milliers de musulmans
+            </span>
+          </div>
+          <p className="mt-2 text-xs sm:text-sm italic text-brilliant-text">
+            « En 3 jours je reconnais plein de mots dans ma prière. Allahumma barik. »
+            <span className="not-italic font-semibold text-brilliant-muted"> — Omar</span>
+          </p>
+        </div>
+
         {/* Subscribe button */}
         <div className="flex justify-center shrink-0 mt-3 sm:mt-6">
           <button
-            onClick={onSubscribe}
+            onClick={() => onSubscribe()}
             disabled={pending}
             className="rounded-full px-8 sm:px-12 py-3 sm:py-3.5 text-white text-sm sm:text-base font-bold transition-transform duration-100 hover:opacity-90 hover:scale-[1.02] active:translate-y-[3px] active:!shadow-none disabled:opacity-60"
             style={{

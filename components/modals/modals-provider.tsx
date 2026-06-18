@@ -9,10 +9,16 @@ const ExitModal = dynamic(
   { ssr: false }
 );
 
+const PremiumLockModal = dynamic(
+  () => import("./premium-lock-modal").then((m) => m.PremiumLockModal),
+  { ssr: false }
+);
+
 export const ModalsProvider = () => {
   return (
     <>
       <ExitModal />
+      <PremiumLockModal />
     </>
   );
 };

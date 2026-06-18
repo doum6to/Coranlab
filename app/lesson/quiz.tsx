@@ -11,6 +11,7 @@ import { useRive, Layout, Fit, Alignment } from "@rive-app/react-canvas";
 const Confetti = dynamic(() => import("react-confetti"), { ssr: false });
 
 import { challengeOptions, challenges, userSubscription } from "@/db/schema";
+import { usePremiumModal } from "@/store/use-premium-modal";
 import { completeLessonChallenges } from "@/actions/challenge-progress";
 
 import { ShinyButton } from "@/components/ui/shiny-button";
@@ -251,6 +252,7 @@ export const Quiz = ({
         lessonId={lessonId}
         saving={saving}
         testMode={testMode}
+        isPro={!!userSubscription?.isActive}
         onContinue={testMode || passed ? handleFinishContinue : handlePracticeAgain}
       />
     );
@@ -503,6 +505,7 @@ type FinishedScreenProps = {
   lessonId: number;
   saving: boolean;
   testMode?: boolean;
+  isPro?: boolean;
   onContinue: () => void;
 };
 
@@ -514,6 +517,7 @@ function FinishedScreen({
   lessonId,
   saving,
   testMode = false,
+  isPro = false,
   onContinue,
 }: FinishedScreenProps) {
   const t = useT();
@@ -663,6 +667,17 @@ function FinishedScreen({
           </>
         )}
       </div>
+
+      {/* Victory nudge: ride the win to push Premium (free users only). */}
+      {!testMode && celebrate && !isPro && (
+        <button
+          onClick={() => usePremiumModal.getState().open()}
+          className="animate-fade-in-up mt-4 text-sm font-semibold text-[#6967FB] hover:underline"
+          style={{ animationDelay: "1.1s" }}
+        >
+          ✨ Tu apprends vite — continue sans limite avec Premium
+        </button>
+      )}
     </div>
   );
 }
