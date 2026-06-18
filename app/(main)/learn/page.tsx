@@ -11,6 +11,7 @@ import { auth } from "@/lib/supabase/server";
 
 import { UnitWithListsView } from "./unit-with-lists";
 import { WelcomeTutorial } from "@/components/welcome-tutorial";
+import { AddToHomeTutorial } from "@/components/add-to-home-tutorial";
 
 const LearnPage = async () => {
   const { userId } = await auth();
@@ -43,6 +44,9 @@ const LearnPage = async () => {
   return (
     <div className="flex flex-col px-0 sm:px-6 overflow-hidden">
       {showTutorial && <WelcomeTutorial />}
+      {/* Once onboarding is done, invite mobile users to install the web app
+          to their home screen (once, phone only, not when already installed). */}
+      {!showTutorial && <AddToHomeTutorial />}
       <FeedWrapper>
         {listsData.map((unit) => (
           <div key={unit.id} className="mb-10">

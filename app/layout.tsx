@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Manrope, IBM_Plex_Sans_Arabic, Fraunces, Fredoka } from "next/font/google";
 import Script from "next/script";
 import { Toaster } from "@/components/ui/sonner";
@@ -45,6 +45,20 @@ const fredoka = Fredoka({
 export const metadata: Metadata = {
   title: "Quranlab - Apprends 85% des mots du Coran",
   description: "Application d'apprentissage du vocabulaire coranique",
+  // Home-screen / standalone (PWA) behaviour so the installed site feels native.
+  applicationName: "Quranlab",
+  appleWebApp: {
+    capable: true,
+    title: "Quranlab",
+    statusBarStyle: "default",
+  },
+  icons: {
+    apple: "/quranlab-logo.png",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#6967FB",
 };
 
 export default function RootLayout({
