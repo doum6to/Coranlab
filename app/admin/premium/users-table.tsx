@@ -16,6 +16,8 @@ export type AdminUser = {
   email: string;
   name: string;
   createdAt: string | null;
+  /** 2-letter ISO country code captured at signup, or null if unknown. */
+  country: string | null;
   isPremium: boolean;
   plan: string;
   source: string;
@@ -34,6 +36,32 @@ const fmtDate = (iso: string | null) => {
     month: "2-digit",
     year: "numeric",
   });
+};
+
+// 2-letter ISO code → flag emoji (regional indicator symbols).
+const flagEmoji = (code: string) => {
+  if (code.length !== 2) return "";
+  const cc = code.toUpperCase();
+  const OFFSET = 127397; // 0x1F1E6 - 'A'
+  return String.fromCodePoint(
+    OFFSET + cc.charCodeAt(0),
+    OFFSET + cc.charCodeAt(1),
+  );
+};
+
+let regionNames: Intl.DisplayNames | null = null;
+const countryName = (code: string) => {
+  try {
+    regionNames ||= new Intl.DisplayNames(["fr"], { type: "region" });
+    return regionNames.of(code.toUpperCase()) || code.toUpperCase();
+  } catch {
+    return code.toUpperCase();
+  }
+};
+
+const fmtCountry = (code: string | null) => {
+  if (!code) return "—";
+  return `${flagEmoji(code)} ${countryName(code)}`.trim();
 };
 
 export const UsersTable = ({
@@ -56,8 +84,15 @@ export const UsersTable = ({
     return users.filter((u) => {
       if (filter === "premium" && !u.isPremium) return false;
       if (filter === "free" && u.isPremium) return false;
-      if (q && !u.email.toLowerCase().includes(q) && !u.name.toLowerCase().includes(q))
-        return false;
+      if (q) {
+        const countryLabel = fmtCountry(u.country).toLowerCase();
+        if (
+          !u.email.toLowerCase().includes(q) &&
+          !u.name.toLowerCase().includes(q) &&
+          !countryLabel.includes(q)
+        )
+          return false;
+      }
       return true;
     });
   }, [users, filter, search]);
@@ -169,6 +204,7 @@ export const UsersTable = ({
             <tr>
               <th className="px-4 py-3 font-semibold">Email</th>
               <th className="px-4 py-3 font-semibold">Nom</th>
+              <th className="px-4 py-3 font-semibold">Pays</th>
               <th className="px-4 py-3 font-semibold">Inscrit le</th>
               <th className="px-4 py-3 font-semibold">Statut</th>
               <th className="px-4 py-3 font-semibold">Source</th>
@@ -181,7 +217,7 @@ export const UsersTable = ({
             {filtered.length === 0 && (
               <tr>
                 <td
-                  colSpan={8}
+                  colSpan={9}
                   className="px-4 py-10 text-center text-neutral-400"
                 >
                   Aucun utilisateur.
@@ -197,6 +233,9 @@ export const UsersTable = ({
                   {u.email}
                 </td>
                 <td className="px-4 py-3 text-neutral-600">{u.name}</td>
+                <td className="px-4 py-3 text-neutral-600 whitespace-nowrap">
+                  {fmtCountry(u.country)}
+                </td>
                 <td className="px-4 py-3 text-neutral-600">
                   {fmtDate(u.createdAt)}
                 </td>

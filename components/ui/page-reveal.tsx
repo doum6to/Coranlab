@@ -22,7 +22,20 @@ export const PageReveal = ({ children }: { children: React.ReactNode }) => {
   const [cycleDone, setCycleDone] = useState(false);
   const [overlayHidden, setOverlayHidden] = useState(false);
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    // Only reveal once per browser session. In-app navigations that remount
+    // this layout (e.g. returning to /learn after a lesson) skip the overlay
+    // entirely, so no replayed loading animation / flash.
+    if (typeof window !== "undefined" && sessionStorage.getItem("pageRevealShown")) {
+      setOverlayHidden(true);
+      setMounted(true);
+      return;
+    }
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("pageRevealShown", "1");
+    }
+    setMounted(true);
+  }, []);
 
   const { rive, RiveComponent } = useRive({
     src: "/animations/loading.riv",

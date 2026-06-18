@@ -126,6 +126,7 @@ const AdminPremiumPage = async () => {
         u.email?.split("@")[0] ||
         "—",
       createdAt: u.created_at || null,
+      country: (u.user_metadata?.signup_country as string) || null,
       isPremium,
       plan,
       source: sub ? (isManual ? "Admin" : "Stripe") : "—",

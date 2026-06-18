@@ -28,12 +28,24 @@ export async function POST(req: Request) {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
+    // Country the account is created from, derived from the edge/CDN geo header
+    // (Vercel: x-vercel-ip-country, Cloudflare: cf-ipcountry). 2-letter ISO code,
+    // stored once at signup so the admin can see where each account originated.
+    // Absent in local dev → simply not recorded.
+    const signupCountry =
+      req.headers.get("x-vercel-ip-country") ||
+      req.headers.get("cf-ipcountry") ||
+      null;
+
     // Create user with email_confirm: true to skip verification
     const { data, error } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
-      user_metadata: { full_name: name },
+      user_metadata: {
+        full_name: name,
+        ...(signupCountry ? { signup_country: signupCountry } : {}),
+      },
     });
 
     if (error) {
