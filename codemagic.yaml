@@ -3,10 +3,12 @@
 # project from Capacitor, signs it with your Apple credentials, and uploads it
 # to App Store Connect / TestFlight.
 #
-# Before the first run, set these up in the Codemagic UI (see docs/ios-app-store.md):
-#   - An "App Store Connect" integration (API key) named below.
-#   - iOS code signing = "Automatic" with your bundle id.
-#   - The CAPACITOR_SERVER_URL var = your production site URL.
+# Before the first run (see docs/ios-app-store.md):
+#   - Add an "App Store Connect" integration (API key, App Manager role) in the
+#     Codemagic UI, named exactly as referenced below (codemagic_asc_api_key).
+# Code signing is fully automatic via the scripts below (fetch-signing-files
+# --create): the certificate + app_store profile are created on the first run.
+# Nothing else to toggle in the UI.
 workflows:
   ios-capacitor:
     name: iOS — Quranlab (Capacitor)
@@ -15,9 +17,6 @@ workflows:
     integrations:
       app_store_connect: codemagic_asc_api_key # name of the API key added in Codemagic
     environment:
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: app.quranlab # must match capacitor.config.ts appId
       vars:
         BUNDLE_ID: "app.quranlab"
         CAPACITOR_SERVER_URL: "https://www.quranlab.app" # your live site (canonical host)
@@ -41,7 +40,20 @@ workflows:
         script: |
           cd ios/App
           agvtool new-version -all "$(($PROJECT_BUILD_NUMBER + 1))" || true
-      - name: Apply automatic signing profiles
+      - name: Initialize keychain for code signing
+        script: keychain initialize
+      - name: Fetch or CREATE the distribution certificate + App Store profile
+        # Authenticated by the codemagic_asc_api_key integration (App Manager).
+        # --create makes the FIRST run create the iOS Distribution certificate
+        # AND the app_store provisioning profile for app.quranlab if they don't
+        # exist yet — this is what fixes "No matching profiles found".
+        script: |
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
+      - name: Add the fetched certificate to the keychain
+        script: keychain add-certificates
+      - name: Apply the signing profile to the Xcode project
         script: xcode-project use-profiles
       - name: Build signed .ipa
         script: |
