@@ -50,12 +50,26 @@ workflows:
         script: keychain initialize
       - name: Fetch or CREATE the distribution certificate + App Store profile
         # Authenticated by the codemagic_asc_api_key integration (App Manager).
-        # --create makes the FIRST run create the iOS Distribution certificate
-        # AND the app_store provisioning profile for app.quranlab if they don't
-        # exist yet — this is what fixes "No matching profiles found".
+        # A PRIVATE KEY is required to save a newly-created distribution cert
+        # (otherwise: "Cannot save Signing Certificates without certificate
+        # private key"). We reuse $CERTIFICATE_PRIVATE_KEY when it's set as a
+        # Codemagic secret — the SAME cert is then reused on every build, so
+        # Apple's 2-distribution-certificate limit is never hit. If it's not set,
+        # we generate a key for this run (the build works, but set the secret
+        # afterwards for sustainable reuse — see docs/ios-app-store.md).
+        # --create reuses a cert matching this key, or creates one from it.
         script: |
+          set -ex
+          KEY=/tmp/cert_private_key.pem
+          if [ -n "$CERTIFICATE_PRIVATE_KEY" ]; then
+            printf '%s' "$CERTIFICATE_PRIVATE_KEY" > "$KEY"
+          else
+            echo "CERTIFICATE_PRIVATE_KEY not set — generating an ephemeral key for this run."
+            openssl genrsa -out "$KEY" 2048
+          fi
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
+            --certificate-key=@file:"$KEY" \
             --create
       - name: Add the fetched certificate to the keychain
         script: keychain add-certificates

@@ -62,8 +62,18 @@ dans le cloud par `npx cap add ios` au premier build.
    (téléchargeable **une seule fois**) et note **Key ID** + **Issuer ID**.
 3. Dans **Codemagic → Teams/User settings → Integrations → App Store Connect** :
    ajoute la clé. Donne-lui le nom **`codemagic_asc_api_key`** (référencé dans `codemagic.yaml`).
-4. Dans Codemagic, active **Automatic code signing** pour le bundle `app.quranlab`.
-   Codemagic crée/gère les certificats et profils tout seul (plus besoin de Mac/Keychain).
+4. La signature est **entièrement gérée par `codemagic.yaml`** (étape
+   `fetch-signing-files --create`) : pas de toggle UI à activer. Au 1er run,
+   Codemagic crée le certificat de distribution + le profil App Store.
+
+> **Réutiliser le même certificat (recommandé)** — `fetch-signing-files` a
+> besoin d'une **clé privée** pour enregistrer un certificat nouvellement créé.
+> Sans elle, on génère une clé éphémère à chaque build → un **nouveau certificat
+> à chaque fois** (Apple en limite ~2). Pour réutiliser le **même** certificat :
+> 1. génère une clé une fois : `openssl genrsa 2048` ;
+> 2. colle son contenu dans une **variable Codemagic secrète** nommée
+>    `CERTIFICATE_PRIVATE_KEY` (groupe attaché au workflow) ;
+> 3. le yaml la réutilise → le certificat existant est repris à chaque build.
 
 ---
 
