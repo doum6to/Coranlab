@@ -19,8 +19,8 @@ import {
   PLAN_TO_RC_PACKAGE,
 } from "@/lib/iap/revenuecat";
 
-// TODO: confirm these legal pages exist (required by Apple on a subscription
-// paywall). Create /confidentialite and /conditions, or point to your URLs.
+// Legal pages required by Apple on a subscription paywall — both exist
+// (app/(legal)/confidentialite + /conditions) and carry the éditeur details.
 const PRIVACY_URL = "/confidentialite";
 const TERMS_URL = "/conditions";
 

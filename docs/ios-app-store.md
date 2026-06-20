@@ -109,11 +109,11 @@ dans le cloud par `npx cap add ios` au premier build.
 ⚠️ **Anti-steering Apple** : dans l'app iOS on **n'affiche aucun lien d'achat
 Stripe** (respecté). Le web garde Stripe normalement.
 
-⚠️ **Pages légales** : Apple exige des liens **Conditions d'utilisation** et
+✅ **Pages légales** : Apple exige des liens **Conditions d'utilisation** et
 **Confidentialité** fonctionnels sur le paywall. Les routes `/conditions` et
-`/confidentialite` sont référencées mais **n'existent pas encore** — il faut les
-créer (ou changer `PRIVACY_URL` / `TERMS_URL` dans `pricing-view.tsx`). Renseigne
-aussi l'URL de confidentialité dans App Store Connect.
+`/confidentialite` **existent** et contiennent les mentions de l'éditeur
+(Mamadou Traoré, EI, SIREN 884 851 320). Renseigne aussi l'URL de
+confidentialité (`https://quranlab.app/confidentialite`) dans App Store Connect.
 
 ### Variables d'environnement à définir (Vercel)
 - `NEXT_PUBLIC_REVENUECAT_IOS_KEY` = clé publique iOS RevenueCat.
@@ -162,7 +162,9 @@ aussi l'URL de confidentialité dans App Store Connect.
 - [ ] Produits IAP créés + projet RevenueCat + clé `NEXT_PUBLIC_REVENUECAT_IOS_KEY`.
 - [ ] URL de prod exacte pour `CAPACITOR_SERVER_URL`.
 - [ ] Icône app + écran de lancement + captures d'écran App Store.
-- [ ] Pages légales `/conditions` et `/confidentialite` (exigées par Apple).
+- [x] Pages légales `/conditions` et `/confidentialite` (créées, mentions éditeur OK).
+- [ ] Offres d'introduction (essai 7 j) sur les produits abonnement App Store,
+      pour la parité avec l'essai 7 j du web (voir note ci-dessous).
 
 Le webhook RevenueCat et le paywall IAP sont **déjà codés** : une fois tes
 produits créés et les variables d'env renseignées, ça marche. Préviens-moi quand
