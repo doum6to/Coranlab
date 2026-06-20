@@ -113,7 +113,7 @@ Stripe** (respecté). Le web garde Stripe normalement.
 **Confidentialité** fonctionnels sur le paywall. Les routes `/conditions` et
 `/confidentialite` **existent** et contiennent les mentions de l'éditeur
 (Mamadou Traoré, EI, SIREN 884 851 320). Renseigne aussi l'URL de
-confidentialité (`https://quranlab.app/confidentialite`) dans App Store Connect.
+confidentialité (`https://www.quranlab.app/confidentialite`) dans App Store Connect.
 
 ### Variables d'environnement à définir (Vercel)
 - `NEXT_PUBLIC_REVENUECAT_IOS_KEY` = clé publique iOS RevenueCat.
@@ -126,7 +126,7 @@ confidentialité (`https://quranlab.app/confidentialite`) dans App Store Connect
 1. Pousse le repo sur GitHub (déjà fait).
 2. Connecte le repo dans Codemagic → il détecte `codemagic.yaml`.
 3. Renseigne les variables d'environnement dans Codemagic :
-   - `CAPACITOR_SERVER_URL` = ton URL de prod (ex. `https://quranlab.app`).
+   - `CAPACITOR_SERVER_URL` = ton URL de prod (canonique : `https://www.quranlab.app`).
    - `APP_STORE_APPLE_ID` = l'Apple ID numérique de l'app.
 4. Lance le workflow **`ios-capacitor`**. Codemagic va :
    `npm ci` → `cap add ios` → `cap sync` → `pod install` → build signé →

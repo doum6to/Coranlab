@@ -17,7 +17,9 @@ const config: CapacitorConfig = {
   webDir: "mobile/www",
   server: {
     // Override per build (Codemagic) with CAPACITOR_SERVER_URL.
-    url: process.env.CAPACITOR_SERVER_URL || "https://quranlab.app",
+    // Must be the SAME host the site canonically serves on (www) so Supabase
+    // auth cookies match — the rest of the app self-references www.quranlab.app.
+    url: process.env.CAPACITOR_SERVER_URL || "https://www.quranlab.app",
     cleartext: false,
   },
   ios: {

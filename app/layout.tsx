@@ -4,6 +4,7 @@ import Script from "next/script";
 import { Toaster } from "@/components/ui/sonner";
 import { ModalsProvider } from "@/components/modals/modals-provider";
 import { ClientLocaleBoundary } from "@/components/i18n/client-locale-boundary";
+import { WebOnly } from "@/components/web-only";
 
 import "./globals.css";
 
@@ -82,6 +83,11 @@ export default function RootLayout({
           }}
         />
 
+        {/* Advertising pixels (TikTok + Meta) are WEB-ONLY: never loaded in the
+            native iOS shell, so Apple's ATT isn't triggered and the privacy
+            label can declare "data not used to track you". Clarity (below) is
+            first-party UX analytics and stays on both. */}
+        <WebOnly>
         {/* TikTok Pixel — fires ttq.page() on every page load for ad
             attribution and retargeting. Loaded after the page is
             interactive so it never blocks paint. */}
@@ -121,6 +127,7 @@ fbq('track', 'PageView');
             alt=""
           />
         </noscript>
+        </WebOnly>
 
         {/* Microsoft Clarity — heatmaps, scroll maps and session recordings.
             Defaults to the project id; override with NEXT_PUBLIC_CLARITY_ID.

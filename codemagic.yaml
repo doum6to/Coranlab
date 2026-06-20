@@ -20,7 +20,7 @@ workflows:
         bundle_identifier: app.quranlab # must match capacitor.config.ts appId
       vars:
         BUNDLE_ID: "app.quranlab"
-        CAPACITOR_SERVER_URL: "https://quranlab.app" # your live site
+        CAPACITOR_SERVER_URL: "https://www.quranlab.app" # your live site (canonical host)
         XCODE_WORKSPACE: "ios/App/App.xcworkspace"
         XCODE_SCHEME: "App"
         # APP_STORE_APPLE_ID: numeric app id from App Store Connect (set in UI)
