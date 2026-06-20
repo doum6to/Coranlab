@@ -6,7 +6,13 @@ export const metadata: Metadata = {
 };
 
 const CONTACT_EMAIL = "contact@quranlab.app";
-const UPDATED = "18 juin 2026";
+const UPDATED = "20 juin 2026";
+
+// Éditeur (mentions légales)
+const EDITOR_NAME = "Mamadou Traoré";
+const EDITOR_STATUS = "Entrepreneur individuel";
+const EDITOR_SIREN = "884 851 320";
+const EDITOR_ADDRESS = "Avenue du Pavé Neuf, 93160 Noisy-le-Grand, France";
 
 export default function ConditionsPage() {
   return (
@@ -19,9 +25,9 @@ export default function ConditionsPage() {
       <p>
         Les présentes conditions générales (« Conditions ») régissent
         l&apos;utilisation de l&apos;application et du site Quranlab (« le
-        Service »), édités par <strong>[Nom de l&apos;éditeur / société]</strong>,{" "}
-        <strong>[adresse]</strong> (« nous »). En créant un compte ou en
-        utilisant le Service, tu acceptes ces Conditions.
+        Service »), édités par <strong>{EDITOR_NAME}</strong> (
+        {EDITOR_STATUS}, SIREN {EDITOR_SIREN}), {EDITOR_ADDRESS} (« nous »). En
+        créant un compte ou en utilisant le Service, tu acceptes ces Conditions.
       </p>
 
       <h2>1. Le Service</h2>
@@ -120,7 +126,19 @@ export default function ConditionsPage() {
         judiciaire.
       </p>
 
-      <h2>10. Contact</h2>
+      <h2>10. Mentions légales</h2>
+      <p>
+        <strong>Éditeur :</strong> {EDITOR_NAME} — {EDITOR_STATUS}, immatriculé
+        sous le SIREN {EDITOR_SIREN}, dont le siège est situé{" "}
+        {EDITOR_ADDRESS}. Contact :{" "}
+        <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
+      </p>
+      <p>
+        <strong>Hébergeur :</strong> Vercel Inc., 340 S Lemon Ave #4133, Walnut,
+        CA 91789, États-Unis — <a href="https://vercel.com">vercel.com</a>.
+      </p>
+
+      <h2>11. Contact</h2>
       <p>
         Pour toute question :{" "}
         <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.

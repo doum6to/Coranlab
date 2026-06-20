@@ -6,7 +6,13 @@ export const metadata: Metadata = {
 };
 
 const CONTACT_EMAIL = "contact@quranlab.app";
-const UPDATED = "18 juin 2026";
+const UPDATED = "20 juin 2026";
+
+// Responsable du traitement
+const EDITOR_NAME = "Mamadou Traoré";
+const EDITOR_STATUS = "Entrepreneur individuel";
+const EDITOR_SIREN = "884 851 320";
+const EDITOR_ADDRESS = "Avenue du Pavé Neuf, 93160 Noisy-le-Grand, France";
 
 export default function ConfidentialitePage() {
   return (
@@ -21,8 +27,8 @@ export default function ConfidentialitePage() {
         collectées lorsque tu utilises l&apos;application et le site Quranlab
         (ci-après « le Service »), pourquoi elles le sont, et quels sont tes
         droits. Le responsable du traitement est{" "}
-        <strong>[Nom de l&apos;éditeur / société]</strong>,{" "}
-        <strong>[adresse]</strong>. Pour toute question :{" "}
+        <strong>{EDITOR_NAME}</strong> ({EDITOR_STATUS}, SIREN {EDITOR_SIREN}),{" "}
+        {EDITOR_ADDRESS}. Pour toute question :{" "}
         <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
       </p>
 
