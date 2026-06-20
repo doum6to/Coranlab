@@ -20,35 +20,28 @@ workflows:
       vars:
         BUNDLE_ID: "app.quranlab"
         CAPACITOR_SERVER_URL: "https://www.quranlab.app" # your live site (canonical host)
-        XCODE_WORKSPACE: "ios/App/App.xcworkspace"
+        XCODE_PROJECT: "ios/App/App.xcodeproj" # Capacitor 8 uses SPM — no .xcworkspace
         XCODE_SCHEME: "App"
         # APP_STORE_APPLE_ID: numeric app id from App Store Connect (set in UI)
       node: 22 # Capacitor CLI requires Node >= 22 (installs latest 22.x)
       xcode: latest
-      cocoapods: default
     scripts:
       - name: Install JS dependencies
         script: npm ci
       - name: Generate the native iOS project (Capacitor)
+        # Capacitor 8 uses Swift Package Manager (no Podfile / no CocoaPods);
+        # SPM dependencies resolve automatically during xcodebuild. We only need
+        # to scaffold + sync the project here.
         script: |
           set -ex
-          # Scaffold a CLEAN iOS project if the Xcode project isn't present.
-          # Keying on the .xcodeproj (not just an `ios` dir) avoids skipping
-          # `cap add` when a partial/stray `ios` folder exists; rm -rf is a
-          # no-op on fresh CI and clears any half-made scaffold.
+          # Clean scaffold if the Xcode project isn't present. Keying on the
+          # .xcodeproj (not just an `ios` dir) avoids skipping `cap add` when a
+          # partial/stray `ios` folder exists; rm -rf is a no-op on fresh CI.
           if [ ! -f ios/App/App.xcodeproj/project.pbxproj ]; then
             rm -rf ios
             npx cap add ios
           fi
           npx cap sync ios
-          # Capacitor writes the Podfile to ios/App — fail loudly if it's
-          # missing, so the real cause shows here instead of later at pod install.
-          test -f ios/App/Podfile || { echo "ERROR: ios/App/Podfile missing after 'cap add ios'"; ls -laR ios | head -60; exit 1; }
-      - name: Install CocoaPods
-        script: |
-          set -ex
-          cd ios/App
-          pod install --repo-update
       - name: Set build number
         script: |
           cd ios/App
@@ -71,7 +64,7 @@ workflows:
       - name: Build signed .ipa
         script: |
           xcode-project build-ipa \
-            --workspace "$XCODE_WORKSPACE" \
+            --project "$XCODE_PROJECT" \
             --scheme "$XCODE_SCHEME"
     artifacts:
       - build/ios/ipa/*.ipa
