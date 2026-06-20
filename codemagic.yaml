@@ -23,7 +23,7 @@ workflows:
         XCODE_WORKSPACE: "ios/App/App.xcworkspace"
         XCODE_SCHEME: "App"
         # APP_STORE_APPLE_ID: numeric app id from App Store Connect (set in UI)
-      node: 20
+      node: 22 # Capacitor CLI requires Node >= 22 (installs latest 22.x)
       xcode: latest
       cocoapods: default
     scripts:
