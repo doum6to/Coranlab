@@ -29,13 +29,26 @@ workflows:
     scripts:
       - name: Install JS dependencies
         script: npm ci
-      - name: Generate / sync the iOS project from Capacitor
+      - name: Generate the native iOS project (Capacitor)
         script: |
-          [ -d ios ] || npx cap add ios
+          set -ex
+          # Scaffold a CLEAN iOS project if the Xcode project isn't present.
+          # Keying on the .xcodeproj (not just an `ios` dir) avoids skipping
+          # `cap add` when a partial/stray `ios` folder exists; rm -rf is a
+          # no-op on fresh CI and clears any half-made scaffold.
+          if [ ! -f ios/App/App.xcodeproj/project.pbxproj ]; then
+            rm -rf ios
+            npx cap add ios
+          fi
           npx cap sync ios
+          # Capacitor writes the Podfile to ios/App — fail loudly if it's
+          # missing, so the real cause shows here instead of later at pod install.
+          test -f ios/App/Podfile || { echo "ERROR: ios/App/Podfile missing after 'cap add ios'"; ls -laR ios | head -60; exit 1; }
       - name: Install CocoaPods
         script: |
-          cd ios/App && pod install
+          set -ex
+          cd ios/App
+          pod install --repo-update
       - name: Set build number
         script: |
           cd ios/App
