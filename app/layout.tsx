@@ -83,10 +83,11 @@ export default function RootLayout({
           }}
         />
 
-        {/* Advertising pixels (TikTok + Meta) are WEB-ONLY: never loaded in the
-            native iOS shell, so Apple's ATT isn't triggered and the privacy
-            label can declare "data not used to track you". Clarity (below) is
-            first-party UX analytics and stays on both. */}
+        {/* All third-party trackers (TikTok, Meta, Microsoft Clarity) are
+            WEB-ONLY: never loaded in the native iOS shell, so there is ZERO
+            third-party tracking in the app — Apple's ATT isn't triggered and
+            the privacy label can declare "data not used to track you". They
+            stay fully active on the web. */}
         <WebOnly>
         {/* TikTok Pixel — fires ttq.page() on every page load for ad
             attribution and retargeting. Loaded after the page is
@@ -127,12 +128,12 @@ fbq('track', 'PageView');
             alt=""
           />
         </noscript>
-        </WebOnly>
 
-        {/* Microsoft Clarity — heatmaps, scroll maps and session recordings.
-            Defaults to the project id; override with NEXT_PUBLIC_CLARITY_ID.
-            Loaded with `lazyOnload` so it waits for the browser idle period and
-            never competes with first paint / interactivity. */}
+        {/* Microsoft Clarity — heatmaps, scroll maps, session recordings.
+            WEB-ONLY too (kept inside <WebOnly> so the native shell loads no
+            third-party tracker at all). Defaults to the project id; override
+            with NEXT_PUBLIC_CLARITY_ID. Loaded with `lazyOnload` so it waits for
+            the browser idle period and never competes with first paint. */}
         <Script id="ms-clarity" strategy="lazyOnload">
           {`
 (function(c,l,a,r,i,t,y){
@@ -142,6 +143,7 @@ fbq('track', 'PageView');
 })(window, document, "clarity", "script", "${process.env.NEXT_PUBLIC_CLARITY_ID || "x4b5xmffyi"}");
           `}
         </Script>
+        </WebOnly>
 
         <Toaster />
         <ClientLocaleBoundary>
