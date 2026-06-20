@@ -208,9 +208,11 @@ matcher EXACTEMENT :
   session de chat** → je branche la génération d'icônes Capacitor et je commit, pour
   que le prochain build l'embarque automatiquement.
 
-### g) Export Compliance (à la 1ʳᵉ soumission TestFlight/App Store)
-- App Store Connect te demandera si l'app utilise du chiffrement →
-  réponds **« Non »/exempt** (l'app n'utilise que HTTPS standard).
+### g) Export Compliance — ✅ réglé automatiquement
+- `codemagic.yaml` injecte `ITSAppUsesNonExemptEncryption = false` dans
+  `Info.plist` à chaque build (app en HTTPS/TLS standard → exemptée).
+- App Store Connect ne posera **plus** la question sur TestFlight/soumission.
+  Rien à faire de ton côté.
 
 ### h) Compte démo + premium
 1. Crée le compte **`review@quranlab.app`** depuis l'app (inscription normale).
