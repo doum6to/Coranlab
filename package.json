@@ -60,6 +60,7 @@
     "zustand": "^4.5.2"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^8.4.0",
     "@next/bundle-analyzer": "^16.2.2",
     "@types/node": "^20",

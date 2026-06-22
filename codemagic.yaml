@@ -42,6 +42,17 @@ workflows:
             npx cap add ios
           fi
           npx cap sync ios
+      - name: Generate the app icon (Capacitor Assets)
+        # ios/ is regenerated every build, so (re)generate the AppIcon from the
+        # committed 1024x1024 source (quranlab-icon-1024.png) each time.
+        # @capacitor/assets is a devDep installed by `npm ci`. The source is RGB
+        # without alpha → the output (a single 1024 AppIcon-512@2x.png) is
+        # alpha-free, as Apple requires.
+        script: |
+          set -ex
+          mkdir -p assets
+          cp quranlab-icon-1024.png assets/icon-only.png
+          ./node_modules/.bin/capacitor-assets generate --ios
       - name: Declare export-compliance exemption (HTTPS/TLS only)
         # ios/ is regenerated every build, so inject the key here (after scaffold,
         # before build-ipa). The app only uses standard HTTPS/TLS → exempt, so
