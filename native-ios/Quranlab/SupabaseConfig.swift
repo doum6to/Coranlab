@@ -11,8 +11,8 @@ import Foundation
 /// build stays green with the placeholders; login simply stays inactive until
 /// they're filled (the auth screen shows a notice via `isConfigured`).
 enum SupabaseConfig {
-    static let url = URL(string: "https://REPLACE_ME.supabase.co")!
-    static let anonKey = "REPLACE_ME"
+    static let url = URL(string: "https://pogfkwweomyypasnxieh.supabase.co")!
+    static let anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvZ2Zrd3dlb215eXBhc254aWVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMTk1MzQsImV4cCI6MjA5MDY5NTUzNH0.-r3-Q1icrSsEnW7wg9Agb7Vdcpafn3QU9r3sn__58ek"
 
     /// Web backend — reused for sign-up so we get the SAME behaviour as the web
     /// (auto-confirmed account, signup country, purchase linking).
