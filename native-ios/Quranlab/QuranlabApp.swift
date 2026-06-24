@@ -1,15 +1,16 @@
 import SwiftUI
 
 /// Entry point of the native SwiftUI Quranlab app.
-/// Phase 0: a minimal, guaranteed-to-compile shell to validate the
-/// code → Codemagic (cloud Mac) → TestFlight pipeline without a Mac.
-/// Next phases add Supabase auth, the learn home, lessons, and the
-/// RevenueCat paywall — reusing the existing backend.
+/// Phase 1: Supabase auth (login/sign-up) wired to the existing backend.
+/// Next phases: the learn home, lessons, and the RevenueCat paywall.
 @main
 struct QuranlabApp: App {
+    @StateObject private var session = SessionStore()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
+                .environmentObject(session)
         }
     }
 }
