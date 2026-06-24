@@ -10,7 +10,7 @@ struct RootView: View {
             if session.isLoading {
                 SplashView()
             } else if session.isAuthenticated {
-                HomeView()
+                LearnView(session: session)
             } else {
                 AuthView()
             }

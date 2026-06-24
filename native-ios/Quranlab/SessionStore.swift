@@ -83,6 +83,11 @@ final class SessionStore: ObservableObject {
         await refresh()
     }
 
+    /// Current access token (JWT) for authenticating native API calls.
+    func accessToken() async -> String? {
+        try? await client.auth.session.accessToken
+    }
+
     private func friendly(_ error: Error) -> String {
         let raw = error.localizedDescription.lowercased()
         if raw.contains("invalid") && raw.contains("credential") {

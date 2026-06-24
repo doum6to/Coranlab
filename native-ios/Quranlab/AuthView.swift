@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// Login / sign-up screen — faithful to the web brand (white background, brand
 /// indigo primary, rounded inputs), with native iOS conventions.
