@@ -1,15 +1,12 @@
 import SwiftUI
 
 /// Phase 0 home screen — native SwiftUI, no external SDK yet, so the first
-/// cloud build is guaranteed to compile. Brand palette matches the web app
-/// (deep violet background, green accent).
+/// cloud build is guaranteed to compile. Uses the real brand palette (Theme)
+/// so the very first TestFlight build is already on-brand.
 struct ContentView: View {
-    private let bg = Color(red: 0x2D / 255, green: 0x1F / 255, blue: 0x4F / 255)
-    private let green = Color(red: 0x58 / 255, green: 0xCC / 255, blue: 0x02 / 255)
-
     var body: some View {
         ZStack {
-            bg.ignoresSafeArea()
+            Theme.iconBackground.ignoresSafeArea()
 
             VStack(spacing: 20) {
                 Spacer()
@@ -18,7 +15,7 @@ struct ContentView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 96, height: 96)
-                    .foregroundColor(green)
+                    .foregroundColor(.white)
 
                 Text("Quranlab")
                     .font(.system(size: 40, weight: .heavy, design: .rounded))
@@ -26,7 +23,7 @@ struct ContentView: View {
 
                 Text("Comprendre le Coran, mot à mot")
                     .font(.headline)
-                    .foregroundColor(.white.opacity(0.7))
+                    .foregroundColor(.white.opacity(0.75))
                     .multilineTextAlignment(.center)
 
                 Spacer()
