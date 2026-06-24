@@ -111,3 +111,67 @@ workflows:
         submit_to_testflight: true
         # Flip to true once the listing (screenshots, description) is ready:
         submit_to_app_store: false
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Native SwiftUI app (separate from the Capacitor one above).
+  # Bundle id app.quranlab.native so it can be TestFlight-tested IN PARALLEL
+  # without disturbing the current app.quranlab. The Xcode project is generated
+  # from native-ios/project.yml by XcodeGen (no .xcodeproj committed, no Mac
+  # needed locally). Same signing approach as the Capacitor workflow.
+  # ─────────────────────────────────────────────────────────────────────────
+  ios-native:
+    name: iOS — Quranlab (Native SwiftUI, MVP)
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: codemagic_asc_api_key
+    environment:
+      vars:
+        BUNDLE_ID: "app.quranlab.native"
+      xcode: latest
+    scripts:
+      - name: Install XcodeGen
+        script: brew install xcodegen
+      - name: Generate the Xcode project (XcodeGen)
+        script: |
+          set -ex
+          cd native-ios
+          xcodegen generate
+      - name: Set build number
+        script: |
+          set -ex
+          cd native-ios
+          agvtool new-version -all "$(($PROJECT_BUILD_NUMBER + 1))" || true
+      - name: Set up signing (certificate + App Store profile)
+        # Same robust signing as the Capacitor workflow (see comments there).
+        script: |
+          set -ex
+          keychain initialize
+          KEY=/tmp/cert_private_key.pem
+          if [ -n "$CERTIFICATE_PRIVATE_KEY" ]; then
+            printf '%s' "$CERTIFICATE_PRIVATE_KEY" > "$KEY"
+          else
+            echo "CERTIFICATE_PRIVATE_KEY not set — generating an ephemeral key for this run."
+            openssl genrsa -out "$KEY" 2048
+          fi
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --certificate-key=@file:"$KEY" \
+            --create
+          keychain add-certificates
+          cd native-ios && xcode-project use-profiles
+      - name: Build signed .ipa
+        script: |
+          set -ex
+          cd native-ios
+          xcode-project build-ipa \
+            --project "Quranlab.xcodeproj" \
+            --scheme "Quranlab"
+    artifacts:
+      - native-ios/build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        submit_to_app_store: false
