@@ -1,5 +1,6 @@
 import Foundation
 import Supabase
+import RevenueCat
 
 /// Holds the Supabase session and exposes auth actions to the UI.
 ///
@@ -13,6 +14,7 @@ final class SessionStore: ObservableObject {
     @Published var isLoading = true
     @Published var isAuthenticated = false
     @Published var email: String?
+    @Published var userId: String?
     @Published var errorMessage: String?
 
     let client = SupabaseClient(
@@ -29,10 +31,21 @@ final class SessionStore: ObservableObject {
     func refresh() async {
         if let session = try? await client.auth.session {
             email = session.user.email
+            // Lowercased to match the Supabase user id stored server-side, so
+            // RevenueCat's appUserID lines up with our DB / webhook.
+            let uid = session.user.id.uuidString.lowercased()
+            userId = uid
             isAuthenticated = true
+            if Purchases.isConfigured {
+                _ = try? await Purchases.shared.logIn(uid)
+            }
         } else {
             email = nil
+            userId = nil
             isAuthenticated = false
+            if Purchases.isConfigured {
+                _ = try? await Purchases.shared.logOut()
+            }
         }
     }
 

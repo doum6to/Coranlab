@@ -15,6 +15,9 @@ packages:
   Supabase:
     url: https://github.com/supabase/supabase-swift
     from: "2.0.0"
+  RevenueCat:
+    url: https://github.com/RevenueCat/purchases-ios
+    from: "5.0.0"
 targets:
   Quranlab:
     type: application
@@ -24,6 +27,8 @@ targets:
     dependencies:
       - package: Supabase
         product: Supabase
+      - package: RevenueCat
+        product: RevenueCat
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.quranlab.native

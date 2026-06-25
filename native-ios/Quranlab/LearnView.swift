@@ -6,8 +6,8 @@ import SwiftUI
 struct LearnView: View {
     @EnvironmentObject private var session: SessionStore
     @StateObject private var store: LearnStore
-    @State private var selected: LearnList?
     @State private var lessonToPlay: PlayLesson?
+    @State private var showPaywall = false
 
     private struct PlayLesson: Identifiable { let id: Int }
 
@@ -17,7 +17,7 @@ struct LearnView: View {
 
     private func handleTap(_ list: LearnList) {
         if list.isPremiumLocked {
-            selected = list
+            showPaywall = true
         } else if let id = list.activeLevelId ?? list.levels.first?.id {
             lessonToPlay = PlayLesson(id: id)
         }
@@ -36,6 +36,16 @@ struct LearnView: View {
             .navigationTitle("Apprendre")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    if !store.isPro {
+                        Button { showPaywall = true } label: {
+                            Label("Premium", systemImage: "crown.fill")
+                                .labelStyle(.titleAndIcon)
+                                .font(.subheadline.bold())
+                        }
+                        .tint(Theme.primary)
+                    }
+                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Menu {
                         Button(role: .destructive) {
@@ -51,8 +61,8 @@ struct LearnView: View {
             }
             .refreshable { await store.refresh() }
             .task { await store.loadCacheThenRefresh() }
-            .sheet(item: $selected) { list in
-                ListDetailSheet(list: list)
+            .sheet(isPresented: $showPaywall) {
+                PaywallView { Task { await store.refresh() } }
             }
             .fullScreenCover(item: $lessonToPlay) { play in
                 LessonView(lessonId: play.id, session: session) {
@@ -183,45 +193,5 @@ private struct ListCardView: View {
             .shadow(color: Color.black.opacity(0.05), radius: 6, y: 3)
         }
         .buttonStyle(.plain)
-    }
-}
-
-/// Placeholder detail sheet (Phase 3 = lessons, Phase 4 = paywall).
-private struct ListDetailSheet: View {
-    let list: LearnList
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        VStack(spacing: 16) {
-            Capsule().fill(Theme.border).frame(width: 40, height: 5).padding(.top, 8)
-            Text(list.listTitle).font(.title2.bold()).foregroundColor(Theme.text)
-
-            if list.isPremiumLocked {
-                Image(systemName: "lock.fill").font(.system(size: 44)).foregroundColor(Theme.primary)
-                Text("Cette liste est réservée au Premium.")
-                    .foregroundColor(Theme.muted).multilineTextAlignment(.center)
-                Text("Le paywall natif arrive en Phase 4.")
-                    .font(.footnote).foregroundColor(Theme.muted)
-            } else {
-                Text("\(list.completedLevels)/\(list.totalLevels) niveaux terminés")
-                    .foregroundColor(Theme.muted)
-                List(list.levels) { level in
-                    HStack {
-                        Image(systemName: level.completed ? "checkmark.circle.fill" : "circle")
-                            .foregroundColor(level.completed ? Theme.primary : Theme.border)
-                        Text(level.title.isEmpty ? "Niveau \(level.levelOrder)" : level.title)
-                            .foregroundColor(Theme.text)
-                    }
-                }
-                .listStyle(.plain)
-                Text("Les leçons jouables arrivent en Phase 3.")
-                    .font(.footnote).foregroundColor(Theme.muted)
-            }
-            Spacer()
-            Button("Fermer") { dismiss() }
-                .fontWeight(.semibold).foregroundColor(Theme.primary).padding(.bottom, 24)
-        }
-        .padding(.horizontal, 24)
-        .presentationDetents([.medium, .large])
     }
 }
