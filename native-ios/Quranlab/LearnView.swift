@@ -7,9 +7,20 @@ struct LearnView: View {
     @EnvironmentObject private var session: SessionStore
     @StateObject private var store: LearnStore
     @State private var selected: LearnList?
+    @State private var lessonToPlay: PlayLesson?
+
+    private struct PlayLesson: Identifiable { let id: Int }
 
     init(session: SessionStore) {
         _store = StateObject(wrappedValue: LearnStore(session: session))
+    }
+
+    private func handleTap(_ list: LearnList) {
+        if list.isPremiumLocked {
+            selected = list
+        } else if let id = list.activeLevelId ?? list.levels.first?.id {
+            lessonToPlay = PlayLesson(id: id)
+        }
     }
 
     var body: some View {
@@ -42,6 +53,11 @@ struct LearnView: View {
             .task { await store.loadCacheThenRefresh() }
             .sheet(item: $selected) { list in
                 ListDetailSheet(list: list)
+            }
+            .fullScreenCover(item: $lessonToPlay) { play in
+                LessonView(lessonId: play.id, session: session) {
+                    Task { await store.refresh() }
+                }
             }
         }
         .tint(Theme.primary)
@@ -90,7 +106,7 @@ struct LearnView: View {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 12) {
                                 ForEach(unit.lists) { list in
-                                    ListCardView(list: list) { selected = list }
+                                    ListCardView(list: list) { handleTap(list) }
                                 }
                             }
                             .padding(.horizontal, 16)
