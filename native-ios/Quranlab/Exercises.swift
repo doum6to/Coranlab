@@ -428,7 +428,6 @@ struct OptionList: View {
         .frame(maxWidth: 440)
     }
 
-    @ViewBuilder
     private func row(_ o: NativeOption, number: Int) -> some View {
         let isSel = selectedId == o.id
         var border = Theme.cardBorder, bg = Color.white, fg = Theme.text
@@ -445,7 +444,7 @@ struct OptionList: View {
             : (revealed && o.correct) ? Theme.green
             : (revealed && isSel) ? Theme.wrongText : Theme.muted
 
-        Button { onSelect(o.id) } label: {
+        return Button { onSelect(o.id) } label: {
             HStack(spacing: 12) {
                 Text("\(number)")
                     .font(.system(size: 12, weight: .bold)).foregroundColor(badgeColor)
@@ -495,7 +494,6 @@ struct VraiFauxView: View {
         }
     }
 
-    @ViewBuilder
     private func bigButton(_ label: String, _ o: NativeOption) -> some View {
         let isSel = store.selectedOptionId == o.id
         let revealed = store.status != .idle
@@ -506,7 +504,7 @@ struct VraiFauxView: View {
             else if isSel { border = Theme.wrongBorder; bg = Theme.wrongBg; fg = Theme.wrongText; lip = nil }
             else { dim = true }
         } else if isSel { border = Theme.green; bg = Theme.selectionBg; fg = Theme.green; lip = nil }
-        Button { store.select(o.id) } label: {
+        return Button { store.select(o.id) } label: {
             Text(label).font(.system(size: 20, weight: .bold)).foregroundColor(fg)
                 .frame(maxWidth: .infinity, minHeight: 72)
                 .modifier(SurfaceMod(bg: bg, border: border, lip: lip))
