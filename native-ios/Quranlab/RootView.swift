@@ -4,10 +4,13 @@ import SwiftUI
 /// depending on the Supabase session.
 struct RootView: View {
     @EnvironmentObject var session: SessionStore
+    @AppStorage("onboardingDone") private var onboardingDone = false
 
     var body: some View {
         Group {
-            if session.isLoading {
+            if !onboardingDone {
+                OnboardingView { onboardingDone = true }
+            } else if session.isLoading {
                 SplashView()
             } else if session.isAuthenticated {
                 MainTabView(session: session)

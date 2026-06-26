@@ -43,7 +43,7 @@ struct FlashRecallMemorize: View {
 // (product "RiveRuntime") and swap the Image for RiveViewModel(...).view().
 struct MascotView: View {
     var size: CGFloat = 120
-    var asset: String = "mascot"
+    var asset: String = "koji"
     @State private var up = false
     var body: some View {
         Image(asset)
