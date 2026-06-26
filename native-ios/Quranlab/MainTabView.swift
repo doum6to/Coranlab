@@ -27,25 +27,25 @@ struct MainTabView: View {
                       onPremium: { showPaywall = true },
                       onGoLecons: { selection = 1 })
                 .tag(0)
-                .tabItem { tab("learn", "Apprendre") }
+                .tabItem { tab("nav_home", "Apprendre") }
 
             LeconsView(store: learn, onPlay: play,
                        onPremium: { showPaywall = true })
                 .tag(1)
-                .tabItem { tab("lecons", "Leçons") }
+                .tabItem { tab("nav_cours", "Leçons") }
 
             LeaderboardView()
                 .tag(2)
-                .tabItem { tab("leaderboard", "Classement") }
+                .tabItem { tab("nav_leaderboard", "Classement") }
 
             QuestsView(store: learn)
                 .tag(3)
-                .tabItem { tab("quests", "Quêtes") }
+                .tabItem { tab("nav_quests", "Quêtes") }
 
             SettingsScreen()
                 .environmentObject(session)
                 .tag(4)
-                .tabItem { Label("Réglages", systemImage: "gearshape.fill") }
+                .tabItem { tab("nav_settings", "Réglages") }
         }
         .tint(Theme.green)
         .sheet(isPresented: $showPaywall) {

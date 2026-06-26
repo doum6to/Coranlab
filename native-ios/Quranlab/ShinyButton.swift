@@ -14,7 +14,6 @@ struct ShinyButton: View {
     var action: () -> Void = {}
 
     @State private var pressed = false
-    @State private var shine = false
 
     private var bg: Color {
         switch variant {
@@ -58,16 +57,26 @@ struct ShinyButton: View {
                         RoundedRectangle(cornerRadius: Theme.radius, style: .continuous)
                             .stroke(Theme.green, lineWidth: 2)
                     }
-                    // shine sweep
+                    // shine sweep — a single diagonal pass every few seconds
+                    // (mirrors the web's spaced "shinySweep", not a constant loop)
                     if variant != .gray {
                         GeometryReader { geo in
-                            LinearGradient(
-                                colors: [.white.opacity(0), .white.opacity(0.35), .white.opacity(0)],
-                                startPoint: .top, endPoint: .bottom
-                            )
-                            .frame(width: geo.size.width * 0.45)
-                            .rotationEffect(.degrees(18))
-                            .offset(x: shine ? geo.size.width * 0.8 : -geo.size.width * 0.8)
+                            TimelineView(.animation) { tl in
+                                let period = 4.5
+                                let t = tl.date.timeIntervalSinceReferenceDate
+                                    .truncatingRemainder(dividingBy: period) / period
+                                let sweepStart = 0.72
+                                let p = t < sweepStart ? 0 : (t - sweepStart) / (1 - sweepStart)
+                                let x = (-1.3 + 2.6 * p) * geo.size.width
+                                LinearGradient(
+                                    colors: [.white.opacity(0), .white.opacity(0.35), .white.opacity(0)],
+                                    startPoint: .top, endPoint: .bottom
+                                )
+                                .frame(width: geo.size.width * 0.5)
+                                .rotationEffect(.degrees(18))
+                                .offset(x: x)
+                                .opacity(t < sweepStart ? 0 : 1)
+                            }
                             .allowsHitTesting(false)
                         }
                         .clipShape(RoundedRectangle(cornerRadius: Theme.radius, style: .continuous))
@@ -85,12 +94,6 @@ struct ShinyButton: View {
             .contentShape(Rectangle())
             .onTapGesture { if !isInert { action() } }
             ._onPressGesture { p in if !isInert { withAnimation(.easeOut(duration: 0.1)) { pressed = p } } }
-            .onAppear {
-                guard variant != .gray else { return }
-                withAnimation(.easeInOut(duration: 1).repeatForever(autoreverses: false).delay(0.5)) {
-                    shine = true
-                }
-            }
     }
 }
 
