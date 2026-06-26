@@ -29,7 +29,7 @@ struct MainTabView: View {
                 .tag(0)
                 .tabItem { tab("nav_home", "Apprendre") }
 
-            LeconsView(store: learn, onPlay: play,
+            LeconsView(store: learn, session: session,
                        onPremium: { showPaywall = true })
                 .tag(1)
                 .tabItem { tab("nav_cours", "Leçons") }

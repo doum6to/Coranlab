@@ -22,14 +22,21 @@ struct LearnView: View {
 // we reuse the faithful feed without the "Réviser" shortcut).
 struct LeconsView: View {
     @ObservedObject var store: LearnStore
-    var onPlay: (LearnList) -> Void
+    let session: SessionStore
     var onPremium: () -> Void
+    @State private var reviewTarget: ReviewTarget?
 
     var body: some View {
         LearnFeed(store: store,
                   title: "Leçons",
                   showReviser: false,
-                  onPlay: onPlay,
+                  onPlay: { list in
+                      let unit = store.units.first { $0.lists.contains(where: { $0.listId == list.listId }) }
+                      reviewTarget = ReviewTarget(id: list.listId, list: list, unitTitle: unit?.title ?? "")
+                  },
                   onPremium: onPremium)
+            .fullScreenCover(item: $reviewTarget) { t in
+                LeconsReviewView(target: t, session: session)
+            }
     }
 }
