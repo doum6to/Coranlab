@@ -151,7 +151,14 @@ workflows:
           keychain initialize
           KEY=/tmp/cert_private_key.pem
           if [ -n "$CERTIFICATE_PRIVATE_KEY" ]; then
-            printf '%s' "$CERTIFICATE_PRIVATE_KEY" > "$KEY"
+            # Accept raw PEM or base64-encoded PEM. Base64 avoids the newline
+            # mangling that CI env-var fields do to multi-line keys (the usual
+            # cause of "Provided value ... is not valid").
+            if printf '%s' "$CERTIFICATE_PRIVATE_KEY" | grep -q "BEGIN"; then
+              printf '%s' "$CERTIFICATE_PRIVATE_KEY" > "$KEY"
+            else
+              printf '%s' "$CERTIFICATE_PRIVATE_KEY" | base64 --decode > "$KEY"
+            fi
           else
             echo "CERTIFICATE_PRIVATE_KEY not set — generating an ephemeral key for this run."
             openssl genrsa -out "$KEY" 2048
