@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// Top-level router: splash while loading, then auth or home depending on the
-/// Supabase session.
+/// Top-level router: splash while loading, then auth or the main tab bar
+/// depending on the Supabase session.
 struct RootView: View {
     @EnvironmentObject var session: SessionStore
 
@@ -10,13 +10,11 @@ struct RootView: View {
             if session.isLoading {
                 SplashView()
             } else if session.isAuthenticated {
-                LearnView(session: session)
+                MainTabView(session: session)
             } else {
                 AuthView()
             }
         }
-        .task {
-            await session.bootstrap()
-        }
+        .task { await session.bootstrap() }
     }
 }

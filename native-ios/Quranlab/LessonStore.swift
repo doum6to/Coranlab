@@ -85,6 +85,19 @@ final class LessonStore: ObservableObject {
         }
     }
 
+
+    /// Self-contained exercises (matching/flashcard/anagram) report their own
+    /// result instead of going through select()/check().
+    func markCorrect() {
+        guard status == .idle else { return }
+        status = .correct
+        correctCount += 1
+    }
+    func markWrong() {
+        guard status == .idle else { return }
+        status = .wrong
+    }
+
     private func finish() async {
         guard let token = await session.accessToken() else {
             finished = true
