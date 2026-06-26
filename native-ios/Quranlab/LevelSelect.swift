@@ -6,6 +6,7 @@ struct LevelSelectView: View {
     @Environment(\.dismiss) private var dismiss
     let target: ReviewTarget
     let session: SessionStore
+    var isPro: Bool = false
     var onRefresh: () -> Void
 
     @State private var lessonToPlay: PlayLevel?
@@ -43,7 +44,7 @@ struct LevelSelectView: View {
             .navigationBarTitleDisplayMode(.inline)
         }
         .fullScreenCover(item: $lessonToPlay) { p in
-            LessonView(lessonId: p.id, session: session) { onRefresh() }
+            LessonView(lessonId: p.id, session: session, isPro: isPro) { onRefresh() }
         }
     }
 

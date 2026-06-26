@@ -73,7 +73,7 @@ struct LeconsReviewView: View {
                 VStack(spacing: 24) {
                     header
                     if store.isLoading {
-                        ProgressView().tint(Theme.green).padding(.top, 40)
+                        LoadingView().padding(.top, 40)
                     } else if let e = store.errorMessage {
                         Text(e).foregroundColor(Theme.muted).padding(.top, 40)
                     } else {

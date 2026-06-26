@@ -20,7 +20,7 @@ struct LearnView: View {
                   },
                   onPremium: onPremium)
             .fullScreenCover(item: $selected) { t in
-                LevelSelectView(target: t, session: session,
+                LevelSelectView(target: t, session: session, isPro: store.isPro,
                                 onRefresh: { Task { await store.refresh() } })
             }
     }

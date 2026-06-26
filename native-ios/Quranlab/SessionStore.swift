@@ -96,6 +96,29 @@ final class SessionStore: ObservableObject {
         await refresh()
     }
 
+    /// Social sign-in entry points. Wiring requires the Apple/Google providers
+    /// to be enabled in Supabase Auth (OAuth) — until then we surface a clear
+    /// message instead of failing silently.
+    func signInWithApple() async {
+        errorMessage = "Connexion Apple bientôt disponible."
+    }
+    func signInWithGoogle() async {
+        errorMessage = "Connexion Google bientôt disponible."
+    }
+
+    /// Sends a password-reset email via Supabase.
+    @discardableResult
+    func resetPassword(email: String) async -> Bool {
+        do {
+            try await client.auth.resetPasswordForEmail(email)
+            errorMessage = nil
+            return true
+        } catch {
+            errorMessage = friendly(error)
+            return false
+        }
+    }
+
     /// Current access token (JWT) for authenticating native API calls.
     func accessToken() async -> String? {
         try? await client.auth.session.accessToken

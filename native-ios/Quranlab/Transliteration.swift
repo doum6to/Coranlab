@@ -24,7 +24,9 @@ enum Transliteration {
     static func ar(_ text: String) -> String {
         var result: [String] = []
         for word in text.split(separator: " ", omittingEmptySubsequences: true) {
-            result.append(word2(Array(word)))
+            // decompose into scalars so harakat (combining marks) are read separately
+            let scalars = word.unicodeScalars.map { Character($0) }
+            result.append(word2(scalars))
         }
         return result.joined(separator: " ")
     }

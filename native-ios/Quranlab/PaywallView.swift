@@ -78,14 +78,36 @@ struct PaywallView: View {
         .padding(.top, 36)
     }
 
+    private let comparison: [(String, Bool)] = [
+        ("Première leçon", true),
+        ("Accès à toutes les leçons", false),
+        ("Apprentissage illimité", false),
+        ("Sans publicités", false),
+        ("Pratique personnalisée", false),
+        ("Accès à tous les cours", false),
+    ]
+
+    // Comparison table (Gratuit vs Premium) — faithful to the web paywall.
     private var perksList: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            ForEach(perks, id: \.self) { p in
-                HStack(spacing: 10) {
-                    Image(systemName: "checkmark.circle.fill").foregroundColor(Theme.primary)
-                    Text(p).foregroundColor(Theme.text)
+        VStack(spacing: 0) {
+            HStack {
+                Text("Avantages").font(.system(size: 13, weight: .bold)).foregroundColor(Theme.text)
+                Spacer()
+                Text("Gratuit").font(.system(size: 12, weight: .semibold)).foregroundColor(Theme.muted).frame(width: 60)
+                Text("Premium").font(.system(size: 12, weight: .bold)).foregroundColor(Theme.text).frame(width: 70)
+            }
+            .padding(.bottom, 8)
+            ForEach(Array(comparison.enumerated()), id: \.offset) { _, row in
+                HStack {
+                    Text(row.0).font(.system(size: 14)).foregroundColor(Theme.text)
                     Spacer()
+                    Image(systemName: row.1 ? "checkmark.circle.fill" : "xmark.circle.fill")
+                        .foregroundColor(row.1 ? Theme.yellow : Theme.muted.opacity(0.5))
+                        .frame(width: 60)
+                    Image(systemName: "checkmark.circle.fill").foregroundColor(Theme.yellow).frame(width: 70)
                 }
+                .padding(.vertical, 11)
+                Divider().background(Theme.border)
             }
         }
     }

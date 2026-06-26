@@ -50,3 +50,11 @@ struct MascotView: View {
             .frame(width: size, height: size)
     }
 }
+
+/// Real loading indicator using the bundled loading.riv (Koji loader).
+struct LoadingView: View {
+    var size: CGFloat = 96
+    var body: some View {
+        RiveMascot("loading").frame(width: size, height: size)
+    }
+}

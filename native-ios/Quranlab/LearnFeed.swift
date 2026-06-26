@@ -141,21 +141,74 @@ struct LearnFeed: View {
     var onPlay: (LearnList) -> Void
     var onPremium: () -> Void
 
+    private var overallPercent: Int {
+        var total = 0, done = 0
+        for u in store.units { for l in u.lists { total += l.totalLevels; done += l.completedLevels } }
+        return total > 0 ? Int(Double(done) / Double(total) * 100) : 0
+    }
+
+    private var premiumNudge: some View {
+        Button { onPremium() } label: {
+            HStack(spacing: 12) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12).fill(Theme.premiumGradient).frame(width: 44, height: 44)
+                    Image(systemName: "sparkles").foregroundColor(.white).font(.system(size: 18, weight: .bold))
+                }
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Continue ta progression").font(.system(size: 15, weight: .bold)).foregroundColor(Theme.text)
+                    Text("Tu comprends déjà \(overallPercent)% — débloque tout")
+                        .font(.system(size: 12)).foregroundColor(Theme.muted).lineLimit(1)
+                    GeometryReader { g in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(Theme.border)
+                            Capsule().fill(Theme.premiumGradient).frame(width: max(6, g.size.width * CGFloat(overallPercent) / 100))
+                        }
+                    }.frame(height: 5)
+                }
+                Text("Premium").font(.system(size: 13, weight: .bold)).foregroundColor(.white)
+                    .padding(.horizontal, 12).padding(.vertical, 8)
+                    .background(Capsule().fill(Theme.dark))
+            }
+            .padding(12)
+            .background(RoundedRectangle(cornerRadius: Theme.radius).fill(Color.white))
+            .overlay(
+                RoundedRectangle(cornerRadius: Theme.radius)
+                    .stroke(LinearGradient(colors: [Color(hex: 0xF7C325), Color(hex: 0xE350E3), Color(hex: 0x456DFF)], startPoint: .leading, endPoint: .trailing), lineWidth: 2)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-            // White sticky header with centered logo (header.tsx)
-            HStack { Spacer()
-                Image("quranlab_logo").resizable().scaledToFit().frame(height: 26)
+            // White sticky header: logo + "Devenir Premium" (non-pro)
+            HStack(spacing: 10) {
+                Image("quranlab_logo").resizable().scaledToFit().frame(height: 24)
                 Spacer()
+                if !store.isPro {
+                    Button { onPremium() } label: {
+                        Text("Devenir Premium")
+                            .font(.system(size: 13, weight: .bold)).foregroundColor(.white)
+                            .padding(.horizontal, 14).padding(.vertical, 8)
+                            .background(Capsule().fill(Theme.premiumGradient))
+                            .overlay(Capsule().fill(Color.black.opacity(0.12)).frame(height: 3).offset(y: 11), alignment: .bottom)
+                            .clipShape(Capsule())
+                    }
+                }
             }
+            .padding(.horizontal, 16)
             .padding(.bottom, 12)
             .background(Color.white)
             .overlay(Rectangle().fill(Theme.border).frame(height: 1), alignment: .bottom)
 
+            if !store.isPro && !lecons && !store.units.isEmpty {
+                premiumNudge.padding(.horizontal, 16).padding(.top, 12)
+            }
+
             if store.units.isEmpty {
                 Spacer()
                 if store.isLoading {
-                    ProgressView().tint(Theme.green)
+                    LoadingView()
                 } else {
                     VStack(spacing: 8) {
                         Image(systemName: "wifi.exclamationmark")

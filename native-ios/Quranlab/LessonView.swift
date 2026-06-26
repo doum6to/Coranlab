@@ -8,18 +8,21 @@ struct LessonView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var store: LessonStore
     let onFinish: () -> Void
+    var isPro: Bool = false
     @State private var recallRevealed = false
+    @State private var showPaywall = false
 
-    init(lessonId: Int, session: SessionStore, onFinish: @escaping () -> Void) {
+    init(lessonId: Int, session: SessionStore, isPro: Bool = false, onFinish: @escaping () -> Void) {
         _store = StateObject(wrappedValue: LessonStore(lessonId: lessonId, session: session))
         self.onFinish = onFinish
+        self.isPro = isPro
     }
 
     var body: some View {
         ZStack {
             Color.white.ignoresSafeArea()
             if store.isLoading {
-                ProgressView().tint(Theme.green)
+                LoadingView()
             } else if store.finished {
                 finishedView
             } else if let challenge = store.current {
@@ -30,6 +33,7 @@ struct LessonView: View {
         }
         .task { await store.load() }
         .onChange(of: store.index) { _ in recallRevealed = false }
+        .sheet(isPresented: $showPaywall) { PaywallView { onFinish(); dismiss() } }
     }
 
     // MARK: - Quiz (routes by exercise type; content vertically centered)
@@ -215,8 +219,19 @@ struct LessonView: View {
             }
             Spacer()
             if passed {
-                ShinyButton(title: "Continuer", variant: .green) { onFinish(); dismiss() }
+                if isPro {
+                    ShinyButton(title: "Continuer", variant: .green) { onFinish(); dismiss() }
+                        .padding(.horizontal, 20).padding(.bottom, 24)
+                } else {
+                    VStack(spacing: 10) {
+                        Text("Débloque toutes les leçons avec Premium")
+                            .font(.system(size: 14, weight: .semibold)).foregroundColor(Theme.muted)
+                            .multilineTextAlignment(.center)
+                        ShinyButton(title: "Devenir Premium", variant: .green) { showPaywall = true }
+                        ShinyButton(title: "Pas maintenant", variant: .outlineGreen) { onFinish(); dismiss() }
+                    }
                     .padding(.horizontal, 20).padding(.bottom, 24)
+                }
             } else {
                 VStack(spacing: 10) {
                     ShinyButton(title: "Recommencer", variant: .green) {
