@@ -6,6 +6,7 @@ import Foundation
 final class LearnStore: ObservableObject {
     @Published var units: [LearnUnit] = []
     @Published var isPro = false
+    @Published var streak = 0
     @Published var isLoading = false
     @Published var errorMessage: String?
 
@@ -27,6 +28,7 @@ final class LearnStore: ObservableObject {
            let cached = try? JSONDecoder().decode(LearnResponse.self, from: data) {
             units = cached.units
             isPro = cached.isPro
+            streak = cached.streak ?? 0
         }
         await refresh()
     }
@@ -60,6 +62,7 @@ final class LearnStore: ObservableObject {
             let decoded = try JSONDecoder().decode(LearnResponse.self, from: data)
             units = decoded.units
             isPro = decoded.isPro
+            streak = decoded.streak ?? 0
             try? data.write(to: cacheURL, options: .atomic)
         } catch {
             // Keep showing cached data; only surface an error if we have nothing.

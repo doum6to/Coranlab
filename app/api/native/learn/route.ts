@@ -48,7 +48,7 @@ export async function GET(req: Request) {
     where: eq(userProgress.userId, userId),
   });
   if (!up?.activeCourseId) {
-    return NextResponse.json({ isPro: false, units: [] });
+    return NextResponse.json({ isPro: false, units: [], streak: up?.streak ?? 0, streakCharges: 0, points: 0 });
   }
 
   // 3. Subscription → isPro (same rule as getUserSubscription().isActive).
@@ -173,5 +173,11 @@ export async function GET(req: Request) {
     };
   });
 
-  return NextResponse.json({ isPro, units: result });
+  return NextResponse.json({
+    isPro,
+    units: result,
+    streak: up.streak ?? 0,
+    streakCharges: up.streakCharges ?? 0,
+    points: up.points ?? 0,
+  });
 }

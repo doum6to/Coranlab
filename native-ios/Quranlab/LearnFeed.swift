@@ -193,6 +193,10 @@ struct LearnFeed: View {
                             .background(PremiumFill().clipShape(Capsule()))
                     }
                 }
+                HStack(spacing: 4) {
+                    Image(systemName: "flame.fill").font(.system(size: 15)).foregroundColor(Theme.orange)
+                    Text("\(store.streak)").font(.system(size: 15, weight: .bold)).foregroundColor(Theme.text)
+                }
             }
             .padding(.horizontal, 16)
             .padding(.bottom, 12)

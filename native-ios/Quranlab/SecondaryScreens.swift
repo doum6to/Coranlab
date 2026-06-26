@@ -16,48 +16,110 @@ private struct ScreenHeader: View {
 
 // MARK: - Classement (leaderboard.tsx — league tiers shell)
 struct LeaderboardView: View {
-    private let tiers = ["NIYYA","IQRA","TALIB","TARTIL","TAJWID","QARI","TADABBUR","HAFIZ","MUTQIN","FIRDAUS"]
+    @StateObject private var store: LeaderboardStore
+    init(session: SessionStore) { _store = StateObject(wrappedValue: LeaderboardStore(session: session)) }
+
     var body: some View {
         VStack(spacing: 0) {
             ScreenHeader(title: "Classement")
             ScrollView(showsIndicators: false) {
-                VStack(spacing: 16) {
-                    // Join card (league-join-view.tsx)
-                    VStack(spacing: 12) {
-                        Image("leaderboard").renderingMode(.template).resizable().scaledToFit()
-                            .frame(width: 56, height: 56).foregroundColor(Theme.green)
-                        Text("Rejoins une ligue").font(.system(size: 18, weight: .bold)).headingStyle()
-                        Text("Gagne de l'XP cette semaine pour grimper dans les rangs et débloquer la ligue supérieure.")
-                            .font(.system(size: 13)).foregroundColor(Theme.muted)
-                            .multilineTextAlignment(.center)
-                        ShinyButton(title: "Rejoindre", variant: .green)
+                Group {
+                    if store.isLoading {
+                        LoadingView().padding(.top, 60)
+                    } else if let r = store.resp, r.joined {
+                        joined(r)
+                    } else if let r = store.resp {
+                        notJoined(r)
+                    } else if let e = store.errorMessage {
+                        Text(e).foregroundColor(Theme.muted).padding(.top, 60)
                     }
-                    .padding(20)
-                    .cardSurface()
-
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Les ligues").font(.system(size: 15, weight: .bold)).headingStyle()
-                        ForEach(Array(tiers.enumerated()), id: \.offset) { i, name in
-                            HStack(spacing: 12) {
-                                ZStack {
-                                    Circle().fill(Theme.surface).frame(width: 34, height: 34)
-                                    Text("\(i+1)").font(.system(size: 13, weight: .bold)).foregroundColor(Theme.green)
-                                }
-                                Text(name).font(.system(size: 14, weight: .semibold)).foregroundColor(Theme.text)
-                                Spacer()
-                                if i == 0 { Text("Actuelle").font(.system(size: 11, weight: .bold))
-                                    .foregroundColor(Theme.green) }
-                            }
-                            if i < tiers.count - 1 { Divider().background(Theme.border) }
-                        }
-                    }
-                    .padding(18)
-                    .cardSurface()
                 }
                 .padding(16)
             }
         }
         .background(Color.white.ignoresSafeArea())
+        .task { await store.load() }
+        .refreshable { await store.load() }
+    }
+
+    // MARK: joined — tier banner + ranked members
+    @ViewBuilder
+    private func joined(_ r: LeaderboardResponse) -> some View {
+        VStack(spacing: 16) {
+            HStack(spacing: 12) {
+                Image(systemName: "trophy.fill").font(.system(size: 24)).foregroundColor(Theme.yellow)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Ligue \(r.tierLabel ?? "")").font(.system(size: 18, weight: .bold)).headingStyle()
+                    Text("Classement de la semaine").font(.system(size: 13)).foregroundColor(Theme.muted)
+                }
+                Spacer()
+            }
+            .padding(18).cardSurface()
+
+            VStack(spacing: 0) {
+                let members = r.members ?? []
+                ForEach(Array(members.enumerated()), id: \.element.id) { idx, m in
+                    HStack(spacing: 12) {
+                        ZStack {
+                            Circle().fill(rankColor(m.rank)).frame(width: 32, height: 32)
+                            Text("\(m.rank)").font(.system(size: 13, weight: .bold))
+                                .foregroundColor(m.rank <= 3 ? .white : Theme.muted)
+                        }
+                        Text(m.isCurrentUser ? "\(m.name) (toi)" : m.name)
+                            .font(.system(size: 15, weight: m.isCurrentUser ? .bold : .semibold))
+                            .foregroundColor(Theme.text).lineLimit(1)
+                        Spacer()
+                        Text("\(m.weeklyXp) XP").font(.system(size: 14, weight: .bold)).foregroundColor(Theme.green)
+                    }
+                    .padding(.vertical, 11).padding(.horizontal, 12)
+                    .background(m.isCurrentUser ? Theme.selectionBg : Color.clear)
+                    .cornerRadius(10)
+                    if idx < members.count - 1 { Divider().background(Theme.border) }
+                }
+            }
+            .padding(8).cardSurface()
+        }
+    }
+
+    private func rankColor(_ rank: Int) -> Color {
+        switch rank {
+        case 1: return Theme.yellow
+        case 2: return Color(hex: 0xC0C0C0)
+        case 3: return Color(hex: 0xCD7F32)
+        default: return Theme.surface
+        }
+    }
+
+    // MARK: not joined — invitation + tier ladder
+    @ViewBuilder
+    private func notJoined(_ r: LeaderboardResponse) -> some View {
+        VStack(spacing: 16) {
+            VStack(spacing: 12) {
+                Image("leaderboard").renderingMode(.template).resizable().scaledToFit()
+                    .frame(width: 56, height: 56).foregroundColor(Theme.green)
+                Text("Rejoins une ligue").font(.system(size: 18, weight: .bold)).headingStyle()
+                Text("Gagne de l'XP cette semaine en terminant des niveaux : tu seras automatiquement placé dans une ligue et tu pourras grimper dans les rangs.")
+                    .font(.system(size: 13)).foregroundColor(Theme.muted).multilineTextAlignment(.center)
+            }
+            .padding(20).cardSurface()
+
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Les ligues").font(.system(size: 15, weight: .bold)).headingStyle()
+                let tiers = r.tiers ?? []
+                ForEach(Array(tiers.enumerated()), id: \.element.id) { i, t in
+                    HStack(spacing: 12) {
+                        ZStack {
+                            Circle().fill(Theme.surface).frame(width: 34, height: 34)
+                            Text("\(i+1)").font(.system(size: 13, weight: .bold)).foregroundColor(Theme.green)
+                        }
+                        Text(t.label).font(.system(size: 14, weight: .semibold)).foregroundColor(Theme.text)
+                        Spacer()
+                    }
+                    if i < tiers.count - 1 { Divider().background(Theme.border) }
+                }
+            }
+            .padding(18).cardSurface()
+        }
     }
 }
 

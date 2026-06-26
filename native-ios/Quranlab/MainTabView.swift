@@ -26,7 +26,7 @@ struct MainTabView: View {
                 .tag(1)
                 .tabItem { tab("nav_cours", "Leçons") }
 
-            LeaderboardView()
+            LeaderboardView(session: session)
                 .tag(2)
                 .tabItem { tab("nav_leaderboard", "Classement") }
 

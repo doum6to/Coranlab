@@ -5,6 +5,9 @@ import Foundation
 struct LearnResponse: Codable {
     let isPro: Bool
     let units: [LearnUnit]
+    let streak: Int?
+    let streakCharges: Int?
+    let points: Int?
 }
 
 struct LearnUnit: Codable, Identifiable {
