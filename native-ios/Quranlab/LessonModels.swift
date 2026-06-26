@@ -18,7 +18,7 @@ struct NativeChallenge: Codable, Identifiable {
     /// (flashcard, matching, anagram, drag-drop) get a simplified card for now
     /// and dedicated UIs in a later pass.
     private static let mcTypes: Set<String> = [
-        "QCM", "QCM_INVERSE", "VRAI_FAUX", "OPPOSITE", "CONFIDENCE_BET", "SPOT_THE_ERROR",
+        "QCM", "QCM_INVERSE", "VRAI_FAUX", "OPPOSITE", "CONFIDENCE_BET", "SPOT_THE_ERROR", "DRAG_DROP", "FLASH_RECALL",
     ]
 
     var isMultipleChoice: Bool {

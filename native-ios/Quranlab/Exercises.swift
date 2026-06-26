@@ -1,16 +1,19 @@
 import SwiftUI
 
 // MARK: - Exercise routing
-enum ExerciseKind { case mc, matching, flashcard, anagram, flashRecall }
+enum ExerciseKind { case mc, opposite, vraiFaux, confidenceBet, matching, flashcard, anagram, flashRecall }
 
 extension NativeChallenge {
     var kind: ExerciseKind {
         switch type {
-        case "MATCHING":     return .matching
-        case "FLASHCARD":    return .flashcard
-        case "ANAGRAM":      return .anagram
-        case "FLASH_RECALL": return .flashRecall
-        default:             return .mc
+        case "MATCHING":      return .matching
+        case "FLASHCARD":     return .flashcard
+        case "ANAGRAM":       return .anagram
+        case "FLASH_RECALL":  return .flashRecall
+        case "VRAI_FAUX":     return .vraiFaux
+        case "CONFIDENCE_BET":return .confidenceBet
+        case "OPPOSITE":      return .opposite
+        default:              return .mc   // QCM, QCM_INVERSE, DRAG_DROP, SPOT_THE_ERROR
         }
     }
     /// Pairs used by matching / flashcard (options carrying both texts).
@@ -372,5 +375,203 @@ struct FlowRow: Layout {
             v.place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(s))
             x += s.width + spacing; rowH = max(rowH, s.height)
         }
+    }
+}
+
+// MARK: - Shared exercise pieces (faithful to qcm.tsx / vrai-faux.tsx)
+
+/// White bordered box holding the Arabic prompt (boxShadow 0 4px 0 0 #D4D4D4).
+struct ArabicBox: View {
+    let text: String
+    var body: some View {
+        Text(text)
+            .font(.system(size: 34, weight: .bold, design: .serif))
+            .environment(\.layoutDirection, .rightToLeft)
+            .foregroundColor(Theme.text)
+            .frame(maxWidth: 280)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 18)
+            .modifier(SurfaceMod(bg: .white, border: Theme.cardBorder, lip: Theme.cardShadow))
+            .frame(maxWidth: 280)
+    }
+}
+
+/// French prompt box (QCM_INVERSE) — solid brand box.
+struct FrenchPromptBox: View {
+    let text: String
+    var body: some View {
+        Text(text)
+            .font(.system(size: 22, weight: .bold))
+            .foregroundColor(.white)
+            .frame(maxWidth: 280)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 20)
+            .background(RoundedRectangle(cornerRadius: Theme.radius, style: .continuous).fill(Theme.green))
+            .frame(maxWidth: 280)
+    }
+}
+
+/// Single-column option list (mobile `grid-cols-1`) with numbered square badges
+/// and the exact selected / correct / wrong states from qcm.tsx.
+struct OptionList: View {
+    let options: [NativeOption]
+    let selectedId: Int?
+    let revealed: Bool
+    var onSelect: (Int) -> Void
+
+    var body: some View {
+        VStack(spacing: 10) {
+            ForEach(Array(options.enumerated()), id: \.element.id) { i, o in
+                row(o, number: i + 1)
+            }
+        }
+        .frame(maxWidth: 440)
+    }
+
+    @ViewBuilder
+    private func row(_ o: NativeOption, number: Int) -> some View {
+        let isSel = selectedId == o.id
+        var border = Theme.cardBorder, bg = Color.white, fg = Theme.text
+        var lip: Color? = Theme.cardShadow
+        var dim = false
+        if revealed {
+            if o.correct { border = Theme.correctBorder; bg = Theme.correctBg; fg = Theme.green; lip = nil }
+            else if isSel { border = Theme.wrongBorder; bg = Theme.wrongBg; fg = Theme.wrongText; lip = nil }
+            else { dim = true }
+        } else if isSel {
+            border = Theme.green; bg = Theme.selectionBg; fg = Theme.text; lip = nil
+        }
+        let badgeColor = (isSel && !revealed) ? Theme.green
+            : (revealed && o.correct) ? Theme.green
+            : (revealed && isSel) ? Theme.wrongText : Theme.muted
+
+        Button { onSelect(o.id) } label: {
+            HStack(spacing: 12) {
+                Text("\(number)")
+                    .font(.system(size: 12, weight: .bold)).foregroundColor(badgeColor)
+                    .frame(width: 24, height: 24)
+                    .overlay(RoundedRectangle(cornerRadius: 7).stroke(badgeColor.opacity(0.9), lineWidth: 2))
+                Text(o.label)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(fg).multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(.horizontal, 14)
+            .frame(maxWidth: .infinity, minHeight: 54)
+            .modifier(SurfaceMod(bg: bg, border: border, lip: lip))
+            .opacity(dim ? 0.4 : 1)
+        }
+        .buttonStyle(.plain)
+        .disabled(revealed)
+    }
+}
+
+// MARK: - VRAI / FAUX (vrai-faux.tsx)
+struct VraiFauxView: View {
+    @ObservedObject var store: LessonStore
+    let challenge: NativeChallenge
+
+    private var vrai: NativeOption? { challenge.options.first { $0.text.uppercased() == "VRAI" } }
+    private var faux: NativeOption? { challenge.options.first { $0.text.uppercased() == "FAUX" } }
+
+    var body: some View {
+        VStack(spacing: 14) {
+            ArabicBox(text: challenge.arabicWord ?? "")
+            // proposed translation
+            Text("= « \(challenge.frenchTranslation ?? "") » ?")
+                .font(.system(size: 18, weight: .bold))
+                .foregroundColor(Theme.green)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: 280)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .modifier(SurfaceMod(bg: Theme.selectionBg, border: Theme.green.opacity(0.3), lip: Theme.shinyOutlineShadow))
+                .frame(maxWidth: 280)
+            HStack(spacing: 12) {
+                if let v = vrai { bigButton("VRAI", v) }
+                if let f = faux { bigButton("FAUX", f) }
+            }
+            .frame(maxWidth: 360)
+        }
+    }
+
+    @ViewBuilder
+    private func bigButton(_ label: String, _ o: NativeOption) -> some View {
+        let isSel = store.selectedOptionId == o.id
+        let revealed = store.status != .idle
+        var border = Theme.cardBorder, bg = Color.white, fg = Theme.text
+        var lip: Color? = Theme.cardShadow; var dim = false
+        if revealed {
+            if o.correct { border = Theme.correctBorder; bg = Theme.correctBg; fg = Theme.green; lip = nil }
+            else if isSel { border = Theme.wrongBorder; bg = Theme.wrongBg; fg = Theme.wrongText; lip = nil }
+            else { dim = true }
+        } else if isSel { border = Theme.green; bg = Theme.selectionBg; fg = Theme.green; lip = nil }
+        Button { store.select(o.id) } label: {
+            Text(label).font(.system(size: 20, weight: .bold)).foregroundColor(fg)
+                .frame(maxWidth: .infinity, minHeight: 72)
+                .modifier(SurfaceMod(bg: bg, border: border, lip: lip))
+                .opacity(dim ? 0.4 : 1)
+        }
+        .buttonStyle(.plain).disabled(revealed)
+    }
+}
+
+// MARK: - Confidence bet (confidence-bet.tsx) — bet phase then answer phase
+struct ConfidenceBetView: View {
+    @ObservedObject var store: LessonStore
+    let challenge: NativeChallenge
+    @State private var bet: String? = nil
+    @State private var phase: Phase = .bet
+    enum Phase { case bet, answer }
+
+    private let bets: [(id: String, label: String, desc: String)] = [
+        ("sure", "Je suis sûr(e)", "+20 XP si correct, -10 XP si faux"),
+        ("hesitant", "J'hésite", "+10 XP si correct, -5 XP si faux"),
+        ("fifty", "50/50", "+5 XP si correct, 0 XP si faux"),
+    ]
+
+    var body: some View {
+        VStack(spacing: 14) {
+            ArabicBox(text: challenge.arabicWord ?? "")
+            if phase == .bet {
+                Text("Avant de voir les réponses, parie sur ta confiance !")
+                    .font(.system(size: 13, weight: .medium)).foregroundColor(Theme.muted)
+                    .multilineTextAlignment(.center)
+                Text("Tu peux gagner plus d'XP… ou en perdre")
+                    .font(.system(size: 11)).foregroundColor(Color(hex: 0x9CA3AF))
+                VStack(spacing: 10) {
+                    ForEach(bets, id: \.id) { b in betCard(b) }
+                }
+                .frame(maxWidth: 360)
+            } else {
+                Text(bets.first { $0.id == bet }?.label ?? "")
+                    .font(.system(size: 12, weight: .semibold)).foregroundColor(Theme.text)
+                    .padding(.horizontal, 12).padding(.vertical, 6)
+                    .background(Capsule().fill(Theme.selectionBg))
+                Text("Quelle est la traduction ?")
+                    .font(.system(size: 13)).foregroundColor(Theme.muted)
+                OptionList(options: challenge.options, selectedId: store.selectedOptionId,
+                           revealed: store.status != .idle, onSelect: { store.select($0) })
+            }
+        }
+    }
+
+    private func betCard(_ b: (id: String, label: String, desc: String)) -> some View {
+        let sel = bet == b.id
+        return Button {
+            bet = b.id
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { withAnimation { phase = .answer } }
+        } label: {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(b.label).font(.system(size: 15, weight: .bold)).foregroundColor(Theme.text)
+                Text(b.desc).font(.system(size: 11)).foregroundColor(Color(hex: 0x9CA3AF))
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 16).padding(.vertical, 14)
+            .modifier(SurfaceMod(bg: sel ? Theme.selectionBg : .white,
+                                 border: sel ? Theme.green : Theme.cardBorder,
+                                 lip: sel ? nil : Theme.cardShadow))
+        }
+        .buttonStyle(.plain)
     }
 }
