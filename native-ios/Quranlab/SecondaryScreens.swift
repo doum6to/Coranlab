@@ -129,7 +129,7 @@ struct SettingsScreen: View {
                             Spacer()
                         }
                         .padding(18)
-                        .background(RoundedRectangle(cornerRadius: Theme.radius, style: .continuous).fill(Theme.premiumGradient))
+                        .background(PremiumFill().clipShape(RoundedRectangle(cornerRadius: Theme.radius, style: .continuous)))
                     } else {
                         VStack(spacing: 12) {
                             HStack(spacing: 10) {

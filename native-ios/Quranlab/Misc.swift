@@ -58,3 +58,28 @@ struct LoadingView: View {
         RiveMascot("loading").frame(width: size, height: size)
     }
 }
+
+/// Animated premium gradient that slides in a seamless loop (mirrors the web's
+/// `animate-premium-gradient` — a 400%-wide gradient sliding by one cycle), so
+/// the muddy dark ends never sit static in view. Clip it to your shape.
+struct PremiumFill: View {
+    var body: some View {
+        TimelineView(.animation) { tl in
+            GeometryReader { geo in
+                let w = geo.size.width
+                let t = tl.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 8) / 8
+                LinearGradient(
+                    colors: [
+                        Color(hex: 0x050C38), Color(hex: 0x6700A3), Color(hex: 0xE02F75), Color(hex: 0xFF5A57),
+                        Color(hex: 0x050C38), Color(hex: 0x6700A3), Color(hex: 0xE02F75), Color(hex: 0xFF5A57),
+                        Color(hex: 0x050C38),
+                    ],
+                    startPoint: .leading, endPoint: .trailing
+                )
+                .frame(width: w * 2, height: geo.size.height)
+                .offset(x: -CGFloat(t) * w)
+            }
+            .clipped()
+        }
+    }
+}

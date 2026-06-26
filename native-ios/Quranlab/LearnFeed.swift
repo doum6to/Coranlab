@@ -151,7 +151,7 @@ struct LearnFeed: View {
         Button { onPremium() } label: {
             HStack(spacing: 12) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 12).fill(Theme.premiumGradient).frame(width: 44, height: 44)
+                    PremiumFill().frame(width: 44, height: 44).clipShape(RoundedRectangle(cornerRadius: 12))
                     Image(systemName: "sparkles").foregroundColor(.white).font(.system(size: 18, weight: .bold))
                 }
                 VStack(alignment: .leading, spacing: 3) {
@@ -161,7 +161,7 @@ struct LearnFeed: View {
                     GeometryReader { g in
                         ZStack(alignment: .leading) {
                             Capsule().fill(Theme.border)
-                            Capsule().fill(Theme.premiumGradient).frame(width: max(6, g.size.width * CGFloat(overallPercent) / 100))
+                            PremiumFill().frame(width: max(6, g.size.width * CGFloat(overallPercent) / 100)).clipShape(Capsule())
                         }
                     }.frame(height: 5)
                 }
@@ -190,9 +190,7 @@ struct LearnFeed: View {
                         Text("Devenir Premium")
                             .font(.system(size: 13, weight: .bold)).foregroundColor(.white)
                             .padding(.horizontal, 14).padding(.vertical, 8)
-                            .background(Capsule().fill(Theme.premiumGradient))
-                            .overlay(Capsule().fill(Color.black.opacity(0.12)).frame(height: 3).offset(y: 11), alignment: .bottom)
-                            .clipShape(Capsule())
+                            .background(PremiumFill().clipShape(Capsule()))
                     }
                 }
             }
