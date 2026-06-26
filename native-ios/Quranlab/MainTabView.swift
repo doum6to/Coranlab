@@ -30,7 +30,7 @@ struct MainTabView: View {
                 .tag(2)
                 .tabItem { tab("nav_leaderboard", "Classement") }
 
-            SettingsScreen()
+            SettingsScreen(isPro: learn.isPro)
                 .environmentObject(session)
                 .tag(4)
                 .tabItem { tab("nav_settings", "Réglages") }

@@ -20,7 +20,8 @@ struct LevelSelectView: View {
                     header
                     VStack(spacing: 0) {
                         ForEach(Array(list.levels.enumerated()), id: \.element.id) { idx, level in
-                            levelRow(level, number: idx + 1)
+                            let locked = idx > 0 && !list.levels[idx - 1].completed
+                            levelRow(level, number: idx + 1, locked: locked)
                             if idx < list.levels.count - 1 { Divider().background(Theme.border) }
                         }
                     }
@@ -62,29 +63,34 @@ struct LevelSelectView: View {
         .padding(.top, 8)
     }
 
-    private func levelRow(_ level: LearnLevel, number: Int) -> some View {
-        Button { lessonToPlay = PlayLevel(id: level.id) } label: {
+    private func levelRow(_ level: LearnLevel, number: Int, locked: Bool) -> some View {
+        Button { if !locked { lessonToPlay = PlayLevel(id: level.id) } } label: {
             HStack(spacing: 16) {
                 ZStack {
                     Circle().fill(level.completed ? Theme.green.opacity(0.15) : Theme.surface)
                         .frame(width: 54, height: 54)
-                    Image(systemName: level.completed ? "checkmark" : "play.fill")
+                    Image(systemName: locked ? "lock.fill" : (level.completed ? "checkmark" : "play.fill"))
                         .font(.system(size: 18, weight: .bold))
                         .foregroundColor(level.completed ? Theme.green : Theme.muted)
                 }
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Niveau \(number)").font(.system(size: 16, weight: .bold)).foregroundColor(Theme.text)
+                    Text("Niveau \(number)").font(.system(size: 16, weight: .bold))
+                        .foregroundColor(locked ? Theme.muted : Theme.text)
                     Text("\(level.completedChallengeCount)/\(level.challengeCount) exercices")
                         .font(.system(size: 13)).foregroundColor(Theme.muted)
                     if level.completed {
                         Text("Complété ✓").font(.system(size: 13, weight: .semibold)).foregroundColor(Theme.green)
+                    } else if locked {
+                        Text("Termine le niveau précédent").font(.system(size: 12)).foregroundColor(Theme.muted)
                     }
                 }
                 Spacer()
             }
             .padding(.vertical, 14)
+            .opacity(locked ? 0.55 : 1)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .disabled(locked)
     }
 }

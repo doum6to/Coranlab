@@ -106,14 +106,17 @@ struct MatchingView: View {
             guard let sel = selectedArabic else { return }
             if sel == key {
                 matched.insert(key); selectedArabic = nil; wrong = nil
+                store.record(true)                      // correct pair counts
                 if matched.count == pairs.count {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        store.markCorrect(); Sounds.correct()
+                        Sounds.correct()
                         Task { await store.advance(); if store.finished { Sounds.finish() } }
                     }
                 }
             } else {
                 wrong = key
+                store.record(false)                     // wrong pair counts against %
+                Sounds.incorrect()
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { if wrong == key { wrong = nil } }
             }
         }
@@ -169,12 +172,20 @@ struct FlashcardView: View {
         let isFlipped = flipped.contains(idx)
         return ZStack {
             surface(
-                Text(isFlipped ? (p.frenchText ?? "") : (p.arabicText ?? ""))
-                    .font(isFlipped ? .system(size: 18, weight: .bold) : .system(size: 30, weight: .bold, design: .serif))
-                    .environment(\.layoutDirection, isFlipped ? .leftToRight : .rightToLeft)
-                    .foregroundColor(isFlipped ? .white : Theme.text)
-                    .rotation3DEffect(.degrees(isFlipped ? 180 : 0), axis: (x: 0, y: 1, z: 0))
-                    .frame(maxWidth: .infinity).frame(height: 90).padding(8),
+                VStack(spacing: 2) {
+                    Text(isFlipped ? (p.frenchText ?? "") : (p.arabicText ?? ""))
+                        .font(isFlipped ? .system(size: 18, weight: .bold) : .system(size: 30, weight: .bold, design: .serif))
+                        .environment(\.layoutDirection, isFlipped ? .leftToRight : .rightToLeft)
+                        .foregroundColor(isFlipped ? .white : Theme.text)
+                    if !isFlipped {
+                        let tr = Transliteration.ar(p.arabicText ?? "")
+                        if !tr.isEmpty {
+                            Text(tr).font(.system(size: 10, weight: .medium)).italic().foregroundColor(Theme.muted)
+                        }
+                    }
+                }
+                .rotation3DEffect(.degrees(isFlipped ? 180 : 0), axis: (x: 0, y: 1, z: 0))
+                .frame(maxWidth: .infinity).frame(height: 90).padding(8),
                 bg: isFlipped ? Theme.green : .white,
                 border: isFlipped ? Theme.green : Theme.cardBorder,
                 lip: isFlipped ? nil : Theme.cardShadow
@@ -228,11 +239,14 @@ struct FlashcardView: View {
         guard let sel = selectedArabic else { return }
         if sel == key {
             matched.insert(key); selectedArabic = nil; wrong = nil
+            store.record(true)
             if matched.count == chunk.count {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { nextChunkOrFinish() }
             }
         } else {
             wrong = key
+            store.record(false)
+            Sounds.incorrect()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { if wrong == key { wrong = nil } }
         }
     }
@@ -242,7 +256,7 @@ struct FlashcardView: View {
             chunkIndex += 1; phase = .learn; flipped = []; matched = []; selectedArabic = nil
             shuffledFrench = chunks[chunkIndex].shuffled()
         } else {
-            store.markCorrect(); Sounds.correct()
+            Sounds.correct()
             Task { await store.advance(); if store.finished { Sounds.finish() } }
         }
     }
@@ -387,15 +401,23 @@ struct FlowRow: Layout {
 struct ArabicBox: View {
     let text: String
     var body: some View {
-        Text(text)
-            .font(.system(size: 34, weight: .bold, design: .serif))
-            .environment(\.layoutDirection, .rightToLeft)
-            .foregroundColor(Theme.text)
-            .frame(maxWidth: 280)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 18)
-            .modifier(SurfaceMod(bg: .white, border: Theme.cardBorder, lip: Theme.cardShadow))
-            .frame(maxWidth: 280)
+        VStack(spacing: 4) {
+            Text(text)
+                .font(.system(size: 34, weight: .bold, design: .serif))
+                .environment(\.layoutDirection, .rightToLeft)
+                .foregroundColor(Theme.text)
+            let tr = Transliteration.ar(text)
+            if !tr.isEmpty {
+                Text(tr)
+                    .font(.system(size: 12, weight: .medium)).italic()
+                    .foregroundColor(Theme.muted)
+            }
+        }
+        .frame(maxWidth: 280)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 16)
+        .modifier(SurfaceMod(bg: .white, border: Theme.cardBorder, lip: Theme.cardShadow))
+        .frame(maxWidth: 280)
     }
 }
 

@@ -110,11 +110,41 @@ struct QuestsView: View {
 // MARK: - Réglages (settings — wired to the real session)
 struct SettingsScreen: View {
     @EnvironmentObject var session: SessionStore
+    var isPro: Bool = false
+    @State private var showPaywall = false
+
     var body: some View {
         VStack(spacing: 0) {
             ScreenHeader(title: "Réglages")
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 16) {
+                    // Premium status
+                    if isPro {
+                        HStack(spacing: 12) {
+                            Image(systemName: "crown.fill").font(.system(size: 22)).foregroundColor(.white)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Quranlab Premium").font(.system(size: 16, weight: .bold)).foregroundColor(.white)
+                                Text("Abonnement actif ✓").font(.system(size: 13)).foregroundColor(.white.opacity(0.85))
+                            }
+                            Spacer()
+                        }
+                        .padding(18)
+                        .background(RoundedRectangle(cornerRadius: Theme.radius, style: .continuous).fill(Theme.premiumGradient))
+                    } else {
+                        VStack(spacing: 12) {
+                            HStack(spacing: 10) {
+                                Image(systemName: "crown.fill").font(.system(size: 20)).foregroundColor(Theme.green)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Passe à Premium").font(.system(size: 16, weight: .bold)).foregroundColor(Theme.text)
+                                    Text("Débloque toutes les leçons").font(.system(size: 13)).foregroundColor(Theme.muted)
+                                }
+                                Spacer()
+                            }
+                            ShinyButton(title: "Voir les offres", variant: .green) { showPaywall = true }
+                        }
+                        .padding(18).cardSurface()
+                    }
+
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Compte").font(.system(size: 12, weight: .bold)).foregroundColor(Theme.muted)
                         Text(session.email ?? "—").font(.system(size: 15, weight: .semibold)).foregroundColor(Theme.text)
@@ -136,6 +166,7 @@ struct SettingsScreen: View {
             }
         }
         .background(Color.white.ignoresSafeArea())
+        .sheet(isPresented: $showPaywall) { PaywallView { } }
     }
 }
 

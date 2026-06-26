@@ -202,7 +202,7 @@ struct LessonView: View {
             if passed {
                 MascotView(size: 130, riv: "completed_lvl")
                 Text("Leçon terminée !").font(.system(size: 26, weight: .bold)).foregroundColor(Theme.text).headingStyle()
-                Text("\(store.correctCount)/\(store.total) bonnes réponses").foregroundColor(Theme.muted)
+                Text("\(store.correctCount)/\(store.totalChoices) bonnes réponses").foregroundColor(Theme.muted)
                 HStack(spacing: 6) {
                     Image("points").resizable().scaledToFit().frame(width: 22, height: 22)
                     Text("+\(store.correctCount * 10) XP").font(.system(size: 17, weight: .bold)).foregroundColor(Theme.green)
@@ -210,7 +210,7 @@ struct LessonView: View {
             } else {
                 MascotView(size: 130, riv: "eyes_down")
                 Text("Pas encore validé").font(.system(size: 26, weight: .bold)).foregroundColor(Theme.text).headingStyle()
-                Text("\(store.correctCount)/\(store.total) — il faut au moins 90 % pour valider.")
+                Text("\(store.correctCount)/\(store.totalChoices) — il faut au moins 90 % de bonnes réponses pour valider.")
                     .foregroundColor(Theme.muted).multilineTextAlignment(.center).padding(.horizontal, 24)
             }
             Spacer()

@@ -14,6 +14,7 @@ final class LessonStore: ObservableObject {
     @Published var errorMessage: String?
     @Published var finished = false
     @Published var correctCount = 0
+    @Published var totalChoices = 0   // every choice (incl. wrong pairs) counts
 
     let lessonId: Int
     private let session: SessionStore
@@ -63,16 +64,15 @@ final class LessonStore: ObservableObject {
 
     func check() {
         guard let c = current else { return }
-        if c.isMultipleChoice {
-            let chosen = c.options.first { $0.id == selectedOptionId }
-            let ok = chosen?.correct == true
-            status = ok ? .correct : .wrong
-            if ok { correctCount += 1 }
-        } else {
-            // Simplified (flashcard / matching / anagram …): mark as done.
-            status = .correct
-            correctCount += 1
-        }
+        let ok = c.options.first { $0.id == selectedOptionId }?.correct == true
+        status = ok ? .correct : .wrong
+        record(ok)
+    }
+
+    /// Records a single user choice (correct or not) for the success %.
+    func record(_ correct: Bool) {
+        totalChoices += 1
+        if correct { correctCount += 1 }
     }
 
     func advance() async {
@@ -90,22 +90,24 @@ final class LessonStore: ObservableObject {
     /// result instead of going through select()/check().
     func markCorrect() {
         guard status == .idle else { return }
+        record(true)
         status = .correct
-        correctCount += 1
     }
     func markWrong() {
         guard status == .idle else { return }
+        record(false)
         status = .wrong
     }
 
     /// A level is validated only at >= 90% correct (web parity).
-    var passed: Bool { total > 0 && Double(correctCount) / Double(total) >= 0.9 }
+    var passed: Bool { totalChoices > 0 && Double(correctCount) / Double(totalChoices) >= 0.9 }
 
     func reset() {
         index = 0
         selectedOptionId = nil
         status = .idle
         correctCount = 0
+        totalChoices = 0
         finished = false
     }
 

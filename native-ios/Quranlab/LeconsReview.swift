@@ -130,15 +130,23 @@ private struct FlipWordCard: View {
             RoundedRectangle(cornerRadius: Theme.radius, style: .continuous).fill(flipped ? Theme.green : .white)
             RoundedRectangle(cornerRadius: Theme.radius, style: .continuous)
                 .stroke(flipped ? Theme.green : Theme.cardBorder, lineWidth: 2)
-            Text(flipped ? word.french : word.arabic)
-                .font(flipped ? .system(size: 16, weight: .bold)
-                              : .system(size: 26, weight: .bold, design: .serif))
-                .environment(\.layoutDirection, flipped ? .leftToRight : .rightToLeft)
-                .foregroundColor(flipped ? .white : Theme.text)
-                .multilineTextAlignment(.center)
-                .padding(8)
-                // counter-rotate so the back face text isn't mirrored
-                .rotation3DEffect(.degrees(flipped ? 180 : 0), axis: (x: 0, y: 1, z: 0))
+            VStack(spacing: 2) {
+                Text(flipped ? word.french : word.arabic)
+                    .font(flipped ? .system(size: 16, weight: .bold)
+                                  : .system(size: 26, weight: .bold, design: .serif))
+                    .environment(\.layoutDirection, flipped ? .leftToRight : .rightToLeft)
+                    .foregroundColor(flipped ? .white : Theme.text)
+                    .multilineTextAlignment(.center)
+                if !flipped {
+                    let tr = Transliteration.ar(word.arabic)
+                    if !tr.isEmpty {
+                        Text(tr).font(.system(size: 10, weight: .medium)).italic().foregroundColor(Theme.muted)
+                    }
+                }
+            }
+            .padding(8)
+            // counter-rotate so the back face text isn't mirrored
+            .rotation3DEffect(.degrees(flipped ? 180 : 0), axis: (x: 0, y: 1, z: 0))
         }
         .frame(height: 96)
         .background(
