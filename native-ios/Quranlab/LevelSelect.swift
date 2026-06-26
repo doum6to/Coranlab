@@ -4,6 +4,7 @@ import SwiftUI
 // a list in "Apprendre", the user picks a level here before the lesson starts.
 struct LevelSelectView: View {
     @Environment(\.dismiss) private var dismiss
+    @ObservedObject var store: LearnStore
     let target: ReviewTarget
     let session: SessionStore
     var isPro: Bool = false
@@ -12,7 +13,11 @@ struct LevelSelectView: View {
     @State private var lessonToPlay: PlayLevel?
     private struct PlayLevel: Identifiable { let id: Int }
 
-    private var list: LearnList { target.list }
+    /// Always read the latest list from the store so a completed level (and the
+    /// unlock of the next one) is reflected after the lesson refreshes data.
+    private var list: LearnList {
+        store.units.flatMap { $0.lists }.first { $0.listId == target.list.listId } ?? target.list
+    }
 
     var body: some View {
         NavigationStack {
