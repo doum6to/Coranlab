@@ -38,10 +38,6 @@ struct MainTabView: View {
                 .tag(2)
                 .tabItem { tab("nav_leaderboard", "Classement") }
 
-            QuestsView(store: learn)
-                .tag(3)
-                .tabItem { tab("nav_quests", "Quêtes") }
-
             SettingsScreen()
                 .environmentObject(session)
                 .tag(4)

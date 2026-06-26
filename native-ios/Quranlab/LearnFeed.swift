@@ -5,6 +5,7 @@ struct UnitBanner: View {
     let title: String
     let description: String
     var showReviser: Bool = false
+    var purple: Bool = false
     var onReviser: () -> Void = {}
 
     var body: some View {
@@ -12,12 +13,12 @@ struct UnitBanner: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.system(size: 17, weight: .bold))
-                    .foregroundColor(Theme.text)
+                    .foregroundColor(purple ? .white : Theme.text)
                     .lineLimit(1)
                     .headingStyle()
                 Text(description)
                     .font(.system(size: 13))
-                    .foregroundColor(Theme.muted)
+                    .foregroundColor(purple ? .white.opacity(0.75) : Theme.muted)
                     .lineLimit(1)
             }
             Spacer(minLength: 0)
@@ -45,15 +46,16 @@ struct UnitBanner: View {
         .padding(18)
         .frame(maxWidth: .infinity)
         .background(
-            RoundedRectangle(cornerRadius: Theme.radius, style: .continuous).fill(Color.white)
+            RoundedRectangle(cornerRadius: Theme.radius, style: .continuous)
+                .fill(purple ? Theme.green : Color.white)
         )
         .overlay(
             RoundedRectangle(cornerRadius: Theme.radius, style: .continuous)
-                .stroke(Theme.cardBorder, lineWidth: 2)
+                .stroke(purple ? Color(hex: 0x5755E0) : Theme.cardBorder, lineWidth: 2)
         )
         .background(
             RoundedRectangle(cornerRadius: Theme.radius, style: .continuous)
-                .fill(Theme.cardShadow).offset(y: 4)
+                .fill(purple ? Color(hex: 0x5250D4) : Theme.cardShadow).offset(y: 4)
         )
     }
 }
@@ -70,6 +72,7 @@ private struct CardMidXKey: PreferenceKey {
 struct UnitCarousel: View {
     let unit: LearnUnit
     var showReviser: Bool = true
+    var lecons: Bool = false
     var onReviser: () -> Void = {}
     var onTap: (LearnList) -> Void = { _ in }
 
@@ -81,7 +84,7 @@ struct UnitCarousel: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             UnitBanner(title: unit.title, description: unit.description,
-                       showReviser: showReviser, onReviser: onReviser)
+                       showReviser: showReviser, purple: lecons, onReviser: onReviser)
                 .padding(.horizontal, 16)
 
             GeometryReader { container in
@@ -91,6 +94,7 @@ struct UnitCarousel: View {
                         ForEach(Array(unit.lists.enumerated()), id: \.element.listId) { idx, list in
                             ListCard(list: list,
                                      isCurrent: list.listId == activeListId,
+                                     lecons: lecons,
                                      onTap: { onTap(list) })
                                 .background(
                                     GeometryReader { g in
@@ -132,6 +136,7 @@ struct LearnFeed: View {
     @ObservedObject var store: LearnStore
     var title: String
     var showReviser: Bool
+    var lecons: Bool = false
     var onReviser: () -> Void = {}
     var onPlay: (LearnList) -> Void
     var onPremium: () -> Void
@@ -166,6 +171,7 @@ struct LearnFeed: View {
                         ForEach(store.units) { unit in
                             UnitCarousel(unit: unit,
                                          showReviser: showReviser,
+                                         lecons: lecons,
                                          onReviser: onReviser,
                                          onTap: { list in
                                             if list.isPremiumLocked { onPremium() }

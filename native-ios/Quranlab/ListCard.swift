@@ -8,6 +8,7 @@ import SwiftUI
 struct ListCard: View {
     let list: LearnList
     let isCurrent: Bool
+    var lecons: Bool = false
     var onTap: () -> Void = {}
 
     private var percentage: Double {
@@ -18,6 +19,7 @@ struct ListCard: View {
 
     private var buttonTitle: String {
         if premium { return "Premium" }
+        if lecons { return "Réviser" }
         if locked { return "Verrouillé" }
         if list.isCompleted { return "Réviser" }
         return list.completedLevels > 0 ? "Continuer" : "Commencer"
@@ -25,6 +27,7 @@ struct ListCard: View {
     private var buttonVariant: ShinyVariant {
         if premium { return .dark }
         if locked { return .gray }
+        if lecons { return .green }
         return list.isCompleted ? .outlineGreen : .green
     }
 
@@ -48,8 +51,8 @@ struct ListCard: View {
                 .padding(.bottom, 8)
                 .headingStyle()
 
-            // Level status + progress bar
-            if !premium {
+            // Level status + progress bar (hidden in Leçons/review mode)
+            if !premium && !lecons {
                 VStack(spacing: 8) {
                     Text(list.isCompleted ? "TERMINÉ" : "NIVEAU \(list.completedLevels + 1)")
                         .font(.system(size: 11, weight: .semibold))

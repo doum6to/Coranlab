@@ -98,20 +98,30 @@ final class LessonStore: ObservableObject {
         status = .wrong
     }
 
+    /// A level is validated only at >= 90% correct (web parity).
+    var passed: Bool { total > 0 && Double(correctCount) / Double(total) >= 0.9 }
+
+    func reset() {
+        index = 0
+        selectedOptionId = nil
+        status = .idle
+        correctCount = 0
+        finished = false
+    }
+
     private func finish() async {
-        guard let token = await session.accessToken() else {
-            finished = true
-            return
+        // Only mark the level complete on the server if the user passed (>=90%).
+        if passed, let token = await session.accessToken() {
+            var req = URLRequest(
+                url: SupabaseConfig.apiBaseURL.appendingPathComponent("api/native/lesson-complete")
+            )
+            req.httpMethod = "POST"
+            req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            let ids = challenges.map { $0.id }
+            req.httpBody = try? JSONSerialization.data(withJSONObject: ["challengeIds": ids])
+            _ = try? await URLSession.shared.data(for: req)
         }
-        var req = URLRequest(
-            url: SupabaseConfig.apiBaseURL.appendingPathComponent("api/native/lesson-complete")
-        )
-        req.httpMethod = "POST"
-        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        let ids = challenges.map { $0.id }
-        req.httpBody = try? JSONSerialization.data(withJSONObject: ["challengeIds": ids])
-        _ = try? await URLSession.shared.data(for: req)
         finished = true
     }
 }

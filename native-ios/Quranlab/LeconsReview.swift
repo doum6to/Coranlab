@@ -137,6 +137,8 @@ private struct FlipWordCard: View {
                 .foregroundColor(flipped ? .white : Theme.text)
                 .multilineTextAlignment(.center)
                 .padding(8)
+                // counter-rotate so the back face text isn't mirrored
+                .rotation3DEffect(.degrees(flipped ? 180 : 0), axis: (x: 0, y: 1, z: 0))
         }
         .frame(height: 96)
         .background(

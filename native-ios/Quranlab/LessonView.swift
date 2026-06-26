@@ -66,6 +66,8 @@ struct LessonView: View {
             VraiFauxView(store: store, challenge: challenge)
         case .confidenceBet:
             ConfidenceBetView(store: store, challenge: challenge)
+        case .spotError:
+            SpotTheErrorView(store: store, challenge: challenge)
         case .opposite:
             ArabicBox(text: challenge.arabicWord ?? "")
             Text("Trouve le mot opposé")
@@ -90,7 +92,7 @@ struct LessonView: View {
 
     private func showsFooter(_ c: NativeChallenge) -> Bool {
         switch c.kind {
-        case .matching, .flashcard, .anagram: return false
+        case .matching, .flashcard, .anagram, .spotError: return false
         default: return true
         }
     }
@@ -191,20 +193,38 @@ struct LessonView: View {
         .background(RoundedRectangle(cornerRadius: Theme.radius).fill(tint.opacity(0.10)))
     }
 
-    // MARK: - Finished
+    // MARK: - Finished (pass requires >= 90% — web parity)
     private var finishedView: some View {
-        VStack(spacing: 18) {
+        let passed = store.passed
+        return VStack(spacing: 18) {
             Spacer()
-            MascotView(size: 120, riv: "completed_lvl")
-            Text("Leçon terminée !").font(.system(size: 26, weight: .bold)).foregroundColor(Theme.text).headingStyle()
-            Text("\(store.correctCount)/\(store.total) bonnes réponses").foregroundColor(Theme.muted)
-            HStack(spacing: 6) {
-                Image("points").resizable().scaledToFit().frame(width: 22, height: 22)
-                Text("+\(store.total * 10) XP").font(.system(size: 17, weight: .bold)).foregroundColor(Theme.green)
+            if passed {
+                MascotView(size: 130, riv: "completed_lvl")
+                Text("Leçon terminée !").font(.system(size: 26, weight: .bold)).foregroundColor(Theme.text).headingStyle()
+                Text("\(store.correctCount)/\(store.total) bonnes réponses").foregroundColor(Theme.muted)
+                HStack(spacing: 6) {
+                    Image("points").resizable().scaledToFit().frame(width: 22, height: 22)
+                    Text("+\(store.correctCount * 10) XP").font(.system(size: 17, weight: .bold)).foregroundColor(Theme.green)
+                }
+            } else {
+                MascotView(size: 130, riv: "eyes_down")
+                Text("Pas encore validé").font(.system(size: 26, weight: .bold)).foregroundColor(Theme.text).headingStyle()
+                Text("\(store.correctCount)/\(store.total) — il faut au moins 90 % pour valider.")
+                    .foregroundColor(Theme.muted).multilineTextAlignment(.center).padding(.horizontal, 24)
             }
             Spacer()
-            ShinyButton(title: "Continuer", variant: .green) { onFinish(); dismiss() }
+            if passed {
+                ShinyButton(title: "Continuer", variant: .green) { onFinish(); dismiss() }
+                    .padding(.horizontal, 20).padding(.bottom, 24)
+            } else {
+                VStack(spacing: 10) {
+                    ShinyButton(title: "Recommencer", variant: .green) {
+                        store.reset()
+                    }
+                    ShinyButton(title: "Quitter", variant: .outlineGreen) { onFinish(); dismiss() }
+                }
                 .padding(.horizontal, 20).padding(.bottom, 24)
+            }
         }
         .padding(.horizontal, 20)
     }

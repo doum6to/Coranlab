@@ -30,6 +30,7 @@ struct LeconsView: View {
         LearnFeed(store: store,
                   title: "Leçons",
                   showReviser: false,
+                  lecons: true,
                   onPlay: { list in
                       let unit = store.units.first { $0.lists.contains(where: { $0.listId == list.listId }) }
                       reviewTarget = ReviewTarget(id: list.listId, list: list, unitTitle: unit?.title ?? "")

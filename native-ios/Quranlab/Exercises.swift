@@ -1,7 +1,7 @@
 import SwiftUI
 
 // MARK: - Exercise routing
-enum ExerciseKind { case mc, opposite, vraiFaux, confidenceBet, matching, flashcard, anagram, flashRecall }
+enum ExerciseKind { case mc, opposite, vraiFaux, confidenceBet, spotError, matching, flashcard, anagram, flashRecall }
 
 extension NativeChallenge {
     var kind: ExerciseKind {
@@ -13,7 +13,8 @@ extension NativeChallenge {
         case "VRAI_FAUX":     return .vraiFaux
         case "CONFIDENCE_BET":return .confidenceBet
         case "OPPOSITE":      return .opposite
-        default:              return .mc   // QCM, QCM_INVERSE, DRAG_DROP, SPOT_THE_ERROR
+        case "SPOT_THE_ERROR":return .spotError
+        default:              return .mc   // QCM, QCM_INVERSE, DRAG_DROP
         }
     }
     /// Pairs used by matching / flashcard (options carrying both texts).
@@ -172,6 +173,7 @@ struct FlashcardView: View {
                     .font(isFlipped ? .system(size: 18, weight: .bold) : .system(size: 30, weight: .bold, design: .serif))
                     .environment(\.layoutDirection, isFlipped ? .leftToRight : .rightToLeft)
                     .foregroundColor(isFlipped ? .white : Theme.text)
+                    .rotation3DEffect(.degrees(isFlipped ? 180 : 0), axis: (x: 0, y: 1, z: 0))
                     .frame(maxWidth: .infinity).frame(height: 90).padding(8),
                 bg: isFlipped ? Theme.green : .white,
                 border: isFlipped ? Theme.green : Theme.cardBorder,
@@ -269,26 +271,27 @@ struct AnagramView: View {
                 .frame(maxWidth: 280).padding(.vertical, 16).padding(.horizontal, 12)
                 .modifier(SurfaceMod(bg: Theme.selectionBg, border: Theme.green.opacity(0.3), lip: Theme.shinyOutlineShadow))
 
-            // Assembled row
-            FlowRow(spacing: 8) {
+            // Assembled row — centered, right-to-left (Arabic reads RTL)
+            HStack(spacing: 8) {
                 ForEach(Array(selected.enumerated()), id: \.offset) { i, id in
                     letterChip(value: all.first { $0.id == id }?.value ?? "", filled: true)
                         .onTapGesture { if localStatus == .none { removeAt(i) } }
                 }
             }
-            .frame(minHeight: 56)
-            .frame(maxWidth: 360)
+            .environment(\.layoutDirection, .rightToLeft)
+            .frame(maxWidth: .infinity, minHeight: 56)
             .padding(8)
             .overlay(RoundedRectangle(cornerRadius: Theme.radiusSm).stroke(Theme.border, style: StrokeStyle(lineWidth: 2, dash: [6])))
+            .frame(maxWidth: 360)
 
-            // Available letters
-            FlowRow(spacing: 8) {
+            // Available letters — centered
+            HStack(spacing: 8) {
                 ForEach(available, id: \.self) { id in
                     letterChip(value: all.first { $0.id == id }?.value ?? "", filled: false)
                         .onTapGesture { if localStatus == .none { pick(id) } }
                 }
             }
-            .frame(maxWidth: 360)
+            .frame(maxWidth: .infinity)
 
             if localStatus == .wrong {
                 Text("Réponse : \(target)").font(.system(size: 14, weight: .semibold)).foregroundColor(Theme.wrongText)
@@ -571,5 +574,90 @@ struct ConfidenceBetView: View {
                                  lip: sel ? nil : Theme.cardShadow))
         }
         .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Spot the error (spot-the-error.tsx) — pick the FALSE pair (correct == false)
+struct SpotTheErrorView: View {
+    @ObservedObject var store: LessonStore
+    let challenge: NativeChallenge
+    @State private var selectedId: Int? = nil
+
+    private var wrongPair: NativeOption? { challenge.options.first { !$0.correct } }
+
+    var body: some View {
+        VStack(spacing: 14) {
+            Text("Une de ces paires est fausse. Trouve l'erreur !")
+                .font(.system(size: 13, weight: .medium)).foregroundColor(Theme.muted)
+                .multilineTextAlignment(.center)
+            VStack(spacing: 10) { ForEach(challenge.options) { pairRow($0) } }
+                .frame(maxWidth: 440)
+            if store.status == .wrong {
+                VStack(spacing: 4) {
+                    Text("Pas tout à fait").font(.system(size: 12, weight: .semibold)).foregroundColor(Theme.wrongText)
+                    HStack(spacing: 6) {
+                        Text("La paire fausse :").font(.system(size: 13)).foregroundColor(Theme.text)
+                        Text(wrongPair?.arabicText ?? "").font(.system(size: 16, weight: .bold, design: .serif))
+                            .environment(\.layoutDirection, .rightToLeft)
+                        Text("= \(wrongPair?.frenchText ?? "")").font(.system(size: 13, weight: .semibold)).foregroundColor(Theme.text)
+                    }
+                }
+                .padding(12).frame(maxWidth: 440)
+                .background(RoundedRectangle(cornerRadius: Theme.radius).fill(Theme.wrongBg))
+            }
+            HStack {
+                Spacer(minLength: 0)
+                if store.status == .idle {
+                    ShinyButton(title: "C'est celle-ci !",
+                                variant: selectedId == nil ? .gray : .green,
+                                disabled: selectedId == nil) { verify() }
+                        .frame(maxWidth: 220)
+                } else if store.status == .wrong {
+                    ShinyButton(title: "Continuer", variant: .green) {
+                        Task { await store.advance(); if store.finished { Sounds.finish() } }
+                    }.frame(maxWidth: 220)
+                }
+            }
+            .frame(maxWidth: 440)
+        }
+    }
+
+    private func pairRow(_ o: NativeOption) -> some View {
+        let isSel = selectedId == o.id
+        let revealed = store.status != .idle
+        var border = Theme.cardBorder, bg = Color.white
+        var lip: Color? = Theme.cardShadow; var dim = false
+        if revealed {
+            if !o.correct { border = Theme.green; bg = Theme.success; lip = nil }   // the actual wrong pair
+            else if isSel { border = Theme.wrongBorder; bg = Theme.wrongBg; lip = nil } // user picked a valid pair
+            else { dim = true }
+        } else if isSel { border = Theme.green; bg = Theme.selectionBg; lip = nil }
+        return Button { if !revealed { selectedId = o.id } } label: {
+            HStack {
+                Text(o.arabicText ?? "").font(.system(size: 18, weight: .semibold, design: .serif))
+                    .environment(\.layoutDirection, .rightToLeft).foregroundColor(Theme.text)
+                Spacer(minLength: 8)
+                Text("=").font(.system(size: 13)).foregroundColor(Theme.muted)
+                Spacer(minLength: 8)
+                Text(o.frenchText ?? "").font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(Theme.text).multilineTextAlignment(.trailing)
+            }
+            .padding(.horizontal, 14).frame(maxWidth: .infinity, minHeight: 56)
+            .modifier(SurfaceMod(bg: bg, border: border, lip: lip))
+            .opacity(dim ? 0.5 : 1)
+        }
+        .buttonStyle(.plain).disabled(revealed)
+    }
+
+    private func verify() {
+        guard let id = selectedId, let opt = challenge.options.first(where: { $0.id == id }) else { return }
+        if !opt.correct {           // user correctly found the false pair
+            store.markCorrect(); Sounds.correct()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                Task { await store.advance(); if store.finished { Sounds.finish() } }
+            }
+        } else {
+            store.markWrong(); Sounds.incorrect()
+        }
     }
 }
