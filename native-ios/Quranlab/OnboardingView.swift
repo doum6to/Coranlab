@@ -97,7 +97,7 @@ struct OnboardingView: View {
     private var introContent: some View {
         VStack(spacing: 22) {
             Spacer()
-            MascotView(size: 190)
+            MascotView(size: 190, riv: "mascot_hi_loop")
             Text(titleText)
                 .font(.system(size: 20, weight: .bold))
                 .multilineTextAlignment(.center)

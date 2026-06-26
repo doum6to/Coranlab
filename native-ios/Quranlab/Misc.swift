@@ -43,15 +43,10 @@ struct FlashRecallMemorize: View {
 // (product "RiveRuntime") and swap the Image for RiveViewModel(...).view().
 struct MascotView: View {
     var size: CGFloat = 120
-    var asset: String = "koji"
-    @State private var up = false
+    /// Name of a bundled .riv file (default: idle "breathing" Koji).
+    var riv: String = "mascot_breath"
     var body: some View {
-        Image(asset)
-            .resizable().scaledToFit()
+        RiveMascot(riv)
             .frame(width: size, height: size)
-            .offset(y: up ? -8 : 0)
-            .onAppear {
-                withAnimation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true)) { up = true }
-            }
     }
 }

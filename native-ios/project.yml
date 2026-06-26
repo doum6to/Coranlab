@@ -18,6 +18,9 @@ packages:
   RevenueCat:
     url: https://github.com/RevenueCat/purchases-ios
     from: "5.0.0"
+  Rive:
+    url: https://github.com/rive-app/rive-ios
+    from: "6.0.0"
 targets:
   Quranlab:
     type: application
@@ -29,6 +32,8 @@ targets:
         product: Supabase
       - package: RevenueCat
         product: RevenueCat
+      - package: Rive
+        product: RiveRuntime
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.quranlab.native

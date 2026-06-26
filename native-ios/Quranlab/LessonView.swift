@@ -231,7 +231,7 @@ struct LessonView: View {
     private var finishedView: some View {
         VStack(spacing: 18) {
             Spacer()
-            MascotView(size: 120)
+            MascotView(size: 120, riv: "completed_lvl")
             Text("Leçon terminée !").font(.system(size: 26, weight: .bold)).foregroundColor(Theme.text).headingStyle()
             Text("\(store.correctCount)/\(store.total) bonnes réponses").foregroundColor(Theme.muted)
             HStack(spacing: 6) {
