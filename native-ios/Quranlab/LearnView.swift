@@ -4,17 +4,25 @@ import SwiftUI
 // carousels of list cards. Navigation chrome lives in MainTabView.
 struct LearnView: View {
     @ObservedObject var store: LearnStore
-    var onPlay: (LearnList) -> Void
+    let session: SessionStore
     var onPremium: () -> Void
     var onGoLecons: () -> Void
+    @State private var selected: ReviewTarget?
 
     var body: some View {
         LearnFeed(store: store,
                   title: "Apprendre",
                   showReviser: true,
                   onReviser: onGoLecons,
-                  onPlay: onPlay,
+                  onPlay: { list in
+                      let unit = store.units.first { $0.lists.contains { $0.listId == list.listId } }
+                      selected = ReviewTarget(id: list.listId, list: list, unitTitle: unit?.title ?? "")
+                  },
                   onPremium: onPremium)
+            .fullScreenCover(item: $selected) { t in
+                LevelSelectView(target: t, session: session,
+                                onRefresh: { Task { await store.refresh() } })
+            }
     }
 }
 

@@ -43,6 +43,7 @@ struct LessonView: View {
                         exerciseContent(challenge)
                         Spacer(minLength: 8)
                     }
+                    .id(challenge.id)   // fresh state per challenge (fixes matching/bet state bleed)
                     .padding(.horizontal, 20)
                     .frame(maxWidth: 560)
                     .frame(maxWidth: .infinity)
