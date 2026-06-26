@@ -18,14 +18,15 @@ struct LevelSelectView: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 24) {
                     header
-                    VStack(spacing: 0) {
+                    VStack(spacing: 18) {
                         ForEach(Array(list.levels.enumerated()), id: \.element.id) { idx, level in
                             let locked = idx > 0 && !list.levels[idx - 1].completed
-                            levelRow(level, number: idx + 1, locked: locked)
-                            if idx < list.levels.count - 1 { Divider().background(Theme.border) }
+                            levelRow(level, number: idx + 1,
+                                     locked: locked,
+                                     isLast: idx == list.levels.count - 1)
                         }
                     }
-                    .padding(.horizontal, 4)
+                    .padding(.top, 8)
                 }
                 .padding(20)
                 .frame(maxWidth: 560)
@@ -63,31 +64,60 @@ struct LevelSelectView: View {
         .padding(.top, 8)
     }
 
-    private func levelRow(_ level: LearnLevel, number: Int, locked: Bool) -> some View {
-        Button { if !locked { lessonToPlay = PlayLevel(id: level.id) } } label: {
+    private func levelRow(_ level: LearnLevel, number: Int, locked: Bool, isLast: Bool) -> some View {
+        let completed = level.completed
+        let active = !completed && !locked
+        let state = completed ? "done" : (active ? "active" : "locked")
+        let asset = "level_\(isLast ? "star" : "disc")_\(state)"
+        let pct = level.challengeCount > 0
+            ? Int(Double(level.completedChallengeCount) / Double(level.challengeCount) * 100) : 0
+
+        return Button { if !locked { lessonToPlay = PlayLevel(id: level.id) } } label: {
             HStack(spacing: 16) {
                 ZStack {
-                    Circle().fill(level.completed ? Theme.green.opacity(0.15) : Theme.surface)
-                        .frame(width: 54, height: 54)
-                    Image(systemName: locked ? "lock.fill" : (level.completed ? "checkmark" : "play.fill"))
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(level.completed ? Theme.green : Theme.muted)
+                    Image(asset)
+                        .resizable().scaledToFit()
+                        .frame(width: 118, height: active ? 116 : 84)
+                    if active {
+                        // white glow under the mascot
+                        Ellipse()
+                            .fill(LinearGradient(colors: [.white.opacity(0.9), .white.opacity(0)],
+                                                 startPoint: .bottom, endPoint: .top))
+                            .frame(width: 58, height: 38).blur(radius: 8)
+                            .offset(y: -6)
+                        // Koji on top of the active platform
+                        MascotView(size: 132).offset(y: -54)
+                    }
                 }
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Niveau \(number)").font(.system(size: 16, weight: .bold))
+                .frame(width: 124, height: active ? 124 : 90)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Niveau \(number)")
+                        .font(.system(size: 17, weight: .bold))
                         .foregroundColor(locked ? Theme.muted : Theme.text)
                     Text("\(level.completedChallengeCount)/\(level.challengeCount) exercices")
                         .font(.system(size: 13)).foregroundColor(Theme.muted)
-                    if level.completed {
+                    if completed {
                         Text("Complété ✓").font(.system(size: 13, weight: .semibold)).foregroundColor(Theme.green)
                     } else if locked {
-                        Text("Termine le niveau précédent").font(.system(size: 12)).foregroundColor(Theme.muted)
+                        HStack(spacing: 4) {
+                            Image(systemName: "lock.fill").font(.system(size: 10))
+                            Text("Termine le niveau précédent").font(.system(size: 12))
+                        }.foregroundColor(Theme.muted)
+                    } else if active && pct > 0 {
+                        HStack(spacing: 8) {
+                            GeometryReader { g in
+                                ZStack(alignment: .leading) {
+                                    Capsule().fill(Theme.border)
+                                    Capsule().fill(Theme.green).frame(width: g.size.width * CGFloat(pct) / 100)
+                                }
+                            }.frame(width: 80, height: 5)
+                            Text("\(pct)%").font(.system(size: 12, weight: .medium)).foregroundColor(Theme.green)
+                        }
                     }
                 }
-                Spacer()
+                Spacer(minLength: 0)
             }
-            .padding(.vertical, 14)
-            .opacity(locked ? 0.55 : 1)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
