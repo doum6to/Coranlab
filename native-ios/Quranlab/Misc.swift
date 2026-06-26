@@ -63,21 +63,23 @@ struct LoadingView: View {
 /// `animate-premium-gradient` — a 400%-wide gradient sliding by one cycle), so
 /// the muddy dark ends never sit static in view. Clip it to your shape.
 struct PremiumFill: View {
+    // Vibrant cycle (no muddy navy). Each band is made very wide so a single
+    // colour nearly fills the whole shape, with a slow soft slide.
+    private static let v = Color(hex: 0x7C3AED)   // violet
+    private static let m = Color(hex: 0xE350E3)   // magenta
+    private static let c = Color(hex: 0xFF6B5A)   // coral
     var body: some View {
         TimelineView(.animation) { tl in
             GeometryReader { geo in
                 let w = geo.size.width
-                let t = tl.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 8) / 8
+                let cycle = w * 6                 // one v→m→c→v cycle spans 6× the shape
+                let t = tl.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 10) / 10
                 LinearGradient(
-                    colors: [
-                        Color(hex: 0x050C38), Color(hex: 0x6700A3), Color(hex: 0xE02F75), Color(hex: 0xFF5A57),
-                        Color(hex: 0x050C38), Color(hex: 0x6700A3), Color(hex: 0xE02F75), Color(hex: 0xFF5A57),
-                        Color(hex: 0x050C38),
-                    ],
+                    colors: [Self.v, Self.m, Self.c, Self.v, Self.m, Self.c, Self.v],
                     startPoint: .leading, endPoint: .trailing
                 )
-                .frame(width: w * 2, height: geo.size.height)
-                .offset(x: -CGFloat(t) * w)
+                .frame(width: cycle * 2, height: geo.size.height)
+                .offset(x: -CGFloat(t) * cycle)   // slide exactly one cycle → seamless loop
             }
             .clipped()
         }
