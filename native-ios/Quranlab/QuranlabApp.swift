@@ -18,6 +18,7 @@ struct QuranlabApp: App {
         WindowGroup {
             RootView()
                 .environmentObject(session)
+                .preferredColorScheme(.light)
         }
     }
 }

@@ -1,6 +1,8 @@
 import Foundation
 import Supabase
 import RevenueCat
+import AuthenticationServices
+import UIKit
 
 /// Holds the Supabase session and exposes auth actions to the UI.
 ///
@@ -99,11 +101,40 @@ final class SessionStore: ObservableObject {
     /// Social sign-in entry points. Wiring requires the Apple/Google providers
     /// to be enabled in Supabase Auth (OAuth) — until then we surface a clear
     /// message instead of failing silently.
-    func signInWithApple() async {
-        errorMessage = "Connexion Apple bientôt disponible."
-    }
-    func signInWithGoogle() async {
-        errorMessage = "Connexion Google bientôt disponible."
+    func signInWithApple() async { await oauth(.apple) }
+    func signInWithGoogle() async { await oauth(.google) }
+
+    /// Browser-based OAuth via Supabase (no native entitlement required).
+    /// Requires the matching provider to be enabled in Supabase Auth, with
+    /// `app.quranlab.native://login-callback` added to the allowed redirect URLs.
+    private func oauth(_ provider: Provider) async {
+        errorMessage = nil
+        do {
+            try await client.auth.signInWithOAuth(
+                provider: provider,
+                redirectTo: URL(string: "app.quranlab.native://login-callback")
+            ) { url in
+                try await withCheckedThrowingContinuation { (cont: CheckedContinuation<URL, Error>) in
+                    let webSession = ASWebAuthenticationSession(
+                        url: url, callbackURLScheme: "app.quranlab.native"
+                    ) { callbackURL, error in
+                        if let callbackURL {
+                            cont.resume(returning: callbackURL)
+                        } else {
+                            cont.resume(throwing: error ?? URLError(.userCancelledAuthentication))
+                        }
+                    }
+                    webSession.presentationContextProvider = AuthPresentationAnchor.shared
+                    webSession.prefersEphemeralWebBrowserSession = false
+                    webSession.start()
+                }
+            }
+            await refresh()
+        } catch {
+            // User cancelling the sheet should not show a scary error.
+            let raw = error.localizedDescription.lowercased()
+            if !raw.contains("cancel") { errorMessage = friendly(error) }
+        }
     }
 
     /// Sends a password-reset email via Supabase.
@@ -130,5 +161,17 @@ final class SessionStore: ObservableObject {
             return "Email ou mot de passe incorrect."
         }
         return error.localizedDescription
+    }
+}
+
+
+/// Provides the key window as the presentation anchor for the OAuth web sheet.
+final class AuthPresentationAnchor: NSObject, ASWebAuthenticationPresentationContextProviding {
+    static let shared = AuthPresentationAnchor()
+    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .first { $0.isKeyWindow } ?? ASPresentationAnchor()
     }
 }

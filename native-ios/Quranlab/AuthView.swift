@@ -18,7 +18,7 @@ struct AuthView: View {
         ScrollView {
             VStack(spacing: 0) {
                 Spacer(minLength: 60)
-                MascotView(size: 96)
+                MascotView(size: 200, riv: "eyes_down")
                 Spacer(minLength: 28)
 
                 Text(mode == .signIn ? "Bon retour !" : "Crée ton compte")
@@ -148,6 +148,7 @@ struct AuthView: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(label).font(.system(size: 14, weight: .semibold)).foregroundColor(Theme.text)
             TextField("", text: text)
+                .foregroundColor(Theme.text)
                 .keyboardType(keyboard).textContentType(content).autocorrectionDisabled()
                 .textInputAutocapitalization(autocap ? .sentences : .never)
                 .padding(14)
@@ -160,6 +161,7 @@ struct AuthView: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(label).font(.system(size: 14, weight: .semibold)).foregroundColor(Theme.text)
             SecureField("", text: text).textContentType(.password)
+                .foregroundColor(Theme.text)
                 .padding(14)
                 .background(RoundedRectangle(cornerRadius: 12).fill(Color.white))
                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(Theme.cardBorder, lineWidth: 1.5))

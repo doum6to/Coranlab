@@ -6,6 +6,7 @@ struct MainTabView: View {
     @EnvironmentObject var session: SessionStore
     @StateObject private var learn: LearnStore
     @State private var showPaywall = false
+    @StateObject private var books = BooksStore()
     @State private var selection = 0
 
 
@@ -26,13 +27,17 @@ struct MainTabView: View {
                 .tag(1)
                 .tabItem { tab("nav_cours", "Leçons") }
 
-            PaywallView(onPurchased: { Task { await learn.refresh() } }, showClose: false)
+            BooksScreen(store: books, isPro: learn.isPro, onPremium: { showPaywall = true })
                 .tag(2)
+                .tabItem { Label("Boutique", systemImage: "books.vertical.fill") }
+
+            PaywallView(onPurchased: { Task { await learn.refresh() } }, showClose: false)
+                .tag(3)
                 .tabItem { Label("Premium", systemImage: "crown.fill") }
 
-            SettingsScreen(isPro: learn.isPro)
+            SettingsScreen(isPro: learn.isPro, streak: learn.streak)
                 .environmentObject(session)
-                .tag(3)
+                .tag(4)
                 .tabItem { tab("nav_settings", "Réglages") }
         }
         .tint(Theme.green)

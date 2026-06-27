@@ -1,7 +1,7 @@
 import SwiftUI
 
 // Reusable white sticky header (header.tsx) used by the secondary tabs.
-private struct ScreenHeader: View {
+struct ScreenHeader: View {
     let title: String
     var body: some View {
         HStack { Spacer()
@@ -173,6 +173,7 @@ struct QuestsView: View {
 struct SettingsScreen: View {
     @EnvironmentObject var session: SessionStore
     var isPro: Bool = false
+    var streak: Int = 0
     @State private var showPaywall = false
 
     var body: some View {
@@ -206,6 +207,8 @@ struct SettingsScreen: View {
                         }
                         .padding(18).cardSurface()
                     }
+
+                    StreakPanel(streak: streak)
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Compte").font(.system(size: 12, weight: .bold)).foregroundColor(Theme.muted)
@@ -241,5 +244,46 @@ private extension View {
                 .stroke(Theme.cardBorder, lineWidth: 2))
             .background(RoundedRectangle(cornerRadius: Theme.radius, style: .continuous)
                 .fill(Theme.cardShadow).offset(y: 4))
+    }
+}
+
+/// Weekly streak panel (shown in Réglages). Number + 7-day strip with today highlighted.
+struct StreakPanel: View {
+    var streak: Int
+    private let labels = ["Lu", "Ma", "Me", "Je", "Ve", "Sa", "Di"]
+    private var todayIdx: Int {
+        let wd = Calendar.current.component(.weekday, from: Date()) // 1=Sun ... 7=Sat
+        return (wd + 5) % 7                                         // 0=Mon ... 6=Sun
+    }
+    var body: some View {
+        VStack(spacing: 16) {
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("\(streak)").font(.system(size: 30, weight: .heavy)).foregroundColor(Theme.text)
+                    Text(streak <= 1 ? "jour de série" : "jours de série")
+                        .font(.system(size: 12, weight: .semibold)).foregroundColor(Theme.muted)
+                }
+                Spacer()
+                Image(systemName: "flame.fill").font(.system(size: 30)).foregroundColor(Theme.orange)
+            }
+            HStack(spacing: 0) {
+                ForEach(0..<7, id: \.self) { i in
+                    VStack(spacing: 6) {
+                        ZStack {
+                            Circle()
+                                .fill(i == todayIdx ? Theme.green : (i < todayIdx ? Theme.green.opacity(0.15) : Theme.surface))
+                                .frame(width: 34, height: 34)
+                            Image(systemName: "bolt.fill").font(.system(size: 14))
+                                .foregroundColor(i == todayIdx ? .white : (i < todayIdx ? Theme.green : Theme.muted.opacity(0.5)))
+                        }
+                        Text(labels[i])
+                            .font(.system(size: 11, weight: i == todayIdx ? .bold : .regular))
+                            .foregroundColor(i == todayIdx ? Theme.text : Theme.muted)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+            }
+        }
+        .padding(18).cardSurface()
     }
 }
