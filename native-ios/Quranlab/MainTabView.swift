@@ -27,7 +27,7 @@ struct MainTabView: View {
                 .tag(1)
                 .tabItem { tab("nav_cours", "Leçons") }
 
-            BooksScreen(store: books, isPro: learn.isPro, onPremium: { showPaywall = true })
+            BooksScreen(store: books, session: session, isPro: learn.isPro, onPremium: { showPaywall = true })
                 .tag(2)
                 .tabItem { Label("Boutique", systemImage: "books.vertical.fill") }
 

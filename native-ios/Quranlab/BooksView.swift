@@ -1,8 +1,10 @@
 import SwiftUI
+import PDFKit
 
 /// Boutique + Catalogue (ebooks). One tab with a Boutique / Ma bibliothèque toggle.
 struct BooksScreen: View {
     @ObservedObject var store: BooksStore
+    var session: SessionStore
     var isPro: Bool
     var onPremium: () -> Void
 
@@ -30,7 +32,10 @@ struct BooksScreen: View {
             }
         }
         .background(Color.white.ignoresSafeArea())
-        .task { await store.loadOwnership() }
+        .task {
+            store.tokenProvider = { await session.accessToken() }
+            await store.loadOwnership()
+        }
         .sheet(item: $detail) { b in
             BookDetailView(book: b, store: store)
         }
@@ -189,13 +194,20 @@ struct BookDetailView: View {
     }
 }
 
-/// Paginated excerpt / book reader with left-right arrows.
+/// Book reader. Shows the real PDF (PDFKit) when available — the full book for
+/// owners, otherwise the bundled 6-page excerpt — and falls back to the text
+/// preview until the PDFs are added.
 struct ReaderView: View {
     let book: Book
     @ObservedObject var store: BooksStore
     var owned: Bool
     @Environment(\.dismiss) private var dismiss
-    @State private var page = 0
+
+    @StateObject private var pdf = PDFController()
+    @State private var mode: Mode = .loading
+    @State private var page = 0   // for the text fallback
+
+    enum Mode { case loading, pdf, text }
 
     private var pages: [String] { book.extractPages }
 
@@ -208,41 +220,34 @@ struct ReaderView: View {
             }
             .padding(.horizontal, 18).padding(.vertical, 14)
 
-            TabView(selection: $page) {
-                ForEach(pages.indices, id: \.self) { i in
-                    ScrollView {
-                        Text(pages[i])
-                            .font(.system(size: 17)).foregroundColor(Theme.text).lineSpacing(6)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(24)
+            switch mode {
+            case .loading:
+                Spacer(); ProgressView(); Spacer()
+            case .pdf:
+                PDFKitView(controller: pdf)
+                arrowBar(current: pdf.page, total: pdf.count,
+                         prev: { pdf.prev() }, next: { pdf.next() })
+            case .text:
+                TabView(selection: $page) {
+                    ForEach(pages.indices, id: \.self) { i in
+                        ScrollView {
+                            Text(pages[i]).font(.system(size: 17)).foregroundColor(Theme.text).lineSpacing(6)
+                                .frame(maxWidth: .infinity, alignment: .leading).padding(24)
+                        }.tag(i)
                     }
-                    .tag(i)
                 }
+                .tabViewStyle(.page(indexDisplayMode: .never))
+                arrowBar(current: page, total: pages.count,
+                         prev: { if page > 0 { withAnimation { page -= 1 } } },
+                         next: { if page < pages.count - 1 { withAnimation { page += 1 } } })
             }
-            .tabViewStyle(.page(indexDisplayMode: .never))
-
-            HStack {
-                Button { if page > 0 { withAnimation { page -= 1 } } } label: {
-                    Image(systemName: "chevron.left").font(.system(size: 20, weight: .bold))
-                }
-                .disabled(page == 0).opacity(page == 0 ? 0.3 : 1)
-                Spacer()
-                Text("Page \(page + 1) / \(pages.count)").font(.system(size: 13, weight: .semibold)).foregroundColor(Theme.muted)
-                Spacer()
-                Button { if page < pages.count - 1 { withAnimation { page += 1 } } } label: {
-                    Image(systemName: "chevron.right").font(.system(size: 20, weight: .bold))
-                }
-                .disabled(page == pages.count - 1).opacity(page == pages.count - 1 ? 0.3 : 1)
-            }
-            .foregroundColor(Theme.text)
-            .padding(.horizontal, 28).padding(.vertical, 12)
 
             if !owned {
                 VStack(spacing: 8) {
-                    Text("Extrait — \(pages.count) premières pages").font(.system(size: 12)).foregroundColor(Theme.muted)
+                    Text("Extrait gratuit").font(.system(size: 12)).foregroundColor(Theme.muted)
                     ShinyButton(title: store.busyId == book.id ? "Achat…" : "Je le veux  ·  \(book.priceLabel)",
                                 variant: .green, disabled: store.busyId != nil) {
-                        Task { await store.purchase(book); if store.ownedIds.contains(book.id) { dismiss() } }
+                        Task { await store.purchase(book); if store.ownedIds.contains(book.id) { await loadContent() } }
                     }
                     if let msg = store.message {
                         Text(msg).font(.footnote).foregroundColor(Theme.wrongText)
@@ -252,5 +257,75 @@ struct ReaderView: View {
             }
         }
         .background(Color.white.ignoresSafeArea())
+        .task { await loadContent() }
     }
+
+    private func arrowBar(current: Int, total: Int, prev: @escaping () -> Void, next: @escaping () -> Void) -> some View {
+        HStack {
+            Button(action: prev) { Image(systemName: "chevron.left").font(.system(size: 20, weight: .bold)) }
+                .disabled(current == 0).opacity(current == 0 ? 0.3 : 1)
+            Spacer()
+            Text("Page \(min(current + 1, max(total, 1))) / \(max(total, 1))")
+                .font(.system(size: 13, weight: .semibold)).foregroundColor(Theme.muted)
+            Spacer()
+            Button(action: next) { Image(systemName: "chevron.right").font(.system(size: 20, weight: .bold)) }
+                .disabled(total > 0 && current >= total - 1).opacity(total > 0 && current >= total - 1 ? 0.3 : 1)
+        }
+        .foregroundColor(Theme.text)
+        .padding(.horizontal, 28).padding(.vertical, 12)
+    }
+
+    private func loadContent() async {
+        mode = .loading
+        // 1. Owner → try the full book from the secure endpoint.
+        if owned, let url = await store.fullBookURL(book),
+           let data = await store.download(url), let doc = PDFDocument(data: data) {
+            pdf.load(doc); mode = .pdf; return
+        }
+        // 2. Bundled excerpt PDF (first pages), named "<id>_extract.pdf".
+        if let u = Bundle.main.url(forResource: "\(book.id)_extract", withExtension: "pdf"),
+           let doc = PDFDocument(url: u) {
+            pdf.load(doc); mode = .pdf; return
+        }
+        // 3. Fallback: text preview.
+        mode = .text
+    }
+}
+
+/// Holds a PDFView and drives page navigation for SwiftUI.
+final class PDFController: ObservableObject {
+    let view = PDFView()
+    @Published var page = 0
+    @Published var count = 0
+
+    init() {
+        view.autoScales = true
+        view.displayMode = .singlePage
+        view.displayDirection = .horizontal
+        view.usePageViewController(true)
+        view.backgroundColor = .white
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(pageChanged), name: .PDFViewPageChanged, object: view)
+    }
+
+    func load(_ doc: PDFDocument) {
+        view.document = doc
+        count = doc.pageCount
+        if let first = doc.page(at: 0) { view.go(to: first) }
+        page = 0
+    }
+    func next() { view.goToNextPage(nil) }
+    func prev() { view.goToPreviousPage(nil) }
+
+    @objc private func pageChanged() {
+        guard let doc = view.document, let cur = view.currentPage else { return }
+        page = doc.index(for: cur)
+        count = doc.pageCount
+    }
+}
+
+struct PDFKitView: UIViewRepresentable {
+    let controller: PDFController
+    func makeUIView(context: Context) -> PDFView { controller.view }
+    func updateUIView(_ uiView: PDFView, context: Context) {}
 }

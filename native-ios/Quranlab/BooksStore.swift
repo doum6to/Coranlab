@@ -64,6 +64,31 @@ final class BooksStore: ObservableObject {
         }
     }
 
+    /// Supplies the current Supabase access token (set from MainTabView).
+    var tokenProvider: (() async -> String?)?
+
+    /// Asks the backend for a short-lived signed URL to the full (purchased) book.
+    func fullBookURL(_ book: Book) async -> URL? {
+        guard let token = await tokenProvider?() else { return nil }
+        var comps = URLComponents(
+            url: SupabaseConfig.apiBaseURL.appendingPathComponent("api/native/book-url"),
+            resolvingAgainstBaseURL: false
+        )
+        comps?.queryItems = [URLQueryItem(name: "productId", value: book.productId)]
+        guard let url = comps?.url else { return nil }
+        var req = URLRequest(url: url)
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        guard let (data, resp) = try? await URLSession.shared.data(for: req),
+              let http = resp as? HTTPURLResponse, http.statusCode == 200,
+              let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let s = obj["url"] as? String, let signed = URL(string: s) else { return nil }
+        return signed
+    }
+
+    func download(_ url: URL) async -> Data? {
+        try? await URLSession.shared.data(from: url).0
+    }
+
     func restore() async {
         guard Purchases.isConfigured else { return }
         if let info = try? await Purchases.shared.restorePurchases() { apply(info) }
