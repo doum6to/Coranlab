@@ -1,5 +1,14 @@
 import SwiftUI
 import PDFKit
+import UIKit
+
+extension Book {
+    /// Bundled cover rendered from the book's first page ("<id>_cover.png").
+    var coverImage: UIImage? {
+        guard let u = Bundle.main.url(forResource: "\(id)_cover", withExtension: "png") else { return nil }
+        return UIImage(contentsOfFile: u.path)
+    }
+}
 
 /// Boutique + Catalogue (ebooks). One tab with a Boutique / Ma bibliothèque toggle.
 struct BooksScreen: View {
@@ -107,23 +116,32 @@ struct BookCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             ZStack(alignment: .bottomLeading) {
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(LinearGradient(colors: book.gradient, startPoint: .topLeading, endPoint: .bottomTrailing))
-                    .aspectRatio(0.72, contentMode: .fit)
-                VStack(alignment: .leading, spacing: 4) {
-                    Spacer()
-                    Text(book.title).font(.system(size: 15, weight: .heavy)).foregroundColor(.white)
-                        .lineLimit(3).minimumScaleFactor(0.8)
-                    Text(book.author).font(.system(size: 11, weight: .semibold)).foregroundColor(.white.opacity(0.85))
+                if let img = book.coverImage {
+                    Image(uiImage: img).resizable().scaledToFill()
+                        .aspectRatio(0.72, contentMode: .fit)
+                        .frame(maxWidth: .infinity)
+                        .clipped()
+                } else {
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(LinearGradient(colors: book.gradient, startPoint: .topLeading, endPoint: .bottomTrailing))
+                        .aspectRatio(0.72, contentMode: .fit)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Spacer()
+                        Text(book.title).font(.system(size: 15, weight: .heavy)).foregroundColor(.white)
+                            .lineLimit(3).minimumScaleFactor(0.8)
+                        Text(book.author).font(.system(size: 11, weight: .semibold)).foregroundColor(.white.opacity(0.85))
+                    }
+                    .padding(12)
                 }
-                .padding(12)
                 if owned {
                     Image(systemName: "checkmark.seal.fill")
                         .foregroundColor(.white).padding(8)
+                        .background(Circle().fill(Theme.green).opacity(0.9).padding(4))
                         .frame(maxWidth: .infinity, alignment: .topTrailing)
                 }
             }
-            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.black.opacity(0.06), lineWidth: 1))
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.black.opacity(0.08), lineWidth: 1))
             Text(owned ? "Acheté" : book.priceLabel)
                 .font(.system(size: 13, weight: .bold))
                 .foregroundColor(owned ? Theme.green : Theme.text)
@@ -144,11 +162,17 @@ struct BookDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 HStack(alignment: .top, spacing: 16) {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(LinearGradient(colors: book.gradient, startPoint: .topLeading, endPoint: .bottomTrailing))
-                        .frame(width: 110, height: 150)
-                        .overlay(Text(book.title).font(.system(size: 13, weight: .heavy)).foregroundColor(.white)
-                            .multilineTextAlignment(.center).padding(10))
+                    Group {
+                        if let img = book.coverImage {
+                            Image(uiImage: img).resizable().scaledToFill()
+                        } else {
+                            LinearGradient(colors: book.gradient, startPoint: .topLeading, endPoint: .bottomTrailing)
+                                .overlay(Text(book.title).font(.system(size: 13, weight: .heavy)).foregroundColor(.white)
+                                    .multilineTextAlignment(.center).padding(10))
+                        }
+                    }
+                    .frame(width: 110, height: 150)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
                     VStack(alignment: .leading, spacing: 6) {
                         Text(book.title).font(.system(size: 20, weight: .bold)).foregroundColor(Theme.text)
                         Text(book.author).font(.system(size: 14)).foregroundColor(Theme.muted)
