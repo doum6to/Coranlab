@@ -8,6 +8,7 @@ struct PaywallView: View {
     @StateObject private var store = PaywallStore()
     @State private var selectedId: String?
     let onPurchased: () -> Void
+    var showClose: Bool = true
 
     private let perks = [
         "Toutes les leçons débloquées",
@@ -48,9 +49,11 @@ struct PaywallView: View {
         }
         .background(Color.white.ignoresSafeArea())
         .overlay(alignment: .topTrailing) {
-            Button { dismiss() } label: {
-                Image(systemName: "xmark")
-                    .font(.headline).foregroundColor(Theme.muted).padding(16)
+            if showClose {
+                Button { dismiss() } label: {
+                    Image(systemName: "xmark")
+                        .font(.headline).foregroundColor(Theme.muted).padding(16)
+                }
             }
         }
         .task {

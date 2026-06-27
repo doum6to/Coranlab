@@ -26,13 +26,13 @@ struct MainTabView: View {
                 .tag(1)
                 .tabItem { tab("nav_cours", "Leçons") }
 
-            LeaderboardView(session: session)
+            PaywallView(onPurchased: { Task { await learn.refresh() } }, showClose: false)
                 .tag(2)
-                .tabItem { tab("nav_leaderboard", "Classement") }
+                .tabItem { Label("Premium", systemImage: "crown.fill") }
 
             SettingsScreen(isPro: learn.isPro)
                 .environmentObject(session)
-                .tag(4)
+                .tag(3)
                 .tabItem { tab("nav_settings", "Réglages") }
         }
         .tint(Theme.green)
