@@ -54,10 +54,10 @@ struct BooksScreen: View {
         }
         .onChange(of: isPro) { store.isPro = $0 }
         .sheet(item: $detail) { b in
-            BookDetailView(book: b, store: store)
+            BookDetailView(book: b, store: store, onPremium: onPremium)
         }
         .fullScreenCover(item: $reader) { b in
-            ReaderView(book: b, store: store, owned: store.owns(b))
+            ReaderView(book: b, store: store, owned: store.owns(b), onPremium: onPremium)
         }
     }
 
@@ -162,6 +162,7 @@ struct BookCard: View {
 struct BookDetailView: View {
     let book: Book
     @ObservedObject var store: BooksStore
+    var onPremium: () -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var showReader = false
 
@@ -222,7 +223,7 @@ struct BookDetailView: View {
             }
         }
         .fullScreenCover(isPresented: $showReader) {
-            ReaderView(book: book, store: store, owned: owned)
+            ReaderView(book: book, store: store, owned: owned, onPremium: onPremium)
         }
     }
 }
@@ -234,6 +235,7 @@ struct ReaderView: View {
     let book: Book
     @ObservedObject var store: BooksStore
     var owned: Bool
+    var onPremium: () -> Void
     @Environment(\.dismiss) private var dismiss
 
     @StateObject private var pdf = PDFController()
@@ -323,18 +325,35 @@ struct ReaderView: View {
         .padding(.horizontal, 28).padding(.vertical, 12)
     }
 
+    private var isLastExtractPage: Bool {
+        mode == .pdf ? (pdf.count > 0 && pdf.page >= pdf.count - 1) : (page >= pages.count - 1)
+    }
+
     private var purchaseBar: some View {
-        VStack(spacing: 8) {
-            Text("Extrait gratuit").font(.system(size: 12)).foregroundColor(Theme.muted)
-            ShinyButton(title: store.busyId == book.id ? "Achat…" : "Je le veux  ·  \(book.priceLabel)",
+        VStack(spacing: 10) {
+            Text(isLastExtractPage ? "Fin de l'extrait" : "Extrait gratuit")
+                .font(.system(size: isLastExtractPage ? 15 : 12, weight: isLastExtractPage ? .bold : .regular))
+                .foregroundColor(isLastExtractPage ? Theme.text : Theme.muted)
+            if isLastExtractPage {
+                Text("Débloque la lecture complète").font(.system(size: 12)).foregroundColor(Theme.muted)
+            }
+            ShinyButton(title: store.busyId == book.id ? "Achat…" : "Acheter  ·  \(book.priceLabel)",
                         variant: .green, disabled: store.busyId != nil) {
                 Task { await store.purchase(book); if store.owns(book) { await loadContent() } }
+            }
+            Button { onPremium() } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "crown.fill")
+                    Text("Tous les livres avec Premium").font(.system(size: 15, weight: .bold))
+                }
+                .foregroundColor(.white).frame(maxWidth: .infinity).padding(.vertical, 13)
+                .background(PremiumFill().clipShape(RoundedRectangle(cornerRadius: Theme.radius, style: .continuous)))
             }
             if let msg = store.message {
                 Text(msg).font(.footnote).foregroundColor(Theme.wrongText)
             }
         }
-        .padding(.horizontal, 20).padding(.bottom, 20).padding(.top, 4)
+        .padding(.horizontal, 20).padding(.bottom, 20).padding(.top, 6)
     }
 
     private var bookmarksSheet: some View {

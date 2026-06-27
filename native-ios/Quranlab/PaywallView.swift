@@ -15,6 +15,7 @@ struct PaywallView: View {
         "Les 500 mots essentiels du Coran",
         "Apprentissage illimité, sans pub",
         "Tous les cours, à ton rythme",
+        "Tous les livres de la boutique inclus",
     ]
 
     var body: some View {
@@ -88,6 +89,7 @@ struct PaywallView: View {
         ("Sans publicités", false),
         ("Pratique personnalisée", false),
         ("Accès à tous les cours", false),
+        ("Tous les livres de la boutique", false),
     ]
 
     // Comparison table (Gratuit vs Premium) — faithful to the web paywall.
