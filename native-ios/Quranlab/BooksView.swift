@@ -23,6 +23,12 @@ struct BooksScreen: View {
 
     private let cols = [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)]
 
+    private func statusLabel(_ b: Book) -> String {
+        if store.purchasedOutright(b) { return "Acheté" }
+        if store.isPro { return "Inclus" }
+        return b.priceLabel
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             ScreenHeader(title: "Bibliothèque")
@@ -43,13 +49,15 @@ struct BooksScreen: View {
         .background(Color.white.ignoresSafeArea())
         .task {
             store.tokenProvider = { await session.accessToken() }
+            store.isPro = isPro
             await store.loadOwnership()
         }
+        .onChange(of: isPro) { store.isPro = $0 }
         .sheet(item: $detail) { b in
             BookDetailView(book: b, store: store)
         }
         .fullScreenCover(item: $reader) { b in
-            ReaderView(book: b, store: store, owned: store.ownedIds.contains(b.id))
+            ReaderView(book: b, store: store, owned: store.owns(b))
         }
     }
 
@@ -62,7 +70,7 @@ struct BooksScreen: View {
                         Image(systemName: "crown.fill").font(.system(size: 20)).foregroundColor(.white)
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Devenir Premium").font(.system(size: 16, weight: .bold)).foregroundColor(.white)
-                            Text("Toutes les leçons débloquées").font(.system(size: 12)).foregroundColor(.white.opacity(0.9))
+                            Text("Tous les livres inclus, en illimité").font(.system(size: 12)).foregroundColor(.white.opacity(0.9))
                         }
                         Spacer()
                         Image(systemName: "chevron.right").foregroundColor(.white.opacity(0.9))
@@ -74,7 +82,7 @@ struct BooksScreen: View {
 
             LazyVGrid(columns: cols, spacing: 16) {
                 ForEach(store.books) { b in
-                    Button { detail = b } label: { BookCard(book: b, owned: store.ownedIds.contains(b.id)) }
+                    Button { detail = b } label: { BookCard(book: b, owned: store.owns(b), label: statusLabel(b)) }
                         .buttonStyle(.plain)
                 }
             }
@@ -99,7 +107,7 @@ struct BooksScreen: View {
             } else {
                 LazyVGrid(columns: cols, spacing: 16) {
                     ForEach(store.ownedBooks) { b in
-                        Button { reader = b } label: { BookCard(book: b, owned: true) }
+                        Button { reader = b } label: { BookCard(book: b, owned: true, label: store.purchasedOutright(b) ? "Acheté" : "Inclus") }
                             .buttonStyle(.plain)
                     }
                 }
@@ -113,6 +121,7 @@ struct BooksScreen: View {
 struct BookCard: View {
     let book: Book
     var owned: Bool = false
+    var label: String = ""
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             ZStack(alignment: .bottomLeading) {
@@ -142,7 +151,7 @@ struct BookCard: View {
             }
             .clipShape(RoundedRectangle(cornerRadius: 14))
             .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.black.opacity(0.08), lineWidth: 1))
-            Text(owned ? "Acheté" : book.priceLabel)
+            Text(label.isEmpty ? (owned ? "Acheté" : book.priceLabel) : label)
                 .font(.system(size: 13, weight: .bold))
                 .foregroundColor(owned ? Theme.green : Theme.text)
         }
@@ -156,7 +165,7 @@ struct BookDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showReader = false
 
-    private var owned: Bool { store.ownedIds.contains(book.id) }
+    private var owned: Bool { store.owns(book) }
 
     var body: some View {
         ScrollView {
@@ -177,7 +186,7 @@ struct BookDetailView: View {
                         Text(book.title).font(.system(size: 20, weight: .bold)).foregroundColor(Theme.text)
                         Text(book.author).font(.system(size: 14)).foregroundColor(Theme.muted)
                         if owned {
-                            Text("Dans ta bibliothèque ✓").font(.system(size: 13, weight: .bold)).foregroundColor(Theme.green)
+                            Text(store.isPro && !store.purchasedOutright(book) ? "Inclus avec Premium ✓" : "Dans ta bibliothèque ✓").font(.system(size: 13, weight: .bold)).foregroundColor(Theme.green)
                         } else {
                             Text(book.priceLabel).font(.system(size: 18, weight: .heavy)).foregroundColor(Theme.text)
                         }
@@ -218,9 +227,9 @@ struct BookDetailView: View {
     }
 }
 
-/// Book reader. Shows the real PDF (PDFKit) when available — the full book for
-/// owners, otherwise the bundled 6-page excerpt — and falls back to the text
-/// preview until the PDFs are added.
+/// Book reader. Real PDF via PDFKit (full book for owners / Premium, otherwise
+/// the bundled excerpt). For owned books: resume where you left off, bookmarks,
+/// and a page slider. Falls back to text until PDFs are present.
 struct ReaderView: View {
     let book: Book
     @ObservedObject var store: BooksStore
@@ -229,7 +238,8 @@ struct ReaderView: View {
 
     @StateObject private var pdf = PDFController()
     @State private var mode: Mode = .loading
-    @State private var page = 0   // for the text fallback
+    @State private var page = 0          // text fallback only
+    @State private var showBookmarks = false
 
     enum Mode { case loading, pdf, text }
 
@@ -237,20 +247,14 @@ struct ReaderView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                Text(book.title).font(.system(size: 16, weight: .bold)).foregroundColor(Theme.text).lineLimit(1)
-                Spacer()
-                Button { dismiss() } label: { Image(systemName: "xmark").foregroundColor(Theme.muted) }
-            }
-            .padding(.horizontal, 18).padding(.vertical, 14)
-
+            topBar
             switch mode {
             case .loading:
                 Spacer(); ProgressView(); Spacer()
             case .pdf:
                 PDFKitView(controller: pdf)
-                arrowBar(current: pdf.page, total: pdf.count,
-                         prev: { pdf.prev() }, next: { pdf.next() })
+                if owned && pdf.count > 1 { sliderBar }
+                arrowBar(current: pdf.page, total: pdf.count, prev: { pdf.prev() }, next: { pdf.next() })
             case .text:
                 TabView(selection: $page) {
                     ForEach(pages.indices, id: \.self) { i in
@@ -265,23 +269,43 @@ struct ReaderView: View {
                          prev: { if page > 0 { withAnimation { page -= 1 } } },
                          next: { if page < pages.count - 1 { withAnimation { page += 1 } } })
             }
-
-            if !owned {
-                VStack(spacing: 8) {
-                    Text("Extrait gratuit").font(.system(size: 12)).foregroundColor(Theme.muted)
-                    ShinyButton(title: store.busyId == book.id ? "Achat…" : "Je le veux  ·  \(book.priceLabel)",
-                                variant: .green, disabled: store.busyId != nil) {
-                        Task { await store.purchase(book); if store.ownedIds.contains(book.id) { await loadContent() } }
-                    }
-                    if let msg = store.message {
-                        Text(msg).font(.footnote).foregroundColor(Theme.wrongText)
-                    }
-                }
-                .padding(.horizontal, 20).padding(.bottom, 20).padding(.top, 4)
-            }
+            if !owned { purchaseBar }
         }
         .background(Color.white.ignoresSafeArea())
         .task { await loadContent() }
+        .sheet(isPresented: $showBookmarks) { bookmarksSheet }
+    }
+
+    private var topBar: some View {
+        HStack(spacing: 14) {
+            Text(book.title).font(.system(size: 16, weight: .bold)).foregroundColor(Theme.text).lineLimit(1)
+            Spacer()
+            if owned && mode == .pdf {
+                Button { pdf.toggleBookmark() } label: {
+                    Image(systemName: pdf.bookmarks.contains(pdf.page) ? "bookmark.fill" : "bookmark")
+                        .foregroundColor(pdf.bookmarks.contains(pdf.page) ? Theme.green : Theme.muted)
+                }
+                Button { showBookmarks = true } label: {
+                    Image(systemName: "list.bullet").foregroundColor(Theme.muted)
+                }
+                .disabled(pdf.bookmarks.isEmpty).opacity(pdf.bookmarks.isEmpty ? 0.3 : 1)
+            }
+            Button { dismiss() } label: { Image(systemName: "xmark").foregroundColor(Theme.muted) }
+        }
+        .font(.system(size: 18))
+        .padding(.horizontal, 18).padding(.vertical, 14)
+    }
+
+    private var sliderBar: some View {
+        HStack(spacing: 12) {
+            Slider(
+                value: Binding(get: { Double(pdf.page) },
+                               set: { pdf.goTo(Int($0.rounded())) }),
+                in: 0...Double(max(pdf.count - 1, 1))
+            )
+            .tint(Theme.green)
+        }
+        .padding(.horizontal, 24).padding(.top, 6)
     }
 
     private func arrowBar(current: Int, total: Int, prev: @escaping () -> Void, next: @escaping () -> Void) -> some View {
@@ -299,28 +323,75 @@ struct ReaderView: View {
         .padding(.horizontal, 28).padding(.vertical, 12)
     }
 
+    private var purchaseBar: some View {
+        VStack(spacing: 8) {
+            Text("Extrait gratuit").font(.system(size: 12)).foregroundColor(Theme.muted)
+            ShinyButton(title: store.busyId == book.id ? "Achat…" : "Je le veux  ·  \(book.priceLabel)",
+                        variant: .green, disabled: store.busyId != nil) {
+                Task { await store.purchase(book); if store.owns(book) { await loadContent() } }
+            }
+            if let msg = store.message {
+                Text(msg).font(.footnote).foregroundColor(Theme.wrongText)
+            }
+        }
+        .padding(.horizontal, 20).padding(.bottom, 20).padding(.top, 4)
+    }
+
+    private var bookmarksSheet: some View {
+        let marks = pdf.bookmarks.sorted()
+        return NavigationView {
+            List {
+                if marks.isEmpty {
+                    Text("Aucun marque-page").foregroundColor(Theme.muted)
+                } else {
+                    ForEach(marks, id: \.self) { i in
+                        Button {
+                            pdf.goTo(i); showBookmarks = false
+                        } label: {
+                            HStack {
+                                Image(systemName: "bookmark.fill").foregroundColor(Theme.green)
+                                Text("Page \(i + 1)").foregroundColor(Theme.text)
+                                Spacer()
+                            }
+                        }
+                    }
+                    .onDelete { idx in
+                        for k in idx { pdf.removeBookmark(marks[k]) }
+                    }
+                }
+            }
+            .navigationTitle("Marque-pages")
+            .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+
     private func loadContent() async {
         mode = .loading
-        // 1. Owner → try the full book from the secure endpoint.
+        pdf.configure(bookId: book.id, persist: owned)
+        // 1. Owner / Premium → full book from the secure endpoint.
         if owned, let url = await store.fullBookURL(book),
            let data = await store.download(url), let doc = PDFDocument(data: data) {
-            pdf.load(doc); mode = .pdf; return
+            pdf.load(doc, restore: true); mode = .pdf; return
         }
-        // 2. Bundled excerpt PDF (first pages), named "<id>_extract.pdf".
+        // 2. Bundled excerpt PDF.
         if let u = Bundle.main.url(forResource: "\(book.id)_extract", withExtension: "pdf"),
            let doc = PDFDocument(url: u) {
-            pdf.load(doc); mode = .pdf; return
+            pdf.load(doc, restore: owned); mode = .pdf; return
         }
-        // 3. Fallback: text preview.
+        // 3. Text fallback.
         mode = .text
     }
 }
 
-/// Holds a PDFView and drives page navigation for SwiftUI.
+/// Drives a PDFView for SwiftUI: paging, resume position, and bookmarks.
 final class PDFController: ObservableObject {
     let view = PDFView()
     @Published var page = 0
     @Published var count = 0
+    @Published var bookmarks: Set<Int> = []
+
+    private var bookId = ""
+    private var persist = false
 
     init() {
         view.autoScales = true
@@ -332,19 +403,47 @@ final class PDFController: ObservableObject {
             self, selector: #selector(pageChanged), name: .PDFViewPageChanged, object: view)
     }
 
-    func load(_ doc: PDFDocument) {
+    func configure(bookId: String, persist: Bool) {
+        self.bookId = bookId
+        self.persist = persist
+        bookmarks = persist
+            ? Set((UserDefaults.standard.array(forKey: "bm_\(bookId)") as? [Int]) ?? [])
+            : []
+    }
+
+    func load(_ doc: PDFDocument, restore: Bool) {
         view.document = doc
         count = doc.pageCount
-        if let first = doc.page(at: 0) { view.go(to: first) }
-        page = 0
+        var start = 0
+        if persist && restore {
+            start = min(max(UserDefaults.standard.integer(forKey: "rp_\(bookId)"), 0), max(count - 1, 0))
+        }
+        if let p = doc.page(at: start) { view.go(to: p) }
+        page = start
+    }
+
+    func goTo(_ i: Int) {
+        guard let doc = view.document, i >= 0, i < doc.pageCount, let p = doc.page(at: i) else { return }
+        view.go(to: p)
     }
     func next() { view.goToNextPage(nil) }
     func prev() { view.goToPreviousPage(nil) }
+
+    func toggleBookmark() {
+        if bookmarks.contains(page) { bookmarks.remove(page) } else { bookmarks.insert(page) }
+        saveBookmarks()
+    }
+    func removeBookmark(_ i: Int) { bookmarks.remove(i); saveBookmarks() }
+    private func saveBookmarks() {
+        guard persist else { return }
+        UserDefaults.standard.set(Array(bookmarks), forKey: "bm_\(bookId)")
+    }
 
     @objc private func pageChanged() {
         guard let doc = view.document, let cur = view.currentPage else { return }
         page = doc.index(for: cur)
         count = doc.pageCount
+        if persist { UserDefaults.standard.set(page, forKey: "rp_\(bookId)") }
     }
 }
 

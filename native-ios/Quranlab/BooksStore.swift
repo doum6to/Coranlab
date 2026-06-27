@@ -20,10 +20,16 @@ struct Book: Identifiable, Equatable {
 final class BooksStore: ObservableObject {
     @Published var books: [Book] = BooksStore.sample
     @Published var ownedIds: Set<String> = []
+    @Published var isPro = false
     @Published var busyId: String? = nil
     @Published var message: String? = nil
 
-    var ownedBooks: [Book] { books.filter { ownedIds.contains($0.id) } }
+    var ownedBooks: [Book] { isPro ? books : books.filter { ownedIds.contains($0.id) } }
+
+    /// Premium unlocks every book; otherwise it must be individually purchased.
+    func owns(_ book: Book) -> Bool { isPro || ownedIds.contains(book.id) }
+    /// True only for an actual one-off purchase (not a Premium inclusion).
+    func purchasedOutright(_ book: Book) -> Bool { ownedIds.contains(book.id) }
 
     func loadOwnership() async {
         if Purchases.isConfigured, let info = try? await Purchases.shared.customerInfo() {

@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 
+import { eq } from "drizzle-orm";
+
+import db from "@/db/drizzle";
+import { userSubscription } from "@/db/schema";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
@@ -20,6 +24,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
  */
 export const dynamic = "force-dynamic";
 
+const DAY_IN_MS = 86_400_000;
 const BUCKET = "books";
 const TTL = 60 * 60; // 1 hour
 
@@ -44,25 +49,41 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Missing productId" }, { status: 400 });
   }
 
-  const rcKey = process.env.REVENUECAT_SECRET_KEY;
-  if (!rcKey) {
-    return NextResponse.json({ error: "Store not configured" }, { status: 503 });
+  // 1a. Premium subscribers get every book (same isPro rule as the learn API).
+  let isPro = false;
+  const sub = await db.query.userSubscription.findFirst({
+    where: eq(userSubscription.userId, userData.user.id),
+  });
+  if (sub) {
+    if (sub.isLifetime) {
+      isPro = true;
+    } else {
+      const end = sub.stripeCurrentPeriodEnd?.getTime();
+      isPro =
+        typeof end === "number" && !Number.isNaN(end) && end + DAY_IN_MS > Date.now();
+    }
   }
 
-  // 1. Verify ownership via RevenueCat.
-  let owned = false;
-  try {
-    const rc = await fetch(
-      `https://api.revenuecat.com/v1/subscribers/${encodeURIComponent(userId)}`,
-      { headers: { Authorization: `Bearer ${rcKey}` } }
-    );
-    if (rc.ok) {
-      const j = await rc.json();
-      const nonSubs = j?.subscriber?.non_subscriptions || {};
-      owned = Array.isArray(nonSubs[productId]) && nonSubs[productId].length > 0;
+  // 1b. Otherwise verify the individual purchase via RevenueCat.
+  let owned = isPro;
+  const rcKey = process.env.REVENUECAT_SECRET_KEY;
+  if (!owned && !rcKey) {
+    return NextResponse.json({ error: "Store not configured" }, { status: 503 });
+  }
+  if (!owned && rcKey) {
+    try {
+      const rc = await fetch(
+        `https://api.revenuecat.com/v1/subscribers/${encodeURIComponent(userId)}`,
+        { headers: { Authorization: `Bearer ${rcKey}` } }
+      );
+      if (rc.ok) {
+        const j = await rc.json();
+        const nonSubs = j?.subscriber?.non_subscriptions || {};
+        owned = Array.isArray(nonSubs[productId]) && nonSubs[productId].length > 0;
+      }
+    } catch {
+      /* treat as not owned */
     }
-  } catch {
-    /* treat as not owned */
   }
   if (!owned) {
     return NextResponse.json({ error: "Not owned" }, { status: 403 });
