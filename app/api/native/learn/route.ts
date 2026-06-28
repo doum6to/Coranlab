@@ -4,6 +4,7 @@ import { eq, and, inArray } from "drizzle-orm";
 import db from "@/db/drizzle";
 import {
   challengeProgress,
+  courses,
   units,
   userProgress,
   userSubscription,
@@ -66,11 +67,41 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const locale = ((url.searchParams.get("locale") as Locale) || "fr") as Locale;
 
-  // 2. Active course for this user.
-  const up = await db.query.userProgress.findFirst({
+  // 2. Active course for this user. New accounts (e.g. fresh sign-ups) have no
+  // userProgress / activeCourseId yet — auto-assign the first course so they
+  // immediately see content instead of an empty "Apprendre"/"Leçons".
+  let up = await db.query.userProgress.findFirst({
     where: eq(userProgress.userId, userId),
   });
-  if (!up?.activeCourseId) {
+  let activeCourseId = up?.activeCourseId ?? null;
+  if (!activeCourseId) {
+    const firstCourse = await db.query.courses.findFirst({
+      orderBy: (c, { asc }) => [asc(c.id)],
+    });
+    if (firstCourse) {
+      activeCourseId = firstCourse.id;
+      const fallbackName =
+        (userData.user.user_metadata?.full_name as string | undefined) ||
+        userData.user.email?.split("@")[0] ||
+        "User";
+      if (up) {
+        await db
+          .update(userProgress)
+          .set({ activeCourseId })
+          .where(eq(userProgress.userId, userId));
+      } else {
+        await db.insert(userProgress).values({
+          userId,
+          activeCourseId,
+          userName: fallbackName,
+        });
+        up = await db.query.userProgress.findFirst({
+          where: eq(userProgress.userId, userId),
+        });
+      }
+    }
+  }
+  if (!activeCourseId) {
     return NextResponse.json({ isPro: false, units: [], streak: up?.streak ?? 0, streakCharges: 0, points: 0, activeDays });
   }
 
@@ -92,7 +123,7 @@ export async function GET(req: Request) {
   // 4. Units → lessons → challenges (+ this user's progress). Same query as web.
   const data = await db.query.units.findMany({
     orderBy: (units, { asc }) => [asc(units.order)],
-    where: eq(units.courseId, up.activeCourseId),
+    where: eq(units.courseId, activeCourseId),
     columns: { id: true, title: true, description: true, order: true },
     with: {
       lessons: {
