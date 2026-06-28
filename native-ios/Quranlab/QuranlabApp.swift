@@ -11,7 +11,7 @@ struct QuranlabApp: App {
     init() {
         // RevenueCat — public iOS SDK key. Safe to embed in the client.
         Purchases.logLevel = .warn
-        Purchases.configure(withAPIKey: "appl_iVpZxHlZlyDKPXNhhTusaAbrdtk")
+        Purchases.configure(withAPIKey: "appl_YppaVWIbCKydaPncSrhZsDrVpPL")
     }
 
     var body: some Scene {
