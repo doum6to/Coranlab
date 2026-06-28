@@ -26,9 +26,9 @@ final class PaywallStore: ObservableObject {
 
     // Display order + labels, keyed by the standard RevenueCat package ids.
     private let specs: [(id: String, title: String, popular: Bool)] = [
+        ("$rc_monthly", "Mensuel", false),
         ("$rc_three_month", "3 mois", false),
-        ("$rc_six_month", "6 mois", true),
-        ("$rc_annual", "Annuel", false),
+        ("$rc_annual", "Annuel", true),
         ("$rc_lifetime", "À vie", false),
     ]
 
