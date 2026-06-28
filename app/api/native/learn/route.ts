@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 
 import db from "@/db/drizzle";
 import {
@@ -7,6 +7,7 @@ import {
   units,
   userProgress,
   userSubscription,
+  streakActivity,
 } from "@/db/schema";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { translateContent } from "@/lib/i18n/content-i18n";
@@ -25,6 +26,17 @@ export const dynamic = "force-dynamic";
 const DAY_IN_MS = 86_400_000;
 type Locale = "fr" | "en" | "es";
 
+function lastNDays(n: number): string[] {
+  const out: string[] = [];
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date();
+    d.setUTCDate(d.getUTCDate() - i);
+    out.push(d.toISOString().split("T")[0]);
+  }
+  return out;
+}
+
+
 export async function GET(req: Request) {
   // 1. Validate the Supabase access token.
   const authz = req.headers.get("authorization") || "";
@@ -40,6 +52,17 @@ export async function GET(req: Request) {
   }
   const userId = userData.user.id;
 
+  // Real streak activity for the last 7 calendar days (for the week strip).
+  const weekDays = lastNDays(7);
+  const activityRows = await db.query.streakActivity.findMany({
+    where: and(
+      eq(streakActivity.userId, userId),
+      inArray(streakActivity.date, weekDays),
+    ),
+    columns: { date: true },
+  });
+  const activeDays = activityRows.map((r) => r.date);
+
   const url = new URL(req.url);
   const locale = ((url.searchParams.get("locale") as Locale) || "fr") as Locale;
 
@@ -48,7 +71,7 @@ export async function GET(req: Request) {
     where: eq(userProgress.userId, userId),
   });
   if (!up?.activeCourseId) {
-    return NextResponse.json({ isPro: false, units: [], streak: up?.streak ?? 0, streakCharges: 0, points: 0 });
+    return NextResponse.json({ isPro: false, units: [], streak: up?.streak ?? 0, streakCharges: 0, points: 0, activeDays });
   }
 
   // 3. Subscription → isPro (same rule as getUserSubscription().isActive).
@@ -179,5 +202,6 @@ export async function GET(req: Request) {
     streak: up.streak ?? 0,
     streakCharges: up.streakCharges ?? 0,
     points: up.points ?? 0,
+    activeDays,
   });
 }
