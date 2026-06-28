@@ -248,9 +248,9 @@ export async function GET(req: Request) {
   return NextResponse.json({
     isPro,
     units: result,
-    streak: up.streak ?? 0,
-    streakCharges: up.streakCharges ?? 0,
-    points: up.points ?? 0,
+    streak: up?.streak ?? 0,
+    streakCharges: up?.streakCharges ?? 0,
+    points: up?.points ?? 0,
     activeDays,
   });
 }
