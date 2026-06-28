@@ -7,6 +7,7 @@ final class LearnStore: ObservableObject {
     @Published var units: [LearnUnit] = []
     @Published var isPro = false
     @Published var streak = 0
+    @Published var activeDays: [String] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
 
@@ -29,6 +30,7 @@ final class LearnStore: ObservableObject {
             units = cached.units
             isPro = cached.isPro
             streak = cached.streak ?? 0
+            activeDays = cached.activeDays ?? []
         }
         await refresh()
     }
@@ -63,6 +65,7 @@ final class LearnStore: ObservableObject {
             units = decoded.units
             isPro = decoded.isPro
             streak = decoded.streak ?? 0
+            activeDays = decoded.activeDays ?? []
             try? data.write(to: cacheURL, options: .atomic)
         } catch {
             // Keep showing cached data; only surface an error if we have nothing.

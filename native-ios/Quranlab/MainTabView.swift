@@ -35,12 +35,13 @@ struct MainTabView: View {
                 .tag(3)
                 .tabItem { Label("Premium", systemImage: "crown.fill") }
 
-            SettingsScreen(isPro: learn.isPro, streak: learn.streak)
+            SettingsScreen(isPro: learn.isPro, streak: learn.streak, activeDays: learn.activeDays)
                 .environmentObject(session)
                 .tag(4)
                 .tabItem { tab("nav_settings", "Réglages") }
         }
         .tint(Theme.green)
+        .task { await NotificationManager.shared.refreshOnLaunch() }
         .sheet(isPresented: $showPaywall) {
             PaywallView { Task { await learn.refresh() } }
         }

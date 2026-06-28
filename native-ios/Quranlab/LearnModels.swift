@@ -8,6 +8,7 @@ struct LearnResponse: Codable {
     let streak: Int?
     let streakCharges: Int?
     let points: Int?
+    let activeDays: [String]?
 }
 
 struct LearnUnit: Codable, Identifiable {

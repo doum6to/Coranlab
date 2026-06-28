@@ -177,10 +177,12 @@ struct PaywallView: View {
     }
 
     private var unavailableCard: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 12) {
             Image(systemName: "clock.badge.checkmark").font(.system(size: 36)).foregroundColor(Theme.muted)
             Text(store.message ?? "Offres bientôt disponibles.")
                 .foregroundColor(Theme.muted).multilineTextAlignment(.center)
+            ShinyButton(title: "Réessayer", variant: .green) { Task { await store.load() } }
+                .frame(maxWidth: 220)
         }
         .padding(20)
         .frame(maxWidth: .infinity)

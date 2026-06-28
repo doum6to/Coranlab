@@ -174,7 +174,9 @@ struct SettingsScreen: View {
     @EnvironmentObject var session: SessionStore
     var isPro: Bool = false
     var streak: Int = 0
+    var activeDays: [String] = []
     @State private var showPaywall = false
+    @ObservedObject private var notif = NotificationManager.shared
 
     var body: some View {
         VStack(spacing: 0) {
@@ -208,7 +210,25 @@ struct SettingsScreen: View {
                         .padding(18).cardSurface()
                     }
 
-                    StreakPanel(streak: streak)
+                    StreakPanel(streak: streak, activeDays: activeDays)
+
+                    // Notifications (daily comeback reminder)
+                    HStack(spacing: 12) {
+                        Image(systemName: "bell.fill").font(.system(size: 20)).foregroundColor(Theme.orange)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Rappels quotidiens").font(.system(size: 16, weight: .bold)).foregroundColor(Theme.text)
+                            Text("Un petit rappel chaque jour à 19h pour garder ta série")
+                                .font(.system(size: 12)).foregroundColor(Theme.muted)
+                        }
+                        Spacer()
+                        Toggle("", isOn: Binding(
+                            get: { notif.enabled },
+                            set: { v in Task { await notif.setEnabled(v) } }
+                        ))
+                        .labelsHidden()
+                        .tint(Theme.green)
+                    }
+                    .padding(18).cardSurface()
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Compte").font(.system(size: 12, weight: .bold)).foregroundColor(Theme.muted)
@@ -247,16 +267,40 @@ private extension View {
     }
 }
 
-/// Weekly streak panel (shown in Réglages). Number + 7-day strip with today highlighted.
+/// Weekly streak panel (shown in Réglages). Number + REAL last-7-days activity
+/// strip (driven by `activeDays` from the server), today highlighted.
 struct StreakPanel: View {
     var streak: Int
-    private let labels = ["Lu", "Ma", "Me", "Je", "Ve", "Sa", "Di"]
-    private var todayIdx: Int {
-        let wd = Calendar.current.component(.weekday, from: Date()) // 1=Sun ... 7=Sat
-        return (wd + 5) % 7                                         // 0=Mon ... 6=Sun
+    var activeDays: [String] = []
+
+    // UTC yyyy-MM-dd formatter, matching the backend's date strings.
+    private static let fmt: DateFormatter = {
+        let f = DateFormatter()
+        f.calendar = Calendar(identifier: .gregorian)
+        f.timeZone = TimeZone(identifier: "UTC")
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "yyyy-MM-dd"
+        return f
+    }()
+    private static let dayLabelFR = ["Di", "Lu", "Ma", "Me", "Je", "Ve", "Sa"]
+
+    // Last 7 days (oldest → today), each with its date string + FR weekday label.
+    private var week: [(date: String, label: String, isToday: Bool)] {
+        var utc = Calendar(identifier: .gregorian)
+        utc.timeZone = TimeZone(identifier: "UTC")!
+        let now = Date()
+        let todayStr = Self.fmt.string(from: now)
+        return (0..<7).reversed().map { back in
+            let d = utc.date(byAdding: .day, value: -back, to: now) ?? now
+            let s = Self.fmt.string(from: d)
+            let wd = utc.component(.weekday, from: d) // 1=Sun ... 7=Sat
+            return (s, Self.dayLabelFR[wd - 1], s == todayStr)
+        }
     }
+
     var body: some View {
-        VStack(spacing: 16) {
+        let active = Set(activeDays)
+        return VStack(spacing: 16) {
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("\(streak)").font(.system(size: 30, weight: .heavy)).foregroundColor(Theme.text)
@@ -267,18 +311,26 @@ struct StreakPanel: View {
                 Image(systemName: "flame.fill").font(.system(size: 30)).foregroundColor(Theme.orange)
             }
             HStack(spacing: 0) {
-                ForEach(0..<7, id: \.self) { i in
+                ForEach(week, id: \.date) { day in
+                    let isActive = active.contains(day.date)
                     VStack(spacing: 6) {
                         ZStack {
                             Circle()
-                                .fill(i == todayIdx ? Theme.green : (i < todayIdx ? Theme.green.opacity(0.15) : Theme.surface))
+                                .fill(isActive ? Theme.green : Theme.surface)
                                 .frame(width: 34, height: 34)
-                            Image(systemName: "bolt.fill").font(.system(size: 14))
-                                .foregroundColor(i == todayIdx ? .white : (i < todayIdx ? Theme.green : Theme.muted.opacity(0.5)))
+                            if isActive {
+                                Image(systemName: "bolt.fill").font(.system(size: 14)).foregroundColor(.white)
+                            } else {
+                                Image(systemName: "bolt.fill").font(.system(size: 14)).foregroundColor(Theme.muted.opacity(0.4))
+                            }
                         }
-                        Text(labels[i])
-                            .font(.system(size: 11, weight: i == todayIdx ? .bold : .regular))
-                            .foregroundColor(i == todayIdx ? Theme.text : Theme.muted)
+                        .overlay(
+                            Circle().stroke(Theme.orange, lineWidth: day.isToday ? 2 : 0)
+                                .frame(width: 40, height: 40)
+                        )
+                        Text(day.label)
+                            .font(.system(size: 11, weight: day.isToday ? .bold : .regular))
+                            .foregroundColor(day.isToday ? Theme.text : Theme.muted)
                     }
                     .frame(maxWidth: .infinity)
                 }

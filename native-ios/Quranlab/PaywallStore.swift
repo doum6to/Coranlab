@@ -3,19 +3,22 @@ import RevenueCat
 
 /// Loads RevenueCat offerings and handles purchase / restore.
 ///
-/// Gracefully handles EMPTY offerings (no crash): until the Apple "Paid
-/// Applications" agreement is signed, `offerings.current` has no packages — we
-/// surface a clear message instead of failing.
+/// Robustness: if the configured "default" offering can't be loaded (network,
+/// propagation lag, or the offering not yet returning packages for this app),
+/// we fall back to fetching the products DIRECTLY from StoreKit by id, so the
+/// prices still show and the user can still buy. Purchases go through the
+/// RevenueCat entitlement either way.
 @MainActor
 final class PaywallStore: ObservableObject {
     struct Plan: Identifiable {
-        let id: String          // RevenueCat package identifier ($rc_…)
+        let id: String          // spec id ($rc_…)
         let title: String
-        let priceString: String // per-month price for subs ("14,99 € / mois"), full price for lifetime
-        let billingNote: String // "facturé tous les 3 mois" … ("" for lifetime)
-        let trialNote: String   // "7 jours offerts" … ("" if none)
+        let priceString: String
+        let billingNote: String
+        let trialNote: String
         let popular: Bool
-        let package: Package
+        let package: Package?       // present when loaded via an offering
+        let product: StoreProduct?  // present when loaded directly from StoreKit
     }
 
     @Published var plans: [Plan] = []
@@ -26,12 +29,12 @@ final class PaywallStore: ObservableObject {
 
     private let entitlement = "premium"
 
-    // Display order + labels, keyed by the standard RevenueCat package ids.
-    private let specs: [(id: String, title: String, popular: Bool)] = [
-        ("$rc_monthly", "Mensuel", false),
-        ("$rc_three_month", "3 mois", false),
-        ("$rc_annual", "Annuel", true),
-        ("$rc_lifetime", "À vie", false),
+    // Display order + labels + the App Store product id for the direct fallback.
+    private let specs: [(id: String, title: String, productId: String, popular: Bool)] = [
+        ("$rc_monthly",     "Mensuel", "app.quranlab.premium.monthly",   false),
+        ("$rc_three_month", "3 mois",  "app.quranlab.premium.quarterly", false),
+        ("$rc_annual",      "Annuel",  "app.quranlab.premium.yearly",    true),
+        ("$rc_lifetime",    "À vie",   "app.quranlab.premium.lifetime",  false),
     ]
 
     func load() async {
@@ -43,65 +46,96 @@ final class PaywallStore: ObservableObject {
             message = "Achats indisponibles pour le moment."
             return
         }
-        do {
-            let offerings = try await Purchases.shared.offerings()
-            let packages = offerings.current?.availablePackages ?? []
-            guard !packages.isEmpty else {
-                plans = []
-                message = "Les offres ne sont pas encore disponibles. Reviens très bientôt, in shâ Allah."
+
+        // 1. Preferred path: the RevenueCat "default" offering.
+        if let offering = try? await Purchases.shared.offerings().current {
+            let built = offering.availablePackages.compactMap { pkg -> Plan? in
+                guard let spec = specs.first(where: { $0.id == pkg.identifier }) else { return nil }
+                return makePlan(spec: spec, product: pkg.storeProduct, package: pkg)
+            }
+            .sorted { orderIndex($0.id) < orderIndex($1.id) }
+            if !built.isEmpty {
+                plans = built
                 return
             }
-            var built: [Plan] = []
-            for spec in specs {
-                guard let pkg = packages.first(where: { $0.identifier == spec.id }) else { continue }
-                let sp = pkg.storeProduct
-                var price = sp.localizedPriceString
-                var note = ""
-                if let period = sp.subscriptionPeriod {
-                    if let perMonth = sp.pricePerMonth,
-                       let fmt = sp.priceFormatter,
-                       let s = fmt.string(from: perMonth) {
-                        price = "\(s) / mois"
-                    }
-                    switch (period.unit, period.value) {
-                    case (.month, 1): note = "facturé chaque mois"
-                    case (.month, let v): note = "facturé tous les \(v) mois"
-                    case (.year, _): note = "facturé chaque année"
-                    case (.week, _): note = "facturé chaque semaine"
-                    default: note = ""
-                    }
-                }
-                var trial = ""
-                if let intro = sp.introductoryDiscount, intro.paymentMode == .freeTrial {
-                    let p = intro.subscriptionPeriod
-                    switch p.unit {
-                    case .day:   trial = "\(p.value) jours offerts"
-                    case .week:  trial = "\(p.value * 7) jours offerts"
-                    case .month: trial = "\(p.value) mois offert"
-                    default: break
-                    }
-                }
-                built.append(Plan(id: spec.id, title: spec.title, priceString: price,
-                                   billingNote: note, trialNote: trial,
-                                   popular: spec.popular, package: pkg))
-            }
-            plans = built
-            if built.isEmpty {
-                message = "Offres bientôt disponibles."
-            }
-        } catch {
-            plans = []
-            message = "Impossible de charger les offres. Réessaie plus tard."
         }
+
+        // 2. Fallback: fetch the products straight from StoreKit by id.
+        let ids = specs.map { $0.productId }
+        let products = await Purchases.shared.products(ids)
+        if !products.isEmpty {
+            let byId = Dictionary(uniqueKeysWithValues: products.map { ($0.productIdentifier, $0) })
+            let built = specs.compactMap { spec -> Plan? in
+                guard let sp = byId[spec.productId] else { return nil }
+                return makePlan(spec: spec, product: sp, package: nil)
+            }
+            if !built.isEmpty {
+                plans = built
+                return
+            }
+        }
+
+        // 3. Nothing available yet.
+        plans = []
+        message = "Les offres ne sont pas encore disponibles. Réessaie dans un instant."
+    }
+
+    private func orderIndex(_ id: String) -> Int {
+        specs.firstIndex(where: { $0.id == id }) ?? 99
+    }
+
+    /// Builds the display fields (per-month price, billing note, trial note).
+    private func makePlan(spec: (id: String, title: String, productId: String, popular: Bool),
+                          product sp: StoreProduct, package: Package?) -> Plan {
+        var price = sp.localizedPriceString
+        var note = ""
+        if let period = sp.subscriptionPeriod {
+            if let perMonth = sp.pricePerMonth,
+               let fmt = sp.priceFormatter,
+               let s = fmt.string(from: perMonth) {
+                price = "\(s) / mois"
+            }
+            switch (period.unit, period.value) {
+            case (.month, 1):        note = "facturé chaque mois"
+            case (.month, let v):    note = "facturé tous les \(v) mois"
+            case (.year, _):         note = "facturé chaque année"
+            case (.week, _):         note = "facturé chaque semaine"
+            default:                 note = ""
+            }
+        }
+        var trial = ""
+        if let intro = sp.introductoryDiscount, intro.paymentMode == .freeTrial {
+            let p = intro.subscriptionPeriod
+            switch p.unit {
+            case .day:   trial = "\(p.value) jours offerts"
+            case .week:  trial = "\(p.value * 7) jours offerts"
+            case .month: trial = "\(p.value) mois offert"
+            default: break
+            }
+        }
+        return Plan(id: spec.id, title: spec.title, priceString: price,
+                    billingNote: note, trialNote: trial,
+                    popular: spec.popular, package: package, product: sp)
     }
 
     func purchase(_ plan: Plan) async {
         purchasing = true
         defer { purchasing = false }
         do {
-            let result = try await Purchases.shared.purchase(package: plan.package)
-            if result.userCancelled { return }
-            if result.customerInfo.entitlements[entitlement]?.isActive == true {
+            let info: CustomerInfo
+            if let pkg = plan.package {
+                let result = try await Purchases.shared.purchase(package: pkg)
+                if result.userCancelled { return }
+                info = result.customerInfo
+            } else if let product = plan.product {
+                let result = try await Purchases.shared.purchase(product: product)
+                if result.userCancelled { return }
+                info = result.customerInfo
+            } else {
+                message = "Achat indisponible."
+                return
+            }
+            if info.entitlements[entitlement]?.isActive == true {
                 purchased = true
             } else {
                 message = "Achat non confirmé."
