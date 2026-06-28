@@ -73,32 +73,50 @@ export async function GET(req: Request) {
   let up = await db.query.userProgress.findFirst({
     where: eq(userProgress.userId, userId),
   });
+
+  // A course that ACTUALLY has content (first unit's course) — used both for
+  // brand-new accounts and to recover accounts stuck on an empty course.
+  const firstUnit = await db.query.units.findFirst({
+    orderBy: (u, { asc }) => [asc(u.courseId), asc(u.order)],
+    columns: { courseId: true },
+  });
+  const contentCourseId =
+    firstUnit?.courseId ??
+    (await db.query.courses.findFirst({ orderBy: (c, { asc }) => [asc(c.id)] }))?.id ??
+    null;
+
   let activeCourseId = up?.activeCourseId ?? null;
-  if (!activeCourseId) {
-    const firstCourse = await db.query.courses.findFirst({
-      orderBy: (c, { asc }) => [asc(c.id)],
+
+  // Reassign when there is no active course, OR the active course has no units
+  // (e.g. an empty placeholder course that was assigned by mistake).
+  let needsAssign = !activeCourseId;
+  if (activeCourseId) {
+    const hasUnit = await db.query.units.findFirst({
+      where: eq(units.courseId, activeCourseId),
+      columns: { id: true },
     });
-    if (firstCourse) {
-      activeCourseId = firstCourse.id;
-      const fallbackName =
-        (userData.user.user_metadata?.full_name as string | undefined) ||
-        userData.user.email?.split("@")[0] ||
-        "User";
-      if (up) {
-        await db
-          .update(userProgress)
-          .set({ activeCourseId })
-          .where(eq(userProgress.userId, userId));
-      } else {
-        await db.insert(userProgress).values({
-          userId,
-          activeCourseId,
-          userName: fallbackName,
-        });
-        up = await db.query.userProgress.findFirst({
-          where: eq(userProgress.userId, userId),
-        });
-      }
+    if (!hasUnit) needsAssign = true;
+  }
+  if (needsAssign && contentCourseId) {
+    activeCourseId = contentCourseId;
+    const fallbackName =
+      (userData.user.user_metadata?.full_name as string | undefined) ||
+      userData.user.email?.split("@")[0] ||
+      "User";
+    if (up) {
+      await db
+        .update(userProgress)
+        .set({ activeCourseId })
+        .where(eq(userProgress.userId, userId));
+    } else {
+      await db.insert(userProgress).values({
+        userId,
+        activeCourseId,
+        userName: fallbackName,
+      });
+      up = await db.query.userProgress.findFirst({
+        where: eq(userProgress.userId, userId),
+      });
     }
   }
   if (!activeCourseId) {
