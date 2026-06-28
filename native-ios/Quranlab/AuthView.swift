@@ -8,6 +8,12 @@ struct AuthView: View {
 
     enum Mode { case signIn, signUp }
     @State private var mode: Mode = .signIn
+    var onBack: (() -> Void)? = nil
+
+    init(mode: Mode = .signIn, onBack: (() -> Void)? = nil) {
+        _mode = State(initialValue: mode)
+        self.onBack = onBack
+    }
     @State private var name = ""
     @State private var email = ""
     @State private var password = ""
@@ -76,6 +82,15 @@ struct AuthView: View {
             .frame(maxWidth: .infinity)
         }
         .background(Color.white.ignoresSafeArea())
+        .overlay(alignment: .topLeading) {
+            if let onBack = onBack {
+                Button { onBack() } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(Theme.text).padding(16)
+                }
+            }
+        }
     }
 
     // MARK: pieces
