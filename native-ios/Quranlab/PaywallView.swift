@@ -133,7 +133,17 @@ struct PaywallView: View {
                                         .background(Theme.primary).cornerRadius(6)
                                 }
                             }
-                            Text(plan.priceString).font(.subheadline).foregroundColor(Theme.muted)
+                            Text(plan.priceString).font(.system(size: 16, weight: .bold)).foregroundColor(Theme.text)
+                            if !plan.billingNote.isEmpty {
+                                Text(plan.billingNote).font(.caption).foregroundColor(Theme.muted)
+                            }
+                            if !plan.trialNote.isEmpty {
+                                Text(plan.trialNote)
+                                    .font(.system(size: 11, weight: .bold)).foregroundColor(Theme.green)
+                                    .padding(.horizontal, 8).padding(.vertical, 3)
+                                    .background(Theme.success).cornerRadius(8)
+                                    .padding(.top, 2)
+                            }
                         }
                         Spacer()
                         Image(systemName: selectedId == plan.id ? "largecircle.fill.circle" : "circle")

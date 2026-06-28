@@ -62,7 +62,7 @@ struct AuthView: View {
                     .padding(.top, 14)
                 }
 
-                socialSection.padding(.top, 22)
+                // socialSection hidden until Apple/Google providers are configured in Supabase
 
                 Button {
                     withAnimation { mode = (mode == .signIn ? .signUp : .signIn); session.errorMessage = nil; info = nil }
