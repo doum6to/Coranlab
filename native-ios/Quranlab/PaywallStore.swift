@@ -13,8 +13,9 @@ final class PaywallStore: ObservableObject {
     struct Plan: Identifiable {
         let id: String          // spec id ($rc_…)
         let title: String
-        let priceString: String
+        let priceString: String   // TOTAL billed amount + period (most prominent)
         let billingNote: String
+        let perMonthNote: String  // subordinate "soit X / mois"
         let trialNote: String
         let popular: Bool
         let package: Package?       // present when loaded via an offering
@@ -87,20 +88,27 @@ final class PaywallStore: ObservableObject {
     /// Builds the display fields (per-month price, billing note, trial note).
     private func makePlan(spec: (id: String, title: String, productId: String, popular: Bool),
                           product sp: StoreProduct, package: Package?) -> Plan {
+        // Apple 3.1.2(c): the TOTAL billed amount must be the most prominent price.
+        // priceString = full charged amount + period; per-month is subordinate.
         var price = sp.localizedPriceString
         var note = ""
+        var perMonthNote = ""
         if let period = sp.subscriptionPeriod {
-            if let perMonth = sp.pricePerMonth,
+            var suffix = ""
+            switch (period.unit, period.value) {
+            case (.month, 1):        suffix = " / mois";        note = "facturé chaque mois"
+            case (.month, let v):    suffix = " / \(v) mois";   note = "facturé tous les \(v) mois"
+            case (.year, _):         suffix = " / an";          note = "facturé chaque année"
+            case (.week, _):         suffix = " / semaine";     note = "facturé chaque semaine"
+            default:                 suffix = ""
+            }
+            price = sp.localizedPriceString + suffix
+            let longerThanMonth = (period.unit == .year) || (period.unit == .month && period.value > 1)
+            if longerThanMonth,
+               let perMonth = sp.pricePerMonth,
                let fmt = sp.priceFormatter,
                let s = fmt.string(from: perMonth) {
-                price = "\(s) / mois"
-            }
-            switch (period.unit, period.value) {
-            case (.month, 1):        note = "facturé chaque mois"
-            case (.month, let v):    note = "facturé tous les \(v) mois"
-            case (.year, _):         note = "facturé chaque année"
-            case (.week, _):         note = "facturé chaque semaine"
-            default:                 note = ""
+                perMonthNote = "soit \(s) / mois"
             }
         }
         var trial = ""
@@ -114,7 +122,7 @@ final class PaywallStore: ObservableObject {
             }
         }
         return Plan(id: spec.id, title: spec.title, priceString: price,
-                    billingNote: note, trialNote: trial,
+                    billingNote: note, perMonthNote: perMonthNote, trialNote: trial,
                     popular: spec.popular, package: package, product: sp)
     }
 

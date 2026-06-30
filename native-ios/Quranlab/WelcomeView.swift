@@ -5,6 +5,7 @@ import SwiftUI
 struct WelcomeView: View {
     var onSignUp: () -> Void
     var onSignIn: () -> Void
+    var onGuest: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -25,6 +26,13 @@ struct WelcomeView: View {
                      + Text("Se connecter").foregroundColor(Theme.green).bold())
                         .font(.system(size: 15))
                 }
+                Button { onGuest() } label: {
+                    Text("Continuer sans compte")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Theme.muted)
+                        .underline()
+                }
+                .padding(.top, 2)
             }
             .padding(.horizontal, 28)
             Spacer().frame(height: 44)

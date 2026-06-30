@@ -6,7 +6,8 @@ import UIKit
 struct AuthView: View {
     @EnvironmentObject var session: SessionStore
 
-    enum Mode { case signIn, signUp }
+    enum Mode: Identifiable { case signIn, signUp
+        var id: Int { self == .signIn ? 0 : 1 } }
     @State private var mode: Mode = .signIn
     var onBack: (() -> Void)? = nil
 

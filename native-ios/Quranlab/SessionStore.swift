@@ -15,6 +15,7 @@ import UIKit
 final class SessionStore: ObservableObject {
     @Published var isLoading = true
     @Published var isAuthenticated = false
+    @Published var isGuest = false
     @Published var email: String?
     @Published var userId: String?
     @Published var errorMessage: String?
@@ -38,6 +39,7 @@ final class SessionStore: ObservableObject {
             let uid = session.user.id.uuidString.lowercased()
             userId = uid
             isAuthenticated = true
+            isGuest = false
             if Purchases.isConfigured {
                 _ = try? await Purchases.shared.logIn(uid)
             }
@@ -95,7 +97,37 @@ final class SessionStore: ObservableObject {
 
     func signOut() async {
         try? await client.auth.signOut()
+        isGuest = false
         await refresh()
+    }
+
+    /// Enter the app without an account (browse free content). App Store 5.1.1(v).
+    func continueAsGuest() {
+        isGuest = true
+    }
+
+    /// Permanently delete the user's account + data, then sign out.
+    /// App Store Review 5.1.1(v) — account deletion.
+    @discardableResult
+    func deleteAccount() async -> Bool {
+        guard let token = await accessToken() else { return false }
+        var req = URLRequest(
+            url: SupabaseConfig.apiBaseURL.appendingPathComponent("api/native/account/delete")
+        )
+        req.httpMethod = "POST"
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        do {
+            let (_, resp) = try await URLSession.shared.data(for: req)
+            guard let http = resp as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+                errorMessage = "Suppression impossible. Réessaie plus tard."
+                return false
+            }
+            await signOut()
+            return true
+        } catch {
+            errorMessage = "Suppression impossible. Réessaie plus tard."
+            return false
+        }
     }
 
     /// Social sign-in entry points. Wiring requires the Apple/Google providers

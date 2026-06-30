@@ -8,6 +8,7 @@ struct MainTabView: View {
     @State private var showPaywall = false
     @StateObject private var books = BooksStore()
     @State private var selection = 0
+    @State private var authMode: AuthView.Mode? = nil
 
 
     init(session: SessionStore) {
@@ -27,15 +28,19 @@ struct MainTabView: View {
                 .tag(1)
                 .tabItem { tab("nav_cours", "Leçons") }
 
-            BooksScreen(store: books, session: session, isPro: learn.isPro, onPremium: { showPaywall = true })
+            BooksScreen(store: books, session: session, isPro: learn.isPro,
+                        onPremium: { showPaywall = true },
+                        onRequireAuth: session.isGuest ? { authMode = .signUp } : nil)
                 .tag(2)
                 .tabItem { Label("Boutique", systemImage: "books.vertical.fill") }
 
-            PaywallView(onPurchased: { Task { await learn.refresh() } }, showClose: false)
+            PaywallView(onPurchased: { Task { await learn.refresh() } }, showClose: false,
+                        onRequireAuth: session.isGuest ? { authMode = .signUp } : nil)
                 .tag(3)
                 .tabItem { Label("Premium", systemImage: "crown.fill") }
 
-            SettingsScreen(isPro: learn.isPro, streak: learn.streak, activeDays: learn.activeDays)
+            SettingsScreen(isPro: learn.isPro, streak: learn.streak, activeDays: learn.activeDays,
+                           onRequireAuth: { authMode = $0 })
                 .environmentObject(session)
                 .tag(4)
                 .tabItem { tab("nav_settings", "Réglages") }
@@ -43,7 +48,15 @@ struct MainTabView: View {
         .tint(Theme.green)
         .task { await NotificationManager.shared.refreshOnLaunch() }
         .sheet(isPresented: $showPaywall) {
-            PaywallView { Task { await learn.refresh() } }
+            PaywallView(onPurchased: { Task { await learn.refresh() } },
+                        onRequireAuth: session.isGuest ? { showPaywall = false; authMode = .signUp } : nil)
+        }
+        .sheet(item: $authMode) { mode in
+            AuthView(mode: mode, onBack: { authMode = nil })
+                .environmentObject(session)
+        }
+        .onChange(of: session.isAuthenticated) { authed in
+            if authed { authMode = nil }
         }
     }
 

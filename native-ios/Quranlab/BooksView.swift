@@ -16,6 +16,7 @@ struct BooksScreen: View {
     var session: SessionStore
     var isPro: Bool
     var onPremium: () -> Void
+    var onRequireAuth: (() -> Void)? = nil
 
     @State private var tab = 0            // 0 = boutique, 1 = catalogue
     @State private var detail: Book?
@@ -54,10 +55,10 @@ struct BooksScreen: View {
         }
         .onChange(of: isPro) { store.isPro = $0 }
         .sheet(item: $detail) { b in
-            BookDetailView(book: b, store: store, onPremium: onPremium)
+            BookDetailView(book: b, store: store, onPremium: onPremium, onRequireAuth: onRequireAuth)
         }
         .fullScreenCover(item: $reader) { b in
-            ReaderView(book: b, store: store, owned: store.owns(b), onPremium: onPremium)
+            ReaderView(book: b, store: store, owned: store.owns(b), onPremium: onPremium, onRequireAuth: onRequireAuth)
         }
     }
 
@@ -163,6 +164,7 @@ struct BookDetailView: View {
     let book: Book
     @ObservedObject var store: BooksStore
     var onPremium: () -> Void
+    var onRequireAuth: (() -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
     @State private var showReader = false
 
@@ -207,6 +209,7 @@ struct BookDetailView: View {
                     } else {
                         ShinyButton(title: store.busyId == book.id ? "Achat…" : "Je le veux  ·  \(book.priceLabel)",
                                     variant: .green, disabled: store.busyId != nil) {
+                            if let onRequireAuth { onRequireAuth(); return }
                             Task { await store.purchase(book) }
                         }
                     }
@@ -223,7 +226,7 @@ struct BookDetailView: View {
             }
         }
         .fullScreenCover(isPresented: $showReader) {
-            ReaderView(book: book, store: store, owned: owned, onPremium: onPremium)
+            ReaderView(book: book, store: store, owned: owned, onPremium: onPremium, onRequireAuth: onRequireAuth)
         }
     }
 }
@@ -236,6 +239,7 @@ struct ReaderView: View {
     @ObservedObject var store: BooksStore
     var owned: Bool
     var onPremium: () -> Void
+    var onRequireAuth: (() -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
 
     @StateObject private var pdf = PDFController()
@@ -339,6 +343,7 @@ struct ReaderView: View {
             }
             ShinyButton(title: store.busyId == book.id ? "Achat…" : "Acheter  ·  \(book.priceLabel)",
                         variant: .green, disabled: store.busyId != nil) {
+                if let onRequireAuth { onRequireAuth(); return }
                 Task { await store.purchase(book); if store.owns(book) { await loadContent() } }
             }
             Button { onPremium() } label: {

@@ -9,6 +9,8 @@ struct PaywallView: View {
     @State private var selectedId: String?
     let onPurchased: () -> Void
     var showClose: Bool = true
+    /// When set (guest mode), the CTA prompts sign-up instead of purchasing.
+    var onRequireAuth: (() -> Void)? = nil
 
     private let perks = [
         "Toutes les leçons débloquées",
@@ -133,9 +135,13 @@ struct PaywallView: View {
                                         .background(Theme.primary).cornerRadius(6)
                                 }
                             }
-                            Text(plan.priceString).font(.system(size: 16, weight: .bold)).foregroundColor(Theme.text)
+                            // Billed total — most prominent (Apple 3.1.2c)
+                            Text(plan.priceString).font(.system(size: 22, weight: .heavy)).foregroundColor(Theme.text)
+                            if !plan.perMonthNote.isEmpty {
+                                Text(plan.perMonthNote).font(.system(size: 12)).foregroundColor(Theme.muted)
+                            }
                             if !plan.billingNote.isEmpty {
-                                Text(plan.billingNote).font(.caption).foregroundColor(Theme.muted)
+                                Text(plan.billingNote).font(.system(size: 11)).foregroundColor(Theme.muted)
                             }
                             if !plan.trialNote.isEmpty {
                                 Text(plan.trialNote)
@@ -162,6 +168,7 @@ struct PaywallView: View {
 
     private var cta: some View {
         Button {
+            if let onRequireAuth { onRequireAuth(); return }
             guard let plan = store.plans.first(where: { $0.id == selectedId }) else { return }
             Task { await store.purchase(plan) }
         } label: {

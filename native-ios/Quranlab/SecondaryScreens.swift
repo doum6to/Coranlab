@@ -175,7 +175,10 @@ struct SettingsScreen: View {
     var isPro: Bool = false
     var streak: Int = 0
     var activeDays: [String] = []
+    var onRequireAuth: (AuthView.Mode) -> Void = { _ in }
     @State private var showPaywall = false
+    @State private var showDeleteConfirm = false
+    @State private var deleting = false
     @ObservedObject private var notif = NotificationManager.shared
 
     var body: some View {
@@ -230,28 +233,69 @@ struct SettingsScreen: View {
                     }
                     .padding(18).cardSurface()
 
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Compte").font(.system(size: 12, weight: .bold)).foregroundColor(Theme.muted)
-                        Text(session.email ?? "—").font(.system(size: 15, weight: .semibold)).foregroundColor(Theme.text)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(18).cardSurface()
+                    if session.isGuest {
+                        // Guest: invite to create an account (no account data to show).
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Compte").font(.system(size: 12, weight: .bold)).foregroundColor(Theme.muted)
+                            Text("Crée un compte pour sauvegarder ta progression, ta série et débloquer Premium.")
+                                .font(.system(size: 14)).foregroundColor(Theme.text)
+                            ShinyButton(title: "Créer un compte", variant: .green) { onRequireAuth(.signUp) }
+                            Button { onRequireAuth(.signIn) } label: {
+                                (Text("J'ai déjà un compte ? ").foregroundColor(Theme.muted)
+                                 + Text("Se connecter").foregroundColor(Theme.green).bold())
+                                    .font(.system(size: 14))
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(18).cardSurface()
+                    } else {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Compte").font(.system(size: 12, weight: .bold)).foregroundColor(Theme.muted)
+                            Text(session.email ?? "—").font(.system(size: 15, weight: .semibold)).foregroundColor(Theme.text)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(18).cardSurface()
 
-                    Button(role: .destructive) {
-                        Task { await session.signOut() }
-                    } label: {
-                        Text("Se déconnecter")
-                            .font(.system(size: 15, weight: .bold))
+                        Button(role: .destructive) {
+                            Task { await session.signOut() }
+                        } label: {
+                            Text("Se déconnecter")
+                                .font(.system(size: 15, weight: .bold))
+                                .frame(maxWidth: .infinity).padding(.vertical, 12)
+                                .foregroundColor(Theme.wrongText)
+                                .background(RoundedRectangle(cornerRadius: Theme.radius).fill(Theme.wrongBg))
+                        }
+
+                        // Account deletion (App Store Review 5.1.1(v))
+                        Button { showDeleteConfirm = true } label: {
+                            HStack(spacing: 6) {
+                                if deleting { ProgressView() }
+                                Text("Supprimer mon compte")
+                            }
+                            .font(.system(size: 14, weight: .semibold))
                             .frame(maxWidth: .infinity).padding(.vertical, 12)
                             .foregroundColor(Theme.wrongText)
-                            .background(RoundedRectangle(cornerRadius: Theme.radius).fill(Theme.wrongBg))
+                        }
+                        .disabled(deleting)
                     }
                 }
                 .padding(16)
             }
         }
         .background(Color.white.ignoresSafeArea())
-        .sheet(isPresented: $showPaywall) { PaywallView { } }
+        .sheet(isPresented: $showPaywall) {
+            PaywallView(onPurchased: { },
+                        onRequireAuth: session.isGuest ? { showPaywall = false; onRequireAuth(.signUp) } : nil)
+        }
+        .alert("Supprimer ton compte ?", isPresented: $showDeleteConfirm) {
+            Button("Annuler", role: .cancel) { }
+            Button("Supprimer", role: .destructive) {
+                deleting = true
+                Task { _ = await session.deleteAccount(); deleting = false }
+            }
+        } message: {
+            Text("Cette action est définitive : ton compte et toutes tes données (progression, série, achats) seront supprimés. Tes abonnements doivent être annulés séparément dans les réglages de ton compte App Store.")
+        }
     }
 }
 

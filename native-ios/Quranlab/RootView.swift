@@ -13,12 +13,14 @@ struct RootView: View {
                 OnboardingView { onboardingDone = true }
             } else if session.isLoading {
                 SplashView()
-            } else if session.isAuthenticated {
+            } else if session.isAuthenticated || session.isGuest {
                 MainTabView(session: session)
             } else if let mode = authMode {
                 AuthView(mode: mode, onBack: { authMode = nil })
             } else {
-                WelcomeView(onSignUp: { authMode = .signUp }, onSignIn: { authMode = .signIn })
+                WelcomeView(onSignUp: { authMode = .signUp },
+                            onSignIn: { authMode = .signIn },
+                            onGuest: { session.continueAsGuest() })
             }
         }
         .task { await session.bootstrap() }

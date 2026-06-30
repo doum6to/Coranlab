@@ -40,10 +40,8 @@ final class LearnStore: ObservableObject {
         errorMessage = nil
         defer { isLoading = false }
 
-        guard let token = await session.accessToken() else {
-            if units.isEmpty { errorMessage = "Session expirée. Reconnecte-toi." }
-            return
-        }
+        // Auth optional: guests (no token) get the free content from the server.
+        let token = await session.accessToken()
 
         var comps = URLComponents(
             url: SupabaseConfig.apiBaseURL.appendingPathComponent("api/native/learn"),
@@ -52,7 +50,7 @@ final class LearnStore: ObservableObject {
         comps.queryItems = [URLQueryItem(name: "locale", value: "fr")]
 
         var req = URLRequest(url: comps.url!)
-        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        if let token { req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") }
         req.cachePolicy = .reloadIgnoringLocalCacheData
 
         do {

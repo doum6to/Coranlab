@@ -35,14 +35,12 @@ final class LessonStore: ObservableObject {
         errorMessage = nil
         defer { isLoading = false }
 
-        guard let token = await session.accessToken() else {
-            errorMessage = "Session expirée. Reconnecte-toi."
-            return
-        }
+        // Auth optional: guests can play free lessons (App Store 5.1.1(v)).
+        let token = await session.accessToken()
         var req = URLRequest(
             url: SupabaseConfig.apiBaseURL.appendingPathComponent("api/native/lesson/\(lessonId)")
         )
-        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        if let token { req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") }
         do {
             let (data, resp) = try await URLSession.shared.data(for: req)
             guard let http = resp as? HTTPURLResponse, (200...299).contains(http.statusCode) else {

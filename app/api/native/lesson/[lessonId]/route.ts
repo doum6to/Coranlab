@@ -12,14 +12,18 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
+  // Auth is OPTIONAL: lesson content (challenges) is not user-specific, so
+  // guests can play the free lessons without registering (App Store 5.1.1(v)).
+  // If a token is provided it must be valid; saving progress still requires
+  // auth via the separate lesson-complete endpoint.
   const authz = req.headers.get("authorization") || "";
   const token = authz.startsWith("Bearer ") ? authz.slice(7) : "";
-  if (!token) return NextResponse.json({ error: "Missing token" }, { status: 401 });
-
-  const supabase = createAdminClient();
-  const { data: userData, error: userErr } = await supabase.auth.getUser(token);
-  if (userErr || !userData?.user) {
-    return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+  if (token) {
+    const supabase = createAdminClient();
+    const { data: userData, error: userErr } = await supabase.auth.getUser(token);
+    if (userErr || !userData?.user) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+    }
   }
 
   // lessonId is the last path segment: /api/native/lesson/<id>
