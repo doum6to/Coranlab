@@ -39,30 +39,35 @@ function lastNDays(n: number): string[] {
 
 
 export async function GET(req: Request) {
-  // 1. Validate the Supabase access token.
+  // 1. Auth is OPTIONAL: signed-out (guest) users may browse the free content
+  // (App Store Review 5.1.1(v) — don't force registration for non-account
+  // features). With a valid token we personalise (progress, streak, premium).
   const authz = req.headers.get("authorization") || "";
   const token = authz.startsWith("Bearer ") ? authz.slice(7) : "";
-  if (!token) {
-    return NextResponse.json({ error: "Missing token" }, { status: 401 });
+  let userId = "";
+  let guest = true;
+  if (token) {
+    const supabase = createAdminClient();
+    const { data: userData } = await supabase.auth.getUser(token);
+    if (userData?.user) {
+      userId = userData.user.id;
+      guest = false;
+    }
   }
 
-  const supabase = createAdminClient();
-  const { data: userData, error: userErr } = await supabase.auth.getUser(token);
-  if (userErr || !userData?.user) {
-    return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+  // Real streak activity for the last 7 calendar days (signed-in users only).
+  let activeDays: string[] = [];
+  if (!guest) {
+    const weekDays = lastNDays(7);
+    const activityRows = await db.query.streakActivity.findMany({
+      where: and(
+        eq(streakActivity.userId, userId),
+        inArray(streakActivity.date, weekDays),
+      ),
+      columns: { date: true },
+    });
+    activeDays = activityRows.map((r) => r.date);
   }
-  const userId = userData.user.id;
-
-  // Real streak activity for the last 7 calendar days (for the week strip).
-  const weekDays = lastNDays(7);
-  const activityRows = await db.query.streakActivity.findMany({
-    where: and(
-      eq(streakActivity.userId, userId),
-      inArray(streakActivity.date, weekDays),
-    ),
-    columns: { date: true },
-  });
-  const activeDays = activityRows.map((r) => r.date);
 
   const url = new URL(req.url);
   const locale = ((url.searchParams.get("locale") as Locale) || "fr") as Locale;
@@ -70,9 +75,11 @@ export async function GET(req: Request) {
   // 2. Active course for this user. New accounts (e.g. fresh sign-ups) have no
   // userProgress / activeCourseId yet — auto-assign the first course so they
   // immediately see content instead of an empty "Apprendre"/"Leçons".
-  let up = await db.query.userProgress.findFirst({
-    where: eq(userProgress.userId, userId),
-  });
+  let up = guest
+    ? undefined
+    : await db.query.userProgress.findFirst({
+        where: eq(userProgress.userId, userId),
+      });
 
   // A course that ACTUALLY has content (first unit's course) — used both for
   // brand-new accounts and to recover accounts stuck on an empty course.
@@ -87,10 +94,15 @@ export async function GET(req: Request) {
 
   let activeCourseId = up?.activeCourseId ?? null;
 
+  // Guests always view the content course (no account = no saved course).
+  if (guest) {
+    activeCourseId = contentCourseId;
+  }
+
   // Reassign when there is no active course, OR the active course has no units
   // (e.g. an empty placeholder course that was assigned by mistake).
-  let needsAssign = !activeCourseId;
-  if (activeCourseId) {
+  let needsAssign = !guest && !activeCourseId;
+  if (!guest && activeCourseId) {
     const hasUnit = await db.query.units.findFirst({
       where: eq(units.courseId, activeCourseId),
       columns: { id: true },
@@ -124,9 +136,11 @@ export async function GET(req: Request) {
   }
 
   // 3. Subscription → isPro (same rule as getUserSubscription().isActive).
-  const sub = await db.query.userSubscription.findFirst({
-    where: eq(userSubscription.userId, userId),
-  });
+  const sub = guest
+    ? undefined
+    : await db.query.userSubscription.findFirst({
+        where: eq(userSubscription.userId, userId),
+      });
   let isPro = false;
   if (sub) {
     if (sub.isLifetime) {
