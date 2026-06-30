@@ -46,12 +46,17 @@ export async function GET(req: Request) {
   const token = authz.startsWith("Bearer ") ? authz.slice(7) : "";
   let userId = "";
   let guest = true;
+  let displayName = "User";
   if (token) {
     const supabase = createAdminClient();
     const { data: userData } = await supabase.auth.getUser(token);
     if (userData?.user) {
       userId = userData.user.id;
       guest = false;
+      displayName =
+        (userData.user.user_metadata?.full_name as string | undefined) ||
+        userData.user.email?.split("@")[0] ||
+        "User";
     }
   }
 
@@ -111,10 +116,7 @@ export async function GET(req: Request) {
   }
   if (needsAssign && contentCourseId) {
     activeCourseId = contentCourseId;
-    const fallbackName =
-      (userData.user.user_metadata?.full_name as string | undefined) ||
-      userData.user.email?.split("@")[0] ||
-      "User";
+    const fallbackName = displayName;
     if (up) {
       await db
         .update(userProgress)
