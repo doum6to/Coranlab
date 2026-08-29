@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+import { TrackPurchase } from "./track-purchase";
+
 export const metadata: Metadata = {
   title: "Paiement reçu — Quranlab",
   robots: { index: false, follow: false },
@@ -9,8 +11,9 @@ export default function ApprendreCoranMerci() {
   return (
     <div
       className="fixed inset-0 z-50 flex flex-col items-center justify-center px-6 text-center"
-      style={{ background: "#FFF9F0", color: "#171326" }}
+      style={{ background: "#FFFFFF", color: "#171326" }}
     >
+      <TrackPurchase />
       <div
         className="flex h-24 w-24 items-center justify-center rounded-full text-5xl text-white"
         style={{ background: "#22C55E" }}

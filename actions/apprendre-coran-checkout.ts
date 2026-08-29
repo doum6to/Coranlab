@@ -49,8 +49,11 @@ export async function createApprendreCoranCheckout(plan: "weekly" | "annual") {
         offer: "apprendre_coran",
         plan,
       },
+      // session_id lets the /merci page fire CompletePayment with the SAME
+      // event_id as the server webhook → TikTok dedupes (no double count).
+      // plan + value are for the client event's reporting.
       success_url: absoluteUrl(
-        "/apprendre-coran/merci?session_id={CHECKOUT_SESSION_ID}",
+        `/apprendre-coran/merci?session_id={CHECKOUT_SESSION_ID}&plan=${plan}&value=${(cfg.amountCents / 100).toFixed(2)}`,
       ),
       cancel_url: absoluteUrl("/apprendre-coran"),
     });

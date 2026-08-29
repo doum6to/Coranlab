@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { createApprendreCoranCheckout } from "@/actions/apprendre-coran-checkout";
+import { ttqTrack } from "@/lib/analytics/tiktok";
 import type { ApprendreCoranContent, OnbStep, OnbPlan } from "@/lib/apprendre-coran-content";
 
 /* Brand palette (adapted from the reference onboarding, in Quranlab colors) */
@@ -28,6 +29,11 @@ export function Onboarding({ content }: { content: ApprendreCoranContent }) {
   const step: OnbStep | null = isPaywall ? null : STEPS[index];
   const isFirst = index === 0;
   const showChrome = !isFirst && !isPaywall;
+
+  // TikTok: landing view (once). Same pixel as the rest of the site.
+  useEffect(() => {
+    ttqTrack("ViewContent", { content_category: "apprendre_coran" });
+  }, []);
 
   const go = () => setIndex((i) => Math.min(i + 1, total - 1));
   const back = () => setIndex((i) => Math.max(i - 1, 0));
@@ -60,7 +66,7 @@ export function Onboarding({ content }: { content: ApprendreCoranContent }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index]);
 
-  const bg = isPaywall || (step && step.type === "hero") ? C.cream : "#FFFFFF";
+  const bg = "#FFFFFF"; // white background everywhere
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col overflow-hidden" style={{ background: bg, color: C.text }}>
@@ -337,6 +343,14 @@ function Paywall({ paywall }: { paywall: ApprendreCoranContent["paywall"] }) {
   const checkout = async () => {
     setBusy(true);
     setErr(null);
+    const cfg = plans.find((p) => p.id === selected)?.cfg;
+    // TikTok: funnel signal (no server counterpart → single count).
+    ttqTrack("InitiateCheckout", {
+      content_category: "apprendre_coran",
+      content_id: selected,
+      currency: "EUR",
+      value: cfg ? cfg.amountCents / 100 : undefined,
+    });
     const res = await createApprendreCoranCheckout(selected);
     if ("url" in res && res.url) {
       window.location.href = res.url;
