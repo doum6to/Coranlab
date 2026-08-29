@@ -10,6 +10,7 @@ import { absoluteUrl } from "@/lib/utils";
 import { coursePurchase, userSubscription } from "@/db/schema";
 import { upsertSubscriptionRow } from "@/lib/stripe-sync";
 import { sendCoursePurchaseEmail } from "@/lib/email/send-course-email";
+import { sendSubscriptionWelcomeEmail } from "@/lib/email/send-subscription-email";
 import { getVipDriveUrl } from "@/lib/vip";
 import { fulfillDriveCardOrder } from "@/lib/drive-product";
 import {
@@ -178,13 +179,19 @@ export async function POST(req: Request) {
       //    purchase is still recorded. We log loudly and let an admin
       //    retry via /api/admin/resend-course-emails.
       //    /coran buyers get the VIP Drive link in their email.
+      // /apprendre-coran buyers get a subscription-specific email (create your
+      // account, no PDF/pack), not the "85% des mots" course email.
+      const isSubscriptionFunnel =
+        session.metadata?.offer === "apprendre_coran";
       const driveUrl = isCoran ? (await getVipDriveUrl()) ?? undefined : undefined;
-      const sendResult = await sendCoursePurchaseEmail({
-        email,
-        hasApp,
-        activationToken,
-        driveUrl,
-      });
+      const sendResult = isSubscriptionFunnel
+        ? await sendSubscriptionWelcomeEmail({ email, activationToken })
+        : await sendCoursePurchaseEmail({
+            email,
+            hasApp,
+            activationToken,
+            driveUrl,
+          });
 
       if (sendResult.ok) {
         try {
