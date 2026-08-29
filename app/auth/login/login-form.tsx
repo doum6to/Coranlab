@@ -7,20 +7,23 @@ import { createClient } from "@/lib/supabase/client";
 import { RiveMascot } from "@/components/rive-mascot";
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { claimPurchase } from "@/actions/claim-purchase";
+import { diagnoseAccess } from "@/actions/diagnose-access";
 import { useT } from "@/lib/i18n/use-t";
+
+type ErrKind = "generic" | "hasAccount" | "paidNoAccount";
 
 export function LoginForm() {
   const t = useT();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [errKind, setErrKind] = useState<ErrKind | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
+    setErrKind(null);
 
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithPassword({
@@ -29,7 +32,17 @@ export function LoginForm() {
     });
 
     if (error) {
-      setError(error.message);
+      // Turn "Invalid login credentials" into actionable guidance: an existing
+      // account → reset password; a paid buyer with no account → create it.
+      let kind: ErrKind = "generic";
+      try {
+        const d = await diagnoseAccess(email);
+        if (d.hasAccount) kind = "hasAccount";
+        else if (d.hasPaid) kind = "paidNoAccount";
+      } catch {
+        /* fall back to generic */
+      }
+      setErrKind(kind);
       setLoading(false);
       return;
     }
@@ -94,7 +107,33 @@ export function LoginForm() {
               required
             />
           </div>
-          {error && <p className="text-sm text-rose-500">{error}</p>}
+          {errKind === "generic" && (
+            <p className="text-sm text-rose-500">E-mail ou mot de passe incorrect.</p>
+          )}
+          {errKind === "hasAccount" && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+              Mot de passe incorrect.{" "}
+              <Link
+                href={`/auth/forgot-password?email=${encodeURIComponent(email)}`}
+                className="font-semibold underline"
+              >
+                Réinitialiser mon mot de passe
+              </Link>
+            </div>
+          )}
+          {errKind === "paidNoAccount" && (
+            <div className="rounded-xl border border-[#6967fb]/30 bg-[#6967fb]/5 p-3 text-sm text-brilliant-text">
+              ✅ Ton paiement est bien reçu — mais ton compte n&apos;est{" "}
+              <strong>pas encore créé</strong>. Crée-le (choisis un mot de passe) et
+              ton Premium sera activé automatiquement.
+              <Link
+                href={`/auth/signup?email=${encodeURIComponent(email)}`}
+                className="mt-2 block font-semibold text-[#6967fb] underline"
+              >
+                Créer mon compte →
+              </Link>
+            </div>
+          )}
           <ShinyButton type="submit" variant="green" disabled={loading}>
             {loading ? t.auth.loggingIn : t.auth.login}
           </ShinyButton>

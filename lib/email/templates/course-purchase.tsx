@@ -21,7 +21,7 @@ export function renderCoursePurchaseEmailHtml({
     Et l&rsquo;application&nbsp;?
   </h2>
   ${pHtml(
-    "Tu as aussi choisi l'accès à l'application Quranlab. Crée ton compte en un clic, ton abonnement sera activé automatiquement."
+    "Tu as aussi l'accès à l'application Quranlab. <strong>Tu n'as pas encore de compte</strong> : clique ci-dessous pour le CRÉER (n'essaie pas de « te connecter » avant de l'avoir créé). Ton accès Premium sera activé automatiquement."
   )}
   ${buttonHtml({
     href: activationUrl,
@@ -29,7 +29,7 @@ export function renderCoursePurchaseEmailHtml({
     variant: "coral",
   })}
   ${fineHtml(
-    "Utilise la même adresse que celle-ci pour que l'abonnement soit lié automatiquement."
+    "Utilise la même adresse que celle-ci pour que l'accès soit lié automatiquement. Tu choisiras ton mot de passe à cette étape."
   )}
 `
       : "";
