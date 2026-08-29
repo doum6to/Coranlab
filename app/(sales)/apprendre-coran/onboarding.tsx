@@ -40,7 +40,7 @@ export function Onboarding({ content }: { content: ApprendreCoranContent }) {
 
   const pickSingle = (opt: string) => {
     setSingle((s) => ({ ...s, [index]: opt }));
-    window.setTimeout(go, 220);
+    window.setTimeout(go, 200);
   };
 
   // Loading step auto-advances 0 → 100%.
@@ -49,11 +49,11 @@ export function Onboarding({ content }: { content: ApprendreCoranContent }) {
     setPct(0);
     const started = Date.now();
     const id = window.setInterval(() => {
-      const p = Math.min(100, Math.round(((Date.now() - started) / 2400) * 100));
+      const p = Math.min(100, Math.round(((Date.now() - started) / 2200) * 100));
       setPct(p);
       if (p >= 100) {
         window.clearInterval(id);
-        window.setTimeout(go, 400);
+        window.setTimeout(go, 350);
       }
     }, 40);
     return () => window.clearInterval(id);
@@ -63,9 +63,9 @@ export function Onboarding({ content }: { content: ApprendreCoranContent }) {
   const bg = isPaywall || (step && step.type === "hero") ? C.cream : "#FFFFFF";
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col overflow-y-auto" style={{ background: bg, color: C.text }}>
+    <div className="fixed inset-0 z-50 flex flex-col overflow-hidden" style={{ background: bg, color: C.text }}>
       {showChrome && (
-        <div className="shrink-0 flex items-center gap-3 px-4 pt-4 sm:px-6">
+        <div className="shrink-0 flex items-center gap-3 px-4 pt-3 sm:px-6">
           <button onClick={back} aria-label="Retour" className="p-1 -ml-1 text-2xl leading-none" style={{ color: C.muted }}>
             ‹
           </button>
@@ -75,7 +75,7 @@ export function Onboarding({ content }: { content: ApprendreCoranContent }) {
         </div>
       )}
 
-      <div className="flex-1 mx-auto flex w-full max-w-md flex-col px-6 pb-8">
+      <div className="mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col px-5">
         {isPaywall ? <Paywall paywall={content.paywall} /> : renderStep(step!)}
       </div>
     </div>
@@ -85,36 +85,34 @@ export function Onboarding({ content }: { content: ApprendreCoranContent }) {
     switch (step.type) {
       case "hero":
         return (
-          <div className="flex flex-1 flex-col items-center justify-center text-center gap-6 py-10">
-            <Img url={step.image} label={step.headline} ratio="aspect-[3/4]" />
-            <h1 className="font-serif text-3xl sm:text-4xl leading-tight whitespace-pre-line">{step.headline}</h1>
-            {step.sub && <p className="text-base" style={{ color: C.muted }}>{step.sub}</p>}
-            <PrimaryButton onClick={go}>{step.cta ?? "Commencer"}</PrimaryButton>
-          </div>
+          <Shell footer={<PrimaryButton onClick={go}>{step.cta ?? "Commencer"}</PrimaryButton>}>
+            <Img url={step.image} label={step.headline} />
+            <h1 className="shrink-0 font-serif text-[26px] leading-tight whitespace-pre-line">{step.headline}</h1>
+            {step.sub && <p className="shrink-0 text-sm" style={{ color: C.muted }}>{step.sub}</p>}
+          </Shell>
         );
 
       case "message":
         return (
-          <CenteredStep>
+          <Shell footer={<PrimaryButton onClick={go}>{step.cta ?? "Continuer"}</PrimaryButton>}>
             <Img url={step.image} label={step.headline} />
-            <h1 className="font-serif text-3xl sm:text-4xl leading-tight whitespace-pre-line">{step.headline}</h1>
-            {step.sub && <p className="text-base" style={{ color: C.muted }}>{step.sub}</p>}
-            <FooterCTA onClick={go} label={step.cta ?? "Continuer"} />
-          </CenteredStep>
+            <h1 className="shrink-0 font-serif text-[26px] leading-tight whitespace-pre-line">{step.headline}</h1>
+            {step.sub && <p className="shrink-0 text-sm" style={{ color: C.muted }}>{step.sub}</p>}
+          </Shell>
         );
 
       case "comparison": {
         const cols = [step.left, step.right].filter(Boolean) as NonNullable<OnbStep["left"]>[];
         return (
-          <CenteredStep>
-            <h1 className="font-serif text-2xl sm:text-3xl leading-tight text-center">{step.headline}</h1>
-            <div className="grid grid-cols-2 gap-3 w-full">
+          <Shell footer={<PrimaryButton onClick={go}>Continuer</PrimaryButton>}>
+            <h1 className="shrink-0 font-serif text-2xl leading-tight">{step.headline}</h1>
+            <div className="grid w-full grid-cols-2 gap-3">
               {cols.map((col) => (
-                <div key={col.title} className="rounded-2xl border-2 p-4" style={{ borderColor: col.good ? C.primary : C.border, background: col.good ? `${C.primary}0D` : "#FAFAFA" }}>
-                  <p className="text-sm font-bold mb-3">{col.title}</p>
-                  <ul className="space-y-2">
+                <div key={col.title} className="rounded-2xl border-2 p-3 text-left" style={{ borderColor: col.good ? C.primary : C.border, background: col.good ? `${C.primary}0D` : "#FAFAFA" }}>
+                  <p className="mb-2 text-sm font-bold">{col.title}</p>
+                  <ul className="space-y-1.5">
                     {col.items.map((it) => (
-                      <li key={it} className="flex items-center gap-2 text-sm">
+                      <li key={it} className="flex items-center gap-2 text-[13px]">
                         <span>{col.good ? "✅" : "⚠️"}</span>
                         <span style={{ color: col.good ? C.text : C.muted }}>{it}</span>
                       </li>
@@ -123,54 +121,52 @@ export function Onboarding({ content }: { content: ApprendreCoranContent }) {
                 </div>
               ))}
             </div>
-            <FooterCTA onClick={go} />
-          </CenteredStep>
+          </Shell>
         );
       }
 
       case "checklist":
         return (
-          <CenteredStep>
-            <h1 className="font-serif text-2xl sm:text-3xl leading-tight text-center">{step.headline}</h1>
-            <ul className="w-full space-y-3">
+          <Shell footer={<PrimaryButton onClick={go}>Continuer</PrimaryButton>}>
+            <h1 className="shrink-0 font-serif text-2xl leading-tight">{step.headline}</h1>
+            <ul className="w-full space-y-2">
               {(step.items ?? []).map((it) => (
-                <li key={it} className="flex items-center gap-3 rounded-2xl border px-4 py-3" style={{ borderColor: C.border }}>
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white text-sm" style={{ background: C.primary }}>✓</span>
+                <li key={it} className="flex items-center gap-3 rounded-2xl border px-4 py-2.5 text-left" style={{ borderColor: C.border }}>
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs text-white" style={{ background: C.primary }}>✓</span>
                   <span className="text-sm">{it}</span>
                 </li>
               ))}
             </ul>
-            <FooterCTA onClick={go} />
-          </CenteredStep>
+          </Shell>
         );
 
       case "single":
         return (
-          <div className="flex flex-1 flex-col justify-center gap-6 py-8">
+          <Shell>
             <Heading headline={step.headline} sub={step.sub} />
-            <div className="space-y-3">
+            <div className="w-full space-y-2.5">
               {(step.options ?? []).map((opt) => {
                 const active = single[index] === opt;
                 return (
-                  <button key={opt} onClick={() => pickSingle(opt)} className="w-full rounded-2xl border-2 px-5 py-4 text-left text-sm font-medium transition" style={{ borderColor: active ? C.primary : C.border, background: active ? `${C.primary}12` : "#fff" }}>
+                  <button key={opt} onClick={() => pickSingle(opt)} className="w-full rounded-2xl border-2 px-4 py-3 text-left text-sm font-medium transition" style={{ borderColor: active ? C.primary : C.border, background: active ? `${C.primary}12` : "#fff" }}>
                     {opt}
                   </button>
                 );
               })}
             </div>
-          </div>
+          </Shell>
         );
 
       case "multi": {
         const selected = multi[index] ?? [];
         return (
-          <div className="flex flex-1 flex-col justify-center gap-6 py-8">
+          <Shell footer={<PrimaryButton onClick={go} disabled={selected.length === 0}>Continuer</PrimaryButton>}>
             <Heading headline={step.headline} sub={step.sub} />
-            <div className="space-y-3">
+            <div className="w-full space-y-2.5">
               {(step.options ?? []).map((opt) => {
                 const active = selected.includes(opt);
                 return (
-                  <button key={opt} onClick={() => toggleMulti(opt)} className="flex w-full items-center justify-between rounded-2xl border-2 px-5 py-4 text-left text-sm font-medium transition" style={{ borderColor: active ? C.primary : C.border, background: active ? `${C.primary}12` : "#fff" }}>
+                  <button key={opt} onClick={() => toggleMulti(opt)} className="flex w-full items-center justify-between rounded-2xl border-2 px-4 py-3 text-left text-sm font-medium transition" style={{ borderColor: active ? C.primary : C.border, background: active ? `${C.primary}12` : "#fff" }}>
                     <span>{opt}</span>
                     <span className="flex h-5 w-5 items-center justify-center rounded-full text-xs text-white" style={{ background: active ? C.primary : "transparent", border: active ? "none" : `2px solid ${C.border}` }}>
                       {active ? "✓" : ""}
@@ -179,72 +175,67 @@ export function Onboarding({ content }: { content: ApprendreCoranContent }) {
                 );
               })}
             </div>
-            <FooterCTA onClick={go} disabled={selected.length === 0} />
-          </div>
+          </Shell>
         );
       }
 
       case "chart":
         return (
-          <CenteredStep>
-            <h1 className="font-serif text-2xl sm:text-3xl leading-tight text-center">{step.headline}</h1>
+          <Shell footer={<PrimaryButton onClick={go}>Continuer</PrimaryButton>}>
+            <h1 className="shrink-0 font-serif text-2xl leading-tight">{step.headline}</h1>
             <GrowthChart />
-            {step.sub && <p className="text-center text-sm" style={{ color: C.muted }}>{step.sub}</p>}
-            <FooterCTA onClick={go} />
-          </CenteredStep>
+            {step.sub && <p className="shrink-0 text-sm" style={{ color: C.muted }}>{step.sub}</p>}
+          </Shell>
         );
 
       case "reviews":
         return (
-          <CenteredStep>
-            <div className="text-lg" style={{ color: "#F5C842" }}>★★★★★</div>
-            <h1 className="font-serif text-2xl sm:text-3xl leading-tight text-center">{step.headline}</h1>
-            <div className="w-full space-y-3">
+          <Shell footer={<PrimaryButton onClick={go}>Continuer</PrimaryButton>}>
+            <div className="shrink-0 text-lg" style={{ color: "#F5C842" }}>★★★★★</div>
+            <h1 className="shrink-0 font-serif text-2xl leading-tight">{step.headline}</h1>
+            <div className="w-full space-y-2">
               {(step.reviews ?? []).map((r) => (
-                <div key={r.name + r.text} className="rounded-2xl border px-4 py-3 text-left" style={{ borderColor: C.border }}>
-                  <div className="text-sm" style={{ color: "#F5C842" }}>★★★★★</div>
-                  <p className="mt-1 text-sm italic">« {r.text} »</p>
-                  <p className="mt-1 text-xs font-semibold" style={{ color: C.muted }}>— {r.name}</p>
+                <div key={r.name + r.text} className="rounded-2xl border px-4 py-2.5 text-left" style={{ borderColor: C.border }}>
+                  <div className="text-xs" style={{ color: "#F5C842" }}>★★★★★</div>
+                  <p className="mt-1 text-[13px] italic">« {r.text} »</p>
+                  <p className="mt-0.5 text-xs font-semibold" style={{ color: C.muted }}>— {r.name}</p>
                 </div>
               ))}
             </div>
-            <FooterCTA onClick={go} />
-          </CenteredStep>
+          </Shell>
         );
 
       case "loading":
         return (
-          <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
-            <div className="relative h-28 w-28">
+          <Shell>
+            <div className="relative h-28 w-28 shrink-0">
               <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
                 <circle cx="50" cy="50" r="44" fill="none" stroke={C.border} strokeWidth="8" />
                 <circle cx="50" cy="50" r="44" fill="none" stroke={C.primary} strokeWidth="8" strokeLinecap="round" strokeDasharray={`${(pct / 100) * 276} 276`} />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center text-2xl font-extrabold">{pct}%</div>
             </div>
-            <h1 className="font-serif text-2xl leading-tight">{step.headline}</h1>
-          </div>
+            <h1 className="shrink-0 font-serif text-2xl leading-tight">{step.headline}</h1>
+          </Shell>
         );
 
       case "stat":
         return (
-          <CenteredStep>
-            <div className="text-lg" style={{ color: "#F5C842" }}>★★★★★</div>
-            <div className="font-serif text-5xl font-bold" style={{ color: C.primary }}>{step.big}</div>
-            <h1 className="font-serif text-2xl leading-tight text-center">{step.headline}</h1>
-            {step.sub && <p className="text-center text-sm" style={{ color: C.muted }}>{step.sub}</p>}
-            <FooterCTA onClick={go} />
-          </CenteredStep>
+          <Shell footer={<PrimaryButton onClick={go}>Continuer</PrimaryButton>}>
+            <div className="shrink-0 text-lg" style={{ color: "#F5C842" }}>★★★★★</div>
+            <div className="shrink-0 font-serif text-5xl font-bold" style={{ color: C.primary }}>{step.big}</div>
+            <h1 className="shrink-0 font-serif text-2xl leading-tight">{step.headline}</h1>
+            {step.sub && <p className="shrink-0 text-sm" style={{ color: C.muted }}>{step.sub}</p>}
+          </Shell>
         );
 
       case "ready":
         return (
-          <CenteredStep>
-            <div className="flex h-24 w-24 items-center justify-center rounded-full text-5xl text-white" style={{ background: C.green }}>✓</div>
-            <h1 className="font-serif text-3xl leading-tight text-center">{step.headline}</h1>
-            {step.sub && <p className="text-center text-base" style={{ color: C.muted }}>{step.sub}</p>}
-            <FooterCTA onClick={go} label={step.cta ?? "Voir mon offre"} />
-          </CenteredStep>
+          <Shell footer={<PrimaryButton onClick={go}>{step.cta ?? "Voir mon offre"}</PrimaryButton>}>
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full text-4xl text-white" style={{ background: C.green }}>✓</div>
+            <h1 className="shrink-0 font-serif text-2xl leading-tight">{step.headline}</h1>
+            {step.sub && <p className="shrink-0 text-sm" style={{ color: C.muted }}>{step.sub}</p>}
+          </Shell>
         );
 
       default:
@@ -254,75 +245,85 @@ export function Onboarding({ content }: { content: ApprendreCoranContent }) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Layout helpers — everything fits the viewport, no scroll.           */
 
-function Heading({ headline, sub }: { headline?: string; sub?: string }) {
+/** Fills the available height: content vertically centered, CTA pinned bottom. */
+function Shell({ children, footer }: { children: React.ReactNode; footer?: React.ReactNode }) {
   return (
-    <div className="text-center">
-      <h1 className="font-serif text-2xl sm:text-3xl leading-tight">{headline}</h1>
-      {sub && <p className="mt-2 text-sm" style={{ color: C.muted }}>{sub}</p>}
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 py-3 text-center">
+        {children}
+      </div>
+      {footer && <div className="shrink-0 pb-5 pt-2">{footer}</div>}
     </div>
   );
 }
 
-function CenteredStep({ children }: { children: React.ReactNode }) {
-  return <div className="flex flex-1 flex-col items-center justify-center gap-6 py-8 text-center">{children}</div>;
+function Heading({ headline, sub }: { headline?: string; sub?: string }) {
+  return (
+    <div className="shrink-0 text-center">
+      <h1 className="font-serif text-xl sm:text-2xl leading-tight">{headline}</h1>
+      {sub && <p className="mt-1.5 text-sm" style={{ color: C.muted }}>{sub}</p>}
+    </div>
+  );
 }
 
-/** Renders the image URL if set, otherwise a dashed placeholder (import later).
- *  `undefined` url means "this step has no image slot" → renders nothing. */
-function Img({ url, label, ratio = "aspect-[4/3]" }: { url?: string; label?: string; ratio?: string }) {
+/** Renders the image URL if set (WHOLE image visible, never cropped), otherwise a
+ *  dashed placeholder. `undefined` url = the step has no image slot → nothing. */
+function Img({ url, label }: { url?: string; label?: string }) {
   if (url === undefined) return null;
   if (url) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={url} alt={label ?? ""} className={`w-full ${ratio} rounded-3xl object-cover`} />;
+    return (
+      <div className="flex min-h-0 w-full flex-1 items-center justify-center py-1">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={url} alt={label ?? ""} className="max-h-full max-w-full rounded-3xl object-contain" />
+      </div>
+    );
   }
   return (
-    <div className={`w-full ${ratio} rounded-3xl border-2 border-dashed flex items-center justify-center p-6`} style={{ borderColor: `${C.primary}55`, background: `${C.primary}0A` }}>
-      <span className="text-center text-sm font-medium" style={{ color: C.primary }}>
-        🖼️ Image
-        <br />
-        <span className="text-xs opacity-60">(à importer depuis l&apos;admin)</span>
-      </span>
+    <div className="flex min-h-0 w-full flex-1 items-center justify-center py-1">
+      <div
+        className="flex h-full max-h-[34vh] min-h-[120px] w-full items-center justify-center rounded-3xl border-2 border-dashed p-6"
+        style={{ borderColor: `${C.primary}55`, background: `${C.primary}0A` }}
+      >
+        <span className="text-center text-sm font-medium" style={{ color: C.primary }}>
+          🖼️ Image
+          <br />
+          <span className="text-xs opacity-60">(à importer depuis l&apos;admin)</span>
+        </span>
+      </div>
     </div>
   );
 }
 
 function PrimaryButton({ children, onClick, disabled }: { children: React.ReactNode; onClick: () => void; disabled?: boolean }) {
   return (
-    <button onClick={onClick} disabled={disabled} className="w-full rounded-2xl py-4 text-base font-bold text-white transition active:scale-[0.98] disabled:opacity-40" style={{ background: C.primary, boxShadow: `0 6px 0 0 ${C.ink}40` }}>
+    <button onClick={onClick} disabled={disabled} className="w-full rounded-2xl py-3.5 text-base font-bold text-white transition active:scale-[0.98] disabled:opacity-40" style={{ background: C.primary, boxShadow: `0 5px 0 0 ${C.ink}40` }}>
       {children}
     </button>
   );
 }
 
-function FooterCTA({ onClick, label = "Continuer", disabled }: { onClick: () => void; label?: string; disabled?: boolean }) {
-  return (
-    <div className="w-full pt-2">
-      <PrimaryButton onClick={onClick} disabled={disabled}>{label}</PrimaryButton>
-    </div>
-  );
-}
-
 function GrowthChart() {
   return (
-    <svg viewBox="0 0 300 160" className="w-full">
+    <svg viewBox="0 0 300 130" className="w-full max-h-[26vh]">
       <defs>
         <linearGradient id="qc" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={C.primary} stopOpacity="0.25" />
           <stop offset="100%" stopColor={C.primary} stopOpacity="0" />
         </linearGradient>
       </defs>
-      <path d="M10 140 C 80 135, 130 90, 180 60 S 260 20, 290 15 L 290 150 L 10 150 Z" fill="url(#qc)" />
-      <path d="M10 140 C 80 135, 130 90, 180 60 S 260 20, 290 15" fill="none" stroke={C.primary} strokeWidth="4" strokeLinecap="round" />
+      <path d="M10 115 C 80 110, 130 72, 180 48 S 260 16, 290 12 L 290 122 L 10 122 Z" fill="url(#qc)" />
+      <path d="M10 115 C 80 110, 130 72, 180 48 S 260 16, 290 12" fill="none" stroke={C.primary} strokeWidth="4" strokeLinecap="round" />
       {[["S1", 10], ["S2", 80], ["S3", 150], ["S4", 220], ["S5", 285]].map(([l, x]) => (
-        <text key={l as string} x={x as number} y={158} fontSize="9" fill={C.muted} textAnchor="middle">{l as string}</text>
+        <text key={l as string} x={x as number} y={129} fontSize="9" fill={C.muted} textAnchor="middle">{l as string}</text>
       ))}
     </svg>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/* Paywall — same structure as the reference, in EUROS                 */
+/* Paywall — same structure as the reference, in EUROS, fits viewport  */
 
 function Paywall({ paywall }: { paywall: ApprendreCoranContent["paywall"] }) {
   const plans: { id: "weekly" | "annual"; cfg: OnbPlan }[] = [
@@ -346,38 +347,47 @@ function Paywall({ paywall }: { paywall: ApprendreCoranContent["paywall"] }) {
   };
 
   return (
-    <div className="flex flex-1 flex-col py-8">
-      <h1 className="font-serif text-4xl sm:text-5xl leading-[1.05] text-center whitespace-pre-line">{paywall.title}</h1>
+    <div className="flex min-h-0 flex-1 flex-col py-4">
+      <h1 className="shrink-0 text-center font-serif text-[28px] leading-[1.08] whitespace-pre-line">{paywall.title}</h1>
 
-      <div className="my-7">
-        <Img url={paywall.image} label="Illustration" ratio="aspect-[4/3]" />
-      </div>
+      {paywall.image !== undefined && (
+        <div className="my-3 flex min-h-0 flex-1 items-center justify-center">
+          {paywall.image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={paywall.image} alt="" className="max-h-[26vh] max-w-full rounded-3xl object-contain" />
+          ) : (
+            <div className="flex h-[22vh] w-full items-center justify-center rounded-3xl border-2 border-dashed" style={{ borderColor: `${C.primary}55`, background: `${C.primary}0A`, color: C.primary }}>
+              🖼️ Image (admin)
+            </div>
+          )}
+        </div>
+      )}
 
-      <ul className="space-y-3 px-1">
+      <ul className="shrink-0 space-y-1.5 px-1">
         {paywall.bullets.map((b) => (
-          <li key={b} className="flex items-center gap-3 text-[15px]">
+          <li key={b} className="flex items-center gap-3 text-sm">
             <span style={{ color: C.primary }}>✓</span>
             <span>{b}</span>
           </li>
         ))}
       </ul>
 
-      <div className="mt-7 space-y-3">
+      <div className="mt-4 shrink-0 space-y-2.5">
         {plans.map(({ id, cfg }) => {
           const active = selected === id;
           return (
-            <button key={id} onClick={() => setSelected(id)} className="relative flex w-full items-center justify-between rounded-2xl border-2 px-5 py-4 text-left transition" style={{ borderColor: active ? C.primary : C.border, background: active ? `${C.primary}10` : "#fff" }}>
+            <button key={id} onClick={() => setSelected(id)} className="relative flex w-full items-center justify-between rounded-2xl border-2 px-4 py-3 text-left transition" style={{ borderColor: active ? C.primary : C.border, background: active ? `${C.primary}10` : "#fff" }}>
               {cfg.popular && (
-                <span className="absolute -top-3 right-4 rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-wide text-white" style={{ background: C.primary }}>
+                <span className="absolute -top-2.5 right-4 rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-white" style={{ background: C.primary }}>
                   Le plus populaire
                 </span>
               )}
               <div>
-                <div className="text-base font-bold">{cfg.title}</div>
+                <div className="text-[15px] font-bold">{cfg.title}</div>
                 {cfg.sub && <div className="text-xs" style={{ color: C.muted }}>{cfg.sub}</div>}
               </div>
               <div className="text-right">
-                <div className="text-xl font-extrabold">{cfg.priceLabel}</div>
+                <div className="text-lg font-extrabold">{cfg.priceLabel}</div>
                 <div className="text-xs" style={{ color: C.muted }}>{cfg.per}</div>
               </div>
             </button>
@@ -386,18 +396,18 @@ function Paywall({ paywall }: { paywall: ApprendreCoranContent["paywall"] }) {
       </div>
 
       {paywall.reassurance && (
-        <div className="mt-4 flex items-center justify-center gap-2 text-sm" style={{ color: C.muted }}>
+        <div className="mt-3 flex shrink-0 items-center justify-center gap-2 text-xs" style={{ color: C.muted }}>
           <span style={{ color: C.text }}>✓</span> {paywall.reassurance}
         </div>
       )}
 
-      {err && <p className="mt-3 text-center text-sm text-rose-500">{err}</p>}
+      {err && <p className="mt-2 shrink-0 text-center text-sm text-rose-500">{err}</p>}
 
-      <div className="mt-4">
+      <div className="mt-3 shrink-0">
         <PrimaryButton onClick={checkout} disabled={busy}>{busy ? "Redirection…" : "Continuer"}</PrimaryButton>
       </div>
 
-      <div className="mt-3 flex items-center justify-center gap-3 text-[11px]" style={{ color: C.muted }}>
+      <div className="mt-2 flex shrink-0 items-center justify-center gap-3 pb-3 text-[11px]" style={{ color: C.muted }}>
         <a href="/conditions" className="underline">Conditions</a>
         <span>·</span>
         <a href="/confidentialite" className="underline">Confidentialité</a>
