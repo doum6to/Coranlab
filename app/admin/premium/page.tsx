@@ -12,6 +12,7 @@ import { getFunnelContent } from "@/lib/funnel-content";
 import { getTikTokLandingContent } from "@/lib/tiktok-landing-content";
 import { getArabicLandingContent } from "@/lib/arabic-landing-content";
 import { getCoranLandingContent } from "@/lib/coran-landing-content";
+import { getApprendreCoranContent } from "@/lib/apprendre-coran-content";
 import { listManualOrders } from "@/actions/coran-manual-order";
 import { getDuasLandingContent } from "@/lib/duas-landing-content";
 import { listDriveOrders } from "@/actions/drive-orders";
@@ -26,6 +27,7 @@ import { FunnelContentForm } from "./funnel-content-form";
 import { TikTokLandingForm } from "./tiktok-landing-form";
 import { ArabicLandingForm } from "./arabic-landing-form";
 import { CoranLandingForm } from "./coran-landing-form";
+import { ApprendreCoranForm } from "./apprendre-coran-form";
 import { ManualOrdersForm } from "./manual-orders-form";
 import { DuasLandingForm } from "./duas-landing-form";
 import { DuasOrdersForm } from "./duas-orders-form";
@@ -163,6 +165,7 @@ const AdminPremiumPage = async () => {
     manualOrders,
     duasContent,
     duasOrders,
+    apprendreCoran,
   ] = await Promise.all([
     getOfferSettings(),
     getLandingContent("fr"),
@@ -181,6 +184,7 @@ const AdminPremiumPage = async () => {
     listManualOrders(),
     getDuasLandingContent(),
     listDriveOrders("duas"),
+    getApprendreCoranContent(),
   ]);
   const landingByVariant = {
     v3: { fr: contentFr, en: contentEn, es: contentEs },
@@ -304,6 +308,11 @@ const AdminPremiumPage = async () => {
               key: "coran",
               label: "Page /coran (Stan)",
               node: <CoranLandingForm initial={coranContent} />,
+            },
+            {
+              key: "apprendre-coran",
+              label: "Onboarding /apprendre-coran",
+              node: <ApprendreCoranForm initial={apprendreCoran} />,
             },
             {
               key: "coran-orders",
