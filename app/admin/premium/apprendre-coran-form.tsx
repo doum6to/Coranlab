@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 
 import { updateApprendreCoranContent } from "@/actions/apprendre-coran-content";
+import { compressImageFile } from "@/lib/images/compress-client";
 import type {
   ApprendreCoranContent,
   OnbStep,
@@ -11,6 +12,68 @@ import type {
 
 const input = "w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brilliant-green";
 const lbl = "block text-xs font-semibold text-neutral-500 mb-1";
+
+/**
+ * Uploads an image chosen from the admin's computer. Always compresses to a
+ * light WebP first (max 1600px, q0.85) so the stored file is small → fast page
+ * load, without a visible quality loss. Returns the public URL.
+ */
+async function uploadImage(file: File): Promise<string> {
+  const fd = new FormData();
+  fd.append("file", await compressImageFile(file, 1600, 0.85));
+  const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
+  const text = await res.text();
+  let data: { url?: string; error?: string } = {};
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    data = { error: text.slice(0, 140) || `Erreur ${res.status}` };
+  }
+  if (res.status === 413) throw new Error("Image trop lourde.");
+  if (!res.ok || !data.url) throw new Error(data.error || `Erreur ${res.status}`);
+  return data.url;
+}
+
+/** URL text field + "upload from computer" button + thumbnail preview. */
+function ImageField({ value, onChange }: { value: string; onChange: (url: string) => void }) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-2">
+        <input className={input} value={value} onChange={(e) => onChange(e.target.value)} placeholder="https://… (ou téléverse)" />
+        {value && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={value} alt="" className="h-10 w-10 shrink-0 rounded object-cover border border-neutral-200" />
+        )}
+      </div>
+      <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-semibold text-brilliant-green hover:underline">
+        {busy ? "Compression + upload…" : "📤 Téléverser depuis mon PC"}
+        <input
+          type="file"
+          accept="image/*"
+          className="hidden"
+          disabled={busy}
+          onChange={async (e) => {
+            const f = e.target.files?.[0];
+            if (!f) return;
+            setErr(null);
+            setBusy(true);
+            try {
+              onChange(await uploadImage(f));
+            } catch (er: any) {
+              setErr(er?.message || "Échec de l'upload.");
+            } finally {
+              setBusy(false);
+              e.target.value = "";
+            }
+          }}
+        />
+      </label>
+      {err && <span className="ml-2 text-xs text-rose-500">{err}</span>}
+    </div>
+  );
+}
 
 export function ApprendreCoranForm({ initial }: { initial: ApprendreCoranContent }) {
   const [content, setContent] = useState<ApprendreCoranContent>(initial);
@@ -58,8 +121,8 @@ export function ApprendreCoranForm({ initial }: { initial: ApprendreCoranContent
             <textarea className={input} rows={2} value={content.paywall.title} onChange={(e) => patchPaywall({ title: e.target.value })} />
           </div>
           <div>
-            <label className={lbl}>Image (URL)</label>
-            <input className={input} value={content.paywall.image} onChange={(e) => patchPaywall({ image: e.target.value })} placeholder="https://…" />
+            <label className={lbl}>Image</label>
+            <ImageField value={content.paywall.image} onChange={(url) => patchPaywall({ image: url })} />
           </div>
           <div>
             <label className={lbl}>Réassurance</label>
@@ -142,9 +205,9 @@ export function ApprendreCoranForm({ initial }: { initial: ApprendreCoranContent
                 </div>
               )}
               {st.image !== undefined && (
-                <div>
-                  <label className={lbl}>Image (URL)</label>
-                  <input className={input} value={st.image} onChange={(e) => patchStep(i, { image: e.target.value })} placeholder="https://… (vide = placeholder)" />
+                <div className="sm:col-span-2">
+                  <label className={lbl}>Image (vide = placeholder)</label>
+                  <ImageField value={st.image} onChange={(url) => patchStep(i, { image: url })} />
                 </div>
               )}
               {st.cta !== undefined && (
