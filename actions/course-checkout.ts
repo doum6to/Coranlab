@@ -22,8 +22,10 @@ import { absoluteUrl } from "@/lib/utils";
 export async function createCourseCheckoutUrl(withApp: boolean) {
   try {
     const cancelUrl = absoluteUrl("/85motscoran");
+    // session_id lets /merci fire CompletePayment with the SAME event_id as the
+    // server webhook → TikTok dedupes (no double-counted conversion).
     const successUrl = absoluteUrl(
-      `/85motscoran/merci?plan=${withApp ? "combo" : "course"}`
+      `/85motscoran/merci?plan=${withApp ? "combo" : "course"}&session_id={CHECKOUT_SESSION_ID}`
     );
 
     if (!withApp) {

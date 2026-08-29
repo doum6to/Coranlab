@@ -20,6 +20,7 @@ import { ttqTrack } from "@/lib/analytics/tiktok";
 export function TrackPurchase() {
   const searchParams = useSearchParams();
   const plan = searchParams.get("plan");
+  const sessionId = searchParams.get("session_id") || undefined;
   const firedRef = useRef(false);
 
   useEffect(() => {
@@ -41,28 +42,38 @@ export function TrackPurchase() {
 
     const isCombo = plan === "combo";
 
-    ttqTrack("CompletePayment", {
-      value: isCombo ? 24.96 : 9.99,
-      currency: "EUR",
-      content_id: isCombo ? "course_plus_app" : "course_only",
-      content_name: isCombo
-        ? "Le Pack + Application"
-        : "Le Pack 85% des mots du Coran",
-      content_category: "course",
-    });
+    ttqTrack(
+      "CompletePayment",
+      {
+        value: isCombo ? 24.96 : 9.99,
+        currency: "EUR",
+        content_id: isCombo ? "course_plus_app" : "course_only",
+        content_name: isCombo
+          ? "Le Pack + Application"
+          : "Le Pack 85% des mots du Coran",
+        content_category: "course",
+      },
+      // Same event_id as the server webhook (Stripe session id) → TikTok merges
+      // browser + server into ONE conversion instead of counting two.
+      sessionId,
+    );
 
     // For the combo, also report the first subscription start. TikTok
     // optimises differently for subscriptions than one-time payments.
     if (isCombo) {
-      ttqTrack("Subscribe", {
-        value: 14.97,
-        currency: "EUR",
-        content_id: "app_monthly",
-        content_name: "Abonnement Quranlab mensuel",
-        content_category: "subscription",
-      });
+      ttqTrack(
+        "Subscribe",
+        {
+          value: 14.97,
+          currency: "EUR",
+          content_id: "app_monthly",
+          content_name: "Abonnement Quranlab mensuel",
+          content_category: "subscription",
+        },
+        sessionId ? `${sessionId}_sub` : undefined,
+      );
     }
-  }, [plan]);
+  }, [plan, sessionId]);
 
   return null;
 }

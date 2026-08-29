@@ -33,13 +33,19 @@ export function TrackArabicPurchase({
     }
 
     ttqIdentify(email);
-    ttqTrack("CompletePayment", {
-      value,
-      currency: "EUR",
-      content_id: "arabic_course",
-      content_name: "Lire l'arabe en 7h",
-      content_category: "course",
-    });
+    ttqTrack(
+      "CompletePayment",
+      {
+        value,
+        currency: "EUR",
+        content_id: "arabic_course",
+        content_name: "Lire l'arabe en 7h",
+        content_category: "course",
+      },
+      // Same event_id as the server webhook (Stripe session id) → TikTok merges
+      // browser + server into ONE conversion instead of counting two.
+      sessionId,
+    );
   }, [sessionId, value, email]);
 
   return null;
