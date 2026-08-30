@@ -80,3 +80,50 @@ export async function createLandingVideoUploadUrl(ext: string, folder = "lire-la
     return { error: e?.message || "Erreur inconnue." } as const;
   }
 }
+
+/** Bucket with NO MIME restriction (same one /api/admin/upload uses). Accepts
+ *  images, GIFs, PDFs, etc. → no "mime type not supported" errors. */
+const MEDIA_BUCKET = "images";
+
+/**
+ * Signed upload URL to the unrestricted public `images` bucket, for admin
+ * uploads up to the project's global size limit (~50 MB). Returns the bucket
+ * name (so the client uploads to the right one) + the future public URL.
+ */
+export async function createMediaUploadUrl(ext: string, folder = "coran") {
+  if (!isAdminAuthed()) return { error: "Unauthorized" } as const;
+
+  const safeExt = (ext || "bin").toLowerCase().replace(/[^a-z0-9]/g, "") || "bin";
+  const safeFolder =
+    (folder || "coran").toLowerCase().replace(/[^a-z0-9-]/g, "") || "coran";
+  const path = `${safeFolder}/${crypto.randomUUID()}.${safeExt}`;
+
+  try {
+    const supabase = createAdminClient();
+    // Idempotent create with NO allowedMimeTypes (accepts every type).
+    const { error: cErr } = await supabase.storage.createBucket(MEDIA_BUCKET, {
+      public: true,
+    });
+    if (cErr && !/already exists/i.test(cErr.message)) {
+      return { error: `Création du bucket impossible : ${cErr.message}` } as const;
+    }
+
+    const { data, error } = await supabase.storage
+      .from(MEDIA_BUCKET)
+      .createSignedUploadUrl(path);
+    if (error || !data) {
+      return { error: error?.message || "Impossible de créer l'URL d'upload." } as const;
+    }
+
+    const { data: pub } = supabase.storage.from(MEDIA_BUCKET).getPublicUrl(path);
+    return {
+      bucket: MEDIA_BUCKET,
+      path: data.path,
+      token: data.token,
+      publicUrl: pub.publicUrl,
+    } as const;
+  } catch (e: any) {
+    console.error("[landing-media] createMediaUploadUrl failed:", e);
+    return { error: e?.message || "Erreur inconnue." } as const;
+  }
+}

@@ -8,8 +8,7 @@ import { Button } from "@/components/ui/button";
 import { updateCoranLandingContent } from "@/actions/coran-landing-content";
 import type { CoranLandingContent, CoranBlock } from "@/lib/coran-landing-content";
 import { compressImageFile } from "@/lib/images/compress-client";
-import { createLandingVideoUploadUrl } from "@/actions/landing-media";
-import { LANDING_MEDIA_BUCKET } from "@/lib/course-videos";
+import { createMediaUploadUrl } from "@/actions/landing-media";
 import { createClient } from "@/lib/supabase/client";
 
 const inputCls =
@@ -36,12 +35,12 @@ async function uploadImage(file: File): Promise<string> {
   }
 
   const ext = (f.name.split(".").pop() || "bin").toLowerCase();
-  const signed = await createLandingVideoUploadUrl(ext, "coran");
+  const signed = await createMediaUploadUrl(ext, "coran");
   if ("error" in signed) throw new Error(signed.error);
 
   const supabase = createClient();
   const { error } = await supabase.storage
-    .from(LANDING_MEDIA_BUCKET)
+    .from(signed.bucket)
     .uploadToSignedUrl(signed.path, signed.token, f, {
       contentType: f.type || "application/octet-stream",
     });
