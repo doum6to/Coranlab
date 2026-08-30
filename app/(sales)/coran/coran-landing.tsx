@@ -171,7 +171,7 @@ export function CoranLanding({ content }: { content: CoranLandingContent }) {
         })}
 
         {/* CHECKOUT — always last (conversion anchor) */}
-        <div className="mt-10">
+        <div id="checkout" className="mt-10 scroll-mt-4">
           <h2 className="mb-3 font-display text-xl font-bold">Finalise ta commande</h2>
           <div className="rounded-2xl border border-neutral-200 bg-white p-4 text-neutral-900 shadow-sm">
             {priceLabel && (
@@ -208,7 +208,12 @@ export function CoranLanding({ content }: { content: CoranLandingContent }) {
       </div>
 
       {c.showStickyBar && (
-        <StickyPayBar priceLabel={priceLabel} compareLabel={compareLabel} cta={c.ctaLabel} />
+        <StickyPayBar
+          priceLabel={priceLabel}
+          compareLabel={compareLabel}
+          cta={c.ctaLabel}
+          headline={c.stickyBarText}
+        />
       )}
     </div>
   );

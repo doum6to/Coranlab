@@ -71,6 +71,8 @@ function merge(stored: Partial<DuasLandingContent> | null): DuasLandingContent {
     reviews: Array.isArray(stored.reviews) ? stored.reviews : d.reviews,
     ctaLabel: typeof stored.ctaLabel === "string" ? stored.ctaLabel : d.ctaLabel,
     showStickyBar: stored.showStickyBar !== false,
+    stickyBarText:
+      typeof stored.stickyBarText === "string" ? stored.stickyBarText : d.stickyBarText,
     orangeMoney: {
       enabled: stored.orangeMoney?.enabled === true,
       number:

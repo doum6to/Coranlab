@@ -467,6 +467,17 @@ export function CoranLandingForm({
           </span>
           <input type="checkbox" checked={c.showStickyBar} onChange={(e) => setC({ ...c, showStickyBar: e.target.checked })} />
         </label>
+        <label className="block">
+          <span className="mb-1 block text-xs font-semibold text-neutral-600">
+            Texte d&apos;accroche de la barre sticky
+          </span>
+          <input
+            value={c.stickyBarText}
+            onChange={(e) => setC({ ...c, stickyBarText: e.target.value })}
+            placeholder="Ex. Offre limitée · Accès à vie · Sans abonnement"
+            className={inputCls}
+          />
+        </label>
       </Section>
 
       {/* DELIVERABLES */}

@@ -86,6 +86,8 @@ export type CoranLandingContent = {
   ctaLabel: string;
   /** Show the floating bottom payment bar on scroll. */
   showStickyBar: boolean;
+  /** Small headline shown in the sticky bottom bar (urgency line). */
+  stickyBarText: string;
   /** Manual Orange Money / Mobile Money payment option. */
   orangeMoney: CoranOrangeMoney;
   /** Reassurance line under the checkout. */
@@ -131,6 +133,7 @@ export const CORAN_LANDING_DEFAULTS: CoranLandingContent = {
   ],
   ctaLabel: "Je reçois mon guide",
   showStickyBar: true,
+  stickyBarText: "Offre limitée · Accès à vie · Sans abonnement",
   orangeMoney: {
     enabled: false,
     number: "",
@@ -219,6 +222,8 @@ function merge(stored: Partial<CoranLandingContent> | null): CoranLandingContent
     reviews: Array.isArray(stored.reviews) ? stored.reviews : d.reviews,
     ctaLabel: typeof stored.ctaLabel === "string" ? stored.ctaLabel : d.ctaLabel,
     showStickyBar: stored.showStickyBar !== false,
+    stickyBarText:
+      typeof stored.stickyBarText === "string" ? stored.stickyBarText : d.stickyBarText,
     orangeMoney: {
       enabled: stored.orangeMoney?.enabled === true,
       number:

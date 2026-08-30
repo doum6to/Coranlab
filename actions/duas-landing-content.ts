@@ -82,6 +82,7 @@ function sanitize(input: DuasLandingContent): DuasLandingContent {
       .slice(0, 30),
     ctaLabel: s(input.ctaLabel, d.ctaLabel),
     showStickyBar: input.showStickyBar !== false,
+    stickyBarText: s(input.stickyBarText, d.stickyBarText).slice(0, 120),
     orangeMoney: {
       enabled: input.orangeMoney?.enabled === true,
       number: s(input.orangeMoney?.number).trim().slice(0, 40),
