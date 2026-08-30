@@ -6,33 +6,27 @@ import { isAdminAuthed } from "@/lib/admin-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { LANDING_MEDIA_BUCKET } from "@/lib/course-videos";
 
-const LANDING_MEDIA_MIME = [
-  "video/mp4",
-  "video/quicktime",
-  "video/webm",
-  "image/png",
-  "image/jpeg",
-  "image/webp",
-  "image/gif",
-  "application/pdf",
-];
-
-/** Creates the public landing-media bucket if missing. Idempotent. On an
- *  existing bucket, syncs the allowed MIME list (e.g. newly-added PDF support). */
+/**
+ * Creates the public landing-media bucket if missing. Idempotent.
+ *
+ * No MIME allowlist: uploads are admin-only (images, GIFs, PDFs, videos), so we
+ * accept any type — this avoids "mime type … is not supported" rejections. On a
+ * pre-existing bucket (which may still carry an old allowlist), we CLEAR the
+ * allowlist so PDFs and everything else go through.
+ */
 async function ensureBucket(supabase: ReturnType<typeof createAdminClient>) {
   const { error } = await supabase.storage.createBucket(LANDING_MEDIA_BUCKET, {
     public: true,
     fileSizeLimit: 500 * 1024 * 1024,
-    allowedMimeTypes: LANDING_MEDIA_MIME,
   });
   if (!error) return;
   if (/already exists/i.test(error.message)) {
-    // Keep the allowlist current (adds application/pdf to a pre-existing bucket).
+    // Clear any MIME allowlist set on an older bucket so all types are accepted.
     await supabase.storage
       .updateBucket(LANDING_MEDIA_BUCKET, {
         public: true,
-        allowedMimeTypes: LANDING_MEDIA_MIME,
-      })
+        allowedMimeTypes: null,
+      } as any)
       .catch(() => {});
     return;
   }
@@ -44,7 +38,7 @@ async function ensureBucket(supabase: ReturnType<typeof createAdminClient>) {
   if (/maximum allowed size|exceeded/i.test(error.message)) {
     const { error: retryError } = await supabase.storage.createBucket(
       LANDING_MEDIA_BUCKET,
-      { public: true, allowedMimeTypes: LANDING_MEDIA_MIME },
+      { public: true },
     );
     if (!retryError || /already exists/i.test(retryError.message)) return;
     throw new Error(`Création du bucket impossible : ${retryError.message}`);
