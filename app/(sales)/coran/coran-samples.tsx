@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 
 import type { CoranSample } from "@/lib/coran-landing-content";
 
 /**
- * Clickable preview covers on /coran. Tapping a cover opens the PDF extract in
- * a full-screen viewer (iframe), with a fallback "open in new tab" link for
- * mobile browsers that don't render PDFs inline.
+ * Clickable preview covers on /coran. A single tap on a cover opens the PDF
+ * extract in a pop-up read inline (no leaving the page), closable with the ×
+ * or by tapping the backdrop. A discreet "plein écran" link is kept as a
+ * fallback for mobile browsers that can't render PDFs inline.
  */
 export function CoranSamples({
   heading,
@@ -19,6 +20,20 @@ export function CoranSamples({
 }) {
   const [open, setOpen] = useState<CoranSample | null>(null);
   const items = samples.filter((s) => s.cover || s.pdf);
+
+  // Close on Escape + lock body scroll while the pop-up is open.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(null);
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
   if (items.length === 0) return null;
 
   return (
@@ -57,38 +72,53 @@ export function CoranSamples({
 
       {open && (
         <div
-          className="fixed inset-0 z-[120] flex flex-col bg-black/80"
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 p-3 sm:p-6"
           onClick={() => setOpen(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={open.title || "Extrait PDF"}
         >
-          <div className="flex items-center justify-between gap-3 p-3 text-white">
-            <span className="truncate text-sm font-semibold">
-              {open.title || "Extrait"}
-            </span>
-            <div className="flex items-center gap-3">
-              <a
-                href={open.pdf}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="text-xs font-semibold underline"
-              >
-                Ouvrir
-              </a>
-              <button
-                onClick={() => setOpen(null)}
-                aria-label="Fermer"
-                className="rounded-full p-1 hover:bg-white/10"
-              >
-                <X className="h-6 w-6" />
-              </button>
+          <div
+            className="relative flex h-full w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between gap-3 border-b border-neutral-200 px-4 py-2.5">
+              <span className="truncate text-sm font-semibold text-neutral-800">
+                {open.title || "Extrait"}
+              </span>
+              <div className="flex items-center gap-3">
+                <a
+                  href={open.pdf}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-semibold text-neutral-400 underline hover:text-neutral-600"
+                >
+                  Plein écran
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setOpen(null)}
+                  aria-label="Fermer"
+                  className="rounded-full p-1 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
             </div>
-          </div>
-          <div className="flex-1 px-2 pb-3" onClick={(e) => e.stopPropagation()}>
-            <iframe
-              src={`${open.pdf}#view=FitH`}
-              title={open.title || "Extrait PDF"}
-              className="h-full w-full rounded-lg bg-white"
-            />
+
+            <object
+              data={`${open.pdf}#view=FitH`}
+              type="application/pdf"
+              className="min-h-0 flex-1 bg-neutral-100"
+              aria-label={open.title || "Extrait PDF"}
+            >
+              {/* Fallback for browsers (mobile Safari, etc.) that can't embed PDFs */}
+              <iframe
+                src={`${open.pdf}#view=FitH`}
+                title={open.title || "Extrait PDF"}
+                className="h-full w-full bg-neutral-100"
+              />
+            </object>
           </div>
         </div>
       )}
