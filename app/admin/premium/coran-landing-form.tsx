@@ -8,33 +8,46 @@ import { Button } from "@/components/ui/button";
 import { updateCoranLandingContent } from "@/actions/coran-landing-content";
 import type { CoranLandingContent, CoranBlock } from "@/lib/coran-landing-content";
 import { compressImageFile } from "@/lib/images/compress-client";
+import { createLandingVideoUploadUrl } from "@/actions/landing-media";
+import { LANDING_MEDIA_BUCKET } from "@/lib/course-videos";
+import { createClient } from "@/lib/supabase/client";
 
 const inputCls =
   "w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-brilliant-green focus:ring-2 focus:ring-brilliant-green/20";
 
-// This landing keeps images full quality: send the file untouched. Only
-// oversized files (> ~4 MB, the upload body limit) are gently re-encoded at a
-// large dimension / high quality so the upload still goes through.
-const MAX_RAW_BYTES = 4 * 1024 * 1024;
-async function prepImage(file: File): Promise<File> {
-  if (file.size <= MAX_RAW_BYTES) return file;
-  return compressImageFile(file, 2400, 0.92);
-}
+// Uploads up to 50 MB by going DIRECTLY to Supabase (signed URL), bypassing
+// Vercel's ~4.5 MB body limit. Raster images are compressed client-side to a
+// light WebP first; GIFs / PDFs are sent as-is (animation / document preserved).
+const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
 
 async function uploadImage(file: File): Promise<string> {
-  const fd = new FormData();
-  fd.append("file", await prepImage(file));
-  const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
-  const text = await res.text();
-  let data: { url?: string; error?: string } = {};
-  try {
-    data = text ? JSON.parse(text) : {};
-  } catch {
-    data = { error: text.slice(0, 140) || `Erreur ${res.status}` };
+  let f = file;
+  const isRaster =
+    file.type.startsWith("image/") &&
+    file.type !== "image/gif" &&
+    file.type !== "image/svg+xml";
+  if (isRaster) {
+    // Downscale + re-encode to WebP → a 50 MB photo becomes a few hundred KB.
+    f = await compressImageFile(file, 2000, 0.85);
   }
-  if (res.status === 413) throw new Error("Image trop lourde (> ~4,5 Mo).");
-  if (!res.ok || !data.url) throw new Error(data.error || `Erreur ${res.status}`);
-  return data.url;
+
+  if (f.size > MAX_UPLOAD_BYTES) {
+    throw new Error("Fichier trop lourd (max 50 Mo).");
+  }
+
+  const ext = (f.name.split(".").pop() || "bin").toLowerCase();
+  const signed = await createLandingVideoUploadUrl(ext, "coran");
+  if ("error" in signed) throw new Error(signed.error);
+
+  const supabase = createClient();
+  const { error } = await supabase.storage
+    .from(LANDING_MEDIA_BUCKET)
+    .uploadToSignedUrl(signed.path, signed.token, f, {
+      contentType: f.type || "application/octet-stream",
+    });
+  if (error) throw new Error(error.message);
+
+  return signed.publicUrl;
 }
 
 function ImageUploadButton({ onUploaded }: { onUploaded: (url: string) => void }) {

@@ -14,16 +14,28 @@ const LANDING_MEDIA_MIME = [
   "image/jpeg",
   "image/webp",
   "image/gif",
+  "application/pdf",
 ];
 
-/** Creates the public landing-media bucket if missing. Idempotent. */
+/** Creates the public landing-media bucket if missing. Idempotent. On an
+ *  existing bucket, syncs the allowed MIME list (e.g. newly-added PDF support). */
 async function ensureBucket(supabase: ReturnType<typeof createAdminClient>) {
   const { error } = await supabase.storage.createBucket(LANDING_MEDIA_BUCKET, {
     public: true,
     fileSizeLimit: 500 * 1024 * 1024,
     allowedMimeTypes: LANDING_MEDIA_MIME,
   });
-  if (!error || /already exists/i.test(error.message)) return;
+  if (!error) return;
+  if (/already exists/i.test(error.message)) {
+    // Keep the allowlist current (adds application/pdf to a pre-existing bucket).
+    await supabase.storage
+      .updateBucket(LANDING_MEDIA_BUCKET, {
+        public: true,
+        allowedMimeTypes: LANDING_MEDIA_MIME,
+      })
+      .catch(() => {});
+    return;
+  }
 
   // A bucket-level fileSizeLimit can't exceed the project's GLOBAL upload limit
   // (50 MB by default on the free plan). When that's the case Supabase rejects
