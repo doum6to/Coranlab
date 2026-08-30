@@ -8,6 +8,7 @@ import { isAdminAuthed } from "@/lib/admin-auth";
 import {
   CORAN_LANDING_KEY,
   CORAN_LANDING_DEFAULTS,
+  normalizeCoranSectionOrder,
   type CoranLandingContent,
   type CoranBlock,
 } from "@/lib/coran-landing-content";
@@ -103,6 +104,7 @@ function sanitize(input: CoranLandingContent): CoranLandingContent {
       .map((x) => s(x).trim())
       .filter((x) => x.length > 0)
       .slice(0, 20),
+    sectionOrder: normalizeCoranSectionOrder(input.sectionOrder),
   };
 }
 

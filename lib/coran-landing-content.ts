@@ -15,6 +15,27 @@ export type CoranReview = { name: string; text: string };
 /** A clickable preview: a cover image that opens a PDF extract in a viewer. */
 export type CoranSample = { cover: string; pdf: string; title: string };
 
+/** Reorderable content sections on /coran (the checkout box always stays last). */
+export const CORAN_SECTIONS = ["banners", "title", "body", "samples", "gifs", "reviews"] as const;
+export type CoranSectionKey = (typeof CORAN_SECTIONS)[number];
+export const CORAN_SECTION_LABELS: Record<CoranSectionKey, string> = {
+  banners: "Bannières",
+  title: "Titre + prix",
+  body: "Contenu (texte / images)",
+  samples: "Aperçus PDF",
+  gifs: "GIFs",
+  reviews: "Avis",
+};
+/** Keeps stored known keys in order, then appends any missing one → every
+ *  section always renders, in the admin's chosen order (new sections at the end). */
+export function normalizeCoranSectionOrder(arr: unknown): CoranSectionKey[] {
+  const known = (Array.isArray(arr) ? arr : []).filter((k): k is CoranSectionKey =>
+    (CORAN_SECTIONS as readonly string[]).includes(k as string),
+  );
+  const missing = CORAN_SECTIONS.filter((k) => !known.includes(k));
+  return [...known, ...missing];
+}
+
 /** Manual Orange Money / Mobile Money payment option (admin-editable). */
 export type CoranOrangeMoney = {
   /** Show the "Payer avec Orange Money" option on /coran. */
@@ -74,6 +95,8 @@ export type CoranLandingContent = {
   samples: CoranSample[];
   /** Optional extra GIFs to display on the page. */
   gifs: string[];
+  /** Display order of the content sections (drag-to-reorder in admin). */
+  sectionOrder: CoranSectionKey[];
 };
 
 export const CORAN_LANDING_KEY = "coran_landing_content";
@@ -119,6 +142,7 @@ export const CORAN_LANDING_DEFAULTS: CoranLandingContent = {
   samplesHeading: "Feuillette un extrait",
   samples: [],
   gifs: [],
+  sectionOrder: [...CORAN_SECTIONS],
 };
 
 const SYMBOL: Record<CoranLandingContent["price"]["currency"], string> = {
@@ -221,6 +245,7 @@ function merge(stored: Partial<CoranLandingContent> | null): CoranLandingContent
         }))
       : d.samples,
     gifs: Array.isArray(stored.gifs) ? stored.gifs : d.gifs,
+    sectionOrder: normalizeCoranSectionOrder(stored.sectionOrder),
   };
 }
 

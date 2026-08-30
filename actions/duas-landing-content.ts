@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import db from "@/db/drizzle";
 import { appSetting } from "@/db/schema";
 import { isAdminAuthed } from "@/lib/admin-auth";
-import type { CoranBlock } from "@/lib/coran-landing-content";
+import { normalizeCoranSectionOrder, type CoranBlock } from "@/lib/coran-landing-content";
 import {
   DUAS_LANDING_KEY,
   DUAS_LANDING_DEFAULTS,
@@ -102,6 +102,7 @@ function sanitize(input: DuasLandingContent): DuasLandingContent {
       .map((x) => s(x).trim())
       .filter((x) => x.length > 0)
       .slice(0, 20),
+    sectionOrder: normalizeCoranSectionOrder(input.sectionOrder),
     driveLink: s(input.driveLink).trim().slice(0, 500),
   };
 }

@@ -7,6 +7,7 @@ import { appSetting } from "@/db/schema";
 import {
   type CoranLandingContent,
   CORAN_LANDING_DEFAULTS,
+  normalizeCoranSectionOrder,
 } from "@/lib/coran-landing-content";
 
 /**
@@ -96,6 +97,7 @@ function merge(stored: Partial<DuasLandingContent> | null): DuasLandingContent {
         }))
       : d.samples,
     gifs: Array.isArray(stored.gifs) ? stored.gifs : d.gifs,
+    sectionOrder: normalizeCoranSectionOrder(stored.sectionOrder),
     driveLink: typeof stored.driveLink === "string" ? stored.driveLink : d.driveLink,
   };
 }

@@ -2,6 +2,7 @@ import { Star as StarIcon, Check as CheckIcon } from "lucide-react";
 
 import {
   type CoranLandingContent,
+  type CoranSectionKey,
   formatCoranPrice,
   formatFcfaFromEur,
   formatFcfaAmount,
@@ -40,6 +41,117 @@ export function CoranLanding({ content }: { content: CoranLandingContent }) {
   const hasImageReviews = c.reviewImages.length > 0;
   const hasTextReviews = c.reviews.length > 0;
 
+  // Each reorderable section as a node (null = nothing to show → no gap).
+  const sections: Record<CoranSectionKey, React.ReactNode> = {
+    banners:
+      c.banners.length > 0 ? (
+        <div
+          className={
+            c.banners.length > 1
+              ? "-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2"
+              : ""
+          }
+        >
+          {c.banners.map((src, i) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={i}
+              src={src}
+              alt=""
+              className={`h-auto w-full shrink-0 rounded-2xl object-cover ${
+                c.banners.length > 1 ? "snap-center" : ""
+              }`}
+              style={c.banners.length > 1 ? { maxWidth: "85%" } : undefined}
+            />
+          ))}
+        </div>
+      ) : null,
+
+    title: (
+      <div>
+        <h1 className="font-display text-2xl font-bold leading-tight sm:text-3xl">
+          {c.title}
+        </h1>
+        {c.subtitle && (
+          <p className="mt-2 text-[15px] leading-relaxed opacity-70">{c.subtitle}</p>
+        )}
+        {priceLabel && (
+          <div className="mt-3 flex items-baseline gap-2">
+            <span className="font-display text-3xl font-bold">{priceLabel}</span>
+            {compareLabel && (
+              <span className="text-lg line-through opacity-40">{compareLabel}</span>
+            )}
+          </div>
+        )}
+      </div>
+    ),
+
+    body:
+      c.body.length > 0 ? (
+        <div className="space-y-4">
+          {c.body.map((block, i) =>
+            block.type === "image" ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={i}
+                src={block.url}
+                alt=""
+                className="h-auto w-full rounded-2xl object-cover"
+              />
+            ) : (
+              <p
+                key={i}
+                className="whitespace-pre-line text-[15px] leading-relaxed opacity-90"
+              >
+                {block.text}
+              </p>
+            ),
+          )}
+        </div>
+      ) : null,
+
+    samples:
+      c.samples.length > 0 ? (
+        <CoranSamples heading={c.samplesHeading} samples={c.samples} />
+      ) : null,
+
+    gifs:
+      c.gifs.length > 0 ? (
+        <div className="space-y-4">
+          {c.gifs.map((src, i) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img key={i} src={src} alt="" className="h-auto w-full rounded-2xl object-contain" />
+          ))}
+        </div>
+      ) : null,
+
+    reviews:
+      hasImageReviews || hasTextReviews ? (
+        <div>
+          {c.reviewsHeading && (
+            <h2 className="mb-3 font-display text-lg font-bold">{c.reviewsHeading}</h2>
+          )}
+          {hasImageReviews && <ReviewsMarquee images={c.reviewImages} />}
+          {hasTextReviews && (
+            <div className={`space-y-3 ${hasImageReviews ? "mt-4" : ""}`}>
+              {c.reviews.map((r, i) => (
+                <div
+                  key={i}
+                  className="rounded-2xl border border-neutral-200 bg-white p-4 text-neutral-700 shadow-sm"
+                >
+                  <Stars />
+                  <p className="mt-2 text-sm leading-relaxed">{r.text}</p>
+                  {r.name && (
+                    <p className="mt-2 text-xs font-semibold text-neutral-500">{r.name}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : null,
+  };
+
   return (
     <div
       className="min-h-screen w-full font-sans"
@@ -48,120 +160,20 @@ export function CoranLanding({ content }: { content: CoranLandingContent }) {
       <style>{`html{scroll-behavior:smooth}`}</style>
 
       <div className="mx-auto max-w-[560px] px-4 pb-28 pt-4">
-        {/* BANNERS */}
-        {c.banners.length > 0 && (
-          <div
-            className={
-              c.banners.length > 1
-                ? "-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2"
-                : ""
-            }
-          >
-            {c.banners.map((src, i) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                key={i}
-                src={src}
-                alt=""
-                className={`h-auto w-full shrink-0 rounded-2xl object-cover ${
-                  c.banners.length > 1 ? "snap-center" : ""
-                }`}
-                style={c.banners.length > 1 ? { maxWidth: "85%" } : undefined}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* TITLE + PRICE */}
-        <div className="mt-5">
-          <h1 className="font-display text-2xl font-bold leading-tight sm:text-3xl">
-            {c.title}
-          </h1>
-          {c.subtitle && (
-            <p className="mt-2 text-[15px] leading-relaxed opacity-70">{c.subtitle}</p>
-          )}
-          {priceLabel && (
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="font-display text-3xl font-bold">{priceLabel}</span>
-              {compareLabel && (
-                <span className="text-lg line-through opacity-40">{compareLabel}</span>
-              )}
+        {/* Reorderable sections (order set in admin via drag & drop) */}
+        {c.sectionOrder.map((k) => {
+          const node = sections[k];
+          return node ? (
+            <div key={k} className="mt-8 first:mt-0">
+              {node}
             </div>
-          )}
-        </div>
+          ) : null;
+        })}
 
-        {/* BODY (free-form text + images) */}
-        {c.body.length > 0 && (
-          <div className="mt-7 space-y-4">
-            {c.body.map((block, i) =>
-              block.type === "image" ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  key={i}
-                  src={block.url}
-                  alt=""
-                  className="h-auto w-full rounded-2xl object-cover"
-                />
-              ) : (
-                <p key={i} className="whitespace-pre-line text-[15px] leading-relaxed opacity-90">
-                  {block.text}
-                </p>
-              ),
-            )}
-          </div>
-        )}
-
-        {/* PDF PREVIEWS (clickable covers → extract viewer) */}
-        <CoranSamples heading={c.samplesHeading} samples={c.samples} />
-
-        {/* GIFS (optional) */}
-        {c.gifs.length > 0 && (
-          <div className="mt-6 space-y-4">
-            {c.gifs.map((src, i) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                key={i}
-                src={src}
-                alt=""
-                className="h-auto w-full rounded-2xl object-contain"
-              />
-            ))}
-          </div>
-        )}
-
-        {/* REVIEWS */}
-        {(hasImageReviews || hasTextReviews) && (
-          <div className="mt-9">
-            {c.reviewsHeading && (
-              <h2 className="mb-3 font-display text-lg font-bold">{c.reviewsHeading}</h2>
-            )}
-            {/* Auto-scrolling screenshots (like landing V3) */}
-            {hasImageReviews && <ReviewsMarquee images={c.reviewImages} />}
-            {/* Optional text testimonials */}
-            {hasTextReviews && (
-              <div className={`space-y-3 ${hasImageReviews ? "mt-4" : ""}`}>
-                {c.reviews.map((r, i) => (
-                  <div
-                    key={i}
-                    className="rounded-2xl border border-neutral-200 bg-white p-4 text-neutral-700 shadow-sm"
-                  >
-                    <Stars />
-                    <p className="mt-2 text-sm leading-relaxed">{r.text}</p>
-                    {r.name && (
-                      <p className="mt-2 text-xs font-semibold text-neutral-500">{r.name}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* CHECKOUT */}
+        {/* CHECKOUT — always last (conversion anchor) */}
         <div className="mt-10">
           <h2 className="mb-3 font-display text-xl font-bold">Finalise ta commande</h2>
           <div className="rounded-2xl border border-neutral-200 bg-white p-4 text-neutral-900 shadow-sm">
-            {/* Price summary (EUR + FCFA) */}
             {priceLabel && (
               <div className="mb-3 flex items-baseline gap-2">
                 <span className="text-2xl font-extrabold">{priceLabel}</span>
@@ -176,7 +188,6 @@ export function CoranLanding({ content }: { content: CoranLandingContent }) {
               </div>
             )}
 
-            {/* What you get */}
             {c.showDeliverables && c.deliverables.length > 0 && (
               <ul className="mb-4 space-y-1.5">
                 {c.deliverables.map((d, i) => (

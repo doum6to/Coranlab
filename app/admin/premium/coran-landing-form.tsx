@@ -2,10 +2,11 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, ArrowUp, ArrowDown, Image as ImageIcon, Type } from "lucide-react";
+import { Plus, Trash2, ArrowUp, ArrowDown, Image as ImageIcon, Type, GripVertical } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { updateCoranLandingContent } from "@/actions/coran-landing-content";
+import { CORAN_SECTION_LABELS } from "@/lib/coran-landing-content";
 import type { CoranLandingContent, CoranBlock } from "@/lib/coran-landing-content";
 import { compressImageFile } from "@/lib/images/compress-client";
 import { createMediaUploadUrl } from "@/actions/landing-media";
@@ -149,6 +150,15 @@ export function CoranLandingForm({
   const [c, setC] = useState<FormContent>(initial);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+
+  const moveSection = (from: number, to: number) => {
+    if (from === to || from < 0 || to < 0) return;
+    const arr = [...c.sectionOrder];
+    const [m] = arr.splice(from, 1);
+    arr.splice(to, 0, m);
+    setC({ ...c, sectionOrder: arr });
+  };
 
   const euros = (cents: number) => (cents / 100).toFixed(2).replace(".", ",");
   const toCents = (s: string) => {
@@ -195,6 +205,58 @@ export function CoranLandingForm({
           {previewUrl}
         </a>
       </p>
+
+      {/* SECTION ORDER (drag & drop) */}
+      <Section title="Ordre des sections (glisse pour réorganiser)">
+        <p className="text-xs text-neutral-500">
+          Le bloc « Finalise ta commande » reste toujours en bas.
+        </p>
+        <div className="space-y-2">
+          {c.sectionOrder.map((key, i) => (
+            <div
+              key={key}
+              draggable
+              onDragStart={() => setDragIndex(i)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (dragIndex !== null) moveSection(dragIndex, i);
+                setDragIndex(null);
+              }}
+              onDragEnd={() => setDragIndex(null)}
+              className={`flex items-center gap-2 rounded-lg border bg-white px-3 py-2 cursor-move select-none ${
+                dragIndex === i ? "border-[#6967fb] opacity-60" : "border-neutral-200"
+              }`}
+            >
+              <GripVertical className="h-4 w-4 shrink-0 text-neutral-400" />
+              <span className="text-xs font-bold text-neutral-400">{i + 1}.</span>
+              <span className="text-sm font-medium text-neutral-800">
+                {CORAN_SECTION_LABELS[key]}
+              </span>
+              <span className="ml-auto flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => moveSection(i, i - 1)}
+                  disabled={i === 0}
+                  className="text-neutral-400 hover:text-neutral-700 disabled:opacity-30"
+                  aria-label="Monter"
+                >
+                  <ArrowUp className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => moveSection(i, i + 1)}
+                  disabled={i === c.sectionOrder.length - 1}
+                  className="text-neutral-400 hover:text-neutral-700 disabled:opacity-30"
+                  aria-label="Descendre"
+                >
+                  <ArrowDown className="h-4 w-4" />
+                </button>
+              </span>
+            </div>
+          ))}
+        </div>
+      </Section>
 
       {showDriveLink && (
         <Section title="Livraison — lien Google Drive (envoyé par email)">
