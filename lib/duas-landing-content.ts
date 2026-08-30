@@ -86,6 +86,16 @@ function merge(stored: Partial<DuasLandingContent> | null): DuasLandingContent {
           : d.orangeMoney.instructions,
     },
     guarantee: typeof stored.guarantee === "string" ? stored.guarantee : d.guarantee,
+    samplesHeading:
+      typeof stored.samplesHeading === "string" ? stored.samplesHeading : d.samplesHeading,
+    samples: Array.isArray(stored.samples)
+      ? stored.samples.map((s) => ({
+          cover: String(s?.cover ?? ""),
+          pdf: String(s?.pdf ?? ""),
+          title: String(s?.title ?? ""),
+        }))
+      : d.samples,
+    gifs: Array.isArray(stored.gifs) ? stored.gifs : d.gifs,
     driveLink: typeof stored.driveLink === "string" ? stored.driveLink : d.driveLink,
   };
 }

@@ -89,6 +89,19 @@ function sanitize(input: DuasLandingContent): DuasLandingContent {
       instructions: s(input.orangeMoney?.instructions, d.orangeMoney.instructions).slice(0, 1000),
     },
     guarantee: s(input.guarantee, d.guarantee),
+    samplesHeading: s(input.samplesHeading, d.samplesHeading),
+    samples: (Array.isArray(input.samples) ? input.samples : [])
+      .map((x) => ({
+        cover: s(x?.cover).trim(),
+        pdf: s(x?.pdf).trim(),
+        title: s(x?.title).trim(),
+      }))
+      .filter((x) => x.cover.length > 0 || x.pdf.length > 0)
+      .slice(0, 20),
+    gifs: (Array.isArray(input.gifs) ? input.gifs : [])
+      .map((x) => s(x).trim())
+      .filter((x) => x.length > 0)
+      .slice(0, 20),
     driveLink: s(input.driveLink).trim().slice(0, 500),
   };
 }

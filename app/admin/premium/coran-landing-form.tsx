@@ -69,6 +69,48 @@ function ImageUploadButton({ onUploaded }: { onUploaded: (url: string) => void }
   );
 }
 
+/** Like ImageUploadButton but for any accepted type (images, GIFs, PDFs). */
+function FileUploadButton({
+  onUploaded,
+  accept = "image/*",
+  label = "Téléverser",
+}: {
+  onUploaded: (url: string) => void;
+  accept?: string;
+  label?: string;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  return (
+    <span className="inline-flex items-center gap-2">
+      <label className="cursor-pointer text-xs font-semibold text-brilliant-green hover:underline">
+        {busy ? "Upload…" : label}
+        <input
+          type="file"
+          accept={accept}
+          className="hidden"
+          disabled={busy}
+          onChange={async (e) => {
+            const f = e.target.files?.[0];
+            if (!f) return;
+            setErr(null);
+            setBusy(true);
+            try {
+              onUploaded(await uploadImage(f));
+            } catch (er: any) {
+              setErr(er?.message || "Échec.");
+            } finally {
+              setBusy(false);
+              e.target.value = "";
+            }
+          }}
+        />
+      </label>
+      {err && <span className="text-xs text-rose-500">{err}</span>}
+    </span>
+  );
+}
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
@@ -113,6 +155,14 @@ export function CoranLandingForm({
     setC({ ...c, body: next });
   };
   const rmBlock = (i: number) => setC({ ...c, body: c.body.filter((_, idx) => idx !== i) });
+
+  // PDF preview (samples) helpers
+  const setSample = (i: number, patch: Partial<CoranLandingContent["samples"][number]>) =>
+    setC({ ...c, samples: c.samples.map((s, idx) => (idx === i ? { ...s, ...patch } : s)) });
+  const addSample = () =>
+    setC({ ...c, samples: [...c.samples, { cover: "", pdf: "", title: "" }] });
+  const rmSample = (i: number) =>
+    setC({ ...c, samples: c.samples.filter((_, idx) => idx !== i) });
 
   const onSave = () =>
     startTransition(async () => {
@@ -172,6 +222,78 @@ export function CoranLandingForm({
               + Ajouter une URL
             </button>
           </div>
+        </div>
+      </Section>
+
+      {/* PDF PREVIEWS (samples) */}
+      <Section title="Aperçus PDF (cover cliquable → extrait)">
+        <p className="text-xs text-neutral-500">
+          Chaque aperçu = une <strong>image de couverture</strong> (cliquable sur /coran)
+          + un <strong>PDF d&apos;extrait</strong>. Ajoute-en autant que tu veux.
+        </p>
+        <label className="block">
+          <span className="mb-1 block text-xs font-semibold text-neutral-600">Titre de la section</span>
+          <input
+            value={c.samplesHeading}
+            onChange={(e) => setC({ ...c, samplesHeading: e.target.value })}
+            className={inputCls}
+          />
+        </label>
+        {c.samples.map((s, i) => (
+          <div key={i} className="space-y-2 rounded-xl border border-neutral-200 bg-white p-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-neutral-600">Aperçu {i + 1}</span>
+              <button type="button" onClick={() => rmSample(i)} className="text-rose-500 hover:text-rose-600">
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="flex items-start gap-3">
+              {s.cover && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={s.cover} alt="" className="h-16 w-12 shrink-0 rounded border border-neutral-200 object-cover" />
+              )}
+              <div className="flex-1 space-y-1">
+                <input value={s.cover} onChange={(e) => setSample(i, { cover: e.target.value })} placeholder="URL de la couverture" className={inputCls} />
+                <FileUploadButton accept="image/*" label="📷 Couverture depuis mon PC" onUploaded={(url) => setSample(i, { cover: url })} />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <input value={s.pdf} onChange={(e) => setSample(i, { pdf: e.target.value })} placeholder="URL du PDF (extrait)" className={inputCls} />
+                {s.pdf && (
+                  <a href={s.pdf} target="_blank" rel="noopener noreferrer" className="shrink-0 text-xs font-semibold text-[#6967fb] underline">
+                    voir
+                  </a>
+                )}
+              </div>
+              <FileUploadButton accept="application/pdf" label="📄 PDF extrait depuis mon PC" onUploaded={(url) => setSample(i, { pdf: url })} />
+            </div>
+            <input value={s.title} onChange={(e) => setSample(i, { title: e.target.value })} placeholder="Titre (optionnel)" className={inputCls} />
+          </div>
+        ))}
+        <button type="button" onClick={addSample} className="text-xs font-semibold text-[#6967fb]">
+          + Ajouter un aperçu
+        </button>
+      </Section>
+
+      {/* GIFS */}
+      <Section title="GIFs (optionnel)">
+        <div className="space-y-2">
+          {c.gifs.map((src, i) => (
+            <div key={i} className="flex items-center gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={src} alt="" className="h-12 w-20 shrink-0 rounded-lg border border-neutral-200 object-cover" />
+              <input
+                value={src}
+                onChange={(e) => setC({ ...c, gifs: c.gifs.map((g, idx) => (idx === i ? e.target.value : g)) })}
+                className={inputCls}
+              />
+              <button type="button" onClick={() => setC({ ...c, gifs: c.gifs.filter((_, idx) => idx !== i) })} className="shrink-0 text-rose-500 hover:text-rose-600">
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          ))}
+          <FileUploadButton accept="image/gif,image/*" label="Téléverser un GIF" onUploaded={(url) => setC({ ...c, gifs: [...c.gifs, url] })} />
         </div>
       </Section>
 

@@ -9,6 +9,7 @@ import {
 import { ReviewsMarquee } from "../offre-a-vie/reviews-marquee";
 import { StickyPayBar } from "./sticky-pay-bar";
 import { PaymentMethods } from "./payment-methods";
+import { CoranSamples } from "./coran-samples";
 
 function Stars() {
   return (
@@ -107,6 +108,24 @@ export function CoranLanding({ content }: { content: CoranLandingContent }) {
                 </p>
               ),
             )}
+          </div>
+        )}
+
+        {/* PDF PREVIEWS (clickable covers → extract viewer) */}
+        <CoranSamples heading={c.samplesHeading} samples={c.samples} />
+
+        {/* GIFS (optional) */}
+        {c.gifs.length > 0 && (
+          <div className="mt-6 space-y-4">
+            {c.gifs.map((src, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={i}
+                src={src}
+                alt=""
+                className="h-auto w-full rounded-2xl object-contain"
+              />
+            ))}
           </div>
         )}
 

@@ -12,6 +12,9 @@ export type CoranBlock =
 
 export type CoranReview = { name: string; text: string };
 
+/** A clickable preview: a cover image that opens a PDF extract in a viewer. */
+export type CoranSample = { cover: string; pdf: string; title: string };
+
 /** Manual Orange Money / Mobile Money payment option (admin-editable). */
 export type CoranOrangeMoney = {
   /** Show the "Payer avec Orange Money" option on /coran. */
@@ -66,6 +69,11 @@ export type CoranLandingContent = {
   orangeMoney: CoranOrangeMoney;
   /** Reassurance line under the checkout. */
   guarantee: string;
+  /** Clickable PDF previews (cover → PDF extract in a viewer). */
+  samplesHeading: string;
+  samples: CoranSample[];
+  /** Optional extra GIFs to display on the page. */
+  gifs: string[];
 };
 
 export const CORAN_LANDING_KEY = "coran_landing_content";
@@ -108,6 +116,9 @@ export const CORAN_LANDING_DEFAULTS: CoranLandingContent = {
       "1. Envoie le montant ci-dessus à ce numéro Orange Money.\n2. Copie l'ID de la transaction (reçu par SMS).\n3. Renseigne ton email + l'ID ci-dessous. Tu recevras ton accès par email après validation.",
   },
   guarantee: "Paiement sécurisé · Téléchargement immédiat · Garantie 30 jours",
+  samplesHeading: "Feuillette un extrait",
+  samples: [],
+  gifs: [],
 };
 
 const SYMBOL: Record<CoranLandingContent["price"]["currency"], string> = {
@@ -200,6 +211,16 @@ function merge(stored: Partial<CoranLandingContent> | null): CoranLandingContent
           : d.orangeMoney.instructions,
     },
     guarantee: typeof stored.guarantee === "string" ? stored.guarantee : d.guarantee,
+    samplesHeading:
+      typeof stored.samplesHeading === "string" ? stored.samplesHeading : d.samplesHeading,
+    samples: Array.isArray(stored.samples)
+      ? stored.samples.map((s) => ({
+          cover: String(s?.cover ?? ""),
+          pdf: String(s?.pdf ?? ""),
+          title: String(s?.title ?? ""),
+        }))
+      : d.samples,
+    gifs: Array.isArray(stored.gifs) ? stored.gifs : d.gifs,
   };
 }
 

@@ -29,9 +29,13 @@ export async function POST(req: Request) {
   if (!file || typeof file === "string") {
     return NextResponse.json({ error: "Aucun fichier." }, { status: 400 });
   }
-  if (!file.type.startsWith("image/")) {
+  // Images (incl. GIF) + PDF extracts. PDFs go through Vercel's ~4.5 MB body
+  // limit, which is plenty for a short preview/extract.
+  const isImage = file.type.startsWith("image/");
+  const isPdf = file.type === "application/pdf";
+  if (!isImage && !isPdf) {
     return NextResponse.json(
-      { error: "Le fichier doit être une image." },
+      { error: "Le fichier doit être une image, un GIF ou un PDF." },
       { status: 400 },
     );
   }
