@@ -6,8 +6,8 @@ import { Plus, Trash2, ArrowUp, ArrowDown, Image as ImageIcon, Type, GripVertica
 
 import { Button } from "@/components/ui/button";
 import { updateCoranLandingContent } from "@/actions/coran-landing-content";
-import { CORAN_SECTION_LABELS } from "@/lib/coran-landing-content";
-import type { CoranLandingContent, CoranBlock } from "@/lib/coran-landing-content";
+import { CORAN_SECTION_LABELS } from "@/lib/coran-landing-shared";
+import type { CoranLandingContent, CoranBlock } from "@/lib/coran-landing-shared";
 import { compressImageFile } from "@/lib/images/compress-client";
 import { createMediaUploadUrl } from "@/actions/landing-media";
 import { createClient } from "@/lib/supabase/client";
