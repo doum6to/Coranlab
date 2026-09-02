@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/league-reset",
       "schedule": "0 3 * * 1"
+    },
+    {
+      "path": "/api/cron/nurture-emails",
+      "schedule": "0 9 * * *"
     }
   ]
 }

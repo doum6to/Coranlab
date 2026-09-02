@@ -43,7 +43,12 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/en/offre-a-vie") ||
     request.nextUrl.pathname.startsWith("/es/offre-a-vie") ||
     request.nextUrl.pathname.startsWith("/comprendre-le-coran") ||
+    request.nextUrl.pathname.startsWith("/comprendre-sa-priere") ||
     request.nextUrl.pathname.startsWith("/coran") ||
+    // Cron endpoints are gated by CRON_SECRET at the route level; the lead
+    // unsubscribe link is a public GET gated by a signed token.
+    request.nextUrl.pathname.startsWith("/api/cron/") ||
+    request.nextUrl.pathname.startsWith("/api/leads/") ||
     request.nextUrl.pathname.startsWith("/lire-larabe") ||
     // VIP redemption link for buyers coming from another platform: must be
     // reachable logged-out (the code in ?c= is the gate).

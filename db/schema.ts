@@ -267,10 +267,18 @@ export const funnelLead = pgTable("funnel_lead", {
   reachedExercise: boolean("reached_exercise").notNull().default(false),
   reachedOffer: boolean("reached_offer").notNull().default(false),
   startedCheckout: boolean("started_checkout").notNull().default(false),
+  // Which page/campaign captured the lead (e.g. "comprendre-sa-priere").
+  source: text("source"),
+  // Automated nurture (drip) sequence state.
+  nurtureStep: integer("nurture_step").notNull().default(0),
+  nurtureNextAt: timestamp("nurture_next_at"),
+  leadMagnetSentAt: timestamp("lead_magnet_sent_at"),
+  unsubscribed: boolean("unsubscribed").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 }, (t) => ({
   emailIdx: uniqueIndex("funnel_lead_email").on(t.email),
+  nurtureIdx: index("funnel_lead_nurture_next").on(t.nurtureNextAt),
 }));
 
 // Generic key/value store for admin-editable settings (offer price, the

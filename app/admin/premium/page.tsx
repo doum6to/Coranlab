@@ -12,6 +12,8 @@ import { getFunnelContent } from "@/lib/funnel-content";
 import { getTikTokLandingContent } from "@/lib/tiktok-landing-content";
 import { getArabicLandingContent } from "@/lib/arabic-landing-content";
 import { getCoranLandingContent } from "@/lib/coran-landing-content";
+import { getCoranPriereLandingContent } from "@/lib/coran-priere-landing-content";
+import { getLeadMagnetContent } from "@/lib/lead-magnet-content";
 import { getApprendreCoranContent } from "@/lib/apprendre-coran-content";
 import { listManualOrders } from "@/actions/coran-manual-order";
 import { getDuasLandingContent } from "@/lib/duas-landing-content";
@@ -27,6 +29,8 @@ import { FunnelContentForm } from "./funnel-content-form";
 import { TikTokLandingForm } from "./tiktok-landing-form";
 import { ArabicLandingForm } from "./arabic-landing-form";
 import { CoranLandingForm } from "./coran-landing-form";
+import { CoranPriereForm } from "./coran-priere-form";
+import { LeadMagnetForm } from "./lead-magnet-form";
 import { ApprendreCoranForm } from "./apprendre-coran-form";
 import { ManualOrdersForm } from "./manual-orders-form";
 import { DuasLandingForm } from "./duas-landing-form";
@@ -162,6 +166,8 @@ const AdminPremiumPage = async () => {
     videos,
     vipSettings,
     coranContent,
+    coranPriereContent,
+    leadMagnetContent,
     manualOrders,
     duasContent,
     duasOrders,
@@ -181,6 +187,8 @@ const AdminPremiumPage = async () => {
     listCourseVideos(),
     getVipSettings(),
     getCoranLandingContent(),
+    getCoranPriereLandingContent(),
+    getLeadMagnetContent(),
     listManualOrders(),
     getDuasLandingContent(),
     listDriveOrders("duas"),
@@ -308,6 +316,16 @@ const AdminPremiumPage = async () => {
               key: "coran",
               label: "Page /coran (Stan)",
               node: <CoranLandingForm initial={coranContent} />,
+            },
+            {
+              key: "coran-priere",
+              label: "Page /comprendre-sa-priere",
+              node: <CoranPriereForm initial={coranPriereContent} />,
+            },
+            {
+              key: "lead-magnet",
+              label: "Lead magnet & relances",
+              node: <LeadMagnetForm initial={leadMagnetContent} />,
             },
             {
               key: "apprendre-coran",

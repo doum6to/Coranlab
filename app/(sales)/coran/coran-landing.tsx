@@ -22,7 +22,17 @@ function Stars() {
   );
 }
 
-export function CoranLanding({ content }: { content: CoranLandingContent }) {
+export function CoranLanding({
+  content,
+  createCheckout,
+  topSlot,
+}: {
+  content: CoranLandingContent;
+  /** Variant checkout action (defaults to the /coran one inside PaymentMethods). */
+  createCheckout?: () => Promise<{ clientSecret: string | null } | { error: string }>;
+  /** Optional block rendered at the very top (e.g. the free lead-magnet capture). */
+  topSlot?: React.ReactNode;
+}) {
   const c = content;
   const priceLabel = c.showPrice
     ? formatCoranPrice(c.price.amountCents, c.price.currency)
@@ -160,6 +170,8 @@ export function CoranLanding({ content }: { content: CoranLandingContent }) {
       <style>{`html{scroll-behavior:smooth}`}</style>
 
       <div className="mx-auto max-w-[560px] px-4 pb-28 pt-4">
+        {topSlot && <div className="mb-8">{topSlot}</div>}
+
         {/* Reorderable sections (order set in admin via drag & drop) */}
         {c.sectionOrder.map((k) => {
           const node = sections[k];
@@ -199,7 +211,11 @@ export function CoranLanding({ content }: { content: CoranLandingContent }) {
               </ul>
             )}
 
-            <PaymentMethods omEnabled={c.orangeMoney.enabled} om={c.orangeMoney} />
+            <PaymentMethods
+              omEnabled={c.orangeMoney.enabled}
+              om={c.orangeMoney}
+              createCheckout={createCheckout}
+            />
           </div>
           {c.guarantee && (
             <p className="mt-3 text-center text-xs opacity-60">{c.guarantee}</p>

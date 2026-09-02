@@ -187,8 +187,10 @@ export function formatFcfaFromEur(
   return `${xof.toLocaleString("en-US").replace(/,/g, " ").replace(/ | /g, " ")} FCFA`;
 }
 
-function merge(stored: Partial<CoranLandingContent> | null): CoranLandingContent {
-  const d = CORAN_LANDING_DEFAULTS;
+export function mergeCoranLandingContent(
+  stored: Partial<CoranLandingContent> | null,
+  d: CoranLandingContent = CORAN_LANDING_DEFAULTS,
+): CoranLandingContent {
   if (!stored) return d;
   return {
     banners: Array.isArray(stored.banners) ? stored.banners : d.banners,
@@ -262,7 +264,7 @@ export const getCoranLandingContent = cache(
         where: eq(appSetting.key, CORAN_LANDING_KEY),
       });
       if (!row?.value) return CORAN_LANDING_DEFAULTS;
-      return merge(JSON.parse(row.value));
+      return mergeCoranLandingContent(JSON.parse(row.value));
     } catch (e) {
       console.error("[coran-landing] read failed, using defaults:", e);
       return CORAN_LANDING_DEFAULTS;
