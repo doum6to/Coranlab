@@ -1,4 +1,4 @@
-import { getCoranPriereLandingContent } from "@/lib/coran-priere-landing-content";
+import { getPriereVslContent } from "@/lib/priere-vsl-content";
 import { PriereVsl } from "./priere-vsl";
 
 export const revalidate = 60;
@@ -10,6 +10,6 @@ export const metadata = {
 };
 
 export default async function ComprendreSaPrierePage() {
-  const content = await getCoranPriereLandingContent();
+  const content = await getPriereVslContent();
   return <PriereVsl content={content} />;
 }

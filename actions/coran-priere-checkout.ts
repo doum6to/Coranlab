@@ -2,7 +2,7 @@
 
 import { stripe } from "@/lib/stripe";
 import { absoluteUrl } from "@/lib/utils";
-import { getCoranPriereLandingContent } from "@/lib/coran-priere-landing-content";
+import { getPriereVslContent } from "@/lib/priere-vsl-content";
 
 /**
  * Stripe EMBEDDED Checkout for the /comprendre-sa-priere variant. Same product
@@ -13,7 +13,7 @@ import { getCoranPriereLandingContent } from "@/lib/coran-priere-landing-content
  */
 export async function createCoranPriereEmbeddedCheckout() {
   try {
-    const content = await getCoranPriereLandingContent();
+    const content = await getPriereVslContent();
     const { currency, amountCents } = content.price;
 
     const session = await stripe.checkout.sessions.create({

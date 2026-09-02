@@ -12,7 +12,7 @@ import { getFunnelContent } from "@/lib/funnel-content";
 import { getTikTokLandingContent } from "@/lib/tiktok-landing-content";
 import { getArabicLandingContent } from "@/lib/arabic-landing-content";
 import { getCoranLandingContent } from "@/lib/coran-landing-content";
-import { getCoranPriereLandingContent } from "@/lib/coran-priere-landing-content";
+import { getPriereVslContent } from "@/lib/priere-vsl-content";
 import { getLeadMagnetContent } from "@/lib/lead-magnet-content";
 import { getApprendreCoranContent } from "@/lib/apprendre-coran-content";
 import { listManualOrders } from "@/actions/coran-manual-order";
@@ -29,7 +29,7 @@ import { FunnelContentForm } from "./funnel-content-form";
 import { TikTokLandingForm } from "./tiktok-landing-form";
 import { ArabicLandingForm } from "./arabic-landing-form";
 import { CoranLandingForm } from "./coran-landing-form";
-import { CoranPriereForm } from "./coran-priere-form";
+import { PriereVslForm } from "./priere-vsl-form";
 import { LeadMagnetForm } from "./lead-magnet-form";
 import { ApprendreCoranForm } from "./apprendre-coran-form";
 import { ManualOrdersForm } from "./manual-orders-form";
@@ -166,7 +166,7 @@ const AdminPremiumPage = async () => {
     videos,
     vipSettings,
     coranContent,
-    coranPriereContent,
+    priereVslContent,
     leadMagnetContent,
     manualOrders,
     duasContent,
@@ -187,7 +187,7 @@ const AdminPremiumPage = async () => {
     listCourseVideos(),
     getVipSettings(),
     getCoranLandingContent(),
-    getCoranPriereLandingContent(),
+    getPriereVslContent(),
     getLeadMagnetContent(),
     listManualOrders(),
     getDuasLandingContent(),
@@ -320,7 +320,7 @@ const AdminPremiumPage = async () => {
             {
               key: "coran-priere",
               label: "Page /comprendre-sa-priere",
-              node: <CoranPriereForm initial={coranPriereContent} />,
+              node: <PriereVslForm initial={priereVslContent} />,
             },
             {
               key: "lead-magnet",
