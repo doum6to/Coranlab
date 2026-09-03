@@ -7,6 +7,7 @@ import type { PriereVslContent } from "@/lib/priere-vsl-shared";
 import { formatCoranPrice } from "@/lib/coran-landing-shared";
 import { CoranCheckoutEmbed } from "../coran/checkout-embed";
 import { createCoranPriereEmbeddedCheckout } from "@/actions/coran-priere-checkout";
+import { OpenInBrowserHint } from "@/components/open-in-browser-hint";
 
 function scrollToCheckout() {
   document.getElementById("checkout")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -75,6 +76,9 @@ export function PriereVsl({ content: c }: { content: PriereVslContent }) {
   return (
     <div className="min-h-screen w-full font-sans text-neutral-900" style={{ backgroundColor: c.bgColor }}>
       <style>{`html{scroll-behavior:smooth}`}</style>
+
+      <OpenInBrowserHint accent={accent} />
+
 
       {/* NAV */}
       <div className="sticky top-3 z-50 px-3">
