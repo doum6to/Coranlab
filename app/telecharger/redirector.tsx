@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { ttqTrack } from "@/lib/analytics/tiktok";
 import type { DownloadLinks } from "@/lib/download-links";
+import { OpenInBrowserHint, isInAppBrowser } from "@/components/open-in-browser-hint";
 
 type Platform = "ios" | "android" | "other";
 
@@ -26,6 +27,7 @@ function detectPlatform(): Platform {
 export function Redirector({ links }: { links: DownloadLinks }) {
   const [target, setTarget] = useState<string>(links.fallbackUrl);
   const [platform, setPlatform] = useState<Platform>("other");
+  const [inApp, setInApp] = useState(false);
 
   useEffect(() => {
     const p = detectPlatform();
@@ -46,7 +48,15 @@ export function Redirector({ links }: { links: DownloadLinks }) {
       content_category: p,
     });
 
-    // Give the pixel a moment, then redirect.
+    // Inside an in-app browser (TikTok/Insta), an auto-redirect to a store often
+    // fails silently. Don't auto-redirect: show the "open in browser" hint and
+    // let the visitor tap the button / open in their real browser instead.
+    if (isInAppBrowser()) {
+      setInApp(true);
+      return;
+    }
+
+    // Real browser: give the pixel a moment, then redirect.
     const t = setTimeout(() => {
       window.location.replace(dest);
     }, 900);
@@ -65,19 +75,28 @@ export function Redirector({ links }: { links: DownloadLinks }) {
       className="flex min-h-screen w-full flex-col items-center justify-center px-6 text-center"
       style={{ background: "radial-gradient(120% 80% at 50% 12%, #16513b 0%, #0e3527 45%, #0a2119 100%)", color: "#F6F1E7" }}
     >
+      {/* Top-right animated hint — shows only inside in-app browsers */}
+      <OpenInBrowserHint accent="#E9C46A" />
+
       <p className="text-xs font-bold uppercase tracking-[0.35em]" style={{ color: "#E9C46A" }}>
         Quranlab
       </p>
 
-      <div
-        className="mt-8 h-10 w-10 animate-spin rounded-full border-2 border-white/20"
-        style={{ borderTopColor: "#E9C46A" }}
-        aria-hidden
-      />
+      {!inApp && (
+        <div
+          className="mt-8 h-10 w-10 animate-spin rounded-full border-2 border-white/20"
+          style={{ borderTopColor: "#E9C46A" }}
+          aria-hidden
+        />
+      )}
 
-      <h1 className="mt-8 max-w-sm text-2xl font-bold">Redirection en cours…</h1>
+      <h1 className="mt-8 max-w-sm text-2xl font-bold">
+        {inApp ? "Presque !" : "Redirection en cours…"}
+      </h1>
       <p className="mt-2 max-w-xs text-sm text-white/70">
-        Tu vas être redirigé vers le téléchargement. Si rien ne se passe :
+        {inApp
+          ? "Pour télécharger l'app, ouvre cette page dans ton navigateur (bouton ci-dessous ou menu ••• en haut à droite)."
+          : "Tu vas être redirigé vers le téléchargement. Si rien ne se passe :"}
       </p>
 
       <a
@@ -90,8 +109,9 @@ export function Redirector({ links }: { links: DownloadLinks }) {
       </a>
 
       <p className="mt-6 max-w-xs text-xs text-white/50">
-        Astuce : si tu es dans l&apos;application TikTok/Instagram, ouvre ce lien dans
-        Safari ou Chrome (menu «&nbsp;•••&nbsp;» → «&nbsp;Ouvrir dans le navigateur&nbsp;»).
+        Astuce : dans l&apos;application TikTok/Instagram, ouvre ce lien dans Safari
+        ou Chrome (menu «&nbsp;•••&nbsp;» en haut à droite → «&nbsp;Ouvrir dans le
+        navigateur&nbsp;»).
       </p>
     </div>
   );

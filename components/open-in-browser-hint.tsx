@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { ArrowUpRight, X } from "lucide-react";
 
 /** Detects TikTok / Instagram / Facebook / Snapchat in-app browsers (webviews). */
-function isInAppBrowser(): boolean {
+export function isInAppBrowser(): boolean {
   if (typeof navigator === "undefined") return false;
   const ua = navigator.userAgent || "";
   return /TikTok|musical_ly|Bytedance|BytedanceWebview|Instagram|FBAN|FBAV|FB_IAB|Snapchat|Line\//i.test(
