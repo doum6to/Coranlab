@@ -14,6 +14,7 @@ import { getArabicLandingContent } from "@/lib/arabic-landing-content";
 import { getCoranLandingContent } from "@/lib/coran-landing-content";
 import { getPriereVslContent } from "@/lib/priere-vsl-content";
 import { getLeadMagnetContent } from "@/lib/lead-magnet-content";
+import { getDownloadLinks } from "@/lib/download-links";
 import { getApprendreCoranContent } from "@/lib/apprendre-coran-content";
 import { listManualOrders } from "@/actions/coran-manual-order";
 import { getDuasLandingContent } from "@/lib/duas-landing-content";
@@ -31,6 +32,7 @@ import { ArabicLandingForm } from "./arabic-landing-form";
 import { CoranLandingForm } from "./coran-landing-form";
 import { PriereVslForm } from "./priere-vsl-form";
 import { LeadMagnetForm } from "./lead-magnet-form";
+import { DownloadLinksForm } from "./download-links-form";
 import { ApprendreCoranForm } from "./apprendre-coran-form";
 import { ManualOrdersForm } from "./manual-orders-form";
 import { DuasLandingForm } from "./duas-landing-form";
@@ -168,6 +170,7 @@ const AdminPremiumPage = async () => {
     coranContent,
     priereVslContent,
     leadMagnetContent,
+    downloadLinks,
     manualOrders,
     duasContent,
     duasOrders,
@@ -189,6 +192,7 @@ const AdminPremiumPage = async () => {
     getCoranLandingContent(),
     getPriereVslContent(),
     getLeadMagnetContent(),
+    getDownloadLinks(),
     listManualOrders(),
     getDuasLandingContent(),
     listDriveOrders("duas"),
@@ -326,6 +330,11 @@ const AdminPremiumPage = async () => {
               key: "lead-magnet",
               label: "Lead magnet & relances",
               node: <LeadMagnetForm initial={leadMagnetContent} />,
+            },
+            {
+              key: "telecharger",
+              label: "Lien /telecharger (stores)",
+              node: <DownloadLinksForm initial={downloadLinks} />,
             },
             {
               key: "apprendre-coran",
