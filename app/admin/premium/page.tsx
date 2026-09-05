@@ -15,6 +15,7 @@ import { getCoranLandingContent } from "@/lib/coran-landing-content";
 import { getPriereVslContent } from "@/lib/priere-vsl-content";
 import { getLeadMagnetContent } from "@/lib/lead-magnet-content";
 import { getDownloadLinks } from "@/lib/download-links";
+import { getEbook30Content } from "@/lib/ebook30-content";
 import { getApprendreCoranContent } from "@/lib/apprendre-coran-content";
 import { listManualOrders } from "@/actions/coran-manual-order";
 import { getDuasLandingContent } from "@/lib/duas-landing-content";
@@ -33,6 +34,7 @@ import { CoranLandingForm } from "./coran-landing-form";
 import { PriereVslForm } from "./priere-vsl-form";
 import { LeadMagnetForm } from "./lead-magnet-form";
 import { DownloadLinksForm } from "./download-links-form";
+import { Ebook30Form } from "./ebook30-form";
 import { ApprendreCoranForm } from "./apprendre-coran-form";
 import { ManualOrdersForm } from "./manual-orders-form";
 import { DuasLandingForm } from "./duas-landing-form";
@@ -175,6 +177,7 @@ const AdminPremiumPage = async () => {
     duasContent,
     duasOrders,
     apprendreCoran,
+    ebook30Content,
   ] = await Promise.all([
     getOfferSettings(),
     getLandingContent("fr"),
@@ -197,6 +200,7 @@ const AdminPremiumPage = async () => {
     getDuasLandingContent(),
     listDriveOrders("duas"),
     getApprendreCoranContent(),
+    getEbook30Content(),
   ]);
   const landingByVariant = {
     v3: { fr: contentFr, en: contentEn, es: contentEs },
@@ -335,6 +339,11 @@ const AdminPremiumPage = async () => {
               key: "telecharger",
               label: "Lien /telecharger (stores)",
               node: <DownloadLinksForm initial={downloadLinks} />,
+            },
+            {
+              key: "ebook30",
+              label: "Ebook /coran-30-jours",
+              node: <Ebook30Form initial={ebook30Content} />,
             },
             {
               key: "apprendre-coran",
