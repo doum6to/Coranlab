@@ -9,6 +9,7 @@ import {
   CORAN_LANDING_KEY,
   CORAN_LANDING_DEFAULTS,
   normalizeCoranSectionOrder,
+  mergeCoranEditorial,
   type CoranLandingContent,
   type CoranBlock,
 } from "@/lib/coran-landing-content";
@@ -26,7 +27,8 @@ function sanitize(input: CoranLandingContent): CoranLandingContent {
       }
       if (b?.type === "text") {
         const text = s((b as any).text);
-        return text.trim() ? { type: "text", text } : null;
+        const heading = s(b.heading).trim();
+        return text.trim() || heading ? { type: "text", text, ...(heading ? { heading } : {}) } : null;
       }
       return null;
     })
@@ -45,6 +47,7 @@ function sanitize(input: CoranLandingContent): CoranLandingContent {
   };
 
   return {
+    editorial: mergeCoranEditorial(input.editorial),
     banners: (Array.isArray(input.banners) ? input.banners : [])
       .map((x) => s(x).trim())
       .filter((x) => x.length > 0)

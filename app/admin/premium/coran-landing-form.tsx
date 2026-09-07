@@ -6,7 +6,7 @@ import { Plus, Trash2, ArrowUp, ArrowDown, Image as ImageIcon, Type, GripVertica
 
 import { Button } from "@/components/ui/button";
 import { updateCoranLandingContent } from "@/actions/coran-landing-content";
-import { CORAN_SECTION_LABELS } from "@/lib/coran-landing-shared";
+import { CORAN_SECTION_LABELS, mergeCoranEditorial } from "@/lib/coran-landing-shared";
 import type { CoranLandingContent, CoranBlock } from "@/lib/coran-landing-shared";
 import { compressImageFile } from "@/lib/images/compress-client";
 import { createMediaUploadUrl } from "@/actions/landing-media";
@@ -147,18 +147,23 @@ export function CoranLandingForm({
   showDriveLink?: boolean;
 }) {
   const router = useRouter();
+  const isEditorial = previewUrl === "/coran";
   const [c, setC] = useState<FormContent>(initial);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
   const [dragIndex, setDragIndex] = useState<number | null>(null);
 
+  const editableOrder = isEditorial ? c.sectionOrder.filter((key) => key !== "title") : c.sectionOrder;
+
   const moveSection = (from: number, to: number) => {
     if (from === to || from < 0 || to < 0) return;
-    const arr = [...c.sectionOrder];
+    const arr = [...editableOrder];
     const [m] = arr.splice(from, 1);
     arr.splice(to, 0, m);
-    setC({ ...c, sectionOrder: arr });
+    setC({ ...c, sectionOrder: isEditorial ? ["title", ...arr] : arr });
   };
+
+  const editorial = mergeCoranEditorial(c.editorial);
 
   const euros = (cents: number) => (cents / 100).toFixed(2).replace(".", ",");
   const toCents = (s: string) => {
@@ -200,19 +205,56 @@ export function CoranLandingForm({
   return (
     <div className="space-y-5">
       <p className="text-xs text-neutral-500">
-        Page produit façon Stan.store :{" "}
+        Page produit :{" "}
         <a href={previewUrl} target="_blank" className="font-semibold text-[#6967fb] hover:underline">
           {previewUrl}
         </a>
       </p>
 
+      {isEditorial && (
+        <Section title="Présentation du guide — textes et visuel">
+          <p className="text-sm text-neutral-600">
+            Le titre, le sous-titre, les prix et le bouton d’achat se modifient dans les sections ci-dessous.
+            Ces champs complètent la nouvelle présentation. Une valeur vide masque le texte correspondant.
+          </p>
+          {([
+            ["eyebrow", "Texte au-dessus du titre"],
+            ["introduction", "Introduction"],
+            ["detailsLabel", "Lien vers le contenu"],
+            ["previewLabel", "Lien vers les extraits"],
+            ["bodyHeading", "Titre du contenu"],
+            ["offerHeading", "Titre de l’offre"],
+            ["checkoutHeading", "Titre du paiement"],
+            ["offerLabel", "Libellé de l’offre"],
+            ["formatNote", "Indication du format"],
+          ] as const).map(([key, label]) => (
+            <label key={key} className="block">
+              <span className="mb-1 block text-sm font-semibold text-neutral-700">{label}</span>
+              <textarea rows={key === "introduction" ? 4 : 2} value={editorial[key]}
+                onChange={(e) => setC({ ...c, editorial: { ...editorial, [key]: e.target.value } })}
+                className={inputCls} />
+            </label>
+          ))}
+          <label className="block">
+            <span className="mb-1 block text-sm font-semibold text-neutral-700">Couverture principale (URL)</span>
+            <input value={editorial.coverUrl} onChange={(e) => setC({ ...c, editorial: { ...editorial, coverUrl: e.target.value } })} className={inputCls} />
+          </label>
+          <ImageUploadButton onUploaded={(coverUrl) => setC({ ...c, editorial: { ...editorial, coverUrl } })} />
+          <p className="text-sm text-neutral-500">Sans image spécifique, la première couverture d’extrait est utilisée, puis la première bannière.</p>
+          <label className="flex items-center gap-3 text-sm font-semibold text-neutral-700">
+            Couleur du bandeau et des boutons
+            <input type="color" value={editorial.accentColor} onChange={(e) => setC({ ...c, editorial: { ...editorial, accentColor: e.target.value } })} />
+          </label>
+        </Section>
+      )}
+
       {/* SECTION ORDER (drag & drop) */}
       <Section title="Ordre des sections (glisse pour réorganiser)">
         <p className="text-xs text-neutral-500">
-          Le bloc « Finalise ta commande » reste toujours en bas.
+          {isEditorial ? "Le titre et le visuel ouvrent la page. Cet ordre s’applique aux bannières, au contenu, aux extraits, aux GIFs et aux avis. Le paiement reste en bas." : "Le bloc de commande reste toujours en bas."}
         </p>
         <div className="space-y-2">
-          {c.sectionOrder.map((key, i) => (
+          {editableOrder.map((key, i) => (
             <div
               key={key}
               draggable
@@ -246,7 +288,7 @@ export function CoranLandingForm({
                 <button
                   type="button"
                   onClick={() => moveSection(i, i + 1)}
-                  disabled={i === c.sectionOrder.length - 1}
+                  disabled={i === editableOrder.length - 1}
                   className="text-neutral-400 hover:text-neutral-700 disabled:opacity-30"
                   aria-label="Descendre"
                 >
@@ -597,13 +639,19 @@ export function CoranLandingForm({
                   </div>
                 </div>
               ) : (
+                <div className="space-y-2">
+                <label className="block">
+                  <span className="mb-1 block text-sm font-semibold text-neutral-600">Titre du bloc (optionnel)</span>
+                  <input value={block.heading || ""} onChange={(e) => setBlock(i, { ...block, heading: e.target.value })} className={inputCls} />
+                </label>
                 <textarea
                   rows={4}
                   value={block.text}
-                  onChange={(e) => setBlock(i, { type: "text", text: e.target.value })}
+                  onChange={(e) => setBlock(i, { ...block, text: e.target.value })}
                   placeholder="Ton texte… (les sauts de ligne sont conservés)"
                   className={inputCls}
                 />
+                </div>
               )}
             </div>
           ))}

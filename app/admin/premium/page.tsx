@@ -322,7 +322,7 @@ const AdminPremiumPage = async () => {
             },
             {
               key: "coran",
-              label: "Page /coran (Stan)",
+              label: "Page /coran",
               node: <CoranLandingForm initial={coranContent} />,
             },
             {
