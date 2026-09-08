@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { migrateCoranEditorial } from "../lib/coran-editorial-migration";
+import { mergeCoranConversion } from "../lib/coran-conversion";
+import { optimizeCoranContent, migrateCoranEditorial } from "../lib/coran-editorial-migration";
 import { CORAN_LANDING_DEFAULTS, mergeCoranLandingContent, type CoranLandingContent } from "../lib/coran-landing-shared";
 
 const root = "https://pogfkwweomyypasnxieh.supabase.co/storage/v1/object/public/images/coran/";
@@ -44,4 +45,14 @@ test("custom pages and partial legacy content are not overwritten", () => {
   assert.equal(migrateCoranEditorial(custom), custom);
   const partial = { ...legacy(), body: legacy().body.slice(0, 1) };
   assert.equal(migrateCoranEditorial(partial), partial);
+});
+
+test("conversion copy respects saved admin choices and keeps actual prices", async () => {
+  const source = { ...legacy(), title: "Titre choisi par l’admin", conversion: mergeCoranConversion({ faq: [], steps: [], paymentNote: "Mon libellé" }) };
+  const result = mergeCoranLandingContent(optimizeCoranContent(source));
+  assert.equal(result.title, source.title);
+  assert.deepEqual(result.price, source.price);
+  assert.deepEqual(result.conversion?.faq, []);
+  assert.deepEqual(result.conversion?.steps, []);
+  assert.equal(result.conversion?.paymentNote, "Mon libellé");
 });

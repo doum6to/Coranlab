@@ -16,6 +16,7 @@ const ALLOWED = new Set([
   "lp_reviews_view",
   "lp_cta_click",
   "lp_checkout_start",
+  "lp_checkout_view",
   // Try-before-you-buy funnel steps (/offre-a-vie "Tunnel" variant).
   "funnel_view",
   "funnel_lead",

@@ -68,3 +68,58 @@
  .ribbon { align-items:flex-start; flex-direction:column; gap:14px; padding:25px 7%; }.story { grid-template-columns:1fr; padding:55px 7%; gap:32px; }.story h2 { font-size:2.6rem; }.banners { padding:30px 7% 0; }.banners img { max-width:100%; }.samples { padding:55px 7%; }.reviews { padding:55px 7%; }.checkout { grid-template-columns:1fr; padding:55px 6%; gap:30px; }.payment { padding:20px 12px; }.offerCopy { padding:0 2%; }.footer { flex-direction:column; text-align:center; gap:12px; }
 }
 @media(prefers-reduced-motion:reduce) { .heroVisual img { transition:none; transform:none; } }
+/* Conversion layout: decision controls precede artwork, including on mobile. */
+.hero { padding-top:50px; padding-bottom:50px; grid-template-columns:1.2fr .8fr; column-gap:7%; }
+.hero h1 { font-size:clamp(2.5rem,4.3vw,4.8rem); line-height:1.07; }
+.heroHeading .eyebrow { margin-bottom:18px; color:#b6e5ef; }
+.heroBenefits { list-style:none; padding:0; margin:22px 0 0; font-size:1rem; }
+.heroBenefits li { display:flex; gap:10px; align-items:flex-start; margin:9px 0; }
+.heroBenefits svg { flex-shrink:0; margin-top:4px; color:#a8e5dc; }
+.heroOffer { padding-top:22px; }
+.heroVisual a { max-width:320px; }
+.primary { background:#f5cf78; color:#132f37; border-radius:8px; box-shadow:0 4px 0 #b58c37; min-height:54px; font-size:1rem; transition:background .2s; }
+.primary:hover { background:#ffdf97; }
+.paymentNote { font-size:.875rem; margin:20px 0 6px; color:#e6f6f6; }
+.heroGuarantee { font-size:.875rem; color:#d1e8ed; margin:6px 0 15px; }
+.saving { flex-basis:100%; font-size:.875rem; color:inherit; }
+.price { margin-bottom:22px; gap:8px 16px; }
+.packHeading { max-width:800px; text-align:center; margin:0 auto 35px; }
+.packHeading p { max-width:670px; margin:auto; font-size:1.125rem; }
+.packGrid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:20px; margin-bottom:65px; }
+.packGrid article { display:flex; flex-direction:column; align-items:center; text-align:center; background:white; padding:24px 16px; border:1px solid #c9dde2; border-radius:12px; }
+.packGrid img { height:170px; width:100%; object-fit:contain; margin-bottom:22px; }
+.packGrid h3 { font-size:1.35rem; margin:0 0 15px; line-height:1.2; }
+.packGrid a { font-size:.875rem; margin-top:auto; text-decoration:underline; min-height:44px; display:flex; align-items:center; }
+.midCta { display:flex; flex-direction:column; align-items:center; text-align:center; margin-top:48px; }
+.midCta .price { justify-content:center; }
+.midCta p { font-size:.875rem; margin:20px 0 0; }
+.method { padding:70px 6%; max-width:1240px; margin:auto; }
+.method h2 { max-width:850px; text-align:center; margin:0 auto 40px; }
+.method > div { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:35px; }
+.method article { border-top:1px solid #9db9bf; padding-top:20px; }
+.method article > span { color:var(--coran-accent); font-size:.875rem; font-weight:700; }
+.method h3 { font-size:1.6rem; line-height:1.2; margin:15px 0; }
+.method p { margin:0; }
+.faq { max-width:1100px; margin:auto; padding:60px 6% 80px; display:grid; grid-template-columns:.9fr 1.1fr; gap:8%; }
+.faq h2 { margin:0; }
+.faq details { border-bottom:1px solid #b5c9cd; padding:20px 0; }
+.faq summary { cursor:pointer; font-weight:600; line-height:1.5; padding-right:10px; }
+.faq p { margin:16px 0 0; white-space:pre-line; }
+.checkoutNote { font-size:.875rem; line-height:1.6; margin:0 0 18px; color:#425961; }
+@media(max-width:760px) {
+ .hero { grid-template-columns:1fr; grid-template-areas:'heading' 'offer' 'visual'; padding:32px 6% 35px; text-align:left; }
+ .hero h1 { font-size:clamp(2.1rem,8vw,3.2rem); }
+ .subtitle { font-size:1rem; margin-top:16px; }
+ .heroBenefits { font-size:.875rem; margin-top:16px; }
+ .hero .price,.actions { justify-content:flex-start; }
+ .hero .primary { width:100%; }
+ .heroVisual { padding:34px 20px 0; }
+ .heroVisual a { max-width:195px; }
+ .heroOffer { padding-top:18px; }
+ .format { display:none; }
+ .packGrid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-bottom:45px; }
+ .packGrid article { padding:18px 10px; }.packGrid img { height:130px; }.packGrid h3 { font-size:1.15rem; }
+ .method { padding:50px 7%; }.method > div { grid-template-columns:1fr; gap:24px; }
+ .faq { grid-template-columns:1fr; gap:25px; padding:45px 7%; }
+}
+@media(prefers-reduced-motion:reduce) { .primary { transition:none; } }

@@ -1,3 +1,4 @@
+import { mergeCoranConversion, type CoranConversion } from "./coran-conversion";
 /**
  * Client-safe types, constants, formatters and the pure `merge` for the /coran
  * landing content. This module has NO server-only / db imports so it can be
@@ -77,6 +78,7 @@ export type CoranOrangeMoney = {
  */
 export type CoranLandingContent = {
   editorial?: CoranEditorial;
+  conversion?: CoranConversion;
   banners: string[];
   bgColor: string;
   textColor: string;
@@ -201,6 +203,7 @@ export function mergeCoranLandingContent(
   if (!stored) return d;
   return {
     editorial: mergeCoranEditorial(stored.editorial),
+    conversion: mergeCoranConversion(stored.conversion),
     banners: Array.isArray(stored.banners) ? stored.banners : d.banners,
     bgColor: typeof stored.bgColor === "string" ? stored.bgColor : d.bgColor,
     textColor: typeof stored.textColor === "string" ? stored.textColor : d.textColor,

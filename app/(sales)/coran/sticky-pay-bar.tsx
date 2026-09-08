@@ -74,6 +74,7 @@ export function StickyPayBar({
             <span />
           )}
           <button
+            data-coran-cta
             onClick={goToCheckout}
             style={accentColor ? { backgroundColor: accentColor } : undefined}
             className="rounded-full bg-[#6967fb] px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#5856e0]"

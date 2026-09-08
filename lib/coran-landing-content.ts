@@ -1,5 +1,5 @@
 import "server-only";
-import { migrateCoranEditorial } from "./coran-editorial-migration";
+import { optimizeCoranContent } from "./coran-editorial-migration";
 import { cache } from "react";
 import { eq } from "drizzle-orm";
 
@@ -24,7 +24,7 @@ export const getCoranLandingContent = cache(
         where: eq(appSetting.key, CORAN_LANDING_KEY),
       });
       if (!row?.value) return CORAN_LANDING_DEFAULTS;
-      return mergeCoranLandingContent(migrateCoranEditorial(JSON.parse(row.value)));
+      return mergeCoranLandingContent(optimizeCoranContent(JSON.parse(row.value)));
     } catch (e) {
       console.error("[coran-landing] read failed, using defaults:", e);
       return CORAN_LANDING_DEFAULTS;

@@ -10,8 +10,10 @@ import {
 } from "@/lib/coran-landing-content";
 import { ReviewsMarquee } from "../offre-a-vie/reviews-marquee";
 import { StickyPayBar } from "./sticky-pay-bar";
-import { PaymentMethods } from "./payment-methods";
+import { CoranPayment } from "./coran-payment";
 import { CoranSamples } from "./coran-samples";
+import { mergeCoranConversion } from "@/lib/coran-conversion";
+import { CoranAnalytics } from "./coran-analytics";
 import styles from "./coran-landing.module.css";
 
 export function CoranLanding({ content: c, createCheckout, topSlot }: {
@@ -20,6 +22,7 @@ export function CoranLanding({ content: c, createCheckout, topSlot }: {
   topSlot?: ReactNode;
 }) {
   const e = mergeCoranEditorial(c.editorial);
+  const v = mergeCoranConversion(c.conversion);
   const price = c.showPrice ? formatCoranPrice(c.price.amountCents, c.price.currency) : null;
   const compare = c.showPrice && c.price.compareAtCents > c.price.amountCents
     ? formatCoranPrice(c.price.compareAtCents, c.price.currency) : null;
@@ -32,6 +35,7 @@ export function CoranLanding({ content: c, createCheckout, topSlot }: {
   const priceLine = (className = "") => price && (
     <div className={`${styles.price} ${className}`}>
       <strong>{price}</strong>{compare && <del>{compare}</del>}
+      {compare && v.savingsLabel && <small className={styles.saving}>{v.savingsLabel.replace("{amount}", formatCoranPrice(c.price.compareAtCents - c.price.amountCents, c.price.currency))}</small>}
       {fcfa && <span>≈ {fcfa}</span>}
     </div>
   );
@@ -39,7 +43,7 @@ export function CoranLanding({ content: c, createCheckout, topSlot }: {
   const sections: Record<CoranSectionKey, ReactNode> = {
     // Title is the fixed hero. The remaining content keeps its saved order.
     title: null,
-    banners: c.banners.length > 0 && (
+    banners: v.showBanners && c.banners.length > 0 && (
       <div className={styles.banners}>
         {c.banners.map((src, i) => (
           // eslint-disable-next-line @next/next/no-img-element
@@ -61,7 +65,19 @@ export function CoranLanding({ content: c, createCheckout, topSlot }: {
     ),
     samples: hasSamples && (
       <section id="extraits" className={styles.samples}>
+        <div className={styles.packHeading}>
+          <h2>{v.packHeading}</h2><p>{v.packIntro}</p>
+        </div>
+        <div className={styles.packGrid}>
+          {c.samples.map((sample, i) => <article key={i}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            {sample.cover && <img src={sample.cover} alt={sample.title} loading="lazy" />}
+            <h3>{sample.title}</h3>
+            {sample.pdf && <a href={sample.pdf} target="_blank" rel="noopener noreferrer" data-coran-extract>{e.previewLabel}</a>}
+          </article>)}
+        </div>
         <CoranSamples heading={c.samplesHeading} samples={c.samples} readLabel={e.previewLabel} editorial />
+        <div className={styles.midCta}>{priceLine()}<a href="#checkout" className={styles.primary}>{v.packCta}</a><p>{v.paymentNote}</p></div>
       </section>
     ),
     gifs: c.gifs.length > 0 && (
@@ -73,7 +89,7 @@ export function CoranLanding({ content: c, createCheckout, topSlot }: {
       </div>
     ),
     reviews: (c.reviewImages.length > 0 || c.reviews.length > 0) && (
-      <section className={styles.reviews}>
+      <section id="avis" className={styles.reviews}>
         {c.reviewsHeading && <h2>{c.reviewsHeading}</h2>}
         {c.reviewImages.length > 0 && <ReviewsMarquee images={c.reviewImages} />}
         <div className={styles.reviewGrid}>
@@ -92,8 +108,9 @@ export function CoranLanding({ content: c, createCheckout, topSlot }: {
       "--coran-accent": e.accentColor,
       backgroundColor: c.bgColor, color: c.textColor,
     } as CSSProperties}>
+      <CoranAnalytics />
       <header className={styles.header}>
-        <a href="/" className={styles.brand}>QuranLab</a>
+        <span className={styles.brand}>QuranLab</span>
         <nav aria-label="Navigation du guide">
           {hasBody && e.detailsLabel && <a href="#contenu">{e.detailsLabel}</a>}
           {hasSamples && e.previewLabel && <a href="#extraits">{e.previewLabel}</a>}
@@ -107,6 +124,7 @@ export function CoranLanding({ content: c, createCheckout, topSlot }: {
             {e.eyebrow && <p className={styles.eyebrow}>{e.eyebrow}</p>}
             <h1>{c.title}</h1>
             {c.subtitle && <p className={styles.subtitle}>{c.subtitle}</p>}
+
           </div>
           {cover && <div className={styles.heroVisual}>
             <a href={hasSamples ? "#extraits" : "#checkout"} aria-label={hasSamples ? e.previewLabel || c.title : c.ctaLabel}>
@@ -120,14 +138,23 @@ export function CoranLanding({ content: c, createCheckout, topSlot }: {
             <div className={styles.actions}>{cta}
               {hasSamples && e.previewLabel && <a className={styles.textLink} href="#extraits">{e.previewLabel}</a>}
             </div>
-            {e.introduction && <p className={styles.intro}>{e.introduction}</p>}
+            {v.heroBenefits && <ul className={styles.heroBenefits}>{v.heroBenefits.split("\n").filter(Boolean).map((text,i)=><li key={i}><Check size={18} aria-hidden="true"/>{text}</li>)}</ul>}
+            {v.paymentNote && <p className={styles.paymentNote}>{v.paymentNote}</p>}
+            {c.guarantee && <p className={styles.heroGuarantee}>{c.guarantee}</p>}
             {e.formatNote && <p className={styles.format}>{e.formatNote}</p>}
           </div>
         </section>
         {c.showDeliverables && c.deliverables.length > 0 && <ul className={styles.ribbon}>
           {c.deliverables.map((item, i) => <li key={i}><Check size={18} aria-hidden="true" /><span>{item}</span></li>)}
         </ul>}
-        {c.sectionOrder.map((key) => sections[key] ? <div key={key}>{sections[key]}</div> : null)}
+        {hasSamples && sections.samples}
+        {v.steps.length > 0 && <section className={styles.method}>
+          <h2>{v.stepsHeading}</h2><div>{v.steps.map((step,i)=><article key={i}><span>{String(i+1).padStart(2,"0")}</span><h3>{step.title}</h3><p>{step.text}</p></article>)}</div>
+        </section>}
+        {c.sectionOrder.filter(key => key !== "samples").map((key) => sections[key] ? <div key={key}>{sections[key]}</div> : null)}
+        {v.faq.length > 0 && <section className={styles.faq}>
+          <h2>{v.faqHeading}</h2><div>{v.faq.map((item,i)=><details key={i}><summary>{item.title}</summary><p>{item.text}</p></details>)}</div>
+        </section>}
         <section id="checkout" className={styles.checkout}>
           <div className={styles.offerCopy}>
             {e.offerLabel && <p className={styles.eyebrow}>{e.offerLabel}</p>}
@@ -140,12 +167,14 @@ export function CoranLanding({ content: c, createCheckout, topSlot }: {
           <div className={styles.payment}>
             {e.checkoutHeading && <h3>{e.checkoutHeading}</h3>}
             {priceLine()}
-            <PaymentMethods omEnabled={c.orangeMoney.enabled} om={c.orangeMoney} createCheckout={createCheckout} />
+            <p className={styles.checkoutNote}>{v.paymentNote}</p>
+            <p className={styles.checkoutNote}>{v.finalNote}</p>
+            <CoranPayment omEnabled={c.orangeMoney.enabled} om={c.orangeMoney} createCheckout={createCheckout} />
           </div>
         </section>
       </main>
-      <footer className={styles.footer}><a href="/" className={styles.brand}>QuranLab</a>{e.formatNote && <p>{e.formatNote}</p>}</footer>
-      {c.showStickyBar && <StickyPayBar priceLabel={price} compareLabel={compare} cta={c.ctaLabel} headline={c.stickyBarText} accentColor={e.accentColor} />}
+      <footer className={styles.footer}><span className={styles.brand}>QuranLab</span>{e.formatNote && <p>{e.formatNote}</p>}</footer>
+      {c.showStickyBar && <StickyPayBar priceLabel={price} compareLabel={compare} cta={c.ctaLabel} headline={v.paymentNote || c.stickyBarText} accentColor={e.accentColor} />}
     </div>
   );
 }

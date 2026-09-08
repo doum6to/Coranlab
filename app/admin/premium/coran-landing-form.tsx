@@ -1,5 +1,6 @@
 "use client";
 
+import { CoranConversionFields } from "./coran-conversion-fields";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, ArrowUp, ArrowDown, Image as ImageIcon, Type, GripVertical } from "lucide-react";
@@ -153,14 +154,14 @@ export function CoranLandingForm({
   const [pending, startTransition] = useTransition();
   const [dragIndex, setDragIndex] = useState<number | null>(null);
 
-  const editableOrder = isEditorial ? c.sectionOrder.filter((key) => key !== "title") : c.sectionOrder;
+  const editableOrder = isEditorial ? c.sectionOrder.filter((key) => key !== "title" && key !== "samples") : c.sectionOrder;
 
   const moveSection = (from: number, to: number) => {
     if (from === to || from < 0 || to < 0) return;
     const arr = [...editableOrder];
     const [m] = arr.splice(from, 1);
     arr.splice(to, 0, m);
-    setC({ ...c, sectionOrder: isEditorial ? ["title", ...arr] : arr });
+    setC({ ...c, sectionOrder: isEditorial ? ["title", "samples", ...arr] : arr });
   };
 
   const editorial = mergeCoranEditorial(c.editorial);
@@ -248,10 +249,12 @@ export function CoranLandingForm({
         </Section>
       )}
 
+      {isEditorial && <CoranConversionFields value={c.conversion} onChange={(conversion) => setC({ ...c, conversion })} />}
+
       {/* SECTION ORDER (drag & drop) */}
       <Section title="Ordre des sections (glisse pour réorganiser)">
         <p className="text-xs text-neutral-500">
-          {isEditorial ? "Le titre et le visuel ouvrent la page. Cet ordre s’applique aux bannières, au contenu, aux extraits, aux GIFs et aux avis. Le paiement reste en bas." : "Le bloc de commande reste toujours en bas."}
+          {isEditorial ? "Le titre, le pack et la méthode ouvrent la page. Cet ordre s’applique ensuite aux bannières activées, au contenu, aux GIFs et aux avis. La FAQ précède le paiement." : "Le bloc de commande reste toujours en bas."}
         </p>
         <div className="space-y-2">
           {editableOrder.map((key, i) => (

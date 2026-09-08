@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useRef, useState } from "react";
+import { track } from "@/lib/analytics/track";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   EmbeddedCheckoutProvider,
@@ -27,22 +28,36 @@ type CreateCheckout = () => Promise<
  */
 export function CoranCheckoutEmbed({
   createSession = createCoranEmbeddedCheckout,
+  anchorId = "checkout",
 }: {
   createSession?: CreateCheckout;
+  anchorId?: string;
 }) {
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const tracked = useRef(false);
   const fetchClientSecret = useCallback(async () => {
-    const res = await createSession();
+    let res: Awaited<ReturnType<CreateCheckout>>;
+    try { res = await createSession(); } catch (error) { setFailed(true); throw error; }
     if ("error" in res || !res.clientSecret) {
+      setFailed(true);
       throw new Error(("error" in res && res.error) || "Paiement indisponible.");
+    }
+    if (!tracked.current && window.location.pathname === "/coran") {
+      tracked.current = true;
+      track("lp_checkout_start", "coran_conversion_v2");
     }
     return res.clientSecret;
   }, [createSession]);
 
   return (
-    <div id="checkout" className="scroll-mt-4">
-      <EmbeddedCheckoutProvider stripe={stripePromise} options={{ fetchClientSecret }}>
+    <div id={anchorId} className="scroll-mt-4">
+      {failed ? <div role="alert" className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-neutral-900">
+        <p>Le paiement n’a pas pu être chargé. Réessaie dans un instant.</p>
+        <button type="button" onClick={() => { setFailed(false); setAttempt(n => n + 1); }} className="mt-3 min-h-11 rounded-lg border border-neutral-400 px-4 font-semibold">Réessayer</button>
+      </div> : <EmbeddedCheckoutProvider key={attempt} stripe={stripePromise} options={{ fetchClientSecret }}>
         <EmbeddedCheckout />
-      </EmbeddedCheckoutProvider>
+      </EmbeddedCheckoutProvider>}
     </div>
   );
 }

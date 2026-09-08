@@ -153,7 +153,7 @@ function EditorialSamples({ heading, samples, readLabel }: {
         <div className="min-w-0 rounded-lg bg-white/60 p-8 sm:p-10">
           {sample.pdf ? <Dialog key={sample.pdf}>
             <DialogTrigger asChild>
-              <button type="button" className="block w-full" aria-label={`${readLabel || "Lire l’extrait"} — ${sample.title || heading}`}>{image}</button>
+              <button type="button" className="block w-full" data-coran-extract aria-label={`${readLabel || "Lire l’extrait"} — ${sample.title || heading}`}>{image}</button>
             </DialogTrigger>
             <DialogContent className="flex h-[85dvh] w-[calc(100%-24px)] max-w-4xl flex-col bg-white p-4 text-neutral-900" aria-describedby={undefined}>
               <DialogTitle className="pr-8">{sample.title || heading}</DialogTitle>

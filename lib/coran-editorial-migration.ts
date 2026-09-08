@@ -35,3 +35,16 @@ export function migrateCoranEditorial(stored: Partial<CoranLandingContent>): Par
     textColor: stored.bgColor?.toLowerCase() === "#000000" && stored.textColor?.toLowerCase() === "#ffffff" ? "#132f37" : stored.textColor,
   };
 }
+
+
+/** Upgrade only recognized earlier copy; saved custom titles remain untouched. */
+export function optimizeCoranContent(stored: Partial<CoranLandingContent>): Partial<CoranLandingContent> {
+  const c = migrateCoranEditorial(stored);
+  if (!c || c.conversion) return c;
+  return {
+    ...c,
+    title: ["Apprends 85% du Coran en 1 mois et 15 min par jour", "Comprendre 85% du Coran"].includes(c.title || "") ? "Ne récite plus seulement les mots. Rapproche-toi de leur sens." : c.title,
+    subtitle: c.subtitle || "Le pack des 500 mots essentiels du Coran : un guide PDF, une méthode pour mémoriser et l’application pour pratiquer, à ton rythme.",
+    ctaLabel: ["Je reçois mon guide", ""].includes(c.ctaLabel || "") ? "Je commence mon apprentissage" : c.ctaLabel,
+  };
+}

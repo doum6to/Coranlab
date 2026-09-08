@@ -1,5 +1,6 @@
 "use server";
 
+import { mergeCoranConversion } from "@/lib/coran-conversion";
 import { revalidatePath } from "next/cache";
 
 import db from "@/db/drizzle";
@@ -48,6 +49,7 @@ function sanitize(input: CoranLandingContent): CoranLandingContent {
 
   return {
     editorial: mergeCoranEditorial(input.editorial),
+    conversion: mergeCoranConversion(input.conversion),
     banners: (Array.isArray(input.banners) ? input.banners : [])
       .map((x) => s(x).trim())
       .filter((x) => x.length > 0)

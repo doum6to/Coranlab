@@ -65,7 +65,9 @@ export function PaymentMethods({
   omEnabled,
   om,
   createCheckout,
+  anchorId,
 }: {
+  anchorId?: string;
   omEnabled: boolean;
   om: CoranOrangeMoney;
   createCheckout?: () => Promise<{ clientSecret: string | null } | { error: string }>;
@@ -73,7 +75,7 @@ export function PaymentMethods({
   const [method, setMethod] = useState<Method>("card");
 
   // No Orange Money configured → just the card checkout, no selector.
-  if (!omEnabled) return <CoranCheckoutEmbed createSession={createCheckout} />;
+  if (!omEnabled) return <CoranCheckoutEmbed anchorId={anchorId} createSession={createCheckout} />;
 
   return (
     <div className="space-y-3">
@@ -94,7 +96,7 @@ export function PaymentMethods({
 
       {/* Stripe embed stays mounted; just hidden when OM is selected. */}
       <div className={method === "card" ? "" : "hidden"}>
-        <CoranCheckoutEmbed createSession={createCheckout} />
+        <CoranCheckoutEmbed anchorId={anchorId} createSession={createCheckout} />
       </div>
       {method === "om" && <OrangeMoneyForm om={om} />}
     </div>
