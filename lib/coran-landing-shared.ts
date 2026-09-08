@@ -1,3 +1,4 @@
+import { mergeCoranConversion, type CoranConversion } from "./coran-conversion";
 /**
  * Client-safe types, constants, formatters and the pure `merge` for the /coran
  * landing content. This module has NO server-only / db imports so it can be
@@ -5,9 +6,36 @@
  * The server-only DB getter lives in `coran-landing-content.ts`.
  */
 
+/** Copy and art direction for the editorial /coran presentation. Optional on
+ * the shared product type so other sales pages keep their existing shape. */
+export const CORAN_EDITORIAL_DEFAULTS = {
+  eyebrow: "LE GUIDE DES 500 MOTS ESSENTIELS",
+  introduction: "Tu récites le Coran et tu aimerais comprendre ce que tu lis ? Découvre les mots qui reviennent le plus souvent, avance à ton rythme et retrouve du sens dans ta récitation.",
+  detailsLabel: "Découvrir le guide",
+  previewLabel: "Feuilleter les extraits",
+  bodyHeading: "Comprendre les mots.\nRetrouver le sens.",
+  offerHeading: "Un guide à garder.\nUn apprentissage pour la vie.",
+  checkoutHeading: "Reçois ton guide",
+  offerLabel: "LE GUIDE ET TES ACCÈS",
+  formatNote: "Ebook PDF · Téléphone, tablette et ordinateur",
+  coverUrl: "",
+  accentColor: "#075169",
+};
+export type CoranEditorial = typeof CORAN_EDITORIAL_DEFAULTS;
+
+export function mergeCoranEditorial(value?: Partial<CoranEditorial> | null): CoranEditorial {
+  const d = CORAN_EDITORIAL_DEFAULTS;
+  const result = { ...d };
+  for (const key of Object.keys(d) as (keyof CoranEditorial)[]) {
+    if (typeof value?.[key] === "string") result[key] = value[key]!;
+  }
+  if (!/^#[0-9a-fA-F]{6}$/.test(result.accentColor)) result.accentColor = d.accentColor;
+  return result;
+}
+
 /** A body block: either a paragraph of text or an image (Stan.store-style). */
 export type CoranBlock =
-  | { type: "text"; text: string }
+  | { type: "text"; text: string; heading?: string }
   | { type: "image"; url: string };
 
 export type CoranReview = { name: string; text: string };
@@ -49,6 +77,8 @@ export type CoranOrangeMoney = {
  * banners → title → price → free-form body (text/images) → reviews → checkout.
  */
 export type CoranLandingContent = {
+  editorial?: CoranEditorial;
+  conversion?: CoranConversion;
   banners: string[];
   bgColor: string;
   textColor: string;
@@ -172,6 +202,8 @@ export function mergeCoranLandingContent(
 ): CoranLandingContent {
   if (!stored) return d;
   return {
+    editorial: mergeCoranEditorial(stored.editorial),
+    conversion: mergeCoranConversion(stored.conversion),
     banners: Array.isArray(stored.banners) ? stored.banners : d.banners,
     bgColor: typeof stored.bgColor === "string" ? stored.bgColor : d.bgColor,
     textColor: typeof stored.textColor === "string" ? stored.textColor : d.textColor,

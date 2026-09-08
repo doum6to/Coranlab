@@ -1,236 +1,180 @@
-import { Star as StarIcon, Check as CheckIcon } from "lucide-react";
-
+import type { CSSProperties, ReactNode } from "react";
+import { Check, ArrowUpRight } from "lucide-react";
 import {
   type CoranLandingContent,
   type CoranSectionKey,
   formatCoranPrice,
   formatFcfaFromEur,
   formatFcfaAmount,
+  mergeCoranEditorial,
 } from "@/lib/coran-landing-content";
 import { ReviewsMarquee } from "../offre-a-vie/reviews-marquee";
 import { StickyPayBar } from "./sticky-pay-bar";
-import { PaymentMethods } from "./payment-methods";
+import { CoranPayment } from "./coran-payment";
 import { CoranSamples } from "./coran-samples";
+import { mergeCoranConversion } from "@/lib/coran-conversion";
+import { CoranAnalytics } from "./coran-analytics";
+import styles from "./coran-landing.module.css";
 
-function Stars() {
-  return (
-    <div className="flex items-center gap-0.5 text-[#f6c343]">
-      {[0, 1, 2, 3, 4].map((i) => (
-        <StarIcon key={i} className="h-4 w-4 fill-current" strokeWidth={0} />
-      ))}
+export function CoranLanding({ content: c, createCheckout, topSlot }: {
+  content: CoranLandingContent;
+  createCheckout?: () => Promise<{ clientSecret: string | null } | { error: string }>;
+  topSlot?: ReactNode;
+}) {
+  const e = mergeCoranEditorial(c.editorial);
+  const v = mergeCoranConversion(c.conversion);
+  const price = c.showPrice ? formatCoranPrice(c.price.amountCents, c.price.currency) : null;
+  const compare = c.showPrice && c.price.compareAtCents > c.price.amountCents
+    ? formatCoranPrice(c.price.compareAtCents, c.price.currency) : null;
+  const fcfa = c.showPrice && c.showFcfa
+    ? c.fcfaAmount > 0 ? formatFcfaAmount(c.fcfaAmount) : formatFcfaFromEur(c.price.amountCents, c.price.currency)
+    : null;
+  const cover = e.coverUrl || c.samples.find((sample) => sample.cover)?.cover || c.banners[0];
+  const hasSamples = c.samples.some((sample) => sample.cover || sample.pdf);
+  const hasBody = c.body.length > 0;
+  const priceLine = (className = "") => price && (
+    <div className={`${styles.price} ${className}`}>
+      <strong>{price}</strong>{compare && <del>{compare}</del>}
+      {compare && v.savingsLabel && <small className={styles.saving}>{v.savingsLabel.replace("{amount}", formatCoranPrice(c.price.compareAtCents - c.price.amountCents, c.price.currency))}</small>}
+      {fcfa && <span>≈ {fcfa}</span>}
     </div>
   );
-}
-
-export function CoranLanding({
-  content,
-  createCheckout,
-  topSlot,
-}: {
-  content: CoranLandingContent;
-  /** Variant checkout action (defaults to the /coran one inside PaymentMethods). */
-  createCheckout?: () => Promise<{ clientSecret: string | null } | { error: string }>;
-  /** Optional block rendered at the very top (e.g. the free lead-magnet capture). */
-  topSlot?: React.ReactNode;
-}) {
-  const c = content;
-  const priceLabel = c.showPrice
-    ? formatCoranPrice(c.price.amountCents, c.price.currency)
-    : null;
-  const compareLabel =
-    c.showPrice && c.price.compareAtCents > c.price.amountCents
-      ? formatCoranPrice(c.price.compareAtCents, c.price.currency)
-      : null;
-  const fcfaLabel =
-    c.showPrice && c.showFcfa
-      ? c.fcfaAmount > 0
-        ? formatFcfaAmount(c.fcfaAmount)
-        : formatFcfaFromEur(c.price.amountCents, c.price.currency)
-      : null;
-
-  const hasImageReviews = c.reviewImages.length > 0;
-  const hasTextReviews = c.reviews.length > 0;
-
-  // Each reorderable section as a node (null = nothing to show → no gap).
-  const sections: Record<CoranSectionKey, React.ReactNode> = {
-    banners:
-      c.banners.length > 0 ? (
-        <div
-          className={
-            c.banners.length > 1
-              ? "-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2"
-              : ""
-          }
-        >
-          {c.banners.map((src, i) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={i}
-              src={src}
-              alt=""
-              className={`h-auto w-full shrink-0 rounded-2xl object-cover ${
-                c.banners.length > 1 ? "snap-center" : ""
-              }`}
-              style={c.banners.length > 1 ? { maxWidth: "85%" } : undefined}
-            />
-          ))}
-        </div>
-      ) : null,
-
-    title: (
-      <div>
-        <h1 className="font-display text-2xl font-bold leading-tight sm:text-3xl">
-          {c.title}
-        </h1>
-        {c.subtitle && (
-          <p className="mt-2 text-[15px] leading-relaxed opacity-70">{c.subtitle}</p>
-        )}
-        {priceLabel && (
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="font-display text-3xl font-bold">{priceLabel}</span>
-            {compareLabel && (
-              <span className="text-lg line-through opacity-40">{compareLabel}</span>
-            )}
-          </div>
-        )}
+  const cta = <a href="#checkout" className={styles.primary}>{c.ctaLabel}<ArrowUpRight size={18} aria-hidden="true" /></a>;
+  const sections: Record<CoranSectionKey, ReactNode> = {
+    // Title is the fixed hero. The remaining content keeps its saved order.
+    title: null,
+    banners: v.showBanners && c.banners.length > 0 && (
+      <div className={styles.banners}>
+        {c.banners.map((src, i) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img key={`${src}-${i}`} src={src} alt="" loading="lazy" />
+        ))}
       </div>
     ),
-
-    body:
-      c.body.length > 0 ? (
-        <div className="space-y-4">
-          {c.body.map((block, i) =>
-            block.type === "image" ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                key={i}
-                src={block.url}
-                alt=""
-                className="h-auto w-full rounded-2xl object-cover"
-              />
-            ) : (
-              <p
-                key={i}
-                className="whitespace-pre-line text-[15px] leading-relaxed opacity-90"
-              >
-                {block.text}
-              </p>
-            ),
-          )}
-        </div>
-      ) : null,
-
-    samples:
-      c.samples.length > 0 ? (
-        <CoranSamples heading={c.samplesHeading} samples={c.samples} />
-      ) : null,
-
-    gifs:
-      c.gifs.length > 0 ? (
-        <div className="space-y-4">
-          {c.gifs.map((src, i) => (
+    body: hasBody && (
+      <section id="contenu" className={styles.story}>
+        {e.bodyHeading && <h2>{e.bodyHeading}</h2>}
+        <div className={styles.body}>
+          {c.body.map((block, i) => block.type === "image" ? (
+            // Keep the original graphics (some contain copy) at their readable width.
             // eslint-disable-next-line @next/next/no-img-element
-            <img key={i} src={src} alt="" className="h-auto w-full rounded-2xl object-contain" />
+            <img key={i} src={block.url} alt="" loading="lazy" />
+          ) : <div key={i}>{block.heading && <h3>{block.heading}</h3>}<p>{block.text}</p></div>)}
+        </div>
+      </section>
+    ),
+    samples: hasSamples && (
+      <section id="extraits" className={styles.samples}>
+        <div className={styles.packHeading}>
+          <h2>{v.packHeading}</h2><p>{v.packIntro}</p>
+        </div>
+        <div className={styles.packGrid}>
+          {c.samples.map((sample, i) => <article key={i}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            {sample.cover && <img src={sample.cover} alt={sample.title} loading="lazy" />}
+            <h3>{sample.title}</h3>
+            {sample.pdf && <a href={sample.pdf} target="_blank" rel="noopener noreferrer" data-coran-extract>{e.previewLabel}</a>}
+          </article>)}
+        </div>
+        <CoranSamples heading={c.samplesHeading} samples={c.samples} readLabel={e.previewLabel} editorial />
+        <div className={styles.midCta}>{priceLine()}<a href="#checkout" className={styles.primary}>{v.packCta}</a><p>{v.paymentNote}</p></div>
+      </section>
+    ),
+    gifs: c.gifs.length > 0 && (
+      <div className={styles.gifs}>
+        {c.gifs.map((src, i) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img key={`${src}-${i}`} src={src} alt="" loading="lazy" />
+        ))}
+      </div>
+    ),
+    reviews: (c.reviewImages.length > 0 || c.reviews.length > 0) && (
+      <section id="avis" className={styles.reviews}>
+        {c.reviewsHeading && <h2>{c.reviewsHeading}</h2>}
+        {c.reviewImages.length > 0 && <ReviewsMarquee images={c.reviewImages} />}
+        <div className={styles.reviewGrid}>
+          {c.reviews.map((review, i) => (
+            <figure key={i}>
+              <blockquote dir="auto">{review.text}</blockquote>
+              {review.name && <figcaption dir="auto">{review.name}</figcaption>}
+            </figure>
           ))}
         </div>
-      ) : null,
-
-    reviews:
-      hasImageReviews || hasTextReviews ? (
-        <div>
-          {c.reviewsHeading && (
-            <h2 className="mb-3 font-display text-lg font-bold">{c.reviewsHeading}</h2>
-          )}
-          {hasImageReviews && <ReviewsMarquee images={c.reviewImages} />}
-          {hasTextReviews && (
-            <div className={`space-y-3 ${hasImageReviews ? "mt-4" : ""}`}>
-              {c.reviews.map((r, i) => (
-                <div
-                  key={i}
-                  className="rounded-2xl border border-neutral-200 bg-white p-4 text-neutral-700 shadow-sm"
-                >
-                  <Stars />
-                  <p className="mt-2 text-sm leading-relaxed">{r.text}</p>
-                  {r.name && (
-                    <p className="mt-2 text-xs font-semibold text-neutral-500">{r.name}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      ) : null,
+      </section>
+    ),
   };
-
   return (
-    <div
-      className="min-h-screen w-full font-sans"
-      style={{ backgroundColor: c.bgColor, color: c.textColor }}
-    >
-      <style>{`html{scroll-behavior:smooth}`}</style>
+    <div className={styles.page} style={{
+      "--coran-accent": e.accentColor,
+      backgroundColor: c.bgColor, color: c.textColor,
+    } as CSSProperties}>
+      <CoranAnalytics />
+      <header className={styles.header}>
+        <span className={styles.brand}>QuranLab</span>
+        <nav aria-label="Navigation du guide">
+          {hasBody && e.detailsLabel && <a href="#contenu">{e.detailsLabel}</a>}
+          {hasSamples && e.previewLabel && <a href="#extraits">{e.previewLabel}</a>}
+        </nav>
+        <a href="#checkout" className={styles.headerCta}>{c.ctaLabel}</a>
+      </header>
+      <main>
+        {topSlot && <div className={styles.topSlot}>{topSlot}</div>}
+        <section className={`${styles.hero} ${!cover ? styles.heroWithoutCover : ""}`}>
+          <div className={styles.heroHeading}>
+            {e.eyebrow && <p className={styles.eyebrow}>{e.eyebrow}</p>}
+            <h1>{c.title}</h1>
+            {c.subtitle && <p className={styles.subtitle}>{c.subtitle}</p>}
 
-      <div className="mx-auto max-w-[560px] px-4 pb-28 pt-4">
-        {topSlot && <div className="mb-8">{topSlot}</div>}
-
-        {/* Reorderable sections (order set in admin via drag & drop) */}
-        {c.sectionOrder.map((k) => {
-          const node = sections[k];
-          return node ? (
-            <div key={k} className="mt-8 first:mt-0">
-              {node}
-            </div>
-          ) : null;
-        })}
-
-        {/* CHECKOUT — always last (conversion anchor) */}
-        <div id="checkout" className="mt-10 scroll-mt-4">
-          <h2 className="mb-3 font-display text-xl font-bold">Finalise ta commande</h2>
-          <div className="rounded-2xl border border-neutral-200 bg-white p-4 text-neutral-900 shadow-sm">
-            {priceLabel && (
-              <div className="mb-3 flex items-baseline gap-2">
-                <span className="text-2xl font-extrabold">{priceLabel}</span>
-                {compareLabel && (
-                  <span className="text-sm text-neutral-400 line-through">{compareLabel}</span>
-                )}
-                {fcfaLabel && (
-                  <span className="ml-auto rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-semibold text-neutral-600">
-                    ≈ {fcfaLabel}
-                  </span>
-                )}
-              </div>
-            )}
-
-            {c.showDeliverables && c.deliverables.length > 0 && (
-              <ul className="mb-4 space-y-1.5">
-                {c.deliverables.map((d, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-neutral-700">
-                    <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" strokeWidth={3} />
-                    <span>{d}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            <PaymentMethods
-              omEnabled={c.orangeMoney.enabled}
-              om={c.orangeMoney}
-              createCheckout={createCheckout}
-            />
           </div>
-          {c.guarantee && (
-            <p className="mt-3 text-center text-xs opacity-60">{c.guarantee}</p>
-          )}
-        </div>
-      </div>
-
-      {c.showStickyBar && (
-        <StickyPayBar
-          priceLabel={priceLabel}
-          compareLabel={compareLabel}
-          cta={c.ctaLabel}
-          headline={c.stickyBarText}
-        />
-      )}
+          {cover && <div className={styles.heroVisual}>
+            <a href={hasSamples ? "#extraits" : "#checkout"} aria-label={hasSamples ? e.previewLabel || c.title : c.ctaLabel}>
+              {/* Use the actual product cover, including its existing tablet frame. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={cover} alt={c.title} fetchPriority="high" />
+            </a>
+          </div>}
+          <div className={styles.heroOffer}>
+            {priceLine()}
+            <div className={styles.actions}>{cta}
+              {hasSamples && e.previewLabel && <a className={styles.textLink} href="#extraits">{e.previewLabel}</a>}
+            </div>
+            {v.heroBenefits && <ul className={styles.heroBenefits}>{v.heroBenefits.split("\n").filter(Boolean).map((text,i)=><li key={i}><Check size={18} aria-hidden="true"/>{text}</li>)}</ul>}
+            {v.paymentNote && <p className={styles.paymentNote}>{v.paymentNote}</p>}
+            {c.guarantee && <p className={styles.heroGuarantee}>{c.guarantee}</p>}
+            {e.formatNote && <p className={styles.format}>{e.formatNote}</p>}
+          </div>
+        </section>
+        {c.showDeliverables && c.deliverables.length > 0 && <ul className={styles.ribbon}>
+          {c.deliverables.map((item, i) => <li key={i}><Check size={18} aria-hidden="true" /><span>{item}</span></li>)}
+        </ul>}
+        {hasSamples && sections.samples}
+        {v.steps.length > 0 && <section className={styles.method}>
+          <h2>{v.stepsHeading}</h2><div>{v.steps.map((step,i)=><article key={i}><span>{String(i+1).padStart(2,"0")}</span><h3>{step.title}</h3><p>{step.text}</p></article>)}</div>
+        </section>}
+        {c.sectionOrder.filter(key => key !== "samples").map((key) => sections[key] ? <div key={key}>{sections[key]}</div> : null)}
+        {v.faq.length > 0 && <section className={styles.faq}>
+          <h2>{v.faqHeading}</h2><div>{v.faq.map((item,i)=><details key={i}><summary>{item.title}</summary><p>{item.text}</p></details>)}</div>
+        </section>}
+        <section id="checkout" className={styles.checkout}>
+          <div className={styles.offerCopy}>
+            {e.offerLabel && <p className={styles.eyebrow}>{e.offerLabel}</p>}
+            {e.offerHeading && <h2>{e.offerHeading}</h2>}
+            {c.showDeliverables && c.deliverables.length > 0 && <ul>
+              {c.deliverables.map((item, i) => <li key={i}><Check size={20} aria-hidden="true" /><span>{item}</span></li>)}
+            </ul>}
+            {c.guarantee && <p className={styles.guarantee}>{c.guarantee}</p>}
+          </div>
+          <div className={styles.payment}>
+            {e.checkoutHeading && <h3>{e.checkoutHeading}</h3>}
+            {priceLine()}
+            <p className={styles.checkoutNote}>{v.paymentNote}</p>
+            <p className={styles.checkoutNote}>{v.finalNote}</p>
+            <CoranPayment omEnabled={c.orangeMoney.enabled} om={c.orangeMoney} createCheckout={createCheckout} />
+          </div>
+        </section>
+      </main>
+      <footer className={styles.footer}><span className={styles.brand}>QuranLab</span>{e.formatNote && <p>{e.formatNote}</p>}</footer>
+      {c.showStickyBar && <StickyPayBar priceLabel={price} compareLabel={compare} cta={c.ctaLabel} headline={v.paymentNote || c.stickyBarText} accentColor={e.accentColor} />}
     </div>
   );
 }

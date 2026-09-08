@@ -12,11 +12,13 @@ export function StickyPayBar({
   compareLabel,
   cta,
   headline,
+  accentColor,
 }: {
   priceLabel: string | null;
   compareLabel: string | null;
   cta: string;
   headline?: string;
+  accentColor?: string;
 }) {
   const [show, setShow] = useState(false);
 
@@ -56,7 +58,7 @@ export function StickyPayBar({
     >
       <div className="mx-auto max-w-[560px] px-4 pb-3 pt-2">
         {headline && (
-          <p className="mb-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-[#6967fb]">
+          <p style={accentColor ? { color: accentColor } : undefined} className="mb-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-[#6967fb]">
             {headline}
           </p>
         )}
@@ -72,7 +74,9 @@ export function StickyPayBar({
             <span />
           )}
           <button
+            data-coran-cta
             onClick={goToCheckout}
+            style={accentColor ? { backgroundColor: accentColor } : undefined}
             className="rounded-full bg-[#6967fb] px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#5856e0]"
           >
             {cta}

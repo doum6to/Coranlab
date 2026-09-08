@@ -1,3 +1,4 @@
+import { CoranAnalyticsPanel } from "./coran-analytics-panel";
 import { sql } from "drizzle-orm";
 
 import db from "@/db/drizzle";
@@ -218,6 +219,7 @@ export async function AnalyticsPanel() {
 
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6">
+      <CoranAnalyticsPanel />
       <h2 className="text-lg font-bold text-neutral-800">
         Comportement des visiteurs — /offre-a-vie
       </h2>
