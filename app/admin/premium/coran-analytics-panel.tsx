@@ -8,7 +8,7 @@ export async function CoranAnalyticsPanel() {
    WITH period AS (
      SELECT MIN(created_at) AS starts
      FROM analytics_event
-     WHERE path = '/coran' AND event = 'lp_view'
+     WHERE path = '/coran' AND event = 'coran_view'
        AND meta = 'coran_conversion_v2'
        AND created_at > now() - interval '30 days'
    )
@@ -27,11 +27,11 @@ export async function CoranAnalyticsPanel() {
    <p className="mb-4 text-sm text-neutral-600">Depuis la première visite mesurée de cette version, dans la limite des 30 derniers jours. Visiteurs par navigateur ; commandes Stripe confirmées.</p>
    <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
     {([
-      ["lp_view","Visiteurs"], ["lp_gallery_open","Extraits ouverts"], ["lp_cta_click","Clics vers l’achat"],
-      ["lp_checkout_view","Offre de paiement vue"], ["lp_checkout_start","Paiement chargé"], ["purchase","Commandes Stripe"],
+      ["coran_view","Visiteurs"], ["coran_gallery_open","Extraits ouverts"], ["coran_cta_click","Clics vers l’achat"],
+      ["coran_checkout_view","Offre de paiement vue"], ["coran_checkout_start","Paiement chargé"], ["purchase","Commandes Stripe"],
     ] as const).map(([event,label])=><div key={event} className="rounded-xl border bg-white p-4"><p className="text-sm text-neutral-600">{label}</p><p className="mt-1 text-2xl font-bold">{totals[event] || 0}</p></div>)}
    </div>
-   {!totals.lp_view && <p className="mt-4 text-sm text-neutral-600">Les résultats apparaîtront après les premières visites mesurées.</p>}
+   {!totals.coran_view && <p className="mt-4 text-sm text-neutral-600">Les résultats apparaîtront après les premières visites mesurées.</p>}
    <p className="mt-4 text-sm text-neutral-500">Les visites peuvent être sous-comptées si le suivi est bloqué. Les commandes Orange Money ne sont pas incluses dans ce tableau.</p>
  </section>;
 }

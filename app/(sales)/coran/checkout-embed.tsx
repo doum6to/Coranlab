@@ -45,7 +45,7 @@ export function CoranCheckoutEmbed({
     }
     if (!tracked.current && window.location.pathname === "/coran") {
       tracked.current = true;
-      track("lp_checkout_start", "coran_conversion_v2");
+      track("coran_checkout_start", "coran_conversion_v2");
     }
     return res.clientSecret;
   }, [createSession]);
