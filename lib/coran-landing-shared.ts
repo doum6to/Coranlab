@@ -13,13 +13,13 @@ export const CORAN_EDITORIAL_DEFAULTS = {
   introduction: "Tu récites le Coran et tu aimerais comprendre ce que tu lis ? Découvre les mots qui reviennent le plus souvent, avance à ton rythme et retrouve du sens dans ta récitation.",
   detailsLabel: "Découvrir le guide",
   previewLabel: "Feuilleter les extraits",
-  bodyHeading: "Comprendre les mots.\nRetrouver le sens.",
-  offerHeading: "Un guide à garder.\nUn apprentissage pour la vie.",
+  bodyHeading: "Comprendre les mots.\n**Retrouver le sens.**",
+  offerHeading: "Un guide à garder.\n**Un apprentissage pour la vie.**",
   checkoutHeading: "Reçois ton guide",
   offerLabel: "LE GUIDE ET TES ACCÈS",
   formatNote: "Ebook PDF · Téléphone, tablette et ordinateur",
   coverUrl: "",
-  accentColor: "#075169",
+  accentColor: "#F3B6C4",
 };
 export type CoranEditorial = typeof CORAN_EDITORIAL_DEFAULTS;
 
@@ -114,8 +114,8 @@ export const CORAN_LANDING_KEY = "coran_landing_content";
 
 export const CORAN_LANDING_DEFAULTS: CoranLandingContent = {
   banners: [],
-  bgColor: "#FAF8F3",
-  textColor: "#171717",
+  bgColor: "#EFE9DE",
+  textColor: "#2B1D16",
   title: "Comprendre 85% du Coran",
   subtitle: "Le guide des 500 mots essentiels pour enfin comprendre ce que tu récites.",
   price: { currency: "EUR", amountCents: 999, compareAtCents: 4900 },

@@ -51,14 +51,14 @@ export function StickyPayBar({
 
   return (
     <div
-      className={`fixed inset-x-0 bottom-0 z-50 border-t border-neutral-200 bg-white/95 backdrop-blur transition-transform duration-300 ${
+      className={`fixed inset-x-0 bottom-0 z-50 border-t border-[#D9D0C1] bg-[#EFE9DE]/95 backdrop-blur transition-transform duration-300 ${
         show ? "translate-y-0" : "translate-y-full"
       }`}
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <div className="mx-auto max-w-[560px] px-4 pb-3 pt-2">
         {headline && (
-          <p style={accentColor ? { color: accentColor } : undefined} className="mb-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-[#6967fb]">
+          <p style={accentColor ? { color: accentColor } : undefined} className="mb-1.5 text-center text-[11px] font-semibold uppercase tracking-[.2em] text-[#5B4A40]">
             {headline}
           </p>
         )}
@@ -66,9 +66,9 @@ export function StickyPayBar({
           {priceLabel ? (
             <div className="flex items-baseline gap-2">
               {compareLabel && (
-                <span className="text-sm text-neutral-400 line-through">{compareLabel}</span>
+                <span className="text-sm text-[#8B7D74] line-through">{compareLabel}</span>
               )}
-              <span className="text-xl font-extrabold text-neutral-950">{priceLabel}</span>
+              <span className="text-xl font-extrabold text-[#2B1D16]">{priceLabel}</span>
             </div>
           ) : (
             <span />
@@ -77,7 +77,7 @@ export function StickyPayBar({
             data-coran-cta
             onClick={goToCheckout}
             style={accentColor ? { backgroundColor: accentColor } : undefined}
-            className="rounded-full bg-[#6967fb] px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#5856e0]"
+            className="rounded-full bg-[#3A281F] px-6 py-3 text-sm font-bold text-[#EFE9DE] shadow-sm transition hover:bg-[#2B1D16]"
           >
             {cta}
           </button>

@@ -15,6 +15,36 @@ import { CoranSamples } from "./coran-samples";
 import { mergeCoranConversion } from "@/lib/coran-conversion";
 import { CoranAnalytics } from "./coran-analytics";
 import styles from "./coran-landing.module.css";
+import { DA, DA_FONT_CSS } from "@/lib/da-tokens";
+
+// Colors saved before the "editorial paper" DA (old defaults / teal migration) are
+// remapped to the new palette; any other admin-chosen color is respected.
+const LEGACY_BG = new Set(["#faf8f3", "#f8faf8", "#ffffff", "#fff"]);
+const LEGACY_TX = new Set(["#171717", "#132f37", "#000000", "#000"]);
+const LEGACY_ACCENT = new Set(["#075169", "#6967fb"]);
+const ARABIC = /([\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF][\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF\s\u064B-\u065F]*)/g;
+
+/** Arabic runs → Jomhuria (da-ar). */
+function withArabic(text: string, keyBase: string): ReactNode[] {
+  return text.split(ARABIC).filter(Boolean).map((part, i) =>
+    /[\u0600-\u06FF\uFB50-\uFEFF]/.test(part)
+      ? <span key={`${keyBase}-ar-${i}`} className="da-ar" lang="ar">{part}</span>
+      : part,
+  );
+}
+
+/**
+ * Editorial headings: `**mot**` → pink block, `__mot__` → espresso block.
+ * Without explicit marks, a "85%"-style figure is highlighted automatically.
+ */
+function rich(text: string, auto = true): ReactNode[] {
+  const src = auto && !/\*\*|__/.test(text) ? text.replace(/(\d+\s?%)/, "**$1**") : text;
+  return src.split(/(\*\*[^*]+\*\*|__[^_]+__)/g).filter(Boolean).map((tok, i) => {
+    if (tok.startsWith("**")) return <span key={i} className="da-hl da-hl-pink">{withArabic(tok.slice(2, -2), `p${i}`)}</span>;
+    if (tok.startsWith("__")) return <span key={i} className="da-hl da-hl-espresso">{withArabic(tok.slice(2, -2), `e${i}`)}</span>;
+    return <span key={i}>{withArabic(tok, `t${i}`)}</span>;
+  });
+}
 
 export function CoranLanding({ content: c, createCheckout, topSlot }: {
   content: CoranLandingContent;
@@ -29,13 +59,16 @@ export function CoranLanding({ content: c, createCheckout, topSlot }: {
   const fcfa = c.showPrice && c.showFcfa
     ? c.fcfaAmount > 0 ? formatFcfaAmount(c.fcfaAmount) : formatFcfaFromEur(c.price.amountCents, c.price.currency)
     : null;
+  const bg = LEGACY_BG.has((c.bgColor || "").toLowerCase()) ? DA.paper : c.bgColor;
+  const tx = LEGACY_TX.has((c.textColor || "").toLowerCase()) ? DA.ink : c.textColor;
+  const accent = LEGACY_ACCENT.has((e.accentColor || "").toLowerCase()) ? DA.pink : e.accentColor;
   const cover = e.coverUrl || c.samples.find((sample) => sample.cover)?.cover || c.banners[0];
   const hasSamples = c.samples.some((sample) => sample.cover || sample.pdf);
   const hasBody = c.body.length > 0;
   const priceLine = (className = "") => price && (
     <div className={`${styles.price} ${className}`}>
       <strong>{price}</strong>{compare && <del>{compare}</del>}
-      {compare && v.savingsLabel && <small className={styles.saving}>{v.savingsLabel.replace("{amount}", formatCoranPrice(c.price.compareAtCents - c.price.amountCents, c.price.currency))}</small>}
+      {compare && v.savingsLabel && <small className={styles.saving}><span>{v.savingsLabel.replace("{amount}", formatCoranPrice(c.price.compareAtCents - c.price.amountCents, c.price.currency))}</span></small>}
       {fcfa && <span>≈ {fcfa}</span>}
     </div>
   );
@@ -53,7 +86,7 @@ export function CoranLanding({ content: c, createCheckout, topSlot }: {
     ),
     body: hasBody && (
       <section id="contenu" className={styles.story}>
-        {e.bodyHeading && <h2>{e.bodyHeading}</h2>}
+        {e.bodyHeading && <h2>{rich(e.bodyHeading, false)}</h2>}
         <div className={styles.body}>
           {c.body.map((block, i) => block.type === "image" ? (
             // Keep the original graphics (some contain copy) at their readable width.
@@ -66,7 +99,7 @@ export function CoranLanding({ content: c, createCheckout, topSlot }: {
     samples: hasSamples && (
       <section id="extraits" className={styles.samples}>
         <div className={styles.packHeading}>
-          <h2>{v.packHeading}</h2><p>{v.packIntro}</p>
+          <h2>{rich(v.packHeading, false)}</h2><p>{v.packIntro}</p>
         </div>
         <div className={styles.packGrid}>
           {c.samples.map((sample, i) => <article key={i}>
@@ -90,7 +123,7 @@ export function CoranLanding({ content: c, createCheckout, topSlot }: {
     ),
     reviews: (c.reviewImages.length > 0 || c.reviews.length > 0) && (
       <section id="avis" className={styles.reviews}>
-        {c.reviewsHeading && <h2>{c.reviewsHeading}</h2>}
+        {c.reviewsHeading && <h2>{rich(c.reviewsHeading, false)}</h2>}
         {c.reviewImages.length > 0 && <ReviewsMarquee images={c.reviewImages} />}
         <div className={styles.reviewGrid}>
           {c.reviews.map((review, i) => (
@@ -104,10 +137,11 @@ export function CoranLanding({ content: c, createCheckout, topSlot }: {
     ),
   };
   return (
-    <div className={styles.page} style={{
-      "--coran-accent": e.accentColor,
-      backgroundColor: c.bgColor, color: c.textColor,
+    <div className={`${styles.page} da da-paper`} style={{
+      "--coran-accent": accent,
+      backgroundColor: bg, color: tx,
     } as CSSProperties}>
+      <style>{DA_FONT_CSS}</style>
       <CoranAnalytics />
       <header className={styles.header}>
         <span className={styles.brand}>QuranLab</span>
@@ -122,7 +156,7 @@ export function CoranLanding({ content: c, createCheckout, topSlot }: {
         <section className={`${styles.hero} ${!cover ? styles.heroWithoutCover : ""}`}>
           <div className={styles.heroHeading}>
             {e.eyebrow && <p className={styles.eyebrow}>{e.eyebrow}</p>}
-            <h1>{c.title}</h1>
+            <h1>{rich(c.title)}</h1>
             {c.subtitle && <p className={styles.subtitle}>{c.subtitle}</p>}
 
           </div>
@@ -149,16 +183,16 @@ export function CoranLanding({ content: c, createCheckout, topSlot }: {
         </ul>}
         {hasSamples && sections.samples}
         {v.steps.length > 0 && <section className={styles.method}>
-          <h2>{v.stepsHeading}</h2><div>{v.steps.map((step,i)=><article key={i}><span>{String(i+1).padStart(2,"0")}</span><h3>{step.title}</h3><p>{step.text}</p></article>)}</div>
+          <h2>{rich(v.stepsHeading, false)}</h2><div>{v.steps.map((step,i)=><article key={i}><span>{String(i+1).padStart(2,"0")}</span><h3>{step.title}</h3><p>{step.text}</p></article>)}</div>
         </section>}
         {c.sectionOrder.filter(key => key !== "samples").map((key) => sections[key] ? <div key={key}>{sections[key]}</div> : null)}
         {v.faq.length > 0 && <section className={styles.faq}>
-          <h2>{v.faqHeading}</h2><div>{v.faq.map((item,i)=><details key={i}><summary>{item.title}</summary><p>{item.text}</p></details>)}</div>
+          <h2>{rich(v.faqHeading, false)}</h2><div>{v.faq.map((item,i)=><details key={i}><summary>{item.title}</summary><p>{item.text}</p></details>)}</div>
         </section>}
         <section id="checkout" className={styles.checkout}>
           <div className={styles.offerCopy}>
             {e.offerLabel && <p className={styles.eyebrow}>{e.offerLabel}</p>}
-            {e.offerHeading && <h2>{e.offerHeading}</h2>}
+            {e.offerHeading && <h2>{rich(e.offerHeading, false)}</h2>}
             {c.showDeliverables && c.deliverables.length > 0 && <ul>
               {c.deliverables.map((item, i) => <li key={i}><Check size={20} aria-hidden="true" /><span>{item}</span></li>)}
             </ul>}
@@ -174,7 +208,7 @@ export function CoranLanding({ content: c, createCheckout, topSlot }: {
         </section>
       </main>
       <footer className={styles.footer}><span className={styles.brand}>QuranLab</span>{e.formatNote && <p>{e.formatNote}</p>}</footer>
-      {c.showStickyBar && <StickyPayBar priceLabel={price} compareLabel={compare} cta={c.ctaLabel} headline={v.paymentNote || c.stickyBarText} accentColor={e.accentColor} />}
+      {c.showStickyBar && <StickyPayBar priceLabel={price} compareLabel={compare} cta={c.ctaLabel} headline={v.paymentNote || c.stickyBarText} accentColor={DA.espresso} />}
     </div>
   );
 }

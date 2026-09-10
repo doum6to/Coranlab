@@ -75,13 +75,13 @@ export function LeadCapture({
               if (state === "error") setState("idle");
             }}
             placeholder="ton@email.com"
-            className="w-full rounded-xl border border-neutral-300 bg-white py-3 pl-9 pr-3 text-sm text-neutral-900 outline-none focus:border-[#6967fb] focus:ring-1 focus:ring-[#6967fb]"
+            className="w-full rounded-xl border border-neutral-300 bg-white py-3 pl-9 pr-3 text-sm text-neutral-900 outline-none focus:border-[#3A281F] focus:ring-1 focus:ring-[#3A281F]"
           />
         </div>
         <button
           type="submit"
           disabled={state === "loading"}
-          className="shrink-0 rounded-xl bg-[#6967fb] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#5856e0] disabled:opacity-60"
+          className="shrink-0 rounded-xl bg-[#3A281F] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#2B1D16] disabled:opacity-60"
         >
           {state === "loading" ? "Envoi…" : button}
         </button>

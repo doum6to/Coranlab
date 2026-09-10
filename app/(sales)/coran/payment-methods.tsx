@@ -38,16 +38,16 @@ function OptionRow({
       onClick={onClick}
       className={`flex w-full items-center gap-3 rounded-xl border px-3 py-3 text-left transition ${
         active
-          ? "border-[#6967fb] bg-[#6967fb]/5 ring-1 ring-[#6967fb]"
+          ? "border-[#3A281F] bg-[#F3B6C4]/30 ring-1 ring-[#3A281F]"
           : "border-neutral-200 bg-white hover:border-neutral-300"
       }`}
     >
       <span
         className={`grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 ${
-          active ? "border-[#6967fb]" : "border-neutral-300"
+          active ? "border-[#3A281F]" : "border-neutral-300"
         }`}
       >
-        {active && <span className="h-2.5 w-2.5 rounded-full bg-[#6967fb]" />}
+        {active && <span className="h-2.5 w-2.5 rounded-full bg-[#3A281F]" />}
       </span>
       <span className="text-sm font-semibold text-neutral-900">{title}</span>
       <span className="ml-auto flex items-center gap-1.5">{badges}</span>
