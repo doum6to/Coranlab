@@ -182,7 +182,8 @@ export async function POST(req: Request) {
       // /apprendre-coran buyers get a subscription-specific email (create your
       // account, no PDF/pack), not the "85% des mots" course email.
       const isSubscriptionFunnel =
-        session.metadata?.offer === "apprendre_coran";
+        session.metadata?.offer === "apprendre_coran" ||
+        session.metadata?.offer === "commencer";
       const driveUrl = isCoran ? (await getVipDriveUrl()) ?? undefined : undefined;
       const sendResult = isSubscriptionFunnel
         ? await sendSubscriptionWelcomeEmail({ email, activationToken })

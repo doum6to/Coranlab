@@ -50,6 +50,8 @@ export async function captureFunnelLead(input: {
   stage?: FunnelStage;
   /** The personalization answer the visitor picked (their "why"). */
   focusChoice?: string;
+  /** Landing that captured the lead (analytics path). Defaults to /offre-a-vie. */
+  source?: string;
 }): Promise<{ ok: boolean }> {
   const email = (input.email || "").trim().toLowerCase();
   if (!EMAIL_RE.test(email)) return { ok: false };
@@ -99,7 +101,7 @@ export async function captureFunnelLead(input: {
   try {
     await db.insert(analyticsEvent).values({
       event: "funnel_lead",
-      path: "/offre-a-vie",
+      path: input.source ? `/${input.source.replace(/^\//, "")}` : "/offre-a-vie",
       locale,
       sessionId: null,
       meta: JSON.stringify({ email, firstName, focusChoice, stage }),

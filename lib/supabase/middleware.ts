@@ -46,6 +46,7 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/comprendre-sa-priere") ||
     request.nextUrl.pathname.startsWith("/coran") ||
     request.nextUrl.pathname.startsWith("/telecharger") ||
+    request.nextUrl.pathname.startsWith("/commencer") ||
     // Cron endpoints are gated by CRON_SECRET at the route level; the lead
     // unsubscribe link is a public GET gated by a signed token.
     request.nextUrl.pathname.startsWith("/api/cron/") ||
