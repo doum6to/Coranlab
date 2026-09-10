@@ -141,7 +141,7 @@ export function CoranLanding({ content: c, createCheckout, topSlot }: {
       "--coran-accent": accent,
       backgroundColor: bg, color: tx,
     } as CSSProperties}>
-      <style>{DA_FONT_CSS}</style>
+      <style dangerouslySetInnerHTML={{ __html: DA_FONT_CSS }} />
       <CoranAnalytics />
       <header className={styles.header}>
         <span className={styles.brand}>QuranLab</span>

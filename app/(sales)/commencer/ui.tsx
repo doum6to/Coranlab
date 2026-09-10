@@ -31,7 +31,14 @@ function withBreaks(text: string, keyBase: string): ReactNode[] {
  * Editorial text renderer: `**mot**` → pink block, `__mot__` → espresso block,
  * Arabic runs → Jomhuria, `\n` → line break.
  */
+/** French typography: a narrow no-break space before ? ! : ; » so the mark
+ *  never gets orphaned on its own line on narrow screens. */
+function nbsp(text: string): string {
+  return text.replace(/ ?([?!:;»])/g, "\u202F$1").replace(/(«) ?/g, "$1\u202F");
+}
+
 export function rich(text: string): ReactNode[] {
+  text = nbsp(text);
   return text.split(/(\*\*[^*]+\*\*|__[^_]+__)/g).filter(Boolean).map((tok, i) => {
     if (tok.startsWith("**")) return <span key={i} className="da-hl da-hl-pink">{withBreaks(tok.slice(2, -2), `p${i}`)}</span>;
     if (tok.startsWith("__")) return <span key={i} className="da-hl da-hl-espresso">{withBreaks(tok.slice(2, -2), `e${i}`)}</span>;

@@ -21,7 +21,7 @@ export default async function CommencerPage({ searchParams }: { searchParams?: {
   const content = await getCommencerContent();
   return (
     <>
-      <style>{DA_FONT_CSS}</style>
+      <style dangerouslySetInnerHTML={{ __html: DA_FONT_CSS }} />
       <CommencerOnboarding content={content} initialStep={searchParams?.step === "paywall" ? "paywall" : undefined} />
     </>
   );

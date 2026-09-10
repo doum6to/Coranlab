@@ -17,7 +17,7 @@ export default async function CommencerMerci() {
   const { merci } = await getCommencerContent();
   return (
     <div className="da da-paper fixed inset-0 z-50 flex flex-col items-center justify-center px-6 text-center">
-      <style>{DA_FONT_CSS}</style>
+      <style dangerouslySetInnerHTML={{ __html: DA_FONT_CSS }} />
       <TrackTrialStart />
       <div className="da-dot flex h-24 w-24 items-center justify-center text-5xl">✓</div>
       <h1 className="da-h mt-6 max-w-lg text-3xl sm:text-4xl">{rich(merci.title)}</h1>

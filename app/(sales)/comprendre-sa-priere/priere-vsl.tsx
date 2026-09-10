@@ -75,7 +75,7 @@ export function PriereVsl({ content: c }: { content: PriereVslContent }) {
 
   return (
     <div className="min-h-screen w-full font-sans text-neutral-900" style={{ backgroundColor: c.bgColor }}>
-      <style>{`html{scroll-behavior:smooth}`}</style>
+      <style dangerouslySetInnerHTML={{ __html: "html{scroll-behavior:smooth}" }} />
 
       <OpenInBrowserHint accent={accent} />
 

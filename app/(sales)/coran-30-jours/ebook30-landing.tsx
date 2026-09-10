@@ -160,7 +160,7 @@ export function Ebook30Landing({ content: c }: { content: Ebook30Content }) {
 
   return (
     <div className="e30" style={{ ["--acc" as string]: accent }}>
-      <style>{CSS}</style>
+      <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <OpenInBrowserHint accent={accent} />
 
       {/* NAV */}
