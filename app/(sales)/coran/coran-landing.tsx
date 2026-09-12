@@ -54,8 +54,8 @@ export function CoranLanding({ content: c, createCheckout, topSlot }: {
   const e = mergeCoranEditorial(c.editorial);
   const v = mergeCoranConversion(c.conversion);
   const price = c.showPrice ? formatCoranPrice(c.price.amountCents, c.price.currency) : null;
-  const compare = c.showPrice && c.price.compareAtCents > c.price.amountCents
-    ? formatCoranPrice(c.price.compareAtCents, c.price.currency) : null;
+  // The historic annual comparison is not like-for-like with this lifetime pack.
+  const compare = null;
   const fcfa = c.showPrice && c.showFcfa
     ? c.fcfaAmount > 0 ? formatFcfaAmount(c.fcfaAmount) : formatFcfaFromEur(c.price.amountCents, c.price.currency)
     : null;
@@ -67,12 +67,12 @@ export function CoranLanding({ content: c, createCheckout, topSlot }: {
   const hasBody = c.body.length > 0;
   const priceLine = (className = "") => price && (
     <div className={`${styles.price} ${className}`}>
-      <strong>{price}</strong>{compare && <del>{compare}</del>}
-      {compare && v.savingsLabel && <small className={styles.saving}><span>{v.savingsLabel.replace("{amount}", formatCoranPrice(c.price.compareAtCents - c.price.amountCents, c.price.currency))}</span></small>}
+      <strong>{price}</strong><span>une seule fois</span>
       {fcfa && <span>≈ {fcfa}</span>}
     </div>
   );
-  const cta = <a href="#checkout" className={styles.primary}>{c.ctaLabel}<ArrowUpRight size={18} aria-hidden="true" /></a>;
+  const ctaText = price ? `${c.ctaLabel} — ${price}` : c.ctaLabel;
+  const cta = <a href="#checkout" className={styles.primary}>{ctaText}<ArrowUpRight size={18} aria-hidden="true" /></a>;
   const sections: Record<CoranSectionKey, ReactNode> = {
     // Title is the fixed hero. The remaining content keeps its saved order.
     title: null,
@@ -97,7 +97,7 @@ export function CoranLanding({ content: c, createCheckout, topSlot }: {
       </section>
     ),
     samples: hasSamples && (
-      <section id="extraits" className={styles.samples}>
+      <section id="pack" className={styles.samples}>
         <div className={styles.packHeading}>
           <h2>{rich(v.packHeading, false)}</h2><p>{v.packIntro}</p>
         </div>
@@ -109,8 +109,7 @@ export function CoranLanding({ content: c, createCheckout, topSlot }: {
             {sample.pdf && <a href={sample.pdf} target="_blank" rel="noopener noreferrer" data-coran-extract>{e.previewLabel}</a>}
           </article>)}
         </div>
-        <CoranSamples heading={c.samplesHeading} samples={c.samples} readLabel={e.previewLabel} editorial />
-        <div className={styles.midCta}>{priceLine()}<a href="#checkout" className={styles.primary}>{v.packCta}</a><p>{v.paymentNote}</p></div>
+        <div className={styles.midCta}>{priceLine()}<a href="#checkout" className={styles.primary}>{price ? `${v.packCta} — ${price}` : v.packCta}</a><p>{v.paymentNote}</p></div>
       </section>
     ),
     gifs: c.gifs.length > 0 && (
@@ -149,11 +148,11 @@ export function CoranLanding({ content: c, createCheckout, topSlot }: {
           {hasBody && e.detailsLabel && <a href="#contenu">{e.detailsLabel}</a>}
           {hasSamples && e.previewLabel && <a href="#extraits">{e.previewLabel}</a>}
         </nav>
-        <a href="#checkout" className={styles.headerCta}>{c.ctaLabel}</a>
+        <a href="#checkout" className={styles.headerCta}>{ctaText}</a>
       </header>
       <main>
         {topSlot && <div className={styles.topSlot}>{topSlot}</div>}
-        <section className={`${styles.hero} ${!cover ? styles.heroWithoutCover : ""}`}>
+        <section id="coran-hero" className={`${styles.hero} ${!cover ? styles.heroWithoutCover : ""}`}>
           <div className={styles.heroHeading}>
             {e.eyebrow && <p className={styles.eyebrow}>{e.eyebrow}</p>}
             <h1>{rich(c.title)}</h1>
@@ -178,17 +177,19 @@ export function CoranLanding({ content: c, createCheckout, topSlot }: {
             {e.formatNote && <p className={styles.format}>{e.formatNote}</p>}
           </div>
         </section>
-        {c.showDeliverables && c.deliverables.length > 0 && <ul className={styles.ribbon}>
-          {c.deliverables.map((item, i) => <li key={i}><Check size={18} aria-hidden="true" /><span>{item}</span></li>)}
-        </ul>}
+        {hasSamples && <section id="extraits" className={styles.preview}>
+          <div className={styles.previewIntro}>
+            <p className={styles.eyebrow}>DÉCOUVRE LE CONTENU AVANT D’ACHETER</p>
+            <h2>Ouvre le guide.<br />Fais-toi une idée.</h2>
+            <p>Feuillette les vrais documents du pack : le vocabulaire, la méthode et les ressources pour approfondir. Les extraits sont accessibles sans inscription.</p>
+          </div>
+          <CoranSamples heading="" samples={c.samples} readLabel={e.previewLabel} editorial />
+        </section>}
         {hasSamples && sections.samples}
         {v.steps.length > 0 && <section className={styles.method}>
           <h2>{rich(v.stepsHeading, false)}</h2><div>{v.steps.map((step,i)=><article key={i}><span>{String(i+1).padStart(2,"0")}</span><h3>{step.title}</h3><p>{step.text}</p></article>)}</div>
         </section>}
         {c.sectionOrder.filter(key => key !== "samples").map((key) => sections[key] ? <div key={key}>{sections[key]}</div> : null)}
-        {v.faq.length > 0 && <section className={styles.faq}>
-          <h2>{rich(v.faqHeading, false)}</h2><div>{v.faq.map((item,i)=><details key={i}><summary>{item.title}</summary><p>{item.text}</p></details>)}</div>
-        </section>}
         <section id="checkout" className={styles.checkout}>
           <div className={styles.offerCopy}>
             {e.offerLabel && <p className={styles.eyebrow}>{e.offerLabel}</p>}
@@ -206,6 +207,10 @@ export function CoranLanding({ content: c, createCheckout, topSlot }: {
             <CoranPayment omEnabled={c.orangeMoney.enabled} om={c.orangeMoney} createCheckout={createCheckout} />
           </div>
         </section>
+        {v.faq.length > 0 && <section className={styles.faq}>
+          <h2>{rich(v.faqHeading, false)}</h2><div>{v.faq.map((item,i)=><details key={i}><summary>{item.title}</summary><p>{item.text}</p></details>)}</div>
+        </section>}
+        <div className={styles.finalCta}>{cta}<p>{v.paymentNote}</p></div>
       </main>
       <footer className={styles.footer}><span className={styles.brand}>QuranLab</span>{e.formatNote && <p>{e.formatNote}</p>}</footer>
       {c.showStickyBar && <StickyPayBar priceLabel={price} compareLabel={compare} cta={c.ctaLabel} headline={v.paymentNote || c.stickyBarText} accentColor={DA.espresso} />}

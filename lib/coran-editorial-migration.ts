@@ -1,3 +1,4 @@
+import { mergeCoranConversion } from "./coran-conversion";
 import type { CoranLandingContent, CoranBlock } from "./coran-landing-shared";
 import { CORAN_EDITORIAL_DEFAULTS } from "./coran-landing-shared";
 
@@ -37,14 +38,42 @@ export function migrateCoranEditorial(stored: Partial<CoranLandingContent>): Par
 }
 
 
-/** Upgrade only recognized earlier copy; saved custom titles remain untouched. */
+/** Recognize the live legacy offer once; later admin copy remains editable.
+ * Monetary amounts, fulfillment, samples and payment configuration are preserved. */
 export function optimizeCoranContent(stored: Partial<CoranLandingContent>): Partial<CoranLandingContent> {
   const c = migrateCoranEditorial(stored);
-  if (!c || c.conversion) return c;
+  const legacyTitles = ["Apprends 85% du Coran en 1 mois et 15 min par jour", "Comprendre 85% du Coran", "Apprends 85% du Coran en 30 jours"];
+  if (!c || !legacyTitles.includes((c.title || "").replace(/\*\*/g, "").trim())) return c;
   return {
     ...c,
-    title: ["Apprends 85% du Coran en 1 mois et 15 min par jour", "Comprendre 85% du Coran"].includes(c.title || "") ? "Ne récite plus seulement les mots. Rapproche-toi de leur sens." : c.title,
-    subtitle: c.subtitle || "Le pack des 500 mots essentiels du Coran : un guide PDF, une méthode pour mémoriser et l’application pour pratiquer, à ton rythme.",
-    ctaLabel: ["Je reçois mon guide", ""].includes(c.ctaLabel || "") ? "Je commence mon apprentissage" : c.ctaLabel,
+    title: "Retrouve le sens des mots que tu récites.",
+    subtitle: "Découvre les 500 mots fréquents du Coran avec un guide PDF, une méthode de mémorisation et l’application Premium à vie. Avance à ton rythme, par séances de 15 à 30 minutes.",
+    ctaLabel: "Obtenir le pack",
+    showPrice: true,
+    showStickyBar: true,
+    stickyBarText: "Paiement unique · Sans abonnement",
+    guarantee: c.guarantee === "Accès immédiat !" ? "Tes accès par email après confirmation du paiement." : c.guarantee,
+    deliverables: c.deliverables?.map(item => item === "500 mots les plus fréquents = 85% du Coran" ? "Le guide PDF des 500 mots fréquents du Coran" : item),
+    editorial: {
+      ...CORAN_EDITORIAL_DEFAULTS,
+      ...c.editorial,
+      eyebrow: "500 MOTS POUR COMMENCER À COMPRENDRE",
+      previewLabel: "Voir les extraits",
+      offerLabel: "LE PACK COMPLET",
+      offerHeading: "Un premier pas aujourd’hui. Un accès pour la vie.",
+      checkoutHeading: "Ton pack, en un seul paiement",
+      formatNote: "Guides PDF + application Premium à vie",
+    },
+    conversion: {
+      ...mergeCoranConversion(c.conversion),
+      heroBenefits: "Le guide des 500 mots fréquents et une méthode pour les mémoriser\nL’application Premium pour pratiquer, à vie\nLes du’as du Coran et le résumé des 30 Juzz inclus",
+      paymentNote: "Paiement unique · Accès à vie · Sans abonnement",
+      packHeading: "Tout ce qu’il te faut pour commencer.",
+      packIntro: "Le guide et l’application pour apprendre et pratiquer. Trois ressources complémentaires pour enrichir ton parcours.",
+      packCta: "Obtenir le pack",
+      savingsLabel: "",
+      stepsHeading: "15 à 30 minutes. À ton rythme.",
+      finalNote: "Tes accès sont envoyés par email après confirmation du paiement. Pour Orange Money, l’envoi suit la validation de la transaction.",
+    },
   };
 }
