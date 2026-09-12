@@ -165,7 +165,7 @@ function EditorialSamples({ heading, samples, readLabel }: {
         <div className="min-w-0">
           <p className="text-sm tracking-widest" aria-live="polite">{String(activeIndex + 1).padStart(2, "0")} / {String(samples.length).padStart(2, "0")}</p>
           {sample.title && <h3 className="my-5 text-3xl leading-tight">{sample.title}</h3>}
-          {sample.pdf && <a href={sample.pdf} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-3 border-b border-current py-2 text-base">{readLabel || "Lire l’extrait"}<ExternalLink size={16} aria-hidden="true" /></a>}
+          {sample.pdf && <a href={sample.pdf} target="_blank" rel="noopener noreferrer" data-coran-extract className="inline-flex min-h-11 items-center gap-3 border-b border-current py-2 text-base">{readLabel || "Lire l’extrait"}<ExternalLink size={16} aria-hidden="true" /></a>}
           <div className="mt-8 flex gap-3">
             <button type="button" onClick={() => setIndex(activeIndex - 1)} disabled={activeIndex === 0} aria-label="Extrait précédent" className="grid h-12 w-12 place-items-center rounded-full border border-current disabled:opacity-30"><ArrowLeft size={20} /></button>
             <button type="button" onClick={() => setIndex(activeIndex + 1)} disabled={activeIndex === samples.length - 1} aria-label="Extrait suivant" className="grid h-12 w-12 place-items-center rounded-full border border-current disabled:opacity-30"><ArrowRight size={20} /></button>

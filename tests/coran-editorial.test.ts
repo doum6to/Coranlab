@@ -56,3 +56,21 @@ test("conversion copy respects saved admin choices and keeps actual prices", asy
   assert.deepEqual(result.conversion?.steps, []);
   assert.equal(result.conversion?.paymentNote, "Mon libellé");
 });
+
+test("live legacy offer upgrades even with saved conversion settings and remains editable", () => {
+  const original = {
+    ...legacy(), title: "Apprends 85% du Coran en 30 jours", showPrice: false,
+    ctaLabel: "Bismillah", conversion: mergeCoranConversion({ paymentNote: "" }),
+  };
+  const upgraded = mergeCoranLandingContent(optimizeCoranContent(original));
+  assert.equal(upgraded.title, "Retrouve le sens des mots que tu récites.");
+  assert.equal(upgraded.showPrice, true);
+  assert.equal(upgraded.ctaLabel, "Obtenir le pack");
+  assert.deepEqual(upgraded.price, original.price);
+  assert.deepEqual(upgraded.samples, original.samples);
+  assert.deepEqual(upgraded.orangeMoney, original.orangeMoney);
+  assert.match(upgraded.conversion!.paymentNote, /Sans abonnement/);
+  assert.deepEqual(optimizeCoranContent(upgraded), upgraded);
+  const edited = { ...upgraded, showPrice: false, ctaLabel: "Mon bouton", conversion: mergeCoranConversion({ paymentNote: "" }) };
+  assert.deepEqual(optimizeCoranContent(edited), edited);
+});

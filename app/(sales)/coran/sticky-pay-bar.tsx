@@ -25,7 +25,8 @@ export function StickyPayBar({
   useEffect(() => {
     const onScroll = () => {
       // Show as soon as the visitor starts scrolling.
-      const scrolled = window.scrollY > 80;
+      const hero = document.getElementById("coran-hero");
+      const scrolled = hero ? hero.getBoundingClientRect().bottom <= 0 : window.scrollY > 400;
       // Hide when the checkout itself is visible (no point nagging then).
       let checkoutVisible = false;
       const checkout = document.getElementById("checkout");
@@ -46,11 +47,12 @@ export function StickyPayBar({
   }, []);
 
   const goToCheckout = () => {
-    document.getElementById("checkout")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    document.getElementById("checkout")?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
   };
 
   return (
     <div
+      hidden={!show}
       className={`fixed inset-x-0 bottom-0 z-50 border-t border-[#D9D0C1] bg-[#EFE9DE]/95 backdrop-blur transition-transform duration-300 ${
         show ? "translate-y-0" : "translate-y-full"
       }`}
@@ -58,7 +60,7 @@ export function StickyPayBar({
     >
       <div className="mx-auto max-w-[560px] px-4 pb-3 pt-2">
         {headline && (
-          <p style={accentColor ? { color: accentColor } : undefined} className="mb-1.5 text-center text-[11px] font-semibold uppercase tracking-[.2em] text-[#5B4A40]">
+          <p style={accentColor ? { color: accentColor } : undefined} className="mb-1.5 text-center text-xs font-semibold uppercase tracking-[.2em] text-[#5B4A40]">
             {headline}
           </p>
         )}
