@@ -6,7 +6,8 @@ import { Plus, Trash2, ArrowUp, ArrowDown, ChevronDown, ChevronRight } from "luc
 
 import { Button } from "@/components/ui/button";
 import { updateCommencerContent } from "@/actions/commencer-content";
-import type { CommencerContent, CmStep, CmPlan, CmOption, CmTimeOption, CmReview, CmRow, CmTimelineItem } from "@/lib/commencer-shared";
+import { ICON_KEYS } from "@/lib/commencer-shared";
+import type { CommencerContent, CmStep, CmPlan, CmOption, CmTimeOption, CmReview, CmRow, CmTimelineItem, CmLessonCard } from "@/lib/commencer-shared";
 import { compressImageFile } from "@/lib/images/compress-client";
 import { createMediaUploadUrl } from "@/actions/landing-media";
 import { createClient } from "@/lib/supabase/client";
@@ -20,6 +21,16 @@ const iconBtn = "rounded p-1 text-neutral-400 hover:bg-neutral-100 disabled:opac
 const addBtn =
   "flex items-center gap-1 rounded-lg border border-dashed border-neutral-300 px-3 py-2 text-xs font-semibold text-neutral-600 hover:border-neutral-400";
 
+/** Icons are SVG line icons (lucide) picked by key — never emoji, so they render identically on iOS/Android. */
+function IconSelect({ value, onChange }: { value?: string; onChange: (v: string) => void }) {
+  return (
+    <select value={value ?? ""} onChange={(e) => onChange(e.target.value)} className={inputCls} aria-label="Icône">
+      <option value="">— icône —</option>
+      {ICON_KEYS.map((k) => <option key={k} value={k}>{k}</option>)}
+    </select>
+  );
+}
+
 const STEP_LABELS: Record<CmStep["type"], string> = {
   splash: "Splash (logo)",
   welcome: "Bienvenue",
@@ -30,7 +41,8 @@ const STEP_LABELS: Record<CmStep["type"], string> = {
   social: "Preuve sociale (avis)",
   loader: "Chargement (création du plan)",
   plan: "Plan personnalisé",
-  trial: "Essai gratuit (captures)",
+  lesson: "Leçon interactive (3 mots)",
+  trial: "(ancien) Essai — remplacé par la leçon",
   bell: "Rappel avant la fin de l'essai",
 };
 
@@ -193,7 +205,8 @@ function blankStep(type: CmStep["type"]): CmStep {
     case "email": return { type, headline: "Atteins ton objectif avec des rappels", sub: "", placeholder: "ton@email.com", cta: "Recevoir mon plan", note: "Pas de spam", skip: "Passer" };
     case "social": return { type, headline: "Ils comprennent enfin leur prière", rating: "4,9", ratingSub: "Plus de 1 500 apprenants", sub: "", reviews: [{ initials: "AB", name: "Prénom", text: "" }], cta: "", lockSeconds: 2.5 };
     case "loader": return { type, headline: "Création de ton plan personnalisé", captions: ["Calibrage à ton niveau…"], durationMs: 7000 };
-    case "plan": return { type, headline: "Ton plan personnalisé est prêt", journeyTitle: "Parcours Coran", levelPill: "Niveau {level} · {levelLabel}", yourPlanLabel: "TON PLAN", minutesLabel: "par jour", dateLabel: "ton objectif", rows: [{ icon: "🎯", label: "Objectif", text: "" }], cta: "Commencer mon plan" };
+    case "plan": return { type, headline: "Ton plan personnalisé est prêt", journeyTitle: "Parcours Coran", levelPill: "Niveau {level} · {levelLabel}", yourPlanLabel: "TON PLAN", minutesLabel: "par jour", dateLabel: "ton objectif", rows: [{ icon: "target", label: "Objectif", text: "" }], cta: "Commencer mon plan" };
+    case "lesson": return { type, headline: "Ta première leçon, maintenant", sub: "Trois mots que tu récites déjà. Trouve leur sens.", cards: [{ arabic: "رَبِّ", translit: "Rabb", fr: "Seigneur", choices: ["Seigneur", "Lumière", "Chemin"] }], doneHeadline: "Tu viens de comprendre 3 mots du Coran", doneSub: "", cta: "Continuer" };
     case "trial": return { type, headline: "On veut que tu essaies Quranlab **gratuitement**", cta: "Essayer pour 0,00 €", screenshots: [] };
     case "bell": return { type, headline: "On t'enverra un rappel avant la fin de ton essai gratuit", cta: "Continuer GRATUITEMENT" };
   }
@@ -245,16 +258,16 @@ function QuestionEditor({ step, patch }: { step: StepOf<"question">; patch: (p: 
       <Text label="Sous-texte (optionnel)" value={step.sub ?? ""} onChange={(sub) => patch({ sub })} />
       <Toggle label="Choix multiples (plusieurs réponses possibles)" value={step.multi} onChange={(multi) => patch({ multi })} />
       <ObjList<CmOption>
-        label="Options (identifiant · libellé · icône emoji)"
+        label="Options (identifiant · libellé · icône)"
         items={step.options}
         onChange={(options) => patch({ options })}
         blank={() => ({ id: "", label: "", icon: "" })}
         addLabel="Ajouter une option"
         render={(o, p) => (
-          <div className="grid grid-cols-[1fr_2fr_64px] gap-2">
+          <div className="grid grid-cols-[1fr_2fr_140px] gap-2">
             <input value={o.id} placeholder="id" onChange={(e) => p({ id: e.target.value })} className={inputCls} />
             <input value={o.label} placeholder="Libellé" onChange={(e) => p({ label: e.target.value })} className={inputCls} />
-            <input value={o.icon ?? ""} placeholder="🕌" onChange={(e) => p({ icon: e.target.value })} className={`${inputCls} text-center`} />
+            <IconSelect value={o.icon} onChange={(icon) => p({ icon })} />
           </div>
         )}
       />
@@ -385,14 +398,14 @@ function PlanEditor({ step, patch }: { step: StepOf<"plan">; patch: (p: Partial<
         <Text label="Bouton" value={step.cta} onChange={(cta) => patch({ cta })} />
       </div>
       <ObjList<CmRow>
-        label="Lignes du plan (icône · label · texte — {min} accepté)"
+        label="Lignes du plan (icône · label · texte — {min} {when} {level} {levelLabel} acceptés)"
         items={step.rows}
         onChange={(rows) => patch({ rows })}
         blank={() => ({ icon: "", label: "", text: "" })}
         addLabel="Ajouter une ligne"
         render={(r, p) => (
-          <div className="grid grid-cols-[64px_1fr_2fr] gap-2">
-            <input value={r.icon ?? ""} placeholder="🎯" onChange={(e) => p({ icon: e.target.value })} className={`${inputCls} text-center`} />
+          <div className="grid grid-cols-[140px_1fr_2fr] gap-2">
+            <IconSelect value={r.icon} onChange={(icon) => p({ icon })} />
             <input value={r.label} placeholder="Label" onChange={(e) => p({ label: e.target.value })} className={inputCls} />
             <input value={r.text} placeholder="Texte" onChange={(e) => p({ text: e.target.value })} className={inputCls} />
           </div>
@@ -422,6 +435,37 @@ function TrialEditor({ step, patch }: { step: StepOf<"trial">; patch: (p: Partia
   );
 }
 
+function LessonEditor({ step, patch }: { step: StepOf<"lesson">; patch: (p: Partial<StepOf<"lesson">>) => void }) {
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-3">
+        <Text label="Titre" value={step.headline} onChange={(headline) => patch({ headline })} />
+        <Text label="Sous-texte" value={step.sub} onChange={(sub) => patch({ sub })} />
+      </div>
+      <ObjList<CmLessonCard>
+        label="Cartes (mot arabe · translittération · bonne réponse · autres propositions séparées par des virgules)"
+        items={step.cards}
+        onChange={(cards) => patch({ cards })}
+        blank={() => ({ arabic: "", translit: "", fr: "", choices: [] })}
+        addLabel="Ajouter un mot"
+        render={(cd, p) => (
+          <div className="grid grid-cols-[1fr_1fr_1fr_2fr] gap-2">
+            <input value={cd.arabic} dir="rtl" placeholder="رَبِّ" onChange={(e) => p({ arabic: e.target.value })} className={inputCls} />
+            <input value={cd.translit} placeholder="Rabb" onChange={(e) => p({ translit: e.target.value })} className={inputCls} />
+            <input value={cd.fr} placeholder="Seigneur (bonne réponse)" onChange={(e) => p({ fr: e.target.value })} className={inputCls} />
+            <input value={cd.choices.join(", ")} placeholder="Lumière, Chemin" onChange={(e) => p({ choices: e.target.value.split(",").map((x) => x.trim()).filter(Boolean) })} className={inputCls} />
+          </div>
+        )}
+      />
+      <div className="grid grid-cols-3 gap-3">
+        <Text label="Titre de fin" value={step.doneHeadline} onChange={(doneHeadline) => patch({ doneHeadline })} />
+        <Text label="Sous-texte de fin" value={step.doneSub} onChange={(doneSub) => patch({ doneSub })} />
+        <Text label="Bouton" value={step.cta} onChange={(cta) => patch({ cta })} />
+      </div>
+    </>
+  );
+}
+
 function BellEditor({ step, patch }: { step: StepOf<"bell">; patch: (p: Partial<StepOf<"bell">>) => void }) {
   return (
     <div className="grid grid-cols-[2fr_1fr] gap-3">
@@ -444,6 +488,7 @@ function StepFields({ step, onChange }: { step: CmStep; onChange: (s: CmStep) =>
     case "social": return <SocialEditor step={step} patch={(p) => onChange({ ...step, ...p })} />;
     case "loader": return <LoaderEditor step={step} patch={(p) => onChange({ ...step, ...p })} />;
     case "plan": return <PlanEditor step={step} patch={(p) => onChange({ ...step, ...p })} />;
+    case "lesson": return <LessonEditor step={step} patch={(p) => onChange({ ...step, ...p })} />;
     case "trial": return <TrialEditor step={step} patch={(p) => onChange({ ...step, ...p })} />;
     case "bell": return <BellEditor step={step} patch={(p) => onChange({ ...step, ...p })} />;
   }
@@ -575,8 +620,8 @@ export function CommencerForm({ initial }: { initial: CommencerContent }) {
           addLabel="Ajouter une étape de timeline"
           render={(t, p) => (
             <>
-              <div className="grid grid-cols-[64px_1fr] gap-2">
-                <input value={t.icon ?? ""} placeholder="🔓" onChange={(e) => p({ icon: e.target.value })} className={`${inputCls} text-center`} />
+              <div className="grid grid-cols-[140px_1fr] gap-2">
+                <IconSelect value={t.icon} onChange={(icon) => p({ icon })} />
                 <input value={t.title} placeholder="Titre" onChange={(e) => p({ title: e.target.value })} className={inputCls} />
               </div>
               <textarea rows={2} value={t.text} placeholder="Texte" onChange={(e) => p({ text: e.target.value })} className={inputCls} />
@@ -597,6 +642,21 @@ export function CommencerForm({ initial }: { initial: CommencerContent }) {
         <Text label="Titre" value={c.merci.title} onChange={(title) => setMerci({ title })} />
         <Area label="Texte" value={c.merci.text} onChange={(text) => setMerci({ text })} rows={2} />
         <Text label="Bouton" value={c.merci.cta} onChange={(cta) => setMerci({ cta })} />
+        <Text label="Question d'attribution (posée après l'achat)" value={c.merci.sourceHeadline} onChange={(sourceHeadline) => setMerci({ sourceHeadline })} />
+        <ObjList<CmOption>
+          label="Réponses (identifiant · libellé · icône)"
+          items={c.merci.sourceOptions}
+          onChange={(sourceOptions) => setMerci({ sourceOptions })}
+          blank={() => ({ id: "", label: "", icon: "" })}
+          addLabel="Ajouter une réponse"
+          render={(o, p) => (
+            <div className="grid grid-cols-[1fr_2fr_140px] gap-2">
+              <input value={o.id} placeholder="id" onChange={(e) => p({ id: e.target.value })} className={inputCls} />
+              <input value={o.label} placeholder="Libellé" onChange={(e) => p({ label: e.target.value })} className={inputCls} />
+              <IconSelect value={o.icon} onChange={(icon) => p({ icon })} />
+            </div>
+          )}
+        />
       </Section>
 
       <div className="sticky bottom-0 flex items-center gap-3 border-t border-neutral-200 bg-white/95 py-3 backdrop-blur">

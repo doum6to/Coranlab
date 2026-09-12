@@ -45,8 +45,8 @@ export function ProgressChart({
   return (
     <div className="w-full">
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-[15px] font-semibold" style={{ color: "var(--ink)" }}>{chartLabel}</span>
-        <span className="rounded-[8px] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[.16em]" style={{ background: "var(--espresso)", color: "var(--paper)" }}>{brandLabel}</span>
+        <span className="text-[15px] font-semibold" style={{ color: "#1A1A1A" }}>{chartLabel}</span>
+        <span className="rounded-[8px] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[.16em]" style={{ background: "#6967FB", color: "#FFFFFF" }}>{brandLabel}</span>
       </div>
 
       <svg viewBox={`0 0 ${PW} ${PH}`} className="block w-full" role="img" aria-label={`${chartLabel} : ${brandLabel} vs ${othersLabel}`}>
@@ -61,37 +61,37 @@ export function ProgressChart({
 
         {/* grid */}
         {[60, 100].map((y) => (
-          <line key={y} x1={P_LEFT} x2={P_RIGHT} y1={y} y2={y} stroke="var(--line)" strokeDasharray="3 4" strokeWidth="1" />
+          <line key={y} x1={P_LEFT} x2={P_RIGHT} y1={y} y2={y} stroke="#E8E8E8" strokeDasharray="3 4" strokeWidth="1" />
         ))}
-        <motion.line x1={P_LEFT} x2={P_RIGHT} y1={P_BOTTOM} y2={P_BOTTOM} stroke="var(--line)" strokeWidth="1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={fade(0.3)} />
+        <motion.line x1={P_LEFT} x2={P_RIGHT} y1={P_BOTTOM} y2={P_BOTTOM} stroke="#E8E8E8" strokeWidth="1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={fade(0.3)} />
 
         {/* others (dashed + grey area), revealed with a mask */}
         <g mask={`url(#${maskId})`}>
-          <path d={P_OTHERS_AREA} fill="var(--paper-deep)" />
-          <path d={P_OTHERS_LINE} fill="none" stroke="var(--espresso-soft)" strokeWidth="2" strokeDasharray="5 5" strokeLinecap="round" />
+          <path d={P_OTHERS_AREA} fill="#F5F5F5" />
+          <path d={P_OTHERS_LINE} fill="none" stroke="#555555" strokeWidth="2" strokeDasharray="5 5" strokeLinecap="round" />
         </g>
 
         {/* brand (solid + pink area), area revealed with a clip, line drawn via pathLength */}
         <g clipPath={`url(#${clipId})`}>
           <path d={P_BRAND_AREA} fill="rgba(243,182,196,.55)" />
         </g>
-        <motion.path d={P_BRAND_LINE} fill="none" stroke="var(--espresso)" strokeWidth="3" strokeLinecap="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={tw(1.35, 0.8)} />
+        <motion.path d={P_BRAND_LINE} fill="none" stroke="#6967FB" strokeWidth="3" strokeLinecap="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={tw(1.35, 0.8)} />
 
         {/* origin ring, fills */}
-        <circle cx={P_LEFT} cy={P_BOTTOM} r="5" fill="var(--paper)" stroke="var(--espresso)" strokeWidth="2" />
-        <motion.circle cx={P_LEFT} cy={P_BOTTOM} r="5" fill="var(--espresso)" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={fade(0.3)} style={{ transformBox: "fill-box", transformOrigin: "center" }} />
+        <circle cx={P_LEFT} cy={P_BOTTOM} r="5" fill="#FFFFFF" stroke="#6967FB" strokeWidth="2" />
+        <motion.circle cx={P_LEFT} cy={P_BOTTOM} r="5" fill="#6967FB" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={fade(0.3)} style={{ transformBox: "fill-box", transformOrigin: "center" }} />
 
         {/* labels */}
         <motion.g initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={fade(0.5)}>
-          <text x={P_RIGHT} y={104} textAnchor="end" fontSize="11" fontFamily="var(--sans)" fill="var(--muted)">{othersLabel}</text>
-          <text x={P_LEFT} y={PH - 6} fontSize="11" fontFamily="var(--sans)" fill="var(--muted)">{xStart}</text>
-          <text x={P_RIGHT} y={PH - 6} textAnchor="end" fontSize="11" fontFamily="var(--sans)" fill="var(--muted)">{xEnd}</text>
+          <text x={P_RIGHT} y={104} textAnchor="end" fontSize="11" fontFamily="inherit" fill="#999999">{othersLabel}</text>
+          <text x={P_LEFT} y={PH - 6} fontSize="11" fontFamily="inherit" fill="#999999">{xStart}</text>
+          <text x={P_RIGHT} y={PH - 6} textAnchor="end" fontSize="11" fontFamily="inherit" fill="#999999">{xEnd}</text>
         </motion.g>
       </svg>
 
       {/* checklist */}
-      <motion.p className="mt-4 flex items-center gap-2 text-[16px] font-semibold" style={{ color: "var(--ink)" }} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={fade(0.7)}>
-        <span style={{ color: "var(--pink-deep)" }} aria-hidden>✦</span>
+      <motion.p className="mt-4 flex items-center gap-2 text-[16px] font-semibold" style={{ color: "#1A1A1A" }} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={fade(0.7)}>
+        <span style={{ color: "#6967FB" }} aria-hidden>✦</span>
         {checkTitle}
       </motion.p>
       <ul className="mt-2.5 space-y-2.5">
@@ -99,10 +99,10 @@ export function ProgressChart({
           const d = 0.85 + i * 0.18;
           return (
             <motion.li key={item} className="flex items-center gap-3 text-[15px] leading-snug" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={fade(d)}>
-              <span className="relative flex h-6 w-6 shrink-0 items-center justify-center rounded-full" style={{ border: "1.5px solid var(--line)" }} aria-hidden>
+              <span className="relative flex h-6 w-6 shrink-0 items-center justify-center rounded-full" style={{ border: "1.5px solid #E8E8E8" }} aria-hidden>
                 <motion.span
                   className="absolute inset-0 flex items-center justify-center rounded-full"
-                  style={{ background: "var(--espresso)", color: "var(--paper)" }}
+                  style={{ background: "#6967FB", color: "#FFFFFF" }}
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={reduce ? { duration: 0 } : { delay: d + 0.15, type: "spring", stiffness: 500, damping: 22 }}
@@ -110,7 +110,7 @@ export function ProgressChart({
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
                 </motion.span>
               </span>
-              <span style={{ color: "var(--ink)" }}>{item}</span>
+              <span style={{ color: "#1A1A1A" }}>{item}</span>
             </motion.li>
           );
         })}
@@ -229,33 +229,33 @@ export function TimeChart({
         </defs>
 
         {/* baseline */}
-        <line x1={T_LEFT} x2={T_RIGHT} y1={T_BOTTOM} y2={T_BOTTOM} stroke="var(--line)" strokeWidth="1" />
+        <line x1={T_LEFT} x2={T_RIGHT} y1={T_BOTTOM} y2={T_BOTTOM} stroke="#E8E8E8" strokeWidth="1" />
 
         {/* "alone" gentle solid line, drawn left → right */}
-        <motion.path d={`M${T_LEFT} ${T_BOTTOM - 2} L${T_RIGHT} 104`} fill="none" stroke="var(--espresso-soft)" strokeWidth="2" strokeLinecap="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={tw(0.1, 0.6)} />
-        <motion.text x={T_RIGHT} y={96} textAnchor="end" fontSize="11" fontFamily="var(--sans)" fontWeight="500" fill="var(--espresso-soft)" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={tw(0.6, 0.3)}>{aloneLabel}</motion.text>
+        <motion.path d={`M${T_LEFT} ${T_BOTTOM - 2} L${T_RIGHT} 104`} fill="none" stroke="#555555" strokeWidth="2" strokeLinecap="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={tw(0.1, 0.6)} />
+        <motion.text x={T_RIGHT} y={96} textAnchor="end" fontSize="11" fontFamily="inherit" fontWeight="500" fill="#555555" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={tw(0.6, 0.3)}>{aloneLabel}</motion.text>
 
         {/* goal: dashed line revealed by a mask + flag label */}
         <g mask={`url(#${maskId})`}>
-          <line x1={T_LEFT} x2={T_RIGHT} y1={T_GOAL} y2={T_GOAL} stroke="var(--espresso)" strokeWidth="1.5" strokeDasharray="4 5" strokeLinecap="round" />
+          <line x1={T_LEFT} x2={T_RIGHT} y1={T_GOAL} y2={T_GOAL} stroke="#6967FB" strokeWidth="1.5" strokeDasharray="4 5" strokeLinecap="round" />
         </g>
         <motion.g initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={tw(0.7, 0.3)}>
-          <path d={`M${T_LEFT + 1} ${T_GOAL - 22} v13 M${T_LEFT + 1} ${T_GOAL - 22} h8 l-2 3 2 3 h-8`} fill="none" stroke="var(--espresso)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          <text x={T_LEFT + 14} y={T_GOAL - 12} fontSize="11" fontFamily="var(--sans)" fontWeight="700" fill="var(--ink)">{goalLabel}</text>
+          <path d={`M${T_LEFT + 1} ${T_GOAL - 22} v13 M${T_LEFT + 1} ${T_GOAL - 22} h8 l-2 3 2 3 h-8`} fill="none" stroke="#6967FB" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <text x={T_LEFT + 14} y={T_GOAL - 12} fontSize="11" fontFamily="inherit" fontWeight="700" fill="#1A1A1A">{goalLabel}</text>
         </motion.g>
 
         {/* S-curve + area (clip reveals on first selection; d morphs afterwards) */}
         <g clipPath={`url(#${clipId})`}>
           <motion.path initial={false} animate={{ d: areaD }} transition={morph} fill="rgba(243,182,196,.5)" />
-          <motion.path initial={false} animate={{ d: lineD }} transition={morph} fill="none" stroke="var(--espresso)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+          <motion.path initial={false} animate={{ d: lineD }} transition={morph} fill="none" stroke="#6967FB" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
         </g>
 
         {/* intersection point */}
         <motion.circle
           cy={T_GOAL}
           r="5.5"
-          fill="var(--pink-deep)"
-          stroke="var(--paper)"
+          fill="#6967FB"
+          stroke="#FFFFFF"
           strokeWidth="2.5"
           initial={false}
           animate={{ cx: px, opacity: has ? 1 : 0, scale: has ? 1 : 0.5 }}
@@ -264,8 +264,8 @@ export function TimeChart({
         />
 
         {/* axes */}
-        <text x={T_LEFT} y={TH - 6} fontSize="11" fontFamily="var(--sans)" fill="var(--muted)">{xStart}</text>
-        <text x={T_RIGHT} y={TH - 6} textAnchor="end" fontSize="11" fontFamily="var(--sans)" fill="var(--muted)">{xEnd}</text>
+        <text x={T_LEFT} y={TH - 6} fontSize="11" fontFamily="inherit" fill="#999999">{xStart}</text>
+        <text x={T_RIGHT} y={TH - 6} textAnchor="end" fontSize="11" fontFamily="inherit" fill="#999999">{xEnd}</text>
       </svg>
 
       {/* date tooltip pill (HTML, positioned in % of the chart box) */}
@@ -282,11 +282,11 @@ export function TimeChart({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={reduce ? { duration: 0 } : { delay: 0.5, type: "spring", stiffness: 420, damping: 24 }}
             className="relative flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-[13px] font-bold"
-            style={{ background: "var(--espresso)", color: "var(--paper)", boxShadow: "0 8px 20px -10px rgba(58,40,31,.6)" }}
+            style={{ background: "#6967FB", color: "#FFFFFF", boxShadow: "0 8px 20px -10px rgba(58,40,31,.6)" }}
           >
-            <span style={{ color: "var(--pink)" }} aria-hidden>✦</span>
+            <span style={{ color: "#E6E5FF" }} aria-hidden>✦</span>
             <span>{dateLabel}</span>
-            <span className="absolute left-1/2 top-full h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rotate-45" style={{ background: "var(--espresso)" }} aria-hidden />
+            <span className="absolute left-1/2 top-full h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rotate-45" style={{ background: "#6967FB" }} aria-hidden />
           </motion.div>
         </motion.div>
       )}

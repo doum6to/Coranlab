@@ -7,7 +7,7 @@ import { createCommencerCheckout } from "@/actions/commencer-checkout";
 import { ttqTrack } from "@/lib/analytics/tiktok";
 import type { CmPlan, CommencerContent } from "@/lib/commencer-shared";
 
-import { Check, PrimaryButton, Shell, addDays, fill, fmtLong, rich, useToday } from "./ui";
+import { Check, Icon, P, PrimaryButton, Shell, addDays, fill, fmtLong, rich, useToday } from "./ui";
 
 type PlanId = "weekly" | "annual";
 
@@ -55,10 +55,10 @@ export function Paywall({ paywall, email }: { paywall: CommencerContent["paywall
     <Shell
       footer={
         <>
-          {err && <p className="text-center text-[13px]" style={{ color: "#B3261E" }} role="alert">{err}</p>}
+          {err && <p className="text-center text-[13px]" style={{ color: P.danger }} role="alert">{err}</p>}
           <PrimaryButton onClick={checkout} busy={busy}>{busy ? "Redirection…" : paywall.cta}</PrimaryButton>
-          <p className="text-center text-[12px] leading-snug" style={{ color: "var(--muted)" }}>{finePrint}</p>
-          <p className="flex items-center justify-center gap-2 text-[11px]" style={{ color: "var(--muted)" }}>
+          <p className="text-center text-[12px] leading-snug" style={{ color: P.muted }}>{finePrint}</p>
+          <p className="flex items-center justify-center gap-2 text-[11px]" style={{ color: P.muted }}>
             <a href="/conditions" className="underline underline-offset-2">Conditions</a>
             <span aria-hidden>·</span>
             <a href="/confidentialite" className="underline underline-offset-2">Confidentialité</a>
@@ -67,8 +67,8 @@ export function Paywall({ paywall, email }: { paywall: CommencerContent["paywall
       }
     >
       <motion.div className="text-center" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={wave(0)}>
-        <h1 className="da-h text-[30px] sm:text-[34px]">{rich(paywall.title)}</h1>
-        <p className="mt-2 text-[15px] font-medium" style={{ color: "var(--espresso-soft)" }}>{paywall.subtitle}</p>
+        <h1 className="font-heading text-[28px] font-bold leading-tight sm:text-[32px]">{rich(paywall.title)}</h1>
+        <p className="mt-2 text-[15px] font-medium" style={{ color: P.soft }}>{paywall.subtitle}</p>
       </motion.div>
 
       {/* Timeline */}
@@ -82,19 +82,19 @@ export function Paywall({ paywall, email }: { paywall: CommencerContent["paywall
                 <span
                   className="flex h-11 w-11 items-center justify-center rounded-full text-[18px]"
                   style={{
-                    background: first ? "var(--espresso)" : "transparent",
-                    border: first ? "none" : "1.5px solid var(--espresso)",
-                    color: first ? "var(--paper)" : "var(--espresso)",
+                    background: first ? P.purple : "transparent",
+                    border: first ? "none" : "1.5px solid #6967FB",
+                    color: first ? "#fff" : P.purple,
                   }}
                   aria-hidden
                 >
-                  {item.icon ?? "•"}
+                  <Icon name={item.icon} size={20} />
                 </span>
-                {!last && <span className="w-[3px] flex-1 rounded-full" style={{ minHeight: 22, background: first ? "linear-gradient(to bottom, var(--espresso), var(--pink))" : "linear-gradient(to bottom, var(--pink), var(--line))" }} aria-hidden />}
+                {!last && <span className="w-[3px] flex-1 rounded-full" style={{ minHeight: 22, background: first ? "linear-gradient(to bottom, #6967FB, #E6E5FF)" : "linear-gradient(to bottom, #E6E5FF, #E8E8E8)" }} aria-hidden />}
               </div>
               <div className={last ? "pb-1" : "pb-5"}>
-                <p className="text-[16px] font-semibold leading-tight" style={{ color: "var(--ink)" }}>{item.title}</p>
-                <p className="mt-1 text-[14px] leading-snug" style={{ color: "var(--muted)" }}>{fill(item.text, { date: billingDate })}</p>
+                <p className="text-[16px] font-semibold leading-tight" style={{ color: P.text }}>{item.title}</p>
+                <p className="mt-1 text-[14px] leading-snug" style={{ color: P.muted }}>{fill(item.text, { date: billingDate })}</p>
               </div>
             </li>
           );
@@ -117,27 +117,27 @@ export function Paywall({ paywall, email }: { paywall: CommencerContent["paywall
               className="relative block w-full overflow-hidden text-left"
               style={{
                 borderRadius: 16,
-                border: `2px solid ${active ? "var(--espresso)" : "var(--line)"}`,
-                background: "#FBF8F2",
+                border: `2px solid ${active ? P.purple : P.border}`,
+                background: "#fff",
                 transition: "border-color .15s",
               }}
             >
               {hasTag && (
                 <span
                   className="block px-4 py-1.5 text-[11px] font-bold uppercase tracking-[.14em]"
-                  style={{ background: active ? "var(--pink)" : "var(--paper-deep)", color: active ? "var(--ink)" : "var(--muted)", transition: "background-color .15s, color .15s" }}
+                  style={{ background: active ? P.purple : P.surface, color: active ? "#fff" : P.muted, transition: "background-color .15s, color .15s" }}
                 >
                   {cfg.tag}
                 </span>
               )}
               <span className="flex items-center justify-between gap-3 px-4 py-3.5 pr-12">
                 <span className="min-w-0">
-                  <span className="block text-[17px] font-semibold" style={{ color: "var(--ink)" }}>{cfg.title}</span>
-                  {cfg.sub && <span className="mt-0.5 block text-[13px]" style={{ color: "var(--muted)" }}>{cfg.sub}</span>}
+                  <span className="block text-[17px] font-semibold" style={{ color: P.text }}>{cfg.title}</span>
+                  {cfg.sub && <span className="mt-0.5 block text-[13px]" style={{ color: P.muted }}>{cfg.sub}</span>}
                 </span>
                 <span className="shrink-0 text-right">
-                  <span className="da-h block text-[22px] leading-none" style={{ fontFamily: "var(--serif-alt)" }}>{cfg.priceLabel}</span>
-                  <span className="mt-1 block text-[12px]" style={{ color: "var(--muted)" }}>{cfg.per}</span>
+                  <span className="block font-heading text-[22px] font-extrabold leading-none">{cfg.priceLabel}</span>
+                  <span className="mt-1 block text-[12px]" style={{ color: P.muted }}>{cfg.per}</span>
                 </span>
               </span>
               {/* Check badge — kept INSIDE the card bounds */}
@@ -145,9 +145,9 @@ export function Paywall({ paywall, email }: { paywall: CommencerContent["paywall
                 className="absolute right-3 flex h-6 w-6 items-center justify-center rounded-full"
                 style={{
                   top: hasTag ? 40 : 12,
-                  background: active ? "var(--espresso)" : "transparent",
-                  border: active ? "none" : "1.5px solid var(--line)",
-                  color: "var(--paper)",
+                  background: active ? P.purple : "transparent",
+                  border: active ? "none" : "1.5px solid #E8E8E8",
+                  color: "#fff",
                   transition: "background-color .15s",
                 }}
                 aria-hidden
@@ -159,15 +159,15 @@ export function Paywall({ paywall, email }: { paywall: CommencerContent["paywall
         })}
       </motion.div>
 
-      <motion.p className="mt-5 flex items-center justify-center gap-2 text-[14px] font-semibold" style={{ color: "var(--ink)" }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={wave(3)}>
-        <Check size={14} color="var(--espresso)" />
+      <motion.p className="mt-5 flex items-center justify-center gap-2 text-[14px] font-semibold" style={{ color: P.text }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={wave(3)}>
+        <Check size={14} color={P.purple} />
         {paywall.reassurance}
       </motion.p>
 
       {busy && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center" style={{ background: "rgba(43,29,22,.45)" }} aria-hidden>
-          <div className="flex h-20 w-20 items-center justify-center rounded-[20px]" style={{ background: "var(--espresso)" }}>
-            <span className="h-8 w-8 animate-spin rounded-full border-[3px]" style={{ borderColor: "rgba(239,233,222,.3)", borderTopColor: "var(--paper)" }} />
+        <div className="fixed inset-0 z-[60] flex items-center justify-center" style={{ background: "rgba(0,0,0,.45)" }} aria-hidden>
+          <div className="flex h-20 w-20 items-center justify-center rounded-[20px]" style={{ background: P.purple }}>
+            <span className="h-8 w-8 animate-spin rounded-full border-[3px]" style={{ borderColor: "rgba(239,233,222,.3)", borderTopColor: "#fff" }} />
           </div>
         </div>
       )}
