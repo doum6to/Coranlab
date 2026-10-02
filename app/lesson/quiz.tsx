@@ -87,6 +87,11 @@ export const Quiz = ({
   const [correctAudio, _c, correctControls] = useAudio({ src: "/correct.wav" });
   const [incorrectAudio, _i, incorrectControls] = useAudio({ src: "/incorrect.wav" });
   const [pending, startTransition] = useTransition();
+  const tq = useT();
+  // VRAI/FAUX option values are stored untranslated (the exercise matches on
+  // them), so the footer label is localized here.
+  const localizeAnswer = (v: string | undefined) =>
+    v === "VRAI" ? tq.lesson.answerTrue : v === "FAUX" ? tq.lesson.answerFalse : v;
 
   const [lessonId] = useState(initialLessonId);
   const [percentage, setPercentage] = useState(() => {
@@ -318,9 +323,11 @@ export const Quiz = ({
           onCheck={onContinue}
           correctAnswer={
             status === "wrong"
-              ? options.find((o) => o.correct)?.frenchText
-                || options.find((o) => o.correct)?.arabicText
-                || options.find((o) => o.correct)?.text
+              ? localizeAnswer(
+                  options.find((o) => o.correct)?.frenchText
+                    || options.find((o) => o.correct)?.arabicText
+                    || options.find((o) => o.correct)?.text,
+                )
               : undefined
           }
         />
@@ -675,7 +682,7 @@ function FinishedScreen({
           className="animate-fade-in-up mt-4 text-sm font-semibold text-[#6967FB] hover:underline"
           style={{ animationDelay: "1.1s" }}
         >
-          ✨ Tu apprends vite — continue sans limite avec Premium
+          {t.exercises.victoryNudge}
         </button>
       )}
     </div>

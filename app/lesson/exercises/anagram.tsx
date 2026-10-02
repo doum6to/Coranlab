@@ -163,7 +163,7 @@ export const Anagram = ({
               onClick={handleReset}
               disabled={disabled || selectedLetters.length === 0}
             >
-              Réinitialiser
+              {t.exercises.reset}
             </ShinyButton>
           </div>
           <div className="w-1/2">
@@ -172,7 +172,7 @@ export const Anagram = ({
               onClick={handleCheck}
               disabled={disabled || availableLetters.length > 0 || status !== "none"}
             >
-              Vérifier
+              {t.lesson.check}
             </ShinyButton>
           </div>
         </div>
@@ -191,7 +191,7 @@ export const Anagram = ({
             onClick={handleContinue}
             className="px-8 py-3 rounded-2xl font-bold text-sm bg-red-500 text-white hover:bg-red-600 shadow-[0_4px_0_0_#b91c1c] transition-all active:translate-y-[3px] active:!shadow-none"
           >
-            Suivant
+            {t.lesson.next}
           </button>
         </div>
       )}

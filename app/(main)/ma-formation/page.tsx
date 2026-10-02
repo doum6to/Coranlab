@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Lock, PlayCircle } from "lucide-react";
@@ -5,17 +6,20 @@ import { Lock, PlayCircle } from "lucide-react";
 import { auth } from "@/lib/supabase/server";
 import { userHasArabicCourse, getArabicCourseVideos } from "@/lib/arabic-course";
 import { CoursePlayer } from "./course-player";
+import { getServerStrings } from "@/lib/i18n/server-t";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = {
-  title: "Ma formation — Lire l'arabe en 7h",
-};
+export function generateMetadata(): Metadata {
+  const { t } = getServerStrings();
+  return { title: t.training.metaTitle };
+}
 
 export default async function MaFormationPage() {
   const { userId } = await auth();
   if (!userId) redirect("/auth/login");
 
+  const { t } = getServerStrings();
   const hasAccess = await userHasArabicCourse();
 
   if (!hasAccess) {
@@ -26,18 +30,16 @@ export default async function MaFormationPage() {
             <Lock className="h-7 w-7" />
           </span>
           <h1 className="text-2xl font-bold text-brilliant-text">
-            Apprends à lire l&apos;arabe en moins de 7h
+            {t.training.lockedTitle}
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-brilliant-muted">
-            Cette formation en 21 vidéos est vendue séparément. Débloque
-            l&apos;accès à vie et commence dès aujourd&apos;hui — sans devoirs,
-            sans stylo et sans cahier.
+            {t.training.lockedBody}
           </p>
           <Link
             href="/lire-larabe"
             className="mt-6 inline-flex w-full items-center justify-center rounded-xl border-b-4 border-[#a9801f] bg-gradient-to-b from-[#e9c15a] to-[#d9a93c] px-6 py-3 text-sm font-extrabold uppercase tracking-wide text-neutral-900 transition hover:brightness-105 active:translate-y-1 active:border-b-0"
           >
-            Découvrir la formation
+            {t.training.discover}
           </Link>
         </div>
       </div>
@@ -54,11 +56,10 @@ export default async function MaFormationPage() {
             <PlayCircle className="h-7 w-7" />
           </span>
           <h1 className="text-2xl font-bold text-brilliant-text">
-            Ta formation arrive très bientôt
+            {t.training.soonTitle}
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-brilliant-muted">
-            Les vidéos sont en cours de mise en ligne. Reviens d&apos;ici peu —
-            ton accès est déjà actif.
+            {t.training.soonBody}
           </p>
         </div>
       </div>

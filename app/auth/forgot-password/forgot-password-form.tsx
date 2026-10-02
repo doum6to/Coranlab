@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { RiveMascot } from "@/components/rive-mascot";
 import { ShinyButton } from "@/components/ui/shiny-button";
+import { useT } from "@/lib/i18n/use-t";
 
 /**
  * "Mot de passe oublié" — sends a Supabase reset email. The link lands on
@@ -13,6 +14,7 @@ import { ShinyButton } from "@/components/ui/shiny-button";
  * forwards to /auth/reset-password where the user sets a new password.
  */
 export function ForgotPasswordForm() {
+  const t = useT();
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -45,24 +47,23 @@ export function ForgotPasswordForm() {
             <RiveMascot src="/animations/eyes_down.riv" animationName="eyes down" />
           </div>
           <h1 className="text-2xl font-bold text-brilliant-text font-heading">
-            Mot de passe oublié ?
+            {t.authMore.forgotPassword}
           </h1>
           <p className="text-brilliant-muted text-sm text-center">
-            Entre ton e-mail, on t&apos;envoie un lien pour le réinitialiser.
+            {t.authMore.forgotSubtitle}
           </p>
         </div>
 
         {sent ? (
           <div className="space-y-4 text-center">
             <p className="rounded-xl border border-brilliant-green/30 bg-brilliant-success/40 px-4 py-3 text-sm font-medium text-brilliant-green">
-              E-mail envoyé ✓ Vérifie ta boîte de réception (et les spams) et
-              clique sur le lien pour choisir un nouveau mot de passe.
+              {t.authMore.forgotSent}
             </p>
             <Link
               href="/auth/login"
               className="inline-block text-sm font-semibold text-[#6967fb] hover:underline"
             >
-              Retour à la connexion
+              {t.authMore.backToLogin}
             </Link>
           </div>
         ) : (
@@ -73,7 +74,7 @@ export function ForgotPasswordForm() {
                   className="text-sm font-medium text-brilliant-text"
                   htmlFor="email"
                 >
-                  E-mail
+                  {t.auth.email}
                 </label>
                 <input
                   id="email"
@@ -86,7 +87,7 @@ export function ForgotPasswordForm() {
               </div>
               {error && <p className="text-sm text-rose-500">{error}</p>}
               <ShinyButton type="submit" variant="green" disabled={loading}>
-                {loading ? "Envoi…" : "Envoyer le lien"}
+                {loading ? t.authMore.sending : t.authMore.sendLink}
               </ShinyButton>
             </form>
 
@@ -95,7 +96,7 @@ export function ForgotPasswordForm() {
                 href="/auth/login"
                 className="text-[#6967fb] hover:underline font-semibold"
               >
-                Retour à la connexion
+                {t.authMore.backToLogin}
               </Link>
             </p>
           </>

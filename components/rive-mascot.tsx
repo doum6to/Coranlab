@@ -77,7 +77,7 @@ export const RiveMascot = ({
   return (
     <RiveComponent
       className={cn("h-full w-full", className)}
-      aria-label="mascotte"
+      aria-label="Koji"
     />
   );
 };

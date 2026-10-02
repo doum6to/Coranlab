@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
 import { linkCoursePurchaseByEmail } from "@/lib/link-purchase";
+import { getServerStrings } from "@/lib/i18n/server-t";
 
 /**
  * Server-side signup that auto-confirms the user so no email
@@ -9,6 +10,7 @@ import { linkCoursePurchaseByEmail } from "@/lib/link-purchase";
  * the service role key.
  */
 export async function POST(req: Request) {
+  const { t } = getServerStrings();
   try {
     const body = await req.json();
     const email = body.email?.trim();
@@ -17,7 +19,7 @@ export async function POST(req: Request) {
 
     if (!email || !password || !name) {
       return NextResponse.json(
-        { error: "Email, mot de passe et nom sont requis." },
+        { error: t.server.signupMissing },
         { status: 400 }
       );
     }
@@ -52,7 +54,7 @@ export async function POST(req: Request) {
       // Handle "user already exists" gracefully
       if (error.message.includes("already been registered")) {
         return NextResponse.json(
-          { error: "Un compte avec cet e-mail existe déjà." },
+          { error: t.server.signupExists },
           { status: 409 }
         );
       }
@@ -71,7 +73,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ user: { id: data.user.id } });
   } catch (e: any) {
     return NextResponse.json(
-      { error: e.message || "Erreur interne" },
+      { error: e.message || t.server.internal },
       { status: 500 }
     );
   }

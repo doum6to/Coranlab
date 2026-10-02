@@ -1,4 +1,5 @@
 import type { StreakData } from "@/db/queries";
+import { useT } from "@/lib/i18n/use-t";
 
 const LIME = "#BEF264"; // bright lime green like Brilliant
 const INK = "#0F172A";
@@ -40,6 +41,7 @@ type Props = {
 };
 
 export const StreakCard = ({ data }: Props) => {
+  const t = useT();
   const { streak, charges, days } = data;
 
   return (
@@ -83,7 +85,7 @@ export const StreakCard = ({ data }: Props) => {
                   d.isToday ? "font-bold text-brilliant-text" : "text-brilliant-muted"
                 }`}
               >
-                {d.label}
+                {t.weekdays[d.weekday]}
               </span>
             </div>
           );

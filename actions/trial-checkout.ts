@@ -2,6 +2,7 @@
 
 import { stripe } from "@/lib/stripe";
 import { absoluteUrl } from "@/lib/utils";
+import { getServerStrings } from "@/lib/i18n/server-t";
 
 /**
  * Creates a Stripe Checkout session for the 7-day free trial subscription,
@@ -20,6 +21,7 @@ export async function createTrialCheckoutUrl(params: {
   userId: string;
   email: string;
 }) {
+  const { t, locale } = getServerStrings();
   try {
     const { userId, email } = params;
 
@@ -34,6 +36,7 @@ export async function createTrialCheckoutUrl(params: {
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
+      locale,
       customer_email: email,
       line_items: [
         {
@@ -41,8 +44,8 @@ export async function createTrialCheckoutUrl(params: {
           price_data: {
             currency: "EUR",
             product_data: {
-              name: "Quranlab Premium",
-              description: "Essai 7 jours offerts, puis 14,97€/mois",
+              name: t.stripe.nameTrialSignup,
+              description: t.stripe.descTrialSignup,
             },
             unit_amount: 1497,
             recurring: { interval: "month" },
@@ -67,6 +70,6 @@ export async function createTrialCheckoutUrl(params: {
     return { url: session.url };
   } catch (error: any) {
     console.error("[TrialCheckout] Error:", error);
-    return { error: error?.message || "Erreur inconnue" };
+    return { error: error?.message || t.server.unknown };
   }
 }

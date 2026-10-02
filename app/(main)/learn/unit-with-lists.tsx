@@ -174,6 +174,7 @@ export const UnitWithListsView = ({
                 <ListCard
                   listId={list.listId}
                   listTitle={list.listTitle}
+                  listImage={list.listImage}
                   current={!isPremiumLocked && isCurrent}
                   locked={false}
                   completed={isCompleted}

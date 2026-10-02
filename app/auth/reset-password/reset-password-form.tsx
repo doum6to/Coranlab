@@ -7,6 +7,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { RiveMascot } from "@/components/rive-mascot";
 import { ShinyButton } from "@/components/ui/shiny-button";
+import { useT } from "@/lib/i18n/use-t";
 
 /**
  * Set a new password. Reached from the reset email via /auth/callback, which
@@ -14,6 +15,7 @@ import { ShinyButton } from "@/components/ui/shiny-button";
  * set the password directly. Guards against landing here without a session.
  */
 export function ResetPasswordForm() {
+  const t = useT();
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -34,11 +36,11 @@ export function ResetPasswordForm() {
     e.preventDefault();
     setError("");
     if (password.length < 6) {
-      setError("Le mot de passe doit faire au moins 6 caractères.");
+      setError(t.authMore.passwordTooShort);
       return;
     }
     if (password !== confirm) {
-      setError("Les deux mots de passe ne correspondent pas.");
+      setError(t.authMore.passwordsMismatch);
       return;
     }
     setLoading(true);
@@ -65,34 +67,34 @@ export function ResetPasswordForm() {
             <RiveMascot src="/animations/eyes_down.riv" animationName="eyes down" />
           </div>
           <h1 className="text-2xl font-bold text-brilliant-text font-heading">
-            Nouveau mot de passe
+            {t.authMore.resetTitle}
           </h1>
           <p className="text-brilliant-muted text-sm text-center">
-            Choisis un nouveau mot de passe pour ton compte.
+            {t.authMore.resetSubtitle}
           </p>
         </div>
 
         {hasSession === false ? (
           <div className="space-y-4 text-center">
             <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
-              Lien invalide ou expiré. Redemande un e-mail de réinitialisation.
+              {t.authMore.resetInvalid}
             </p>
             <Link
               href="/auth/forgot-password"
               className="inline-block text-sm font-semibold text-[#6967fb] hover:underline"
             >
-              Renvoyer un lien
+              {t.authMore.resendLink}
             </Link>
           </div>
         ) : done ? (
           <p className="rounded-xl border border-brilliant-green/30 bg-brilliant-success/40 px-4 py-3 text-center text-sm font-medium text-brilliant-green">
-            Mot de passe mis à jour ✓ Redirection…
+            {t.authMore.resetDone}
           </p>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="text-sm font-medium text-brilliant-text" htmlFor="password">
-                Nouveau mot de passe
+                {t.authMore.newPassword}
               </label>
               <input
                 id="password"
@@ -106,7 +108,7 @@ export function ResetPasswordForm() {
             </div>
             <div>
               <label className="text-sm font-medium text-brilliant-text" htmlFor="confirm">
-                Confirme le mot de passe
+                {t.authMore.confirmPassword}
               </label>
               <input
                 id="confirm"
@@ -120,7 +122,7 @@ export function ResetPasswordForm() {
             </div>
             {error && <p className="text-sm text-rose-500">{error}</p>}
             <ShinyButton type="submit" variant="green" disabled={loading || hasSession === null}>
-              {loading ? "Mise à jour…" : "Mettre à jour"}
+              {loading ? t.authMore.updating : t.authMore.update}
             </ShinyButton>
           </form>
         )}

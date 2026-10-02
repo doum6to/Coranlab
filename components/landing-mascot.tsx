@@ -59,7 +59,7 @@ export function LandingMascot({
           src={src}
           animationName={animationName}
           stateMachines={stateMachines}
-          ariaLabel="Quranlab mascotte"
+          ariaLabel="Koji"
         />
       )}
     </div>

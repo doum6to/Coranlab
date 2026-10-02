@@ -4,6 +4,12 @@ import { useEffect, useState } from "react";
 import { MoreVertical, PlusSquare, Check, X } from "lucide-react";
 
 import { isNativeApp } from "@/lib/platform";
+import { useT } from "@/lib/i18n/use-t";
+
+/** Renders `**bold**` segments of a dictionary string as <b>. */
+function bold(text: string) {
+  return text.split("**").map((part, i) => (i % 2 ? <b key={i}>{part}</b> : part));
+}
 
 const SEEN_KEY = "a2hs-tutorial-v1";
 
@@ -55,6 +61,7 @@ function isStandalone(): boolean {
  * skipped if already installed (standalone) or inside the real native app.
  */
 export const AddToHomeTutorial = () => {
+  const t = useT();
   const [show, setShow] = useState(false);
   const [platform, setPlatform] = useState<Platform>(null);
   // Android Chrome lets us trigger the real install prompt.
@@ -103,59 +110,21 @@ export const AddToHomeTutorial = () => {
   const steps =
     platform === "ios"
       ? [
-          {
-            icon: <IosShareIcon className="h-5 w-5 text-[#6967FB]" />,
-            text: (
-              <>
-                Touche le bouton <b>Partager</b> dans la barre de Safari.
-              </>
-            ),
-          },
-          {
-            icon: <PlusSquare className="h-5 w-5 text-[#6967FB]" />,
-            text: (
-              <>
-                Choisis <b>« Sur l&apos;écran d&apos;accueil »</b>.
-              </>
-            ),
-          },
-          {
-            icon: <Check className="h-5 w-5 text-emerald-500" />,
-            text: (
-              <>
-                Touche <b>« Ajouter »</b> — c&apos;est installé&nbsp;!
-              </>
-            ),
-          },
+          { icon: <IosShareIcon className="h-5 w-5 text-[#6967FB]" />, text: t.addToHome.ios1 },
+          { icon: <PlusSquare className="h-5 w-5 text-[#6967FB]" />, text: t.addToHome.ios2 },
+          { icon: <Check className="h-5 w-5 text-emerald-500" />, text: t.addToHome.ios3 },
         ]
       : [
-          {
-            icon: <MoreVertical className="h-5 w-5 text-[#6967FB]" />,
-            text: (
-              <>
-                Ouvre le menu <b>⋮</b> en haut à droite de Chrome.
-              </>
-            ),
-          },
-          {
-            icon: <PlusSquare className="h-5 w-5 text-[#6967FB]" />,
-            text: (
-              <>
-                Touche <b>« Ajouter à l&apos;écran d&apos;accueil »</b>.
-              </>
-            ),
-          },
-          {
-            icon: <Check className="h-5 w-5 text-emerald-500" />,
-            text: <>Confirme — l&apos;icône apparaît sur ton téléphone&nbsp;!</>,
-          },
+          { icon: <MoreVertical className="h-5 w-5 text-[#6967FB]" />, text: t.addToHome.android1 },
+          { icon: <PlusSquare className="h-5 w-5 text-[#6967FB]" />, text: t.addToHome.android2 },
+          { icon: <Check className="h-5 w-5 text-emerald-500" />, text: t.addToHome.android3 },
         ];
 
   return (
     <div className="fixed inset-0 z-[120] flex items-end justify-center sm:items-center">
       {/* Backdrop */}
       <button
-        aria-label="Fermer"
+        aria-label={t.ui.close}
         onClick={dismiss}
         className="absolute inset-0 bg-black/50 animate-in fade-in duration-200"
       />
@@ -165,7 +134,7 @@ export const AddToHomeTutorial = () => {
         <button
           onClick={dismiss}
           className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100"
-          aria-label="Fermer"
+          aria-label={t.ui.close}
         >
           <X className="h-5 w-5" />
         </button>
@@ -179,11 +148,10 @@ export const AddToHomeTutorial = () => {
             className="h-16 w-16 rounded-2xl object-contain shadow-sm"
           />
           <h2 className="mt-3 font-heading text-lg font-extrabold text-brilliant-text">
-            Installe Quranlab sur ton téléphone
+            {t.addToHome.title}
           </h2>
           <p className="mt-1 text-sm text-brilliant-muted">
-            Ajoute-la à ton écran d&apos;accueil pour l&apos;ouvrir comme une vraie
-            application, en plein écran.
+            {t.addToHome.body}
           </p>
         </div>
 
@@ -197,7 +165,7 @@ export const AddToHomeTutorial = () => {
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
                 {s.icon}
               </div>
-              <p className="text-sm text-brilliant-text">{s.text}</p>
+              <p className="text-sm text-brilliant-text">{bold(s.text)}</p>
             </div>
           ))}
         </div>
@@ -210,14 +178,14 @@ export const AddToHomeTutorial = () => {
               className="w-full rounded-2xl py-3.5 text-sm font-bold text-white transition hover:opacity-90 active:scale-[0.98]"
               style={{ background: "#6967FB", boxShadow: "0 4px 0 0 #4a48d4" }}
             >
-              Ajouter à l&apos;écran d&apos;accueil
+              {t.addToHome.install}
             </button>
           )}
           <button
             onClick={dismiss}
             className="w-full rounded-2xl py-3 text-sm font-semibold text-brilliant-muted hover:bg-neutral-50"
           >
-            {platform === "android" && deferredPrompt ? "Plus tard" : "J'ai compris"}
+            {platform === "android" && deferredPrompt ? t.ui.later : t.ui.gotIt}
           </button>
         </div>
       </div>

@@ -39,7 +39,7 @@ export const UserProgress = ({
       </Link>
       <Link href="/shop">
         <Button variant="ghost" className="text-yellow-500">
-          <Image src="/key.svg" height={22} width={22} alt="Clés" className="mr-2" />
+          <Image src="/key.svg" height={22} width={22} alt="Keys" className="mr-2" />
           {hasActiveSubscription
             ? <InfinityIcon className="h-4 w-4 stroke-[3]" />
             : keys

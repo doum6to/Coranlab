@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useT } from "@/lib/i18n/use-t";
 
 type Word = {
   arabic: string;
@@ -8,6 +9,7 @@ type Word = {
 };
 
 const Flashcard = ({ word }: { word: Word }) => {
+  const t = useT();
   const [flipped, setFlipped] = useState(false);
 
   return (
@@ -41,7 +43,7 @@ const Flashcard = ({ word }: { word: Word }) => {
             {word.arabic}
           </p>
           <p className="text-[9px] sm:text-[10px] text-brilliant-muted mt-2 uppercase tracking-wider">
-            Retourner
+            {t.exercises.flip}
           </p>
         </div>
 

@@ -133,6 +133,16 @@ export const PricingView = () => {
       : { price: webPrice, priceSuffix: webSuffix };
   };
 
+  // RevenueCat helpers return stable error codes; map them to the locale.
+  const iapError = (code: string) =>
+    code === "unavailable"
+      ? t.iap.unavailable
+      : code === "purchase_failed"
+        ? t.iap.purchaseFailed
+        : code === "restore_failed"
+          ? t.iap.restoreFailed
+          : code;
+
   const onSubscribe = (plan: PremiumPlan = selected) => {
     // Every multi-month subscription bought here starts with a 7-day free trial
     // ("essai sur le plan choisi"). Lifetime is a one-time payment → no trial.
@@ -148,7 +158,7 @@ export const PricingView = () => {
           router.refresh();
           router.push("/learn");
         } else if (res.error && res.error !== "cancelled") {
-          toast.error(res.error);
+          toast.error(iapError(res.error));
         }
       });
       return;
@@ -174,13 +184,13 @@ export const PricingView = () => {
     startTransition(async () => {
       const res = await restorePurchases();
       if (res.success) {
-        toast.success("Achats restaurés ✓");
+        toast.success(t.pricingMore.restored);
         router.refresh();
         router.push("/learn");
       } else if (res.error) {
-        toast.error(res.error);
+        toast.error(iapError(res.error));
       } else {
-        toast.error("Aucun achat à restaurer.");
+        toast.error(t.pricingMore.nothingToRestore);
       }
     });
   };
@@ -196,14 +206,14 @@ export const PricingView = () => {
   const isTrialPlan = selected !== "lifetime";
   const ctaLabel = selected === "lifetime"
     ? t.pricing.buyLifetime
-    : "Commencer — 7 jours gratuits";
+    : t.pricingMore.startTrial;
 
   // What the user is billed once the 7-day trial ends (matches the amounts in
   // actions/user-subscription.ts). No monthly tariff — only the 4 plans.
   const trialThenLabel: Partial<Record<PremiumPlan, string>> = {
-    three_months: "Gratuit 7 jours, puis 44,91€ tous les 3 mois",
-    six_months: "Gratuit 7 jours, puis 71,94€ tous les 6 mois",
-    annual: "Gratuit 7 jours, puis 119,88€ par an",
+    three_months: t.pricingMore.trialThen3m,
+    six_months: t.pricingMore.trialThen6m,
+    annual: t.pricingMore.trialThenYear,
   };
 
   return (
@@ -246,7 +256,7 @@ export const PricingView = () => {
           <PlanCard
             plan="three_months"
             title={t.pricing.plan3m}
-            {...priceFor("three_months", "14,97€", t.pricing.perMonth)}
+            {...priceFor("three_months", t.pricingMore.price3m, t.pricing.perMonth)}
             subtitle={t.pricing.renewedEvery3m}
             selected={selected === "three_months"}
             onClick={() => setSelected("three_months")}
@@ -255,7 +265,7 @@ export const PricingView = () => {
           <PlanCard
             plan="six_months"
             title={t.pricing.plan6m}
-            {...priceFor("six_months", "11,99€", t.pricing.perMonthStar)}
+            {...priceFor("six_months", t.pricingMore.price6m, t.pricing.perMonthStar)}
             subtitle={t.pricing.save20}
             selected={selected === "six_months"}
             onClick={() => setSelected("six_months")}
@@ -265,7 +275,7 @@ export const PricingView = () => {
           <PlanCard
             plan="annual"
             title={t.pricing.planAnnual}
-            {...priceFor("annual", "9,99€", t.pricing.perMonthStar)}
+            {...priceFor("annual", t.pricingMore.priceYear, t.pricing.perMonthStar)}
             subtitle={t.pricing.save33}
             selected={selected === "annual"}
             onClick={() => setSelected("annual")}
@@ -320,7 +330,7 @@ export const PricingView = () => {
                   className="text-lg sm:text-2xl font-extrabold bg-clip-text text-transparent"
                   style={{ backgroundImage: LIFETIME_GRADIENT }}
                 >
-                  {priceFor("lifetime", "299,99€", "").price}
+                  {priceFor("lifetime", t.pricingMore.priceLifetime, "").price}
                 </div>
               </div>
             </div>
@@ -341,12 +351,12 @@ export const PricingView = () => {
               </svg>
             ))}
             <span className="ml-1.5 text-[11px] sm:text-xs font-semibold text-brilliant-muted">
-              Adopté par des milliers de musulmans
+              {t.pricingMore.socialProof}
             </span>
           </div>
           <p className="mt-2 text-xs sm:text-sm italic text-brilliant-text">
-            « En 3 jours je reconnais plein de mots dans ma prière. Allahumma barik. »
-            <span className="not-italic font-semibold text-brilliant-muted"> — Omar</span>
+            {t.pricingMore.testimonial}
+            <span className="not-italic font-semibold text-brilliant-muted"> {t.pricingMore.testimonialAuthor}</span>
           </p>
         </div>
 
@@ -368,7 +378,7 @@ export const PricingView = () => {
         {/* Trial reassurance — accurate post-trial billing for the chosen plan */}
         {isTrialPlan && (
           <p className="text-center text-[10px] sm:text-xs text-brilliant-muted mt-2 shrink-0">
-            {trialThenLabel[selected]} · annulable à tout moment
+            {trialThenLabel[selected]} · {t.pricingMore.cancelAnytime}
           </p>
         )}
 
@@ -380,15 +390,15 @@ export const PricingView = () => {
               disabled={pending}
               className="text-xs sm:text-sm font-semibold text-brilliant-text underline underline-offset-2 disabled:opacity-60"
             >
-              Restaurer mes achats
+              {t.pricingMore.restorePurchases}
             </button>
             <div className="flex items-center gap-3 text-[10px] sm:text-xs text-brilliant-muted">
               <Link href={TERMS_URL} className="underline underline-offset-2">
-                Conditions d&apos;utilisation
+                {t.pricingMore.terms}
               </Link>
               <span>·</span>
               <Link href={PRIVACY_URL} className="underline underline-offset-2">
-                Confidentialité
+                {t.pricingMore.privacy}
               </Link>
             </div>
           </div>

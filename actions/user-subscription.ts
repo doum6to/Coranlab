@@ -6,12 +6,15 @@ import { stripe } from "@/lib/stripe";
 import { absoluteUrl } from "@/lib/utils";
 import { getUserSubscription } from "@/db/queries";
 import type { PremiumPlan } from "@/lib/premium";
+import { getServerStrings } from "@/lib/i18n/server-t";
+import type { AppStrings } from "@/lib/i18n/app-dict";
 
 const returnUrl = absoluteUrl("/learn");
 
 type PlanConfig = {
-  name: string;
-  description: string;
+  /** Dictionary keys for the product name/description shown by Stripe. */
+  name: keyof AppStrings["stripe"];
+  description: keyof AppStrings["stripe"];
   unit_amount: number;
   mode: "subscription" | "payment";
   recurring?: { interval: "month" | "year"; interval_count?: number };
@@ -21,36 +24,35 @@ type PlanConfig = {
 
 const PLAN_CONFIG: Record<PremiumPlan, PlanConfig> = {
   three_months: {
-    name: "Quranlab Premium (3 mois)",
-    description: "Accès illimité — facturé tous les 3 mois",
+    name: "name3m",
+    description: "desc3m",
     unit_amount: 4491, // 14,97€ × 3
     mode: "subscription",
     recurring: { interval: "month", interval_count: 3 },
   },
   six_months: {
-    name: "Quranlab Premium (6 mois)",
-    description: "Accès illimité — facturé tous les 6 mois",
+    name: "name6m",
+    description: "desc6m",
     unit_amount: 7194, // 11,99€ × 6
     mode: "subscription",
     recurring: { interval: "month", interval_count: 6 },
   },
   annual: {
-    name: "Quranlab Premium (Annuel)",
-    description: "Accès illimité à tous les cours — facturé annuellement",
+    name: "nameYear",
+    description: "descYear",
     unit_amount: 11988, // 119,88€ = 9,99€/mois
     mode: "subscription",
     recurring: { interval: "year" },
   },
   lifetime: {
-    name: "Quranlab Premium (À vie)",
-    description:
-      "Accès illimité à tous les cours — paiement unique, à vie",
+    name: "nameLifetime",
+    description: "descLifetime",
     unit_amount: 29999, // 299,99€
     mode: "payment",
   },
   monthly_trial: {
-    name: "Quranlab Premium (Mensuel, essai 7j)",
-    description: "Accès illimité — 7 jours offerts, puis 14,97€/mois",
+    name: "nameTrial",
+    description: "descTrial",
     unit_amount: 1497, // 14,97€/mois
     mode: "subscription",
     recurring: { interval: "month" },
@@ -62,6 +64,7 @@ export const createStripeUrl = async (
   plan: PremiumPlan = "three_months",
   withTrial = false,
 ) => {
+  const { t, locale } = getServerStrings();
   try {
     const { userId } = await auth();
     const user = await currentUser();
@@ -96,8 +99,8 @@ export const createStripeUrl = async (
     const priceData: Record<string, any> = {
       currency: "EUR",
       product_data: {
-        name: config.name,
-        description: config.description,
+        name: t.stripe[config.name],
+        description: t.stripe[config.description],
       },
       unit_amount: config.unit_amount,
     };
@@ -107,6 +110,8 @@ export const createStripeUrl = async (
 
     const sessionParams: Record<string, any> = {
       mode: config.mode,
+      // Stripe-hosted checkout UI in the user's language.
+      locale,
       line_items: [
         {
           quantity: 1,
@@ -159,6 +164,6 @@ export const createStripeUrl = async (
     return { data: stripeSession.url };
   } catch (error: any) {
     console.error("[Stripe] Error creating checkout:", error);
-    return { error: error?.message || "Unknown error" };
+    return { error: error?.message || t.server.unknown };
   }
 };

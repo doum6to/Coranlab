@@ -1,4 +1,5 @@
 import type { Locale } from "./locales";
+import { EXT_EN, EXT_ES, EXT_FR, type AppStringsExt } from "./app-dict-ext";
 
 /**
  * Translation dictionary for the learning app UI (everything outside the sales
@@ -326,9 +327,11 @@ const fr = {
   },
 };
 
-export type AppStrings = typeof fr;
+type AppStringsBase = typeof fr;
+/** Full app dictionary shape (base + extension sections). */
+export type AppStrings = AppStringsBase & AppStringsExt;
 
-const en: AppStrings = {
+const en: AppStringsBase = {
   common: {
     start: "Start",
     continue: "Continue",
@@ -645,7 +648,7 @@ const en: AppStrings = {
   },
 };
 
-const es: AppStrings = {
+const es: AppStringsBase = {
   common: {
     start: "Empezar",
     continue: "Continuar",
@@ -963,4 +966,8 @@ const es: AppStrings = {
   },
 };
 
-export const APP_STRINGS: Record<Locale, AppStrings> = { fr, en, es };
+export const APP_STRINGS: Record<Locale, AppStrings> = {
+  fr: { ...fr, ...EXT_FR },
+  en: { ...en, ...EXT_EN },
+  es: { ...es, ...EXT_ES },
+};

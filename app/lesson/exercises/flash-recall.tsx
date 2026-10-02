@@ -56,7 +56,7 @@ export const FlashRecall = ({
       {phase === "show" && (
         <div className="flex flex-col items-center gap-2">
           <p className="text-xs sm:text-sm text-brilliant-muted font-medium">
-            Mémorise ce mot...
+            {t.exercises.memorize}
           </p>
           <div className="w-32 h-1.5 bg-gray-200 rounded-full overflow-hidden">
             <div

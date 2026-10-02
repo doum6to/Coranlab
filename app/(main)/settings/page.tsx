@@ -8,6 +8,7 @@ import { getOfferSettings } from "@/lib/offer";
 import { getVipSettings, isVipCustomer, cleanDriveUrl } from "@/lib/vip";
 import { auth, currentUser } from "@/lib/supabase/server";
 import { SettingsView } from "./settings-view";
+import { getServerStrings } from "@/lib/i18n/server-t";
 
 const SettingsPage = async () => {
   const { userId } = await auth();
@@ -39,11 +40,12 @@ const SettingsPage = async () => {
 
   // Show the PDF documents to people who bought (matched by email) or who
   // have a lifetime grant.
+  const { t } = getServerStrings();
   const offerSettings = await getOfferSettings();
   let documents = offerSettings.pdfLinks;
   if (!documents.length && process.env.COURSE_DRIVE_URL) {
     documents = [
-      { label: "Tous les documents (PDF)", url: process.env.COURSE_DRIVE_URL },
+      { label: t.ui.allDocuments, url: process.env.COURSE_DRIVE_URL },
     ];
   }
   documents = documents.map((d) => ({ ...d, url: cleanDrive(d.url) }));

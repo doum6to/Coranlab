@@ -4,7 +4,6 @@ import Image from "next/image";
 import { ArrowLeft, BookOpen, Layers } from "lucide-react";
 
 import { getListLevels, isListPremiumLocked } from "@/db/queries";
-import { getListImage } from "@/lib/list-images";
 import { getServerStrings } from "@/lib/i18n/server-t";
 import { tpl } from "@/lib/i18n/locales";
 
@@ -41,14 +40,14 @@ const ListDetailPage = async ({ params }: Props) => {
       {/* Back button */}
       <Link href="/learn" className="inline-flex items-center gap-1.5 text-sm text-brilliant-muted hover:text-brilliant-text transition mb-6">
         <ArrowLeft className="h-4 w-4" />
-        Retour
+        {t.lesson.back}
       </Link>
 
       {/* Header */}
       <div className="text-center mb-8">
         <div className="w-24 h-24 sm:w-28 sm:h-28 mx-auto mb-4 rounded-2xl overflow-hidden">
           <Image
-            src={getListImage(data.listTitle)}
+            src={data.listImage}
             alt={data.listTitle}
             width={512}
             height={512}

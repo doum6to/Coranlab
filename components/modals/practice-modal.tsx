@@ -12,10 +12,12 @@ import {
 } from "@/components/ui/dialog";
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { usePracticeModal } from "@/store/use-practice-modal";
+import { useT } from "@/lib/i18n/use-t";
 
 export const PracticeModal = () => {
   const [isClient, setIsClient] = useState(false);
   const { isOpen, close } = usePracticeModal();
+  const t = useT();
 
   useEffect(() => setIsClient(true), []);
 
@@ -30,16 +32,16 @@ export const PracticeModal = () => {
           <div className="flex items-center w-full justify-center mb-4">
             <Image
               src="/mascot.svg"
-              alt="Mascotte"
+              alt={t.ui.mascot}
               height={100}
               width={100}
             />
           </div>
           <DialogTitle className="text-center font-bold text-xl sm:text-2xl text-brilliant-text">
-            Leçon de pratique
+            {t.practiceModal.title}
           </DialogTitle>
           <DialogDescription className="text-center text-sm sm:text-base text-brilliant-muted mt-1">
-            Utilise les leçons de pratique pour regagner des cœurs et des points. Tu ne peux pas perdre de cœurs ou de points dans les leçons de pratique.
+            {t.practiceModal.body}
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-y-3 w-full mt-4">
@@ -47,7 +49,7 @@ export const PracticeModal = () => {
             variant="green"
             onClick={close}
           >
-            J&apos;ai compris
+            {t.ui.gotIt}
           </ShinyButton>
         </div>
       </DialogContent>

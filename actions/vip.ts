@@ -14,6 +14,7 @@ import {
   cleanDriveUrl,
   type VipSettings,
 } from "@/lib/vip";
+import { getServerStrings } from "@/lib/i18n/server-t";
 
 const LIFETIME_END = new Date("2099-12-31T23:59:59Z");
 
@@ -73,17 +74,18 @@ export async function redeemVipAccess(input: {
   const password = input.password;
   const name = input.name?.trim();
   const code = input.code?.trim();
+  const { t } = getServerStrings();
 
   if (!email || !password || !name) {
-    return { error: "E-mail, prénom et mot de passe sont requis." } as const;
+    return { error: t.server.vipMissing } as const;
   }
   if (password.length < 6) {
-    return { error: "Le mot de passe doit faire au moins 6 caractères." } as const;
+    return { error: t.server.vipPasswordShort } as const;
   }
 
   const settings = await getVipSettings();
   if (!code || code.toLowerCase() !== settings.code.toLowerCase()) {
-    return { error: "Lien invalide ou expiré." } as const;
+    return { error: t.server.vipInvalid } as const;
   }
 
   const supabase = admin();
@@ -103,10 +105,7 @@ export async function redeemVipAccess(input: {
       existed = true;
       userId = await findUserIdByEmail(email);
       if (!userId) {
-        return {
-          error:
-            "Un compte existe déjà avec cet e-mail. Connecte-toi, puis recharge cette page pour activer ton accès.",
-        } as const;
+        return { error: t.server.vipExists } as const;
       }
     } else {
       return { error: error.message } as const;
@@ -119,7 +118,7 @@ export async function redeemVipAccess(input: {
     await grantLifetime(userId);
   } catch (e: any) {
     console.error("[vip] grantLifetime failed:", e);
-    return { error: "Compte créé mais l'activation premium a échoué. Contacte le support." } as const;
+    return { error: t.server.vipGrantFailed } as const;
   }
 
   // Trace the redemption so the owner can cross-check emails vs the buyer list.

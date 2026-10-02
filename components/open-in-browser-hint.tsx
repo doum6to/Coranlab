@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ArrowUpRight, X } from "lucide-react";
+import { useT } from "@/lib/i18n/use-t";
 
 /** Detects TikTok / Instagram / Facebook / Snapchat in-app browsers (webviews). */
 export function isInAppBrowser(): boolean {
@@ -20,11 +21,13 @@ export function isInAppBrowser(): boolean {
  */
 export function OpenInBrowserHint({
   accent = "#E9C46A",
-  label = "Ouvrir dans le navigateur",
+  label,
 }: {
   accent?: string;
   label?: string;
 }) {
+  const t = useT();
+  const text = label ?? t.openInBrowser;
   const [show, setShow] = useState(false);
 
   useEffect(() => {
@@ -57,11 +60,11 @@ export function OpenInBrowserHint({
           animation: "oib-pop .25s ease-out",
         }}
       >
-        <span className="text-[13px] font-semibold leading-tight text-white">{label}</span>
+        <span className="text-[13px] font-semibold leading-tight text-white">{text}</span>
         <button
           type="button"
           onClick={() => setShow(false)}
-          aria-label="Fermer"
+          aria-label={t.ui.close}
           className="grid h-6 w-6 place-items-center rounded-full text-white/60 hover:bg-white/10 hover:text-white"
         >
           <X className="h-4 w-4" />

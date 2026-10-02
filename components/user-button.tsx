@@ -4,8 +4,10 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
+import { useT } from "@/lib/i18n/use-t";
 
 export const UserButton = () => {
+  const t = useT();
   const router = useRouter();
 
   const handleSignOut = async () => {
@@ -18,7 +20,7 @@ export const UserButton = () => {
   return (
     <Button onClick={handleSignOut} variant="ghost" size="sm" className="gap-x-2">
       <LogOut className="h-4 w-4" />
-      Déconnexion
+      {t.settings.signOut}
     </Button>
   );
 };

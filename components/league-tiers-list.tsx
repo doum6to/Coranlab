@@ -6,10 +6,10 @@ import {
   LEAGUE_TIERS,
   TIER_LABELS,
   TIER_COLORS,
-  TIER_DESCRIPTIONS,
   type LeagueTier,
 } from "@/lib/league-utils";
 import { LeagueTierBadge } from "./league-tier-badge";
+import { useT } from "@/lib/i18n/use-t";
 
 type Props = {
   currentTier?: LeagueTier | null;
@@ -17,6 +17,7 @@ type Props = {
 
 export const LeagueTiersList = ({ currentTier }: Props) => {
   const [open, setOpen] = useState(false);
+  const t = useT();
 
   // Reverse so highest tier is first
   const tiers = [...LEAGUE_TIERS].reverse();
@@ -27,7 +28,7 @@ export const LeagueTiersList = ({ currentTier }: Props) => {
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-brilliant-muted hover:text-brilliant-text transition cursor-pointer"
       >
-        Voir toutes les ligues
+        {t.leagueMore.seeAllLeagues}
         {open ? (
           <ChevronUp className="h-4 w-4" />
         ) : (
@@ -88,12 +89,12 @@ export const LeagueTiersList = ({ currentTier }: Props) => {
                     {TIER_LABELS[tier]}
                     {isCurrent && (
                       <span className="ml-2 text-xs font-semibold text-[#6967FB]">
-                        (ta ligue)
+                        {t.leagueMore.yourLeague}
                       </span>
                     )}
                   </p>
                   <p className="text-xs text-brilliant-muted">
-                    {TIER_DESCRIPTIONS[tier]}
+                    {t.leagueMore[`tier${tier}`]}
                   </p>
                 </div>
 

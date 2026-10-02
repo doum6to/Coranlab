@@ -3,6 +3,8 @@
 import { Flame, Sparkles, ChevronRight } from "lucide-react";
 
 import { usePremiumModal } from "@/store/use-premium-modal";
+import { useT } from "@/lib/i18n/use-t";
+import { tpl } from "@/lib/i18n/locales";
 
 const GRADIENT =
   "linear-gradient(135deg, #F7C325 0%, #E350E3 35%, #874DE5 65%, #456DFF 100%)";
@@ -20,15 +22,18 @@ type Props = {
  * Tapping opens the contextual Premium modal. Shown only to non-Pro users.
  */
 export const PremiumNudgeBanner = ({ streak, percent }: Props) => {
+  const t = useT();
   const open = usePremiumModal((s) => s.open);
 
   const hasStreak = streak > 0;
   const headline = hasStreak
-    ? `Série de ${streak} jour${streak > 1 ? "s" : ""} 🔥`
-    : "Continue ta progression";
+    ? streak > 1
+      ? tpl(t.nudge.streakMany, { n: streak })
+      : t.nudge.streakOne
+    : t.nudge.keepGoing;
   const sub = hasStreak
-    ? "Garde ta série en sécurité et débloque tout avec Premium."
-    : `Tu comprends déjà ${percent}% — débloque les 500 mots du Coran.`;
+    ? t.nudge.streakSub
+    : tpl(t.nudge.percentSub, { percent });
 
   return (
     <button

@@ -13,6 +13,8 @@ import { usePremiumModal } from "@/store/use-premium-modal";
 type Props = {
   listId: number;
   listTitle: string;
+  /** Illustration path; falls back to a title lookup (French titles only). */
+  listImage?: string;
   locked?: boolean;
   current?: boolean;
   completed?: boolean;
@@ -29,6 +31,7 @@ type Props = {
 export const ListCard = ({
   listId,
   listTitle,
+  listImage,
   locked,
   current,
   completed,
@@ -100,7 +103,7 @@ export const ListCard = ({
       {/* Illustration */}
       <div className="w-full aspect-square rounded-xl overflow-hidden mb-4 flex items-center justify-center relative">
         <Image
-          src={getListImage(listTitle)}
+          src={listImage ?? getListImage(listTitle)}
           alt={listTitle}
           width={480}
           height={480}

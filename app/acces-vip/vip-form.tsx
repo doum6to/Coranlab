@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { RiveMascot } from "@/components/rive-mascot";
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { redeemVipAccess } from "@/actions/vip";
+import { useT } from "@/lib/i18n/use-t";
 
 type DriveLink = { label: string; url: string };
 
@@ -20,6 +21,7 @@ export function VipForm({
   code: string;
   valid: boolean;
 }) {
+  const t = useT();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
@@ -42,7 +44,7 @@ export function VipForm({
         code,
       });
       if ("error" in res) {
-        setError(res.error || "Une erreur est survenue. Réessaie.");
+        setError(res.error || t.vip.genericError);
         setLoading(false);
         return;
       }
@@ -56,7 +58,7 @@ export function VipForm({
       setDone({ existed: res.existed, driveLinks: res.driveLinks });
       setLoading(false);
     } catch {
-      setError("Une erreur est survenue. Réessaie.");
+      setError(t.vip.genericError);
       setLoading(false);
     }
   };
@@ -67,11 +69,10 @@ export function VipForm({
       <Shell>
         <div className="space-y-3 text-center">
           <h1 className="font-heading text-2xl font-bold text-brilliant-text">
-            Lien invalide
+            {t.vip.invalidTitle}
           </h1>
           <p className="text-sm text-brilliant-muted">
-            Ce lien d&apos;activation n&apos;est pas valide ou a expiré. Vérifie
-            que tu as bien copié le lien complet, ou contacte le support.
+            {t.vip.invalidBody}
           </p>
         </div>
       </Shell>
@@ -86,18 +87,16 @@ export function VipForm({
             <ShieldCheck className="h-7 w-7" />
           </div>
           <h1 className="font-heading text-2xl font-bold text-brilliant-text">
-            Ton accès est activé 🤍
+            {t.vip.activatedTitle}
           </h1>
           <p className="text-sm text-brilliant-muted">
-            {done.existed
-              ? "Ton accès premium a été ajouté à ton compte existant. Connecte-toi avec ton mot de passe habituel pour accéder à l'application."
-              : "Ton compte premium est prêt. Tu es connecté(e) : tu peux ouvrir l'application quand tu veux."}
+            {done.existed ? t.vip.activatedExisting : t.vip.activatedNew}
           </p>
 
           {done.driveLinks.length > 0 && (
             <div className="rounded-2xl border border-brilliant-border bg-neutral-50 p-4 text-left">
               <p className="mb-2 text-sm font-semibold text-brilliant-text">
-                📂 Tes documents (PDF) — Comprendre 85% du Coran
+                {t.vip.documents}
               </p>
               <ul className="space-y-2">
                 {done.driveLinks.map((d, i) => (
@@ -110,7 +109,7 @@ export function VipForm({
                     >
                       <span className="flex items-center gap-2">
                         <FileText className="h-4 w-4 text-[#6967fb]" />
-                        {d.label || "Document PDF"}
+                        {d.label || t.vip.pdfDocument}
                       </span>
                       <Download className="h-4 w-4 text-neutral-400" />
                     </a>
@@ -126,7 +125,7 @@ export function VipForm({
               window.location.href = done.existed ? "/auth/login" : "/learn";
             }}
           >
-            {done.existed ? "Me connecter" : "Ouvrir l'application"}
+            {done.existed ? t.vip.logIn : t.vip.openApp}
           </ShinyButton>
         </div>
       </Shell>
@@ -140,7 +139,7 @@ export function VipForm({
           <RiveMascot src="/animations/eyes_down.riv" animationName="eyes down" />
         </div>
         <h1 className="font-heading text-2xl font-bold text-brilliant-text">
-          Active ton accès VIP
+          {t.vip.title}
         </h1>
       </div>
 
@@ -151,7 +150,7 @@ export function VipForm({
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="text-sm font-medium text-brilliant-text" htmlFor="name">
-            Prénom
+            {t.vip.firstName}
           </label>
           <input
             id="name"
@@ -164,7 +163,7 @@ export function VipForm({
         </div>
         <div>
           <label className="text-sm font-medium text-brilliant-text" htmlFor="email">
-            E-mail utilisé lors de l&apos;achat
+            {t.vip.purchaseEmail}
           </label>
           <input
             id="email"
@@ -177,7 +176,7 @@ export function VipForm({
         </div>
         <div>
           <label className="text-sm font-medium text-brilliant-text" htmlFor="password">
-            Choisis un mot de passe
+            {t.vip.choosePassword}
           </label>
           <input
             id="password"
@@ -191,14 +190,14 @@ export function VipForm({
         </div>
         {error && <p className="text-sm text-rose-500">{error}</p>}
         <ShinyButton type="submit" variant="green" disabled={loading}>
-          {loading ? "Activation…" : "Activer mon accès premium"}
+          {loading ? t.vip.activating : t.vip.activate}
         </ShinyButton>
       </form>
 
       <p className="text-center text-sm text-brilliant-muted">
-        Tu as déjà un compte ?{" "}
+        {t.vip.haveAccount}{" "}
         <Link href="/auth/login" className="font-semibold text-[#6967fb] hover:underline">
-          Se connecter
+          {t.vip.logInLink}
         </Link>
       </p>
     </Shell>

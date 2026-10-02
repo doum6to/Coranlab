@@ -81,13 +81,13 @@ export async function purchasePlan(
     const pkg = offerings.current?.availablePackages?.find(
       (p) => p.identifier === wanted,
     );
-    if (!pkg) return { success: false, error: "Offre indisponible." };
+    if (!pkg) return { success: false, error: "unavailable" };
     const res = await Purchases.purchasePackage({ aPackage: pkg });
     const active = Boolean(res.customerInfo.entitlements.active[ENTITLEMENT]);
     return { success: active };
   } catch (e: any) {
     if (e?.userCancelled) return { success: false, error: "cancelled" };
-    return { success: false, error: e?.message || "Achat impossible." };
+    return { success: false, error: e?.message || "purchase_failed" };
   }
 }
 
@@ -99,6 +99,6 @@ export async function restorePurchases(): Promise<{ success: boolean; error?: st
     const info = await Purchases.restorePurchases();
     return { success: Boolean(info.customerInfo.entitlements.active[ENTITLEMENT]) };
   } catch (e: any) {
-    return { success: false, error: e?.message || "Restauration impossible." };
+    return { success: false, error: e?.message || "restore_failed" };
   }
 }

@@ -2,8 +2,10 @@ import Link from "next/link";
 import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
+import { getServerStrings } from "@/lib/i18n/server-t";
 
 export const Promo = () => {
+  const { t } = getServerStrings();
   return (
     <div className="border border-brilliant-border rounded-2xl p-4 space-y-4 bg-white">
       <div className="space-y-2">
@@ -15,11 +17,11 @@ export const Promo = () => {
             width={26}
           />
           <h3 className="font-bold text-lg text-brilliant-text">
-            Passer en Pro
+            {t.promo.title}
           </h3>
         </div>
         <p className="text-brilliant-muted text-sm">
-          Clés illimitées + tous les cours débloqués !
+          {t.promo.body}
         </p>
       </div>
       <Button
@@ -29,7 +31,7 @@ export const Promo = () => {
         size="lg"
       >
         <Link href="/shop">
-          Améliorer aujourd&apos;hui
+          {t.promo.cta}
         </Link>
       </Button>
     </div>

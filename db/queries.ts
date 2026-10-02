@@ -19,6 +19,7 @@ import { getCurrentWeekStart } from "@/lib/league-utils";
 import { getLast5Days, getToday, daysBetween } from "@/lib/streak-utils";
 import { getRequestLocale } from "@/lib/i18n/request-locale";
 import { translateContent } from "@/lib/i18n/content-i18n";
+import { getListImage } from "@/lib/list-images";
 
 export const getUserProgress = cache(async () => {
   const { userId } = await auth();
@@ -49,6 +50,8 @@ export type ListLevel = {
 export type VocabList = {
   listId: number;
   listTitle: string;
+  /** Illustration path (resolved from the stored title, locale-independent). */
+  listImage: string;
   levels: ListLevel[];
   completedLevels: number;
   totalLevels: number;
@@ -148,6 +151,8 @@ export const getListsWithLevels = cache(async (): Promise<UnitWithLists[]> => {
           sortedLessons[0].listTitle || sortedLessons[0].title,
           locale,
         ),
+        // Illustrations are keyed by the stored (French) title.
+        listImage: getListImage(sortedLessons[0].listTitle || sortedLessons[0].title),
         levels,
         completedLevels,
         totalLevels: levels.length,
@@ -280,6 +285,7 @@ export const getListLevels = cache(async (listId: number) => {
   return {
     listId,
     listTitle: translateContent(data[0].listTitle || data[0].title, locale),
+    listImage: getListImage(data[0].listTitle || data[0].title),
     unitTitle: translateContent(data[0].unit.title, locale),
     levels,
     completedLevels: levels.filter((l) => l.completed).length,
@@ -774,7 +780,8 @@ export const getLeagueGroup = cache(async (groupId: string): Promise<LeagueMembe
 export type StreakData = {
   streak: number;
   charges: number;
-  days: { date: string; label: string; active: boolean; isToday: boolean }[];
+  /** `weekday`: 0 = Sunday … 6 = Saturday (label resolved per locale in the UI). */
+  days: { date: string; weekday: number; active: boolean; isToday: boolean }[];
 };
 
 export const getStreakData = cache(async (): Promise<StreakData> => {
@@ -840,16 +847,12 @@ export const getStreakData = cache(async (): Promise<StreakData> => {
     ));
   const activeDates = new Set(activityRows.map((r) => r.date));
 
-  // French 2-letter labels
-  const DAY_LABELS: Record<number, string> = {
-    0: "Di", 1: "Lu", 2: "Ma", 3: "Me", 4: "Je", 5: "Ve", 6: "Sa",
-  };
-
   const days = last5.map((date) => {
     const d = new Date(date + "T00:00:00Z");
     return {
       date,
-      label: DAY_LABELS[d.getUTCDay()],
+      // 0 = Sunday … 6 = Saturday; the card maps it to a localized label.
+      weekday: d.getUTCDay(),
       active: activeDates.has(date),
       isToday: date === today,
     };

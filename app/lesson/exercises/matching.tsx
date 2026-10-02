@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { challengeOptions } from "@/db/schema";
+import { useT } from "@/lib/i18n/use-t";
 
 type Props = {
   options: typeof challengeOptions.$inferSelect[];
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export const Matching = ({ options, onComplete, disabled }: Props) => {
+  const t = useT();
   const pairs = options.filter((o) => o.arabicText && o.frenchText);
 
   // Shuffle French ONCE on mount — stable across re-renders
@@ -55,7 +57,7 @@ export const Matching = ({ options, onComplete, disabled }: Props) => {
         {/* Left column: Arabic */}
         <div className="flex flex-col gap-1.5 sm:gap-3">
           <div className="text-[10px] text-brilliant-muted font-bold uppercase text-center mb-0.5">
-            Arabe
+            {t.exercises.arabicColumn}
           </div>
           {pairs.map((pair) => (
             <button
@@ -84,7 +86,7 @@ export const Matching = ({ options, onComplete, disabled }: Props) => {
         {/* Right column: French (shuffled once, stable) */}
         <div className="flex flex-col gap-1.5 sm:gap-3">
           <div className="text-[10px] text-brilliant-muted font-bold uppercase text-center mb-0.5">
-            Français
+            {t.exercises.translationColumn}
           </div>
           {shuffledFrench.map((pair) => (
             <button

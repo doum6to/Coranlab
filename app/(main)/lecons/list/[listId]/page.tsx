@@ -37,7 +37,7 @@ const ReviserListPage = async ({ params }: Props) => {
       {/* Back button */}
       <Link href="/lecons" className="inline-flex items-center gap-1.5 text-sm text-brilliant-muted hover:text-brilliant-text transition mb-6">
         <ArrowLeft className="h-4 w-4" />
-        Retour
+        {t.lesson.back}
       </Link>
 
       {/* Header */}

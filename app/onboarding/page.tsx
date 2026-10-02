@@ -7,6 +7,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { OnboardingMascot } from "@/components/onboarding/onboarding-mascot";
 import { RivePreloads } from "@/components/rive-preloads";
 import { ShinyButton } from "@/components/ui/shiny-button";
+import { useT } from "@/lib/i18n/use-t";
+import type { AppStrings } from "@/lib/i18n/app-dict";
 import { cn } from "@/lib/utils";
 
 type IntroStep = {
@@ -31,82 +33,46 @@ type QuestionStep = {
 
 type Step = IntroStep | QuestionStep;
 
-// \u00A0 is a non-breaking space — we put one before every "!" and "?" so
-// that French punctuation is never orphaned on its own line on narrow
-// (mobile) viewports.
-const STEPS: Step[] = [
-  {
-    kind: "intro",
-    title: "Salam alaykoum, je suis Koji\u00A0!",
-  },
-  {
-    kind: "question",
-    id: "focus",
-    title: "Pourquoi veux-tu apprendre les mots du Coran\u00A0?",
-    options: [
-      {
-        id: "prayer",
-        label: "Comprendre le sens pendant la prière",
-        response: "Magnifique, chaque mot prendra vie\u00A0!",
-      },
-      {
-        id: "read",
-        label: "Lire le Coran sans traduction",
-        response: "Bravo, un objectif puissant\u00A0!",
-      },
-      {
-        id: "faith",
-        label: "Approfondir ma foi",
-        response: "Superbe intention, on avance ensemble.",
-      },
-      {
-        id: "vocab",
-        label: "Enrichir mon vocabulaire arabe",
-        response: "Excellent, on construit mot à mot\u00A0!",
-      },
-      {
-        id: "curious",
-        label: "Par simple curiosité",
-        response: "Parfait, la curiosité est un cadeau.",
-      },
-    ],
-  },
-  {
-    kind: "question",
-    id: "time",
-    title: "Combien de temps par jour\u00A0?",
-    options: [
-      {
-        id: "10",
-        label: "10 min",
-        response: "Parfait, on avance chaque jour.",
-      },
-      {
-        id: "20",
-        label: "20 min",
-        response: "Top, le rythme idéal\u00A0!",
-      },
-      {
-        id: "30",
-        label: "30 min",
-        response: "Bravo, tu vas vite progresser.",
-      },
-      {
-        id: "60",
-        label: "60 min",
-        response: "Impressionnant, tu iras loin\u00A0!",
-      },
-    ],
-  },
-  {
-    kind: "intro",
-    title: "Tout est prêt\u00A0! Créons ton compte.",
-  },
-];
+type OnboardingStrings = AppStrings["onboarding"];
+
+// Builds the step list from the dictionary so every title/option/response
+// follows the active locale. Strings keep a no-break space before "!" and "?"
+// (French typography) so the punctuation never wraps alone on mobile.
+function buildSteps(o: OnboardingStrings): Step[] {
+  return [
+    { kind: "intro", title: o.greeting },
+    {
+      kind: "question",
+      id: "focus",
+      title: o.focusTitle,
+      options: [
+        { id: "prayer", label: o.focusPrayer, response: o.focusPrayerResp },
+        { id: "read", label: o.focusRead, response: o.focusReadResp },
+        { id: "faith", label: o.focusFaith, response: o.focusFaithResp },
+        { id: "vocab", label: o.focusVocab, response: o.focusVocabResp },
+        { id: "curious", label: o.focusCurious, response: o.focusCuriousResp },
+      ],
+    },
+    {
+      kind: "question",
+      id: "time",
+      title: o.timeTitle,
+      options: [
+        { id: "10", label: "10 min", response: o.time10Resp },
+        { id: "20", label: "20 min", response: o.time20Resp },
+        { id: "30", label: "30 min", response: o.time30Resp },
+        { id: "60", label: "60 min", response: o.time60Resp },
+      ],
+    },
+    { kind: "intro", title: o.readyTitle },
+  ];
+}
 
 const STORAGE_ANSWERS_KEY = "onboarding_answers";
 
 const OnboardingPage = () => {
+  const t = useT();
+  const STEPS = useMemo(() => buildSteps(t.onboarding), [t]);
   const router = useRouter();
   const [stepIndex, setStepIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -169,11 +135,11 @@ const OnboardingPage = () => {
       if (stepIndex === 0 && greetingBeat) {
         return (
           <>
-            Créons ensemble
+            {t.onboarding.greetingBeat1}
             <br />
-            un parcours d&apos;apprentissage
+            {t.onboarding.greetingBeat2}
             <br />
-            personnalisé !
+            {t.onboarding.greetingBeat3}
           </>
         );
       }
@@ -184,7 +150,7 @@ const OnboardingPage = () => {
       if (selected) return selected.response;
     }
     return step.title;
-  }, [step, isIntro, currentAnswer, stepIndex, greetingBeat]);
+  }, [step, isIntro, currentAnswer, stepIndex, greetingBeat, t]);
 
   const progress = ((stepIndex + 1) / STEPS.length) * 100;
 
@@ -231,7 +197,7 @@ const OnboardingPage = () => {
             "-ml-1 flex h-8 w-8 items-center justify-center rounded-full text-brilliant-muted transition-opacity",
             stepIndex === 0 && "pointer-events-none opacity-0"
           )}
-          aria-label="Retour"
+          aria-label={t.onboarding.back}
         >
           <ChevronLeft className="h-6 w-6" />
         </button>
@@ -494,7 +460,7 @@ const OnboardingPage = () => {
             onClick={handleContinue}
             disabled={!canContinue}
           >
-            {isLastStep ? "Créer mon compte" : "Continuer"}
+            {isLastStep ? t.onboarding.createAccount : t.onboarding.continue}
           </ShinyButton>
         </div>
       </footer>

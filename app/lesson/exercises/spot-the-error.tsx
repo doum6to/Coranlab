@@ -61,7 +61,7 @@ export const SpotTheError = ({
     <div className="flex flex-col items-center gap-3 sm:gap-6">
       {/* Instruction */}
       <p className="text-xs sm:text-sm text-brilliant-muted font-medium text-center">
-        Une de ces paires est fausse. Trouve l&apos;erreur !
+        {t.exercises.spotInstruction}
       </p>
 
       {/* Pairs list */}
@@ -122,7 +122,7 @@ export const SpotTheError = ({
               : "bg-gray-200 text-gray-400 cursor-not-allowed"
           )}
         >
-          C&apos;est celle-ci !
+          {t.exercises.spotConfirm}
         </button>
       )}
 

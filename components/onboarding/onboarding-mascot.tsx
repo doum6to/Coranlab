@@ -51,7 +51,7 @@ const IntroMascot = ({ onPlayStart, className }: IntroMascotProps) => {
   return (
     <RiveComponent
       className={cn("h-full w-full", className)}
-      aria-label="mascotte"
+      aria-label="Koji"
     />
   );
 };
@@ -131,7 +131,7 @@ const QuestionMascot = ({ replayKey, className }: QuestionMascotProps) => {
   return (
     <RiveComponent
       className={cn("h-full w-full", className)}
-      aria-label="mascotte"
+      aria-label="Koji"
     />
   );
 };

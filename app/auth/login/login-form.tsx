@@ -108,29 +108,29 @@ export function LoginForm() {
             />
           </div>
           {errKind === "generic" && (
-            <p className="text-sm text-rose-500">E-mail ou mot de passe incorrect.</p>
+            <p className="text-sm text-rose-500">{t.authMore.wrongCredentials}</p>
           )}
           {errKind === "hasAccount" && (
             <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-              Mot de passe incorrect.{" "}
+              {t.authMore.wrongPassword}{" "}
               <Link
                 href={`/auth/forgot-password?email=${encodeURIComponent(email)}`}
                 className="font-semibold underline"
               >
-                Réinitialiser mon mot de passe
+                {t.authMore.resetMyPassword}
               </Link>
             </div>
           )}
           {errKind === "paidNoAccount" && (
             <div className="rounded-xl border border-[#6967fb]/30 bg-[#6967fb]/5 p-3 text-sm text-brilliant-text">
-              ✅ Ton paiement est bien reçu — mais ton compte n&apos;est{" "}
-              <strong>pas encore créé</strong>. Crée-le (choisis un mot de passe) et
-              ton Premium sera activé automatiquement.
+              {t.authMore.paidNoAccountPre}
+              <strong>{t.authMore.paidNoAccountStrong}</strong>
+              {t.authMore.paidNoAccountPost}
               <Link
                 href={`/auth/signup?email=${encodeURIComponent(email)}`}
                 className="mt-2 block font-semibold text-[#6967fb] underline"
               >
-                Créer mon compte →
+                {t.authMore.createAccountArrow}
               </Link>
             </div>
           )}
@@ -144,7 +144,7 @@ export function LoginForm() {
             href="/auth/forgot-password"
             className="text-brilliant-muted hover:text-[#6967fb] hover:underline"
           >
-            Mot de passe oublié ?
+            {t.authMore.forgotPassword}
           </Link>
         </p>
 
