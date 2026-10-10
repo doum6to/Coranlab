@@ -16,6 +16,7 @@ import { getPriereVslContent } from "@/lib/priere-vsl-content";
 import { getLeadMagnetContent } from "@/lib/lead-magnet-content";
 import { getDownloadLinks } from "@/lib/download-links";
 import { getEbook30Content } from "@/lib/ebook30-content";
+import { getPackContent } from "@/lib/pack-content";
 import { getCommencerContent } from "@/lib/commencer-content";
 import { getApprendreCoranContent } from "@/lib/apprendre-coran-content";
 import { listManualOrders } from "@/actions/coran-manual-order";
@@ -36,6 +37,7 @@ import { PriereVslForm } from "./priere-vsl-form";
 import { LeadMagnetForm } from "./lead-magnet-form";
 import { DownloadLinksForm } from "./download-links-form";
 import { Ebook30Form } from "./ebook30-form";
+import { PackForm } from "./pack-form";
 import { CommencerForm } from "./commencer-form";
 import { ApprendreCoranForm } from "./apprendre-coran-form";
 import { ManualOrdersForm } from "./manual-orders-form";
@@ -181,6 +183,7 @@ const AdminPremiumPage = async () => {
     apprendreCoran,
     ebook30Content,
     commencerContent,
+    packContent,
   ] = await Promise.all([
     getOfferSettings(),
     getLandingContent("fr"),
@@ -205,6 +208,7 @@ const AdminPremiumPage = async () => {
     getApprendreCoranContent(),
     getEbook30Content(),
     getCommencerContent(),
+    getPackContent(),
   ]);
   const landingByVariant = {
     v3: { fr: contentFr, en: contentEn, es: contentEs },
@@ -348,6 +352,11 @@ const AdminPremiumPage = async () => {
               key: "ebook30",
               label: "Ebook /coran-30-jours",
               node: <Ebook30Form initial={ebook30Content} />,
+            },
+            {
+              key: "pack",
+              label: "Pack 47 € /pack-coran",
+              node: <PackForm initial={packContent} />,
             },
             {
               key: "commencer",
