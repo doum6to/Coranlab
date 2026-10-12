@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 
 import db from "@/db/drizzle";
 import { challenges } from "@/db/schema";
+import { repairOppositeChallenge } from "@/lib/opposites";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
@@ -60,7 +61,10 @@ export async function GET(req: Request) {
     },
   });
 
-  const challengesOut = rows.map((c) => ({
+  const challengesOut = rows.map((raw) => {
+    const fixed = repairOppositeChallenge(raw, raw.challengeOptions);
+    const c = { ...fixed.challenge, challengeOptions: fixed.options };
+    return {
     id: c.id,
     type: c.type,
     question: c.question,
@@ -77,7 +81,8 @@ export async function GET(req: Request) {
       frenchText: o.frenchText,
       pairIndex: o.pairIndex,
     })),
-  }));
+    };
+  });
 
   return NextResponse.json({ lessonId, challenges: challengesOut });
 }

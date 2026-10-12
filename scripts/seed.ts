@@ -4,6 +4,7 @@ import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 
 import * as schema from "../db/schema";
+import { OPPOSITES } from "../lib/opposites";
 import { vocabularyData, VocabWord } from "./vocabulary-data";
 
 const pool = new Pool({
@@ -718,34 +719,12 @@ const main = async () => {
   // (e.g. "ceci" ↔ "cela", "oui" ↔ "non"). If no opposite exists,
   // falls back to a random different word from the list.
   function findOpposite(word: VocabWord, allWords: VocabWord[]): VocabWord | null {
-    const oppositePairs: Record<string, string[]> = {
-      // Demonstratives
-      "Ceci (Masculin)": ["Cela / Celui-là (Masculin)"],
-      "Cela / Celui-là (Masculin)": ["Ceci (Masculin)"],
-      "Celle-ci (Féminin)": ["Celle-là (Féminin)"],
-      "Celle-là (Féminin)": ["Celle-ci (Féminin)"],
-      "Ceux-ci / Celles-ci (Pluriel)": ["Ceux-là / Celles-là (Pluriel)"],
-      "Ceux-là / Celles-là (Pluriel)": ["Ceux-ci / Celles-ci (Pluriel)"],
-      "Celui qui (Masculin)": ["Celle qui (Féminin)"],
-      "Celle qui (Féminin)": ["Celui qui (Masculin)"],
-      // Negations
-      "Oui": ["Absolument pas"],
-      "Absolument pas": ["Oui"],
-      "Bien sûr / Si": ["Absolument pas"],
-      // Interrogatives
-      "Est-ce que": ["Oui"],
-    };
-
-    const candidates = oppositePairs[word.french];
-    if (candidates) {
-      for (const c of candidates) {
-        const found = allWords.find((w) => w.french === c);
-        if (found) return found;
-      }
+    for (const c of OPPOSITES[word.french] ?? []) {
+      const found = allWords.find((w) => w.french === c);
+      if (found) return found;
     }
-    // Fallback: pick a random different word
-    const others = allWords.filter((w) => w.arabic !== word.arabic);
-    return others.length > 0 ? others[Math.floor(Math.random() * others.length)] : null;
+    // No genuine opposite in this list → the caller falls back to a QCM.
+    return null;
   }
 
   async function seedOneOpposite(

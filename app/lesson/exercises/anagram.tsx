@@ -44,7 +44,11 @@ export const Anagram = ({
   );
   const [status, setStatus] = useState<"none" | "correct" | "wrong">("none");
 
-  const targetWord = challenge.arabicWord?.replace(/\s/g, "") || "";
+  // Tatweel (ـ) and spaces are dropped when the letter tiles are generated, so
+  // the comparison target must drop them too — otherwise prefixes such as
+  // "لـ" could never be matched and always scored wrong.
+  const normalize = (s: string) => s.replace(/[\s\u0640\u200B-\u200F]/g, "");
+  const targetWord = normalize(challenge.arabicWord || "");
 
   const handleLetterClick = (letterId: number) => {
     if (disabled || status !== "none") return;
@@ -65,7 +69,7 @@ export const Anagram = ({
       .map((id) => letters.find((l) => l.id === id)?.letter || "")
       .join("");
 
-    if (assembled === targetWord) {
+    if (normalize(assembled) === targetWord) {
       setStatus("correct");
       setTimeout(() => onCorrect(), 500);
     } else {

@@ -20,6 +20,7 @@ import { getLast5Days, getToday, daysBetween } from "@/lib/streak-utils";
 import { getRequestLocale } from "@/lib/i18n/request-locale";
 import { translateContent } from "@/lib/i18n/content-i18n";
 import { getListImage } from "@/lib/list-images";
+import { repairOppositeChallenge } from "@/lib/opposites";
 
 export const getUserProgress = cache(async () => {
   const { userId } = await auth();
@@ -467,10 +468,14 @@ export const getLesson = cache(async (id?: number) => {
     return null;
   }
 
-  const normalizedChallenges = data.challenges.map((challenge) => {
-    const completed = challenge.challengeProgress
-      && challenge.challengeProgress.length > 0
-      && challenge.challengeProgress.every((progress) => progress.completed)
+  const normalizedChallenges = data.challenges.map((raw) => {
+    const completed = raw.challengeProgress
+      && raw.challengeProgress.length > 0
+      && raw.challengeProgress.every((progress) => progress.completed)
+
+    // Legacy OPPOSITE exercises built on a random word become a plain QCM.
+    const repaired = repairOppositeChallenge(raw, raw.challengeOptions ?? []);
+    const challenge = { ...repaired.challenge, challengeOptions: repaired.options };
 
     return {
       ...challenge,
