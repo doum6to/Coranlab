@@ -5,6 +5,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 
 import * as schema from "../db/schema";
 import { OPPOSITES } from "../lib/opposites";
+import { sameMeaning } from "../lib/challenge-repair";
 import { vocabularyData, VocabWord } from "./vocabulary-data";
 
 const pool = new Pool({
@@ -23,7 +24,15 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 function pickRandom<T>(arr: T[], count: number, exclude?: T[]): T[] {
-  const filtered = exclude ? arr.filter((item) => !exclude.includes(item)) : arr;
+  // Exclude the given items AND any word sharing a meaning with one of them
+  // (synonyms / duplicates) so distractors are never also-correct answers.
+  const filtered = exclude
+    ? arr.filter(
+        (item) =>
+          !exclude.includes(item) &&
+          !exclude.some((e: any) => e?.french && (item as any)?.french && sameMeaning(e.french, (item as any).french)),
+      )
+    : arr;
   return shuffle(filtered).slice(0, count);
 }
 
@@ -505,7 +514,7 @@ const main = async () => {
   ) {
     totalChallengesCount++;
     const isCorrect = Math.random() < 0.5;
-    const otherWords = allWords.filter((w) => w !== word);
+    const otherWords = allWords.filter((w) => w !== word && !sameMeaning(w.french, word.french));
     const proposedTranslation = isCorrect
       ? word.french
       : otherWords.length > 0
@@ -787,7 +796,9 @@ const main = async () => {
     // Pick one word to give a wrong translation
     const errorIdx = Math.floor(Math.random() * selectedWords.length);
     const errorWord = selectedWords[errorIdx];
-    const otherWords = allWords.filter((w) => w.arabic !== errorWord.arabic);
+    const otherWords = allWords.filter(
+      (w) => w.arabic !== errorWord.arabic && !sameMeaning(w.french, errorWord.french),
+    );
     const wrongTranslation =
       otherWords.length > 0
         ? otherWords[Math.floor(Math.random() * otherWords.length)].french

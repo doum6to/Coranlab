@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 
 import db from "@/db/drizzle";
 import { challenges } from "@/db/schema";
-import { repairOppositeChallenge } from "@/lib/opposites";
+import { repairChallenge } from "@/lib/challenge-repair";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
@@ -62,7 +62,7 @@ export async function GET(req: Request) {
   });
 
   const challengesOut = rows.map((raw) => {
-    const fixed = repairOppositeChallenge(raw, raw.challengeOptions);
+    const fixed = repairChallenge(raw, raw.challengeOptions);
     const c = { ...fixed.challenge, challengeOptions: fixed.options };
     return {
     id: c.id,

@@ -211,10 +211,11 @@ export const Quiz = ({
       return;
     }
 
-    const correctOption = options.find((option) => option.correct);
-    if (!correctOption) return;
+    // Judge the option actually selected (robust if several are acceptable).
+    const picked = options.find((option) => option.id === selectedOption);
+    if (!picked) return;
 
-    if (correctOption.id === selectedOption) {
+    if (picked.correct) {
       completedIdsRef.current.push(challenge.id);
       correctControls.play();
       setStatus("correct");
