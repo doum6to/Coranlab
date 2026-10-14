@@ -7,7 +7,7 @@ import { Plus, Trash2, ArrowUp, ArrowDown, ChevronDown, ChevronRight } from "luc
 import { Button } from "@/components/ui/button";
 import { updateCommencerContent } from "@/actions/commencer-content";
 import { ICON_KEYS } from "@/lib/commencer-shared";
-import type { CommencerContent, CmStep, CmPlan, CmOption, CmTimeOption, CmReview, CmRow, CmTimelineItem, CmLessonCard } from "@/lib/commencer-shared";
+import type { CommencerContent, CmStep, CmOption, CmTimeOption, CmReview, CmRow, CmTimelineItem, CmLessonCard } from "@/lib/commencer-shared";
 import { compressImageFile } from "@/lib/images/compress-client";
 import { createMediaUploadUrl } from "@/actions/landing-media";
 import { createClient } from "@/lib/supabase/client";
@@ -43,7 +43,7 @@ const STEP_LABELS: Record<CmStep["type"], string> = {
   plan: "Plan personnalisé",
   lesson: "Leçon interactive (3 mots)",
   trial: "(ancien) Essai — remplacé par la leçon",
-  bell: "Rappel avant la fin de l'essai",
+  bell: "(ancien) Rappel essai — ignoré (plus d'essai gratuit)",
 };
 
 async function uploadImage(file: File): Promise<string> {
@@ -515,36 +515,6 @@ function StepCard({ step, index, length, onChange, onMove, onDelete }: {
 }
 
 /* ------------------------------------------------------------------ */
-/* Paywall plan                                                        */
-/* ------------------------------------------------------------------ */
-
-function PlanFields({ title, plan, onChange }: { title: string; plan: CmPlan; onChange: (p: CmPlan) => void }) {
-  const p = (patch: Partial<CmPlan>) => onChange({ ...plan, ...patch });
-  return (
-    <div className="space-y-2 rounded-lg border border-neutral-200 bg-white p-3">
-      <span className="text-xs font-bold text-neutral-700">{title}</span>
-      <div className="grid grid-cols-3 gap-3">
-        <label className="block"><span className="mb-1 block text-xs font-semibold text-neutral-600">Montant (€)</span>
-          <input type="number" step="0.01" min="0" value={(plan.amountCents / 100).toString()} onChange={(e) => p({ amountCents: Math.round((Number(e.target.value) || 0) * 100) })} className={inputCls} /></label>
-        <label className="block"><span className="mb-1 block text-xs font-semibold text-neutral-600">Intervalle</span>
-          <select value={plan.interval} onChange={(e) => p({ interval: e.target.value === "week" ? "week" : "year" })} className={inputCls}>
-            <option value="week">Semaine</option><option value="year">Année</option></select></label>
-        <Text label="Titre" value={plan.title} onChange={(title) => p({ title })} />
-      </div>
-      <div className="grid grid-cols-3 gap-3">
-        <Text label="Prix affiché" value={plan.priceLabel} onChange={(priceLabel) => p({ priceLabel })} placeholder="47 €" />
-        <Text label="Suffixe (/ an)" value={plan.per} onChange={(per) => p({ per })} />
-        <Text label="Sous-texte" value={plan.sub} onChange={(sub) => p({ sub })} placeholder="≈ 3,92 € / mois" />
-      </div>
-      <div className="grid grid-cols-[1fr_auto] items-end gap-3">
-        <Text label="Badge (vide = aucun)" value={plan.tag} onChange={(tag) => p({ tag })} placeholder="−82 % • 7 JOURS GRATUITS" />
-        <Toggle label="Populaire (sélectionné par défaut)" value={plan.popular} onChange={(popular) => p({ popular })} />
-      </div>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
 /* Main form                                                           */
 /* ------------------------------------------------------------------ */
 
@@ -609,15 +579,24 @@ export function CommencerForm({ initial }: { initial: CommencerContent }) {
         </div>
       </Section>
 
-      <Section title="Paywall (essai gratuit)">
-        <Text label="Titre" value={pw.title} onChange={(title) => setPw({ title })} />
+      <Section title="Paywall — offre à vie (paiement unique)">
+        <Text label="Badge" value={pw.badge} onChange={(badge) => setPw({ badge })} />
+        <Text label="Titre (**gras** = violet)" value={pw.title} onChange={(title) => setPw({ title })} />
         <Text label="Sous-titre" value={pw.subtitle} onChange={(subtitle) => setPw({ subtitle })} />
+        <div className="grid grid-cols-3 gap-3">
+          <label className="block"><span className="mb-1 block text-xs font-semibold text-neutral-600">Montant facturé (€)</span>
+            <input type="number" step="0.01" min="0" value={(pw.amountCents / 100).toString()} onChange={(e) => setPw({ amountCents: Math.round((Number(e.target.value) || 0) * 100) })} className={inputCls} /></label>
+          <Text label="Prix affiché" value={pw.priceLabel} onChange={(priceLabel) => setPw({ priceLabel })} placeholder="9,99 €" />
+          <Text label="Prix barré (vide = aucun)" value={pw.compareLabel} onChange={(compareLabel) => setPw({ compareLabel })} placeholder="49 €" />
+        </div>
+        <Text label="Note sous le prix" value={pw.priceNote} onChange={(priceNote) => setPw({ priceNote })} />
+        <Area label="Bandeau urgence (vide = masqué)" value={pw.urgency} onChange={(urgency) => setPw({ urgency })} rows={2} />
         <ObjList<CmTimelineItem>
-          label="Timeline (icône · titre · texte — {date} accepté)"
-          items={pw.timeline}
-          onChange={(timeline) => setPw({ timeline })}
+          label="Ce que tu débloques (icône · titre · texte — {when} accepté)"
+          items={pw.perks}
+          onChange={(perks) => setPw({ perks })}
           blank={() => ({ icon: "", title: "", text: "" })}
-          addLabel="Ajouter une étape de timeline"
+          addLabel="Ajouter un avantage"
           render={(t, p) => (
             <>
               <div className="grid grid-cols-[140px_1fr] gap-2">
@@ -628,14 +607,13 @@ export function CommencerForm({ initial }: { initial: CommencerContent }) {
             </>
           )}
         />
-        <PlanFields title="Plan annuel" plan={pw.annual} onChange={(annual) => setPw({ annual })} />
-        <PlanFields title="Plan hebdomadaire" plan={pw.weekly} onChange={(weekly) => setPw({ weekly })} />
         <div className="grid grid-cols-2 gap-3">
-          <Text label="Réassurance (au-dessus du bouton)" value={pw.reassurance} onChange={(reassurance) => setPw({ reassurance })} />
-          <Text label="Bouton" value={pw.cta} onChange={(cta) => setPw({ cta })} />
+          <Text label="Titre garantie" value={pw.guaranteeTitle} onChange={(guaranteeTitle) => setPw({ guaranteeTitle })} />
+          <Text label="Réassurance (sous la garantie)" value={pw.reassurance} onChange={(reassurance) => setPw({ reassurance })} />
         </div>
-        <Area label="Mentions — plan annuel" value={pw.finePrintAnnual} onChange={(finePrintAnnual) => setPw({ finePrintAnnual })} rows={2} />
-        <Area label="Mentions — plan hebdomadaire" value={pw.finePrintWeekly} onChange={(finePrintWeekly) => setPw({ finePrintWeekly })} rows={2} />
+        <Area label="Texte garantie" value={pw.guaranteeText} onChange={(guaranteeText) => setPw({ guaranteeText })} rows={2} />
+        <Text label="Bouton" value={pw.cta} onChange={(cta) => setPw({ cta })} />
+        <Area label="Mentions sous le bouton" value={pw.finePrint} onChange={(finePrint) => setPw({ finePrint })} rows={2} />
       </Section>
 
       <Section title="Page merci (après paiement)">

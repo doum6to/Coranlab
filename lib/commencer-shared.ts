@@ -11,7 +11,7 @@ export const ICON_KEYS = [
   "message", "more", "plus", "clock", "timer", "hourglass", "calendar", "calendar-check", "sun", "sunrise", "sunset", "coffee",
   "target", "wrench", "puzzle", "layers", "zap", "repeat", "graduation", "landmark", "flag", "smile", "star", "check",
   "signal-0", "signal-1", "signal-2", "signal-3", "signal-4", "thumbs-up", "thumbs-down", "mail", "laptop",
-  "unlock", "bell", "credit-card", "instagram", "youtube", "music", "ghost",
+  "unlock", "bell", "credit-card", "instagram", "youtube", "music", "ghost", "shield",
 ] as const;
 export type IconKey = (typeof ICON_KEYS)[number];
 
@@ -37,22 +37,28 @@ export type CmStep =
   | { type: "trial"; headline: string; cta: string; screenshots: string[] }
   | { type: "bell"; headline: string; cta: string };
 
-export type CmPlan = { amountCents: number; interval: "week" | "year"; title: string; priceLabel: string; per: string; sub: string; tag: string; popular: boolean };
+/** Lifetime one-time offer shown on the paywall (no trial, no subscription). */
+export type CmPaywall = {
+  badge: string;
+  title: string;
+  subtitle: string;
+  perks: CmTimelineItem[];
+  amountCents: number;
+  priceLabel: string;
+  compareLabel: string;
+  priceNote: string;
+  urgency: string;
+  reassurance: string;
+  cta: string;
+  finePrint: string;
+  guaranteeTitle: string;
+  guaranteeText: string;
+};
 
 export type CommencerContent = {
   accentColor: string;
   steps: CmStep[];
-  paywall: {
-    title: string;
-    subtitle: string;
-    timeline: CmTimelineItem[];
-    weekly: CmPlan;
-    annual: CmPlan;
-    reassurance: string;
-    cta: string;
-    finePrintAnnual: string;
-    finePrintWeekly: string;
-  };
+  paywall: CmPaywall;
   merci: { title: string; text: string; cta: string; sourceHeadline: string; sourceOptions: CmOption[] };
 };
 
@@ -118,25 +124,30 @@ export const COMMENCER_DEFAULTS: CommencerContent = {
       { arabic: "ٱلرَّحِيمِ", translit: "ar-Rahîm", fr: "Le Très Miséricordieux", choices: ["Le Tout-Puissant", "Le Très Miséricordieux", "Le Créateur"] },
       { arabic: "ٱلْحَمْدُ", translit: "al-hamd", fr: "La louange", choices: ["La prière", "La louange", "Le pardon"] },
     ], doneHeadline: "Tu viens de comprendre 3 mots du Coran", doneSub: "Il en reste 497. Continue sur ta lancée.", cta: "Continuer" },
-    { type: "bell", headline: "On t'enverra un rappel avant la fin de ton essai gratuit", cta: "Continuer GRATUITEMENT" },
   ],
   paywall: {
-    title: "Commence tes 7 jours **gratuits**",
-    subtitle: "Rejoins 1 500+ apprenants",
-    timeline: [
-      { icon: "unlock", title: "Aujourd'hui", text: "Accès complet à l'app : les 500 mots, les leçons, les révisions." },
-      { icon: "bell", title: "Dans 5 jours – Rappel", text: "Tu reçois un email avant la fin de ton essai." },
-      { icon: "credit-card", title: "Dans 7 jours – Facturation", text: "Tu seras débité le {date}, sauf si tu annules avant." },
+    badge: "Offre de lancement · Accès à vie",
+    title: "Débloque **tout Quranlab** pour le prix d'un café",
+    subtitle: "Un seul paiement. Aucun abonnement. Accès à vie.",
+    perks: [
+      { icon: "unlock", title: "Les 500 mots = 85 % du Coran", text: "Toutes les leçons, tous les niveaux, débloqués immédiatement." },
+      { icon: "target", title: "Ton plan personnalisé", text: "Le parcours qu'on vient de construire ensemble, prêt à démarrer." },
+      { icon: "layers", title: "Exercices illimités", text: "QCM, anagrammes, répétition espacée : tu mémorises sans effort." },
+      { icon: "bell", title: "Ton rappel quotidien", text: "Le petit coup de pouce {when} pour tenir ta routine." },
     ],
-    annual: { amountCents: 4700, interval: "year", title: "Annuel", priceLabel: "47 €", per: "/ an", sub: "≈ 3,92 € / mois", tag: "−82 % • 7 JOURS GRATUITS", popular: true },
-    weekly: { amountCents: 499, interval: "week", title: "Hebdomadaire", priceLabel: "4,99 €", per: "/ semaine", sub: "7 jours gratuits", tag: "", popular: false },
-    reassurance: "Aucun paiement aujourd'hui",
-    cta: "Commencer mes 7 jours gratuits",
-    finePrintAnnual: "7 jours gratuits, puis 47 € par an (3,92 €/mois). Annulable à tout moment.",
-    finePrintWeekly: "7 jours gratuits, puis 4,99 € par semaine. Annulable à tout moment.",
+    amountCents: 999,
+    priceLabel: "9,99 €",
+    compareLabel: "49 €",
+    priceNote: "une seule fois · à vie",
+    urgency: "Prix de lancement réservé aux nouveaux apprenants. Il passera à 49 € prochainement.",
+    reassurance: "Paiement sécurisé · Accès immédiat · Garantie 30 jours",
+    cta: "Débloquer l'accès à vie — 9,99 €",
+    finePrint: "Paiement unique de 9,99 €. Aucun renouvellement, aucun abonnement. Satisfait ou remboursé 30 jours.",
+    guaranteeTitle: "Garantie 30 jours",
+    guaranteeText: "Si tu ne reconnais pas plus de mots dans ta prière d'ici 30 jours, un email suffit et tu es remboursé.",
   },
   merci: {
-    title: "Ton essai gratuit a commencé, barak Allah fik !",
+    title: "Ton accès à vie est activé, barak Allah fik !",
     text: "Un email vient de t'être envoyé pour **créer ton compte** et démarrer ton plan. Pense à vérifier tes spams.",
     cta: "Créer mon compte",
     sourceHeadline: "Une dernière chose : où as-tu entendu parler de nous ?",
@@ -177,11 +188,6 @@ function mergeStep(st: any): CmStep | null {
   }
 }
 
-function mergePlan(p: any, d: CmPlan): CmPlan {
-  return { amountCents: Math.max(0, Math.round(n(p?.amountCents, d.amountCents))), interval: p?.interval === "week" || p?.interval === "year" ? p.interval : d.interval,
-    title: s(p?.title, d.title), priceLabel: s(p?.priceLabel, d.priceLabel), per: s(p?.per, d.per), sub: s(p?.sub, d.sub), tag: s(p?.tag, d.tag), popular: typeof p?.popular === "boolean" ? p.popular : d.popular };
-}
-
 export function mergeCommencerContent(stored: Partial<CommencerContent> | null): CommencerContent {
   const d = COMMENCER_DEFAULTS;
   if (!stored) return d;
@@ -191,12 +197,18 @@ export function mergeCommencerContent(stored: Partial<CommencerContent> | null):
   return {
     accentColor: /^#[0-9a-fA-F]{6}$/.test(s(stored.accentColor, "")) ? (stored.accentColor as string) : d.accentColor,
     steps: steps.length ? steps : d.steps,
+    // Stored JSON from the former trial paywall (timeline/weekly/annual) is
+    // ignored: only the lifetime fields are read, defaults fill the rest.
     paywall: {
-      title: s(pw.title, d.paywall.title), subtitle: s(pw.subtitle, d.paywall.subtitle),
-      timeline: arr<any>(pw.timeline, d.paywall.timeline).map((t) => ({ icon: s(t?.icon, "") || undefined, title: s(t?.title, ""), text: s(t?.text, "") })).filter((t) => t.title),
-      weekly: mergePlan(pw.weekly, d.paywall.weekly), annual: mergePlan(pw.annual, d.paywall.annual),
-      reassurance: s(pw.reassurance, d.paywall.reassurance), cta: s(pw.cta, d.paywall.cta),
-      finePrintAnnual: s(pw.finePrintAnnual, d.paywall.finePrintAnnual), finePrintWeekly: s(pw.finePrintWeekly, d.paywall.finePrintWeekly),
+      badge: s(pw.badge, d.paywall.badge), title: s(pw.title, d.paywall.title), subtitle: s(pw.subtitle, d.paywall.subtitle),
+      perks: Array.isArray(pw.perks)
+        ? arr<any>(pw.perks, []).map((t) => ({ icon: s(t?.icon, "") || undefined, title: s(t?.title, ""), text: s(t?.text, "") })).filter((t) => t.title)
+        : d.paywall.perks,
+      amountCents: Math.max(0, Math.round(n(pw.amountCents, d.paywall.amountCents))),
+      priceLabel: s(pw.priceLabel, d.paywall.priceLabel), compareLabel: s(pw.compareLabel, d.paywall.compareLabel),
+      priceNote: s(pw.priceNote, d.paywall.priceNote), urgency: s(pw.urgency, d.paywall.urgency),
+      reassurance: s(pw.reassurance, d.paywall.reassurance), cta: s(pw.cta, d.paywall.cta), finePrint: s(pw.finePrint, d.paywall.finePrint),
+      guaranteeTitle: s(pw.guaranteeTitle, d.paywall.guaranteeTitle), guaranteeText: s(pw.guaranteeText, d.paywall.guaranteeText),
     },
     merci: {
       title: s(m.title, d.merci.title), text: s(m.text, d.merci.text), cta: s(m.cta, d.merci.cta),

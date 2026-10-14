@@ -7,7 +7,7 @@ import {
   Baby, Bell, Book, BookOpen, Bookmark, Calendar, CalendarCheck, Check as CheckIcon, Clock, Coffee, CreditCard, Flag, Ghost,
   GraduationCap, Hand, HeartHandshake, Heart, Hourglass, Instagram, Landmark, Laptop, Layers, Mail, MessageCircle, Moon, MoonStar,
   MoreHorizontal, Music2, Plus, Puzzle, Repeat, Signal, SignalHigh, SignalLow, SignalMedium, SignalZero, Smile, Sparkles, Star as StarIcon,
-  Sun, Sunrise, Sunset, Target, ThumbsDown, ThumbsUp, Timer, Unlock, Users, Wrench, Youtube, Zap, type LucideIcon,
+  Sun, Sunrise, Sunset, Target, ThumbsDown, ThumbsUp, Timer, Unlock, ShieldCheck, Users, Wrench, Youtube, Zap, type LucideIcon,
 } from "lucide-react";
 
 import { ShinyButton } from "@/components/ui/shiny-button";
@@ -46,7 +46,7 @@ const ICONS: Record<IconKey, LucideIcon> = {
   target: Target, wrench: Wrench, puzzle: Puzzle, layers: Layers, zap: Zap, repeat: Repeat, graduation: GraduationCap, landmark: Landmark,
   flag: Flag, smile: Smile, star: StarIcon, check: CheckIcon, "signal-0": SignalZero, "signal-1": SignalLow, "signal-2": SignalMedium,
   "signal-3": SignalHigh, "signal-4": Signal, "thumbs-up": ThumbsUp, "thumbs-down": ThumbsDown, mail: Mail, laptop: Laptop, unlock: Unlock,
-  bell: Bell, "credit-card": CreditCard, instagram: Instagram, youtube: Youtube, music: Music2, ghost: Ghost,
+  bell: Bell, "credit-card": CreditCard, instagram: Instagram, youtube: Youtube, music: Music2, ghost: Ghost, shield: ShieldCheck,
 };
 
 export function Icon({ name, size = 20, className, strokeWidth = 2 }: { name?: string; size?: number; className?: string; strokeWidth?: number }) {

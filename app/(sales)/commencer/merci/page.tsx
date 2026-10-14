@@ -4,9 +4,9 @@ import { ShinyButton } from "@/components/ui/shiny-button";
 import { getCommencerContent } from "@/lib/commencer-content";
 
 import { SourceQuestion } from "./source-question";
-import { TrackTrialStart } from "./track-purchase";
+import { TrackPurchase } from "./track-purchase";
 
-export const metadata: Metadata = { title: "Essai commencé — Quranlab", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Accès activé — Quranlab", robots: { index: false, follow: false } };
 
 /** `**mot**` → purple emphasis. */
 function rich(text: string) {
@@ -19,7 +19,7 @@ export default async function CommencerMerci() {
   const { merci } = await getCommencerContent();
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-y-auto bg-white px-6 py-10 text-center text-[#1A1A1A]">
-      <TrackTrialStart />
+      <TrackPurchase />
       <div className="flex h-24 w-24 items-center justify-center rounded-full text-5xl text-white" style={{ background: "#22C55E" }}>✓</div>
       <h1 className="mt-6 max-w-lg font-heading text-3xl font-bold leading-tight sm:text-4xl">{rich(merci.title)}</h1>
       <p className="mt-4 max-w-md text-base text-[#555]">{rich(merci.text)}</p>

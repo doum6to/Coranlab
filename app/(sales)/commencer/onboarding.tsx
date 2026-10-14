@@ -52,7 +52,8 @@ const GLOBAL_CSS = `${AMIRI_CSS}
 
 export function CommencerOnboarding({ content, initialStep }: { content: CommencerContent; initialStep?: "paywall" }) {
   // The old "trial" mockup screen is superseded by the interactive lesson.
-  const steps = useMemo(() => content.steps.filter((s) => s.type !== "trial"), [content.steps]);
+  // The "bell" (trial reminder) screen is gone with the free trial.
+  const steps = useMemo(() => content.steps.filter((s) => s.type !== "trial" && s.type !== "bell"), [content.steps]);
   const total = steps.length + 1; // + paywall
   const reduce = useReducedMotion() ?? false;
   const today = useToday();
@@ -142,7 +143,7 @@ export function CommencerOnboarding({ content, initialStep }: { content: Commenc
           <AnimatePresence custom={nav} initial={false}>
             <motion.div key={index} custom={nav} variants={variants} initial="enter" animate="center" exit="exit" className="absolute inset-0 flex flex-col">
               {isPaywall ? (
-                <Paywall paywall={content.paywall} email={email} />
+                <Paywall paywall={content.paywall} email={email} whenLabel={whenLabel} />
               ) : (
                 <Screen step={step} answers={answers} setAnswer={setAnswer} time={time} setTime={setTime} goalDateLabel={goalDateLabel} onNext={go} onEmail={onEmail} level={level} levelLabel={levelLabel} minutes={minutes} whenLabel={whenLabel} arabic={splash?.arabic ?? "قُرْآن"} />
               )}
@@ -241,9 +242,7 @@ function WelcomeScreen({ step, onNext }: { step: Step<"welcome">; onNext: () => 
 
 function QuestionScreen({ step, selected, onChange, onNext }: { step: Step<"question">; selected: string[]; onChange: (v: string[]) => void; onNext: () => void }) {
   const reduce = useReducedMotion();
-  const timer = useRef<number | null>(null);
   const [replay, setReplay] = useState(0);
-  useEffect(() => () => { if (timer.current) window.clearTimeout(timer.current); }, []);
   const hasIcons = step.options.some((o) => o.icon);
   const pick = (id: string) => {
     setReplay((k) => k + 1);
@@ -251,9 +250,9 @@ function QuestionScreen({ step, selected, onChange, onNext }: { step: Step<"ques
       onChange(selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id]);
       return;
     }
+    // No auto-advance: the learner confirms with "Continuer" (a sudden jump
+    // to the next question was surprising).
     onChange([id]);
-    if (timer.current) window.clearTimeout(timer.current);
-    timer.current = window.setTimeout(onNext, 260);
   };
   return (
     <Shell footer={<PrimaryButton onClick={onNext} disabled={selected.length === 0}>{step.cta ?? "Continuer"}</PrimaryButton>}>
