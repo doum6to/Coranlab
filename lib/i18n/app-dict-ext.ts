@@ -60,6 +60,8 @@ export const EXT_FR = {
     update: "Mettre à jour",
     passwordTooShort: "Le mot de passe doit faire au moins 6 caractères.",
     passwordsMismatch: "Les deux mots de passe ne correspondent pas.",
+    rateLimited: "Trop de demandes pour le moment. Réessaie dans quelques minutes.",
+    sendFailed: "L'envoi a échoué. Vérifie l'adresse et réessaie.",
   },
   pricingMore: {
     restored: "Achats restaurés ✓",
@@ -284,6 +286,8 @@ export const EXT_EN: AppStringsExt = {
     update: "Update",
     passwordTooShort: "The password must be at least 6 characters.",
     passwordsMismatch: "The two passwords don't match.",
+    rateLimited: "Too many requests right now. Please try again in a few minutes.",
+    sendFailed: "Sending failed. Check the address and try again.",
   },
   pricingMore: {
     restored: "Purchases restored ✓",
@@ -506,6 +510,8 @@ export const EXT_ES: AppStringsExt = {
     update: "Actualizar",
     passwordTooShort: "La contraseña debe tener al menos 6 caracteres.",
     passwordsMismatch: "Las dos contraseñas no coinciden.",
+    rateLimited: "Demasiadas solicitudes por ahora. Inténtalo de nuevo en unos minutos.",
+    sendFailed: "El envío falló. Comprueba la dirección e inténtalo de nuevo.",
   },
   pricingMore: {
     restored: "Compras restauradas ✓",

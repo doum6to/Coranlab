@@ -31,7 +31,10 @@ export function ForgotPasswordForm() {
     });
 
     if (error) {
-      setError(error.message);
+      // Supabase returns raw English messages; map the common ones.
+      const m = error.message.toLowerCase();
+      setError(m.includes("rate limit") ? t.authMore.rateLimited : t.authMore.sendFailed);
+      console.error("[forgot-password]", error.message);
       setLoading(false);
       return;
     }
