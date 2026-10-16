@@ -60,6 +60,24 @@ export type CommencerContent = {
   steps: CmStep[];
   paywall: CmPaywall;
   merci: { title: string; text: string; cta: string; sourceHeadline: string; sourceOptions: CmOption[] };
+  /** One-time upsell shown on the thank-you page (Arabic reading course). */
+  upsell: CmUpsell;
+};
+
+export type CmUpsell = {
+  enabled: boolean;
+  badge: string;
+  title: string;
+  text: string;
+  bullets: string[];
+  amountCents: number;
+  priceLabel: string;
+  compareLabel: string;
+  cta: string;
+  decline: string;
+  note: string;
+  doneTitle: string;
+  doneText: string;
 };
 
 export const COMMENCER_KEY = "commencer_content";
@@ -156,6 +174,21 @@ export const COMMENCER_DEFAULTS: CommencerContent = {
       { id: "snapchat", label: "Snapchat", icon: "ghost" }, { id: "friend", label: "Un proche", icon: "users" }, { id: "mosque", label: "Mosquée / communauté", icon: "landmark" }, { id: "other", label: "Autre", icon: "more" },
     ],
   },
+  upsell: {
+    enabled: true,
+    badge: "Offre unique · réservée aux nouveaux membres",
+    title: "Et si tu apprenais aussi à **lire l'arabe** en moins de 7h ?",
+    text: "Comprendre les mots, c'est la première étape. Les lire directement dans le Coran, c'est la liberté totale. 21 vidéos courtes, sans grammaire, sans devoirs.",
+    bullets: ["21 cours vidéo, de l'alphabet à la lecture fluide", "Méthode sans grammaire ni cahier, 20 min par jour", "Accès à vie, dans ton espace Quranlab"],
+    amountCents: 2700,
+    priceLabel: "27 €",
+    compareLabel: "97 €",
+    cta: "Oui, j'ajoute le cours d'arabe pour 27 €",
+    decline: "Non merci, je continue sans",
+    note: "Cette offre n'apparaît qu'une fois, sur cette page. Paiement unique, garantie 30 jours.",
+    doneTitle: "Le cours d'arabe est ajouté à ton compte",
+    doneText: "Tu le retrouveras dans « Ma formation » dès que ton compte est créé avec la même adresse email.",
+  },
 };
 
 const s = (v: unknown, fb: string) => (typeof v === "string" ? v : fb);
@@ -194,6 +227,7 @@ export function mergeCommencerContent(stored: Partial<CommencerContent> | null):
   const steps = arr<any>(stored.steps, []).map(mergeStep).filter((x): x is CmStep => x !== null);
   const pw = (stored.paywall ?? {}) as Partial<CommencerContent["paywall"]>;
   const m = (stored.merci ?? {}) as Partial<CommencerContent["merci"]>;
+  const u = (stored.upsell ?? {}) as Partial<CmUpsell>;
   return {
     accentColor: /^#[0-9a-fA-F]{6}$/.test(s(stored.accentColor, "")) ? (stored.accentColor as string) : d.accentColor,
     steps: steps.length ? steps : d.steps,
@@ -214,6 +248,15 @@ export function mergeCommencerContent(stored: Partial<CommencerContent> | null):
       title: s(m.title, d.merci.title), text: s(m.text, d.merci.text), cta: s(m.cta, d.merci.cta),
       sourceHeadline: s(m.sourceHeadline, d.merci.sourceHeadline),
       sourceOptions: Array.isArray(m.sourceOptions) ? opts(m.sourceOptions) : d.merci.sourceOptions,
+    },
+    upsell: {
+      enabled: typeof u.enabled === "boolean" ? u.enabled : d.upsell.enabled,
+      badge: s(u.badge, d.upsell.badge), title: s(u.title, d.upsell.title), text: s(u.text, d.upsell.text),
+      bullets: Array.isArray(u.bullets) ? u.bullets.filter((x): x is string => typeof x === "string") : d.upsell.bullets,
+      amountCents: Math.max(0, Math.round(n(u.amountCents, d.upsell.amountCents))),
+      priceLabel: s(u.priceLabel, d.upsell.priceLabel), compareLabel: s(u.compareLabel, d.upsell.compareLabel),
+      cta: s(u.cta, d.upsell.cta), decline: s(u.decline, d.upsell.decline), note: s(u.note, d.upsell.note),
+      doneTitle: s(u.doneTitle, d.upsell.doneTitle), doneText: s(u.doneText, d.upsell.doneText),
     },
   };
 }

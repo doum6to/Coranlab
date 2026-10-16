@@ -527,6 +527,7 @@ export function CommencerForm({ initial }: { initial: CommencerContent }) {
   const set = (patch: Partial<CommencerContent>) => setC((p) => ({ ...p, ...patch }));
   const setPw = (patch: Partial<CommencerContent["paywall"]>) => setC((p) => ({ ...p, paywall: { ...p.paywall, ...patch } }));
   const setMerci = (patch: Partial<CommencerContent["merci"]>) => setC((p) => ({ ...p, merci: { ...p.merci, ...patch } }));
+  const setUp = (patch: Partial<CommencerContent["upsell"]>) => setC((p) => ({ ...p, upsell: { ...p.upsell, ...patch } }));
 
   const save = () =>
     start(async () => {
@@ -614,6 +615,29 @@ export function CommencerForm({ initial }: { initial: CommencerContent }) {
         <Area label="Texte garantie" value={pw.guaranteeText} onChange={(guaranteeText) => setPw({ guaranteeText })} rows={2} />
         <Text label="Bouton" value={pw.cta} onChange={(cta) => setPw({ cta })} />
         <Area label="Mentions sous le bouton" value={pw.finePrint} onChange={(finePrint) => setPw({ finePrint })} rows={2} />
+      </Section>
+
+      <Section title="Upsell après paiement — cours « Lire l'arabe »">
+        <Toggle label="Afficher l'offre sur la page merci" value={c.upsell.enabled} onChange={(enabled) => setUp({ enabled })} />
+        <Text label="Bandeau" value={c.upsell.badge} onChange={(badge) => setUp({ badge })} />
+        <Text label="Titre (**gras** = violet)" value={c.upsell.title} onChange={(title) => setUp({ title })} />
+        <Area label="Texte" value={c.upsell.text} onChange={(text) => setUp({ text })} rows={2} />
+        <StringList label="Points" items={c.upsell.bullets} onChange={(bullets) => setUp({ bullets })} />
+        <div className="grid grid-cols-3 gap-3">
+          <label className="block"><span className="mb-1 block text-xs font-semibold text-neutral-600">Montant facturé (€)</span>
+            <input type="number" step="0.01" min="0" value={(c.upsell.amountCents / 100).toString()} onChange={(e) => setUp({ amountCents: Math.round((Number(e.target.value) || 0) * 100) })} className={inputCls} /></label>
+          <Text label="Prix affiché" value={c.upsell.priceLabel} onChange={(priceLabel) => setUp({ priceLabel })} />
+          <Text label="Prix barré" value={c.upsell.compareLabel} onChange={(compareLabel) => setUp({ compareLabel })} />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <Text label="Bouton accepter" value={c.upsell.cta} onChange={(cta) => setUp({ cta })} />
+          <Text label="Lien refuser" value={c.upsell.decline} onChange={(decline) => setUp({ decline })} />
+        </div>
+        <Text label="Note sous le bouton" value={c.upsell.note} onChange={(note) => setUp({ note })} />
+        <div className="grid grid-cols-2 gap-3">
+          <Text label="Titre après achat" value={c.upsell.doneTitle} onChange={(doneTitle) => setUp({ doneTitle })} />
+          <Text label="Texte après achat" value={c.upsell.doneText} onChange={(doneText) => setUp({ doneText })} />
+        </div>
       </Section>
 
       <Section title="Page merci (après paiement)">
