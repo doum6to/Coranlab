@@ -14,7 +14,15 @@ type BuildParams = {
   bodyHtml: string;
   /** Optional italic-serif sign-off line above "— L'équipe Quranlab". */
   signoff?: string;
+  /** Language of the footer lines (default French). */
+  locale?: "fr" | "en" | "es";
 };
+
+const FOOTER = {
+  fr: { signoff: "Qu'Allah te facilite l'apprentissage.", team: "L&rsquo;équipe Quranlab", help: "Une question&nbsp;? Réponds directement à cet email, on lit tout.", tag: "quranlab.app &middot; comprends le Coran" },
+  en: { signoff: "May Allah make your learning easy.", team: "The Quranlab team", help: "A question? Just reply to this email, we read everything.", tag: "quranlab.app &middot; understand the Qur&rsquo;an" },
+  es: { signoff: "Que Allah te facilite el aprendizaje.", team: "El equipo de Quranlab", help: "¿Una pregunta? Responde a este correo, lo leemos todo.", tag: "quranlab.app &middot; entiende el Corán" },
+} as const;
 
 function esc(s: string): string {
   return s
@@ -36,10 +44,13 @@ export function buildEmail({
   preview,
   heading,
   bodyHtml,
-  signoff = "Qu'Allah te facilite l'apprentissage.",
+  signoff,
+  locale = "fr",
 }: BuildParams): string {
+  const f = FOOTER[locale];
+  const signoffText = signoff ?? f.signoff;
   return `<!DOCTYPE html>
-<html lang="fr">
+<html lang="${locale}">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -65,20 +76,20 @@ export function buildEmail({
       <hr style="border:none;border-top:1px solid #E8E4D8;margin:40px 0" />
 
       <p style="font-family:Georgia,serif;font-style:italic;font-size:18px;color:#1A1A1A;text-align:center;margin:0 0 8px;font-weight:400">
-        ${esc(signoff)}
+        ${esc(signoffText)}
       </p>
       <p style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;color:#666666;text-align:center;margin:0">
-        &mdash; L&rsquo;équipe Quranlab
+        &mdash; ${f.team}
       </p>
 
       <p style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;color:#999999;text-align:center;margin:28px 0 0;line-height:1.5">
-        Une question&nbsp;? Réponds directement à cet email, on lit tout.
+        ${f.help}
       </p>
 
     </div>
 
     <p style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:11px;letter-spacing:0.25em;text-transform:uppercase;color:#999999;text-align:center;margin:24px 0 0">
-      quranlab.app &middot; comprends le Coran
+      ${f.tag}
     </p>
   </body>
 </html>`;

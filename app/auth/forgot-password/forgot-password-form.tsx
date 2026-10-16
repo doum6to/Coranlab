@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 
-import { createClient } from "@/lib/supabase/client";
+import { requestPasswordReset } from "@/actions/password-reset";
 import { RiveMascot } from "@/components/rive-mascot";
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { useT } from "@/lib/i18n/use-t";
@@ -25,16 +25,15 @@ export function ForgotPasswordForm() {
     setLoading(true);
     setError("");
 
-    const supabase = createClient();
-    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${window.location.origin}/auth/callback?next=/auth/reset-password`,
-    });
-
-    if (error) {
-      // Supabase returns raw English messages; map the common ones.
-      const m = error.message.toLowerCase();
-      setError(m.includes("rate limit") ? t.authMore.rateLimited : t.authMore.sendFailed);
-      console.error("[forgot-password]", error.message);
+    // Branded, localized email sent by our server (not Supabase's template).
+    let res: Awaited<ReturnType<typeof requestPasswordReset>>;
+    try {
+      res = await requestPasswordReset(email.trim());
+    } catch {
+      res = { error: "send_failed" };
+    }
+    if ("error" in res) {
+      setError(res.error === "rate_limited" ? t.authMore.rateLimited : t.authMore.sendFailed);
       setLoading(false);
       return;
     }
