@@ -21,7 +21,7 @@ export default async function CommencerMerci({ searchParams }: { searchParams?: 
   const sessionId = searchParams?.session_id ?? "";
   const upsellState = searchParams?.upsell === "done" ? "done" : searchParams?.upsell === "skip" ? "skip" : "offer";
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-y-auto bg-white px-6 py-10 text-center text-[#1A1A1A]">
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-start overflow-y-auto bg-white px-6 py-10 sm:justify-center text-center text-[#1A1A1A]">
       <TrackPurchase />
       <div className="flex h-24 w-24 items-center justify-center rounded-full text-5xl text-white" style={{ background: "#22C55E" }}>✓</div>
       <h1 className="mt-6 max-w-lg font-heading text-3xl font-bold leading-tight sm:text-4xl">{rich(merci.title)}</h1>

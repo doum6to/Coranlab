@@ -29,7 +29,7 @@ export function UpsellCard({ upsell, sessionId, state }: { upsell: CmUpsell; ses
 
   if (state === "done") {
     return (
-      <div className="mt-6 w-full max-w-md rounded-2xl border-2 p-5 text-left" style={{ borderColor: "#22C55E", background: "#F0FDF4" }}>
+      <div className="mt-6 w-full max-w-md shrink-0 rounded-2xl border-2 p-5 text-left" style={{ borderColor: "#22C55E", background: "#F0FDF4" }}>
         <p className="flex items-center gap-2 text-[15px] font-bold text-[#166534]"><Check className="h-4 w-4" /> {upsell.doneTitle}</p>
         <p className="mt-1 text-[13.5px] text-[#166534]/80">{upsell.doneText}</p>
       </div>
@@ -53,7 +53,7 @@ export function UpsellCard({ upsell, sessionId, state }: { upsell: CmUpsell; ses
   const decline = () => { track("commencer_upsell_decline"); setDeclined(true); };
 
   return (
-    <div className="mt-8 w-full max-w-md overflow-hidden rounded-3xl border-2 bg-white text-left shadow-[0_12px_40px_-20px_rgba(105,103,251,.5)]" style={{ borderColor: PURPLE }}>
+    <div className="mt-8 w-full max-w-md shrink-0 overflow-hidden rounded-3xl border-2 bg-white text-left shadow-[0_12px_40px_-20px_rgba(105,103,251,.5)]" style={{ borderColor: PURPLE }}>
       <div className="px-5 py-2 text-center text-[11px] font-extrabold uppercase tracking-[.14em] text-white" style={{ background: PURPLE }}>{upsell.badge}</div>
       <div className="p-5 sm:p-6">
         <div className="flex items-start gap-3">
