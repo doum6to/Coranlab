@@ -90,7 +90,13 @@ export function CommencerOnboarding({ content, initialStep }: { content: Commenc
     move(i);
   }, [move, steps]);
 
-  const setAnswer = (id: string, values: string[]) => setAnswers((a) => ({ ...a, [id]: values }));
+  const setAnswer = (id: string, values: string[]) => setAnswers((a) => {
+    const next = { ...a, [id]: values };
+    // Remembered for the post-purchase upsells (e.g. reading course only
+    // for people who can't read Arabic yet).
+    try { localStorage.setItem("cm_answers", JSON.stringify(next)); } catch { /* ignore */ }
+    return next;
+  });
 
   /* Derived personalisation */
   const q = (id: string) => steps.find((s): s is Step<"question"> => s.type === "question" && s.id === id);

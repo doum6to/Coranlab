@@ -13,6 +13,9 @@ import { sendCoursePurchaseEmail } from "@/lib/email/send-course-email";
 import { sendSubscriptionWelcomeEmail } from "@/lib/email/send-subscription-email";
 import { getVipDriveUrl } from "@/lib/vip";
 import { fulfillDriveCardOrder } from "@/lib/drive-product";
+import { sendBookPurchaseEmail } from "@/lib/email/send-book-email";
+import { getBooksContent } from "@/lib/books-content";
+import { isBookSlug, bookPurchaseType } from "@/lib/books-shared";
 import {
   sendTrialWelcome,
   sendTrialEndingSoon,
@@ -116,6 +119,51 @@ export async function POST(req: Request) {
         console.error("[Webhook] TikTok tracking failed (arabic)", err);
       }
 
+      return new NextResponse(null, { status: 200 });
+    }
+
+    // --- 1a-ter. Single ebook (Boutique / /commencer upsell), one-time payment ---
+    if (session.metadata?.productType === "book") {
+      const email = session.customer_details?.email || session.customer_email;
+      const slug = session.metadata?.bookSlug;
+      if (!email || !isBookSlug(slug)) {
+        console.error("[Webhook] Book purchase missing email/slug", session.id);
+        return new NextResponse("Email and book required", { status: 400 });
+      }
+      try {
+        await db
+          .insert(coursePurchase)
+          .values({
+            email: email.toLowerCase(),
+            stripeSessionId: session.id,
+            stripeCustomerId: (session.customer as string) || null,
+            stripeSubscriptionId: null,
+            hasAppSubscription: false,
+            productType: bookPurchaseType(slug),
+            activationToken: crypto.randomUUID(),
+          })
+          .onConflictDoNothing({ target: coursePurchase.stripeSessionId });
+      } catch (err: any) {
+        console.error("[Webhook] DB insert failed for book", err);
+        return new NextResponse(`DB insert error: ${err.message}`, { status: 500 });
+      }
+      try {
+        const { books } = await getBooksContent();
+        const title = books.find((b) => b.slug === slug)?.title ?? "Quranlab";
+        const r = await sendBookPurchaseEmail({ email, title });
+        if (!r.ok) console.error("[Webhook] book email failed:", r.error);
+        await ttqServerTrack("CompletePayment", {
+          event_id: session.id,
+          email,
+          value: (session.amount_total ?? 0) / 100,
+          currency: "EUR",
+          contentId: `book_${slug}`,
+          contentName: title,
+          contentCategory: "ebook",
+        });
+      } catch (err) {
+        console.error("[Webhook] book post-processing failed", err);
+      }
       return new NextResponse(null, { status: 200 });
     }
 

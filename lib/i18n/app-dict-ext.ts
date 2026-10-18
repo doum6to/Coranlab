@@ -224,6 +224,13 @@ export const EXT_FR = {
     nameTrialSignup: "Quranlab Premium",
     descTrialSignup: "Essai 7 jours offerts, puis 14,97€/mois",
   },
+  shop: {
+    nav: "Boutique",
+    bought: "Livre ajouté à ta bibliothèque ✓",
+    back: "Retour à la boutique",
+    notOwned: "Ce livre n'est pas encore dans ta bibliothèque.",
+    unavailable: "Le fichier n'est pas disponible pour le moment. Réessaie plus tard.",
+  },
   meta: {
     title: "Quranlab - Apprends 85% des mots du Coran",
     description: "Application d'apprentissage du vocabulaire coranique",
@@ -450,6 +457,13 @@ export const EXT_EN: AppStringsExt = {
     nameTrialSignup: "Quranlab Premium",
     descTrialSignup: "7-day free trial, then €14.97/month",
   },
+  shop: {
+    nav: "Shop",
+    bought: "Book added to your library ✓",
+    back: "Back to the shop",
+    notOwned: "This book isn't in your library yet.",
+    unavailable: "The file isn't available right now. Please try again later.",
+  },
   meta: {
     title: "Quranlab - Learn 85% of the words of the Qur'an",
     description: "The app to learn Qur'anic vocabulary",
@@ -673,6 +687,13 @@ export const EXT_ES: AppStringsExt = {
     descTrial: "Acceso ilimitado — 7 días gratis, luego 14,97 €/mes",
     nameTrialSignup: "Quranlab Premium",
     descTrialSignup: "7 días de prueba gratis, luego 14,97 €/mes",
+  },
+  shop: {
+    nav: "Tienda",
+    bought: "Libro añadido a tu biblioteca ✓",
+    back: "Volver a la tienda",
+    notOwned: "Este libro aún no está en tu biblioteca.",
+    unavailable: "El archivo no está disponible ahora mismo. Inténtalo más tarde.",
   },
   meta: {
     title: "Quranlab - Aprende el 85% de las palabras del Corán",

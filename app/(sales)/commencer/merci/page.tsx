@@ -5,7 +5,8 @@ import { getCommencerContent } from "@/lib/commencer-content";
 
 import { SourceQuestion } from "./source-question";
 import { TrackPurchase } from "./track-purchase";
-import { UpsellCard } from "./upsell-card";
+import { UpsellFlow } from "./upsell-flow";
+import { getBooksContent } from "@/lib/books-content";
 
 export const metadata: Metadata = { title: "Accès activé — Quranlab", robots: { index: false, follow: false } };
 
@@ -16,17 +17,18 @@ function rich(text: string) {
   );
 }
 
-export default async function CommencerMerci({ searchParams }: { searchParams?: { session_id?: string; upsell?: string } }) {
-  const { merci, upsell } = await getCommencerContent();
+export default async function CommencerMerci({ searchParams }: { searchParams?: { session_id?: string; upsell?: string; item?: string } }) {
+  const [{ merci, upsell }, { books }] = await Promise.all([getCommencerContent(), getBooksContent()]);
   const sessionId = searchParams?.session_id ?? "";
-  const upsellState = searchParams?.upsell === "done" ? "done" : searchParams?.upsell === "skip" ? "skip" : "offer";
+  const up = searchParams?.upsell;
+  const result = up === "done" || up === "skip" ? { state: up as "done" | "skip", item: searchParams?.item || "arabic" } : null;
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-start overflow-y-auto bg-white px-6 py-10 sm:justify-center text-center text-[#1A1A1A]">
       <TrackPurchase />
       <div className="flex h-24 w-24 items-center justify-center rounded-full text-5xl text-white" style={{ background: "#22C55E" }}>✓</div>
       <h1 className="mt-6 max-w-lg font-heading text-3xl font-bold leading-tight sm:text-4xl">{rich(merci.title)}</h1>
       <p className="mt-4 max-w-md text-base text-[#555]">{rich(merci.text)}</p>
-      <UpsellCard upsell={upsell} sessionId={sessionId} state={upsellState} />
+      <UpsellFlow upsell={upsell} books={books} sessionId={sessionId} result={result} />
       <a href="/auth/signup" className="mt-8 w-full max-w-xs">
         <ShinyButton className="text-base">{merci.cta}</ShinyButton>
       </a>

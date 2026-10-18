@@ -638,6 +638,16 @@ export function CommencerForm({ initial }: { initial: CommencerContent }) {
           <Text label="Titre après achat" value={c.upsell.doneTitle} onChange={(doneTitle) => setUp({ doneTitle })} />
           <Text label="Texte après achat" value={c.upsell.doneText} onChange={(doneText) => setUp({ doneText })} />
         </div>
+        <p className="text-xs text-neutral-500">Le cours d&apos;arabe n&apos;est proposé qu&apos;aux personnes ayant répondu « Pas encore » à « Sais-tu lire l&apos;arabe ? ». Les livres ci-dessous sont ensuite proposés à tout le monde (prix et textes des livres : onglet « Boutique / livres »).</p>
+        <div className="grid grid-cols-2 gap-3">
+          <Text label="Livres — bandeau" value={c.upsell.bookBadge} onChange={(bookBadge) => setUp({ bookBadge })} />
+          <Text label="Livres — titre ({title})" value={c.upsell.bookTitle} onChange={(bookTitle) => setUp({ bookTitle })} />
+          <Text label="Livres — bouton ({price})" value={c.upsell.bookCta} onChange={(bookCta) => setUp({ bookCta })} />
+          <Text label="Livres — refuser" value={c.upsell.bookDecline} onChange={(bookDecline) => setUp({ bookDecline })} />
+          <Text label="Livres — note" value={c.upsell.bookNote} onChange={(bookNote) => setUp({ bookNote })} />
+          <Text label="Livres — suffixe après achat" value={c.upsell.bookDoneSuffix} onChange={(bookDoneSuffix) => setUp({ bookDoneSuffix })} />
+        </div>
+        <Text label="Livres — texte après achat" value={c.upsell.bookDoneText} onChange={(bookDoneText) => setUp({ bookDoneText })} />
       </Section>
 
       <Section title="Page merci (après paiement)">

@@ -45,8 +45,8 @@ export async function createArabicUpsellCheckout(originalSessionId: string) {
         },
       }],
       metadata: { productType: "arabic_course", offer: "commencer_upsell" },
-      success_url: absoluteUrl(`/commencer/merci?session_id=${encodeURIComponent(originalSessionId)}&upsell=done`),
-      cancel_url: absoluteUrl(`/commencer/merci?session_id=${encodeURIComponent(originalSessionId)}&upsell=skip`),
+      success_url: absoluteUrl(`/commencer/merci?session_id=${encodeURIComponent(originalSessionId)}&upsell=done&item=arabic`),
+      cancel_url: absoluteUrl(`/commencer/merci?session_id=${encodeURIComponent(originalSessionId)}&upsell=skip&item=arabic`),
     });
     return { url: session.url };
   } catch (error: any) {

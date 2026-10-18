@@ -78,6 +78,14 @@ export type CmUpsell = {
   note: string;
   doneTitle: string;
   doneText: string;
+  /** Ebook upsells ({title} / {price} placeholders). */
+  bookBadge: string;
+  bookTitle: string;
+  bookCta: string;
+  bookDecline: string;
+  bookNote: string;
+  bookDoneSuffix: string;
+  bookDoneText: string;
 };
 
 export const COMMENCER_KEY = "commencer_content";
@@ -188,6 +196,13 @@ export const COMMENCER_DEFAULTS: CommencerContent = {
     note: "Cette offre n'apparaît qu'une fois, sur cette page. Paiement unique, garantie 30 jours.",
     doneTitle: "Le cours d'arabe est ajouté à ton compte",
     doneText: "Tu le retrouveras dans « Ma formation » dès que ton compte est créé avec la même adresse email.",
+    bookBadge: "Offre membre · une seule fois",
+    bookTitle: "Ajoute le livre **{title}** à ta bibliothèque",
+    bookCta: "Oui, j'ajoute ce livre pour {price}",
+    bookDecline: "Non merci",
+    bookNote: "Paiement unique. Lecture dans l'app, à vie.",
+    bookDoneSuffix: "est dans ta bibliothèque",
+    bookDoneText: "Ouvre-le depuis la Boutique de l'app dès que ton compte est créé avec la même adresse email.",
   },
 };
 
@@ -257,6 +272,9 @@ export function mergeCommencerContent(stored: Partial<CommencerContent> | null):
       priceLabel: s(u.priceLabel, d.upsell.priceLabel), compareLabel: s(u.compareLabel, d.upsell.compareLabel),
       cta: s(u.cta, d.upsell.cta), decline: s(u.decline, d.upsell.decline), note: s(u.note, d.upsell.note),
       doneTitle: s(u.doneTitle, d.upsell.doneTitle), doneText: s(u.doneText, d.upsell.doneText),
+      bookBadge: s(u.bookBadge, d.upsell.bookBadge), bookTitle: s(u.bookTitle, d.upsell.bookTitle), bookCta: s(u.bookCta, d.upsell.bookCta),
+      bookDecline: s(u.bookDecline, d.upsell.bookDecline), bookNote: s(u.bookNote, d.upsell.bookNote),
+      bookDoneSuffix: s(u.bookDoneSuffix, d.upsell.bookDoneSuffix), bookDoneText: s(u.bookDoneText, d.upsell.bookDoneText),
     },
   };
 }

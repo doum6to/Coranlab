@@ -16,6 +16,7 @@ import {
   CoursIcon,
   LeaderboardIcon,
   SettingsIcon,
+  ShopIcon,
 } from "./sidebar-icons";
 
 type Props = {
@@ -65,6 +66,11 @@ export const Sidebar = ({ className, streak, isPro, hasActiveSubscription, strea
           label={t.nav.leaderboard}
           href="/leaderboard"
           icon={LeaderboardIcon}
+        />
+        <SidebarItem
+          label={t.shop.nav}
+          href="/boutique"
+          icon={ShopIcon}
         />
         {hasArabicCourse && (
           <SidebarItem
