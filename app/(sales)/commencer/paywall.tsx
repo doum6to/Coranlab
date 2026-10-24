@@ -6,6 +6,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { createCommencerCheckout } from "@/actions/commencer-checkout";
 import { ttqTrack } from "@/lib/analytics/tiktok";
 import type { CommencerContent } from "@/lib/commencer-shared";
+import { centsFromLabel, formatPaywallPrice, type PaywallCurrency } from "@/lib/geo-currency";
 
 import { CM_UI, Check, Icon, P, PrimaryButton, Shell, fill, rich, type CmLocale } from "./ui";
 
@@ -14,8 +15,13 @@ import { CM_UI, Check, Icon, P, PrimaryButton, Shell, fill, rich, type CmLocale 
  * built during the onboarding, anchors the price against the compare label,
  * then removes every risk (one-time payment, guarantee).
  */
-export function Paywall({ paywall, email, whenLabel, locale = "fr" }: { paywall: CommencerContent["paywall"]; email?: string; whenLabel: string; locale?: CmLocale }) {
+export function Paywall({ paywall, email, whenLabel, locale = "fr", currency = "EUR" }: { paywall: CommencerContent["paywall"]; email?: string; whenLabel: string; locale?: CmLocale; currency?: PaywallCurrency }) {
   const ui = CM_UI[locale];
+  // Same number in the visitor's currency (detected from their country).
+  const priceLabel = formatPaywallPrice(paywall.amountCents, currency, locale);
+  const compareLabel = paywall.compareLabel ? formatPaywallPrice(centsFromLabel(paywall.compareLabel, 4900), currency, locale) : "";
+  // Admin copy may embed the euro price ("— 9,99 €" / "49 €"): swap it for the local one.
+  const swap = (s: string) => s.replace(paywall.priceLabel, priceLabel).replace(paywall.compareLabel || "\u0000", compareLabel);
   const reduce = useReducedMotion();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -24,9 +30,9 @@ export function Paywall({ paywall, email, whenLabel, locale = "fr" }: { paywall:
     if (busy) return;
     setBusy(true);
     setErr(null);
-    ttqTrack("InitiateCheckout", { content_category: "commencer", content_id: "commencer_lifetime", currency: "EUR", value: paywall.amountCents / 100 });
+    ttqTrack("InitiateCheckout", { content_category: "commencer", content_id: "commencer_lifetime", currency, value: paywall.amountCents / 100 });
     try {
-      const res = await createCommencerCheckout(email || undefined, locale);
+      const res = await createCommencerCheckout(email || undefined, locale, currency);
       if ("url" in res && res.url) {
         window.location.href = res.url;
         return;
@@ -39,15 +45,15 @@ export function Paywall({ paywall, email, whenLabel, locale = "fr" }: { paywall:
   };
 
   const wave = (i: number) => (reduce ? { duration: 0 } : { delay: 0.1 + i * 0.08, duration: 0.4, ease: "easeOut" as const });
-  const hasCompare = Boolean(paywall.compareLabel);
+  const hasCompare = Boolean(compareLabel);
 
   return (
     <Shell
       footer={
         <>
           {err && <p className="text-center text-[13px]" style={{ color: P.danger }} role="alert">{err}</p>}
-          <PrimaryButton onClick={checkout} busy={busy}>{busy ? ui.redirect : paywall.cta}</PrimaryButton>
-          <p className="text-center text-[12px] leading-snug" style={{ color: P.muted }}>{paywall.finePrint}</p>
+          <PrimaryButton onClick={checkout} busy={busy}>{busy ? ui.redirect : swap(paywall.cta)}</PrimaryButton>
+          <p className="text-center text-[12px] leading-snug" style={{ color: P.muted }}>{swap(paywall.finePrint)}</p>
           <p className="flex items-center justify-center gap-2 text-[11px]" style={{ color: P.muted }}>
             <a href="/conditions" className="underline underline-offset-2">{ui.terms}</a>
             <span aria-hidden>·</span>
@@ -76,16 +82,16 @@ export function Paywall({ paywall, email, whenLabel, locale = "fr" }: { paywall:
           <div className="flex items-end justify-center gap-3">
             {hasCompare && (
               <span className="mb-1.5 text-[20px] font-semibold line-through decoration-2" style={{ color: P.muted, textDecorationColor: P.danger }}>
-                {paywall.compareLabel}
+                {compareLabel}
               </span>
             )}
-            <span className="font-heading text-[52px] font-extrabold leading-none" style={{ color: P.purple }}>{paywall.priceLabel}</span>
+            <span className="font-heading text-[52px] font-extrabold leading-none" style={{ color: P.purple }}>{priceLabel}</span>
           </div>
           <p className="mt-1.5 text-[14px] font-semibold" style={{ color: P.text }}>{paywall.priceNote}</p>
         </div>
         {paywall.urgency && (
           <p className="px-4 py-2.5 text-[12.5px] font-semibold leading-snug" style={{ background: P.purple, color: "#fff" }}>
-            {paywall.urgency}
+            {swap(paywall.urgency)}
           </p>
         )}
       </motion.div>

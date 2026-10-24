@@ -4,6 +4,7 @@ import { stripe } from "@/lib/stripe";
 import { absoluteUrl } from "@/lib/utils";
 import { getCommencerContent } from "@/lib/commencer-content";
 import { COMMENCER_EN } from "@/lib/commencer-en";
+import { isPaywallCurrency, type PaywallCurrency } from "@/lib/geo-currency";
 
 /**
  * Stripe Checkout for the /commencer paywall — a ONE-TIME lifetime payment
@@ -12,8 +13,10 @@ import { COMMENCER_EN } from "@/lib/commencer-en";
  * course_purchase, emails the buyer a "create your account" link and
  * linkCoursePurchaseByEmail() grants lifetime Premium on signup.
  */
-export async function createCommencerCheckout(email?: string, locale: "fr" | "en" | "es" = "fr") {
+export async function createCommencerCheckout(email?: string, locale: "fr" | "en" | "es" = "fr", currencyIn: PaywallCurrency = "EUR") {
   try {
+    // Same amount (e.g. 999 minor units) charged in the visitor's currency.
+    const currency: PaywallCurrency = isPaywallCurrency(currencyIn) ? currencyIn : "EUR";
     const { paywall } = locale === "en" ? COMMENCER_EN : await getCommencerContent();
     // FR flow lives at /commencer, the English one at /start.
     const base = locale === "fr" ? "/commencer" : "/start";
@@ -24,7 +27,7 @@ export async function createCommencerCheckout(email?: string, locale: "fr" | "en
       line_items: [{
         quantity: 1,
         price_data: {
-          currency: "eur",
+          currency: currency.toLowerCase(),
           product_data: {
             name: locale === "fr" ? "Quranlab Premium — Accès à vie" : "Quranlab Premium — Lifetime access",
             description: locale === "fr" ? "Paiement unique. Toutes les leçons, à vie, sans abonnement." : "One-time payment. Every lesson, for life, no subscription.",
@@ -32,8 +35,8 @@ export async function createCommencerCheckout(email?: string, locale: "fr" | "en
           unit_amount: paywall.amountCents,
         },
       }],
-      metadata: { productType: "course", hasApp: "true", offer: "commencer", plan: "lifetime", locale },
-      success_url: absoluteUrl(`${base}/merci?session_id={CHECKOUT_SESSION_ID}&value=${(paywall.amountCents / 100).toFixed(2)}`),
+      metadata: { productType: "course", hasApp: "true", offer: "commencer", plan: "lifetime", locale, currency },
+      success_url: absoluteUrl(`${base}/merci?session_id={CHECKOUT_SESSION_ID}&value=${(paywall.amountCents / 100).toFixed(2)}&cur=${currency}`),
       cancel_url: absoluteUrl(`${base}?step=paywall`),
     });
     return { url: session.url };

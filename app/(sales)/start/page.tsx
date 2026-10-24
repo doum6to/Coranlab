@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
 
+import { headers } from "next/headers";
+
 import { RivePreloads } from "@/components/rive-preloads";
+import { currencyForCountry } from "@/lib/geo-currency";
 import { LocaleProvider } from "@/components/i18n/locale-provider";
 import { COMMENCER_EN } from "@/lib/commencer-en";
 
 import { CommencerOnboarding } from "../commencer/onboarding";
 
-export const revalidate = 60;
+// Country detection reads request headers → rendered per request.
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Understand the Qur'an — Quranlab",
@@ -18,7 +22,7 @@ export default function CommencerEnPage({ searchParams }: { searchParams?: { ste
   return (
     <LocaleProvider locale="en">
       <RivePreloads />
-      <CommencerOnboarding content={COMMENCER_EN} locale="en" initialStep={searchParams?.step === "paywall" ? "paywall" : undefined} />
+      <CommencerOnboarding currency={currencyForCountry(headers().get("x-vercel-ip-country") || headers().get("cf-ipcountry"))} content={COMMENCER_EN} locale="en" initialStep={searchParams?.step === "paywall" ? "paywall" : undefined} />
     </LocaleProvider>
   );
 }

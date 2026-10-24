@@ -8,6 +8,7 @@ import { OnboardingMascot } from "@/components/onboarding/onboarding-mascot";
 import { OpenInBrowserHint } from "@/components/open-in-browser-hint";
 import { ttqTrack } from "@/lib/analytics/tiktok";
 import type { CmStep, CommencerContent } from "@/lib/commencer-shared";
+import type { PaywallCurrency } from "@/lib/geo-currency";
 
 import { ProgressChart, TimeChart } from "./charts";
 import { Paywall } from "./paywall";
@@ -50,7 +51,7 @@ const GLOBAL_CSS = `${AMIRI_CSS}
 /* ------------------------------------------------------------------ */
 /* Main component                                                       */
 
-export function CommencerOnboarding({ content, initialStep, locale = "fr" }: { content: CommencerContent; initialStep?: "paywall"; locale?: CmLocale }) {
+export function CommencerOnboarding({ content, initialStep, locale = "fr", currency = "EUR" }: { content: CommencerContent; initialStep?: "paywall"; locale?: CmLocale; currency?: PaywallCurrency }) {
   const ui = CM_UI[locale];
   // The old "trial" mockup screen is superseded by the interactive lesson.
   // The "bell" (trial reminder) screen is gone with the free trial.
@@ -150,7 +151,7 @@ export function CommencerOnboarding({ content, initialStep, locale = "fr" }: { c
           <AnimatePresence custom={nav} initial={false}>
             <motion.div key={index} custom={nav} variants={variants} initial="enter" animate="center" exit="exit" className="absolute inset-0 flex flex-col">
               {isPaywall ? (
-                <Paywall paywall={content.paywall} email={email} whenLabel={whenLabel} locale={locale} />
+                <Paywall paywall={content.paywall} email={email} whenLabel={whenLabel} locale={locale} currency={currency} />
               ) : (
                 <Screen ui={ui} step={step} answers={answers} setAnswer={setAnswer} time={time} setTime={setTime} goalDateLabel={goalDateLabel} onNext={go} onEmail={onEmail} level={level} levelLabel={levelLabel} minutes={minutes} whenLabel={whenLabel} arabic={splash?.arabic ?? "قُرْآن"} />
               )}
