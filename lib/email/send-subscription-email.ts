@@ -1,5 +1,6 @@
 import { getResend } from "./resend";
-import { renderSubscriptionWelcomeEmailHtml } from "./templates/subscription-welcome";
+import { renderSubscriptionWelcomeEmailHtml, subscriptionWelcomeSubject } from "./templates/subscription-welcome";
+import type { Locale } from "@/lib/i18n/locales";
 import { absoluteUrl } from "@/lib/utils";
 
 /**
@@ -10,9 +11,11 @@ import { absoluteUrl } from "@/lib/utils";
 export async function sendSubscriptionWelcomeEmail({
   email,
   activationToken,
+  locale = "fr",
 }: {
   email: string;
   activationToken: string;
+  locale?: Locale;
 }): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
   const activationUrl = absoluteUrl(`/api/course/activate?token=${activationToken}`);
   const from = process.env.RESEND_FROM_EMAIL || "Quranlab <contact@quranlab.app>";
@@ -25,12 +28,12 @@ export async function sendSubscriptionWelcomeEmail({
   }
 
   try {
-    const html = renderSubscriptionWelcomeEmailHtml({ activationUrl });
+    const html = renderSubscriptionWelcomeEmailHtml({ activationUrl, locale });
     const result = await getResend().emails.send({
       from,
       to: email,
       replyTo,
-      subject: "Bienvenue ! Crée ton compte Quranlab Premium",
+      subject: subscriptionWelcomeSubject(locale),
       html,
     });
     if (result.error) {

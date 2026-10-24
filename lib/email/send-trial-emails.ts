@@ -1,21 +1,16 @@
 import { getResend } from "./resend";
-import { renderTrialWelcomeHtml } from "./templates/trial-welcome";
-import { renderTrialEndingSoonHtml } from "./templates/trial-ending-soon";
-import { renderPaymentSucceededHtml } from "./templates/payment-succeeded";
-import { renderPaymentFailedHtml } from "./templates/payment-failed";
+import { renderTrialWelcomeHtml, trialWelcomeSubject } from "./templates/trial-welcome";
+import { renderTrialEndingSoonHtml, trialEndingSoonSubject } from "./templates/trial-ending-soon";
+import { renderPaymentSucceededHtml, paymentSucceededSubject } from "./templates/payment-succeeded";
+import { renderPaymentFailedHtml, paymentFailedSubject } from "./templates/payment-failed";
+import { formatEmailAmount, formatEmailDate } from "./locale";
+import type { Locale } from "@/lib/i18n/locales";
 import { absoluteUrl } from "@/lib/utils";
 
 const FROM =
   process.env.RESEND_FROM_EMAIL || "Quranlab <contact@quranlab.app>";
 const REPLY_TO = process.env.RESEND_REPLY_TO || "qalbanah@gmail.com";
 
-function formatDate(d: Date): string {
-  return d.toLocaleDateString("fr-FR", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-}
 
 type SendResult =
   | { ok: true; id: string }
@@ -74,13 +69,16 @@ async function safeSend(params: {
 export async function sendTrialWelcome(params: {
   email: string;
   trialEndsAt: Date;
+  locale?: Locale;
 }) {
+  const locale = params.locale ?? "fr";
   return safeSend({
     to: params.email,
-    subject: "Bienvenue dans Quranlab — ton essai 7 jours est actif",
+    subject: trialWelcomeSubject(locale),
     html: renderTrialWelcomeHtml({
       appUrl: absoluteUrl("/learn"),
-      trialEndsAt: formatDate(params.trialEndsAt),
+      trialEndsAt: formatEmailDate(params.trialEndsAt, locale),
+      locale,
     }),
     label: "trial-welcome",
   });
@@ -90,13 +88,16 @@ export async function sendTrialEndingSoon(params: {
   email: string;
   trialEndsAt: Date;
   billingPortalUrl: string;
+  locale?: Locale;
 }) {
+  const locale = params.locale ?? "fr";
   return safeSend({
     to: params.email,
-    subject: "Ton essai Quranlab se termine dans 3 jours",
+    subject: trialEndingSoonSubject(locale),
     html: renderTrialEndingSoonHtml({
       billingPortalUrl: params.billingPortalUrl,
-      trialEndsAt: formatDate(params.trialEndsAt),
+      trialEndsAt: formatEmailDate(params.trialEndsAt, locale),
+      locale,
     }),
     label: "trial-ending-soon",
   });
@@ -106,16 +107,17 @@ export async function sendPaymentSucceeded(params: {
   email: string;
   amountCents: number;
   nextBillingAt: Date;
+  locale?: Locale;
 }) {
-  const amount =
-    (params.amountCents / 100).toFixed(2).replace(".", ",") + "€";
+  const locale = params.locale ?? "fr";
   return safeSend({
     to: params.email,
-    subject: "Paiement Quranlab confirmé",
+    subject: paymentSucceededSubject(locale),
     html: renderPaymentSucceededHtml({
       appUrl: absoluteUrl("/learn"),
-      amount,
-      nextBillingAt: formatDate(params.nextBillingAt),
+      amount: formatEmailAmount(params.amountCents, locale),
+      nextBillingAt: formatEmailDate(params.nextBillingAt, locale),
+      locale,
     }),
     label: "payment-succeeded",
   });
@@ -124,12 +126,15 @@ export async function sendPaymentSucceeded(params: {
 export async function sendPaymentFailed(params: {
   email: string;
   billingPortalUrl: string;
+  locale?: Locale;
 }) {
+  const locale = params.locale ?? "fr";
   return safeSend({
     to: params.email,
-    subject: "Ton paiement Quranlab n'est pas passé",
+    subject: paymentFailedSubject(locale),
     html: renderPaymentFailedHtml({
       billingPortalUrl: params.billingPortalUrl,
+      locale,
     }),
     label: "payment-failed",
   });

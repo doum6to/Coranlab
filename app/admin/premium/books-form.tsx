@@ -6,7 +6,7 @@ import { Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { updateBooksContent } from "@/actions/books-content";
-import type { Book, BooksContent } from "@/lib/books-shared";
+import type { Book, BookI18n, BooksContent } from "@/lib/books-shared";
 import { compressImageFile } from "@/lib/images/compress-client";
 import { createMediaUploadUrl } from "@/actions/landing-media";
 import { createClient } from "@/lib/supabase/client";
@@ -68,6 +68,21 @@ function Cover({ url, onChange }: { url: string; onChange: (u: string) => void }
         {url && <button type="button" onClick={() => onChange("")} className="text-left text-xs text-neutral-400 hover:text-red-600">Retirer</button>}
         {err && <span className="text-xs text-rose-500">{err}</span>}
       </div>
+    </div>
+  );
+}
+
+function I18nFields({ value, onChange }: { value: BookI18n; onChange: (v: BookI18n) => void }) {
+  const p = (patch: Partial<BookI18n>) => onChange({ ...value, ...patch });
+  return (
+    <div className="mt-3 space-y-2">
+      <div className="grid grid-cols-2 gap-3">
+        <Text label="Titre" value={value.title} onChange={(title) => p({ title })} />
+        <Text label="Sous-titre" value={value.subtitle} onChange={(subtitle) => p({ subtitle })} />
+      </div>
+      <Area label="Description" value={value.description} onChange={(description) => p({ description })} rows={2} />
+      <Area label="Points forts (un par ligne)" value={value.bullets.join("\n")} onChange={(v) => p({ bullets: v.split("\n").map((x) => x.trim()).filter(Boolean) })} rows={3} />
+      <Text label="Mention (format)" value={value.meta} onChange={(meta) => p({ meta })} />
     </div>
   );
 }
@@ -138,6 +153,12 @@ export function BooksForm({ initial }: { initial: BooksContent }) {
             <label className="block"><span className="mb-1 block text-xs font-semibold text-neutral-600">Couleur</span>
               <input type="color" value={b.color} onChange={(e) => setBook(b.slug, { color: e.target.value })} className="h-10 w-full rounded-lg border border-neutral-300" /></label>
           </div>
+          {(["en", "es"] as const).map((l) => (
+            <details key={l} className="rounded-lg border border-neutral-200 bg-white p-3">
+              <summary className="cursor-pointer text-xs font-bold text-neutral-700">Traduction {l === "en" ? "anglaise" : "espagnole"}</summary>
+              <I18nFields value={b.i18n[l]} onChange={(v) => setBook(b.slug, { i18n: { ...b.i18n, [l]: v } })} />
+            </details>
+          ))}
           <div className="grid grid-cols-2 gap-3">
             <Text label="Mention (format)" value={b.meta} onChange={(meta) => setBook(b.slug, { meta })} />
             <label className="flex items-center gap-2 pt-5 text-sm"><input type="checkbox" checked={b.includedWithPremium} onChange={(e) => setBook(b.slug, { includedWithPremium: e.target.checked })} /> Inclus avec Premium (sinon vendu séparément)</label>

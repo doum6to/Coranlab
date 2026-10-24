@@ -121,6 +121,7 @@ export const createStripeUrl = async (
       metadata: {
         userId,
         plan,
+        locale,
       },
       // Reconcile the subscription server-side on return so premium is
       // active immediately, without waiting on the async webhook. Stripe
@@ -149,6 +150,7 @@ export const createStripeUrl = async (
       sessionParams.subscription_data = {
         ...(sessionParams.subscription_data || {}),
         trial_period_days: trialDays,
+        metadata: { ...(sessionParams.subscription_data?.metadata || {}), locale },
       };
     }
 

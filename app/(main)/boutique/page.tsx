@@ -5,6 +5,7 @@ import { auth } from "@/lib/supabase/server";
 import { getUserSubscription } from "@/db/queries";
 import { getBooksContent } from "@/lib/books-content";
 import { getOwnedBookSlugs } from "@/lib/books-access";
+import { localizeBook } from "@/lib/books-shared";
 import { getServerStrings } from "@/lib/i18n/server-t";
 import { BoutiqueView } from "./boutique-view";
 
@@ -28,6 +29,7 @@ export default async function BoutiquePage({ searchParams }: { searchParams?: { 
     shopTitle: t.shop.title, shopSubtitle: t.shop.subtitle, tabShop: t.shop.tabShop, tabLibrary: t.shop.tabLibrary,
     includedLabel: t.shop.included, ownedLabel: t.shop.owned, buyLabel: t.shop.buy, readLabel: t.shop.read,
     premiumLabel: t.shop.premium, emptyLibrary: t.shop.empty,
+    books: content.books.map((b) => localizeBook(b, locale)),
   };
 
   return (
@@ -37,7 +39,7 @@ export default async function BoutiquePage({ searchParams }: { searchParams?: { 
       isPro={!!sub?.isActive}
       bought={searchParams?.bought ?? null}
       initialTab={searchParams?.tab === "library" ? "library" : "shop"}
-      strings={{ bought: t.shop.bought }}
+      strings={{ bought: t.shop.bought, notice: locale === "fr" ? "" : t.shop.frenchNotice }}
     />
   );
 }

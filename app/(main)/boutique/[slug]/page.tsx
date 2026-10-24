@@ -6,7 +6,7 @@ import { ArrowLeft, Lock } from "lucide-react";
 import { auth } from "@/lib/supabase/server";
 import { getBooksContent } from "@/lib/books-content";
 import { getBookReadUrl, getOwnedBookSlugs } from "@/lib/books-access";
-import { isBookSlug } from "@/lib/books-shared";
+import { isBookSlug, localizeBook } from "@/lib/books-shared";
 import { getServerStrings } from "@/lib/i18n/server-t";
 
 export const dynamic = "force-dynamic";
@@ -23,9 +23,10 @@ export default async function BookReaderPage({ params }: { params: { slug: strin
   if (!userId) redirect("/auth/login");
   if (!isBookSlug(params.slug)) notFound();
 
-  const { t } = getServerStrings();
+  const { t, locale } = getServerStrings();
   const [{ books }, owned] = await Promise.all([getBooksContent(), getOwnedBookSlugs()]);
-  const book = books.find((b) => b.slug === params.slug);
+  const raw = books.find((b) => b.slug === params.slug);
+  const book = raw ? localizeBook(raw, locale) : undefined;
   if (!book) notFound();
 
   const url = owned.has(book.slug) ? await getBookReadUrl(book.slug) : null;

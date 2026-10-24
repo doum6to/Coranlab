@@ -116,8 +116,11 @@ export function addDays(d: Date, days: number): Date {
   out.setDate(out.getDate() + days);
   return out;
 }
-export const fmtShort = (d: Date) => new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short" }).format(d);
-export const fmtLong = (d: Date) => new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short", year: "numeric" }).format(d);
+const INTL: Record<string, string> = { fr: "fr-FR", en: "en-GB", es: "es-ES" };
+export const fmtShort = (d: Date, locale = "fr") => new Intl.DateTimeFormat(INTL[locale] ?? "fr-FR", { day: "numeric", month: "short" }).format(d);
+export const fmtLong = (d: Date, locale = "fr") => new Intl.DateTimeFormat(INTL[locale] ?? "fr-FR", { day: "numeric", month: "short", year: "numeric" }).format(d);
+
+export { CM_UI, type CmLocale } from "@/lib/commencer-ui";
 
 /** `null` during SSR + first client render, then the client's "now". Hydration-safe. */
 export function useToday(): Date | null {

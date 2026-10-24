@@ -11,7 +11,7 @@ import type { CmStep, CommencerContent } from "@/lib/commencer-shared";
 
 import { ProgressChart, TimeChart } from "./charts";
 import { Paywall } from "./paywall";
-import { AMIRI_CSS, AR_FONT, EMAIL_RE, Heading, Icon, IconBadge, OptionCard, P, PrimaryButton, RiveAnim, Shell, Stars, addDays, cascade, easeInOutCubic, fill, fmtShort, rich, useToday } from "./ui";
+import { AMIRI_CSS, AR_FONT, CM_UI, EMAIL_RE, Heading, Icon, IconBadge, OptionCard, P, PrimaryButton, RiveAnim, Shell, Stars, addDays, cascade, easeInOutCubic, fill, fmtShort, rich, useToday, type CmLocale } from "./ui";
 
 /* ------------------------------------------------------------------ */
 /* Types & transitions                                                  */
@@ -50,7 +50,8 @@ const GLOBAL_CSS = `${AMIRI_CSS}
 /* ------------------------------------------------------------------ */
 /* Main component                                                       */
 
-export function CommencerOnboarding({ content, initialStep }: { content: CommencerContent; initialStep?: "paywall" }) {
+export function CommencerOnboarding({ content, initialStep, locale = "fr" }: { content: CommencerContent; initialStep?: "paywall"; locale?: CmLocale }) {
+  const ui = CM_UI[locale];
   // The old "trial" mockup screen is superseded by the interactive lesson.
   // The "bell" (trial reminder) screen is gone with the free trial.
   const steps = useMemo(() => content.steps.filter((s) => s.type !== "trial" && s.type !== "bell"), [content.steps]);
@@ -104,18 +105,18 @@ export function CommencerOnboarding({ content, initialStep }: { content: Commenc
   const levelStep = q("level");
   const levelIdx = levelStep ? levelStep.options.findIndex((o) => o.id === answers.level?.[0]) : -1;
   const level = levelIdx >= 0 ? levelIdx + 1 : 1;
-  const levelLabel = levelIdx >= 0 && levelStep ? levelStep.options[levelIdx].label : "Débutant";
-  const whenLabel = (optionLabel("when") ?? "chaque jour").toLowerCase();
+  const levelLabel = levelIdx >= 0 && levelStep ? levelStep.options[levelIdx].label : ui.beginner;
+  const whenLabel = (optionLabel("when") ?? ui.everyDay).toLowerCase();
   const timeStep = steps.find((s): s is Step<"time"> => s.type === "time");
   const minutes = time?.minutes ?? timeStep?.options[0]?.minutes ?? 15;
   const goalDate = useMemo(() => (today && time ? addDays(today, time.weeks * 7) : null), [today, time]);
-  const goalDateLabel = goalDate ? fmtShort(goalDate) : null;
+  const goalDateLabel = goalDate ? fmtShort(goalDate, locale) : null;
   const splash = steps.find((s): s is Step<"splash"> => s.type === "splash");
 
   const onEmail = (value: string) => {
     setEmail(value);
     const focus = [`why:${(answers.why ?? []).join("|")}`, `when:${answers.when?.[0] ?? ""}`, `min:${minutes}`].join(";");
-    void captureFunnelLead({ email: value, stage: "offer", focusChoice: focus, source: "commencer" }).catch(() => undefined);
+    void captureFunnelLead({ email: value, stage: "offer", focusChoice: focus, source: locale === "fr" ? "commencer" : `commencer_${locale}` }).catch(() => undefined);
     go();
   };
 
@@ -149,9 +150,9 @@ export function CommencerOnboarding({ content, initialStep }: { content: Commenc
           <AnimatePresence custom={nav} initial={false}>
             <motion.div key={index} custom={nav} variants={variants} initial="enter" animate="center" exit="exit" className="absolute inset-0 flex flex-col">
               {isPaywall ? (
-                <Paywall paywall={content.paywall} email={email} whenLabel={whenLabel} />
+                <Paywall paywall={content.paywall} email={email} whenLabel={whenLabel} locale={locale} />
               ) : (
-                <Screen step={step} answers={answers} setAnswer={setAnswer} time={time} setTime={setTime} goalDateLabel={goalDateLabel} onNext={go} onEmail={onEmail} level={level} levelLabel={levelLabel} minutes={minutes} whenLabel={whenLabel} arabic={splash?.arabic ?? "قُرْآن"} />
+                <Screen ui={ui} step={step} answers={answers} setAnswer={setAnswer} time={time} setTime={setTime} goalDateLabel={goalDateLabel} onNext={go} onEmail={onEmail} level={level} levelLabel={levelLabel} minutes={minutes} whenLabel={whenLabel} arabic={splash?.arabic ?? "قُرْآن"} />
               )}
             </motion.div>
           </AnimatePresence>
@@ -164,16 +165,16 @@ export function CommencerOnboarding({ content, initialStep }: { content: Commenc
 /* ------------------------------------------------------------------ */
 /* Screen router                                                        */
 
-function Screen(props: { step: CmStep; answers: Answers; setAnswer: (id: string, values: string[]) => void; time: TimeChoice | null; setTime: (t: TimeChoice) => void; goalDateLabel: string | null; onNext: () => void; onEmail: (email: string) => void; level: number; levelLabel: string; minutes: number; whenLabel: string; arabic: string }) {
+function Screen(props: { ui: (typeof CM_UI)[CmLocale]; step: CmStep; answers: Answers; setAnswer: (id: string, values: string[]) => void; time: TimeChoice | null; setTime: (t: TimeChoice) => void; goalDateLabel: string | null; onNext: () => void; onEmail: (email: string) => void; level: number; levelLabel: string; minutes: number; whenLabel: string; arabic: string }) {
   const { step, onNext } = props;
   switch (step.type) {
     case "splash": return <SplashScreen step={step} onDone={onNext} />;
     case "welcome": return <WelcomeScreen step={step} onNext={onNext} />;
-    case "question": return <QuestionScreen step={step} selected={props.answers[step.id] ?? []} onChange={(v) => props.setAnswer(step.id, v)} onNext={onNext} />;
-    case "chart": return <ChartScreen step={step} onNext={onNext} />;
-    case "time": return <TimeScreen step={step} choice={props.time} onChoose={props.setTime} goalDateLabel={props.goalDateLabel} onNext={onNext} />;
+    case "question": return <QuestionScreen cont={props.ui.continue} step={step} selected={props.answers[step.id] ?? []} onChange={(v) => props.setAnswer(step.id, v)} onNext={onNext} />;
+    case "chart": return <ChartScreen cont={props.ui.continue} step={step} onNext={onNext} />;
+    case "time": return <TimeScreen cont={props.ui.continue} step={step} choice={props.time} onChoose={props.setTime} goalDateLabel={props.goalDateLabel} onNext={onNext} />;
     case "email": return <EmailScreen step={step} whenLabel={props.whenLabel} onSubmit={props.onEmail} onSkip={onNext} />;
-    case "social": return <SocialScreen step={step} onNext={onNext} />;
+    case "social": return <SocialScreen cont={props.ui.continue} step={step} onNext={onNext} />;
     case "loader": return <LoaderScreen step={step} onDone={onNext} />;
     case "plan": return <PlanScreen step={step} minutes={props.minutes} whenLabel={props.whenLabel} goalDateLabel={props.goalDateLabel} level={props.level} levelLabel={props.levelLabel} arabic={props.arabic} onNext={onNext} />;
     case "lesson": return <LessonScreen step={step} onNext={onNext} />;
@@ -246,7 +247,7 @@ function WelcomeScreen({ step, onNext }: { step: Step<"welcome">; onNext: () => 
 /* ------------------------------------------------------------------ */
 /* Question — small Koji next to the title, "yup" on each pick          */
 
-function QuestionScreen({ step, selected, onChange, onNext }: { step: Step<"question">; selected: string[]; onChange: (v: string[]) => void; onNext: () => void }) {
+function QuestionScreen({ cont, step, selected, onChange, onNext }: { cont: string; step: Step<"question">; selected: string[]; onChange: (v: string[]) => void; onNext: () => void }) {
   const reduce = useReducedMotion();
   const [replay, setReplay] = useState(0);
   const hasIcons = step.options.some((o) => o.icon);
@@ -261,7 +262,7 @@ function QuestionScreen({ step, selected, onChange, onNext }: { step: Step<"ques
     onChange([id]);
   };
   return (
-    <Shell footer={<PrimaryButton onClick={onNext} disabled={selected.length === 0}>{step.cta ?? "Continuer"}</PrimaryButton>}>
+    <Shell footer={<PrimaryButton onClick={onNext} disabled={selected.length === 0}>{step.cta ?? cont}</PrimaryButton>}>
       <div className="flex items-center gap-2">
         <div className="-ml-2 h-24 w-24 shrink-0 sm:h-28 sm:w-28"><OnboardingMascot phase="question" replayKey={replay} /></div>
         <div className="min-w-0 flex-1"><Heading sub={step.sub}>{rich(step.headline)}</Heading></div>
@@ -276,9 +277,9 @@ function QuestionScreen({ step, selected, onChange, onNext }: { step: Step<"ques
 /* ------------------------------------------------------------------ */
 /* Interlude chart                                                      */
 
-function ChartScreen({ step, onNext }: { step: Step<"chart">; onNext: () => void }) {
+function ChartScreen({ cont, step, onNext }: { cont: string; step: Step<"chart">; onNext: () => void }) {
   return (
-    <Shell footer={<PrimaryButton onClick={onNext}>{step.cta ?? "Continuer"}</PrimaryButton>}>
+    <Shell footer={<PrimaryButton onClick={onNext}>{step.cta ?? cont}</PrimaryButton>}>
       <Heading>{rich(step.headline)}</Heading>
       <div className="mt-6"><ProgressChart chartLabel={step.chartLabel} brandLabel={step.brandLabel} othersLabel={step.othersLabel} xStart={step.xStart} xEnd={step.xEnd} checkTitle={step.checkTitle} checklist={step.checklist} /></div>
     </Shell>
@@ -288,11 +289,11 @@ function ChartScreen({ step, onNext }: { step: Step<"chart">; onNext: () => void
 /* ------------------------------------------------------------------ */
 /* Daily time + projection                                              */
 
-function TimeScreen({ step, choice, onChoose, goalDateLabel, onNext }: { step: Step<"time">; choice: TimeChoice | null; onChoose: (t: TimeChoice) => void; goalDateLabel: string | null; onNext: () => void }) {
+function TimeScreen({ cont, step, choice, onChoose, goalDateLabel, onNext }: { cont: string; step: Step<"time">; choice: TimeChoice | null; onChoose: (t: TimeChoice) => void; goalDateLabel: string | null; onNext: () => void }) {
   const reduce = useReducedMotion();
   const sentence = choice ? fill(step.sentence, { min: choice.minutes, weeks: choice.weeks }) : null;
   return (
-    <Shell footer={<PrimaryButton onClick={onNext} disabled={!choice}>{step.cta ?? "Continuer"}</PrimaryButton>}>
+    <Shell footer={<PrimaryButton onClick={onNext} disabled={!choice}>{step.cta ?? cont}</PrimaryButton>}>
       <Heading>{rich(step.headline)}</Heading>
       <div className="mt-5"><TimeChart goalLabel={step.goalLabel} aloneLabel={step.aloneLabel} xStart={step.xStart} xEnd={step.xEnd} weeks={choice?.weeks ?? null} dateLabel={goalDateLabel} /></div>
       <p className="mt-3 min-h-[44px] text-[15px] leading-snug" style={{ color: sentence ? P.text : P.muted }} aria-live="polite">{sentence ? rich(sentence) : step.placeholder}</p>
@@ -351,7 +352,7 @@ function EmailScreen({ step, whenLabel, onSubmit, onSkip }: { step: Step<"email"
 /* ------------------------------------------------------------------ */
 /* Social proof (CTA locked by a timer)                                 */
 
-function SocialScreen({ step, onNext }: { step: Step<"social">; onNext: () => void }) {
+function SocialScreen({ cont, step, onNext }: { cont: string; step: Step<"social">; onNext: () => void }) {
   const reduce = useReducedMotion();
   const [locked, setLocked] = useState(step.lockSeconds > 0);
   useEffect(() => {
@@ -361,7 +362,7 @@ function SocialScreen({ step, onNext }: { step: Step<"social">; onNext: () => vo
   const d = (s: number) => (reduce ? { duration: 0 } : { delay: s, duration: 0.4, ease: EASE_OUT });
   const card = "rounded-2xl border-2 bg-white";
   return (
-    <Shell footer={<PrimaryButton onClick={onNext} disabled={locked}>{step.cta ?? "Continuer"}</PrimaryButton>}>
+    <Shell footer={<PrimaryButton onClick={onNext} disabled={locked}>{step.cta ?? cont}</PrimaryButton>}>
       <Heading align="center">{rich(step.headline)}</Heading>
       <motion.div className={`${card} mt-6 px-5 py-5 text-center`} style={{ borderColor: P.border }} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={d(0.05)}>
         <div className="flex items-center justify-center gap-3">

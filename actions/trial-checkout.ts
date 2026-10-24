@@ -57,11 +57,13 @@ export async function createTrialCheckoutUrl(params: {
         metadata: {
           userId,
           plan: "monthly_trial",
+          locale,
         },
       },
       metadata: {
         userId,
         plan: "monthly_trial",
+        locale,
       },
       success_url: successUrl,
       cancel_url: cancelUrl,

@@ -14,8 +14,9 @@ import { sendSubscriptionWelcomeEmail } from "@/lib/email/send-subscription-emai
 import { getVipDriveUrl } from "@/lib/vip";
 import { fulfillDriveCardOrder } from "@/lib/drive-product";
 import { sendBookPurchaseEmail } from "@/lib/email/send-book-email";
+import { emailLocale } from "@/lib/email/locale";
 import { getBooksContent } from "@/lib/books-content";
-import { isBookSlug, bookPurchaseType } from "@/lib/books-shared";
+import { isBookSlug, bookPurchaseType, localizeBook } from "@/lib/books-shared";
 import {
   sendTrialWelcome,
   sendTrialEndingSoon,
@@ -149,8 +150,10 @@ export async function POST(req: Request) {
       }
       try {
         const { books } = await getBooksContent();
-        const title = books.find((b) => b.slug === slug)?.title ?? "Quranlab";
-        const r = await sendBookPurchaseEmail({ email, title });
+        const mailLocale = emailLocale(session.metadata?.locale, session.locale);
+        const found = books.find((b) => b.slug === slug);
+        const title = found ? localizeBook(found, mailLocale).title : "Quranlab";
+        const r = await sendBookPurchaseEmail({ email, title, locale: mailLocale });
         if (!r.ok) console.error("[Webhook] book email failed:", r.error);
         await ttqServerTrack("CompletePayment", {
           event_id: session.id,
@@ -233,13 +236,15 @@ export async function POST(req: Request) {
         session.metadata?.offer === "apprendre_coran" ||
         session.metadata?.offer === "commencer";
       const driveUrl = isCoran ? (await getVipDriveUrl()) ?? undefined : undefined;
+      const mailLocale = emailLocale(session.metadata?.locale, session.locale);
       const sendResult = isSubscriptionFunnel
-        ? await sendSubscriptionWelcomeEmail({ email, activationToken })
+        ? await sendSubscriptionWelcomeEmail({ email, activationToken, locale: mailLocale })
         : await sendCoursePurchaseEmail({
             email,
             hasApp,
             activationToken,
             driveUrl,
+            locale: mailLocale,
           });
 
       if (sendResult.ok) {
@@ -333,7 +338,7 @@ export async function POST(req: Request) {
           : new Date(subscription.current_period_end * 1000);
         if (email) {
           try {
-            await sendTrialWelcome({ email, trialEndsAt });
+            await sendTrialWelcome({ email, trialEndsAt, locale: emailLocale(session.metadata?.locale, subscription.metadata?.locale, session.locale) });
           } catch (e) {
             console.error("[Webhook] sendTrialWelcome failed:", e);
           }
@@ -390,6 +395,7 @@ export async function POST(req: Request) {
             nextBillingAt: new Date(
               subscription.current_period_end * 1000
             ),
+            locale: emailLocale(subscription.metadata?.locale),
           });
         } catch (e) {
           console.error("[Webhook] sendPaymentSucceeded failed:", e);
@@ -425,9 +431,11 @@ export async function POST(req: Request) {
           const portalUrl = await billingPortalUrlFor(
             invoice.customer as string
           );
+          const failedSub = await stripe.subscriptions.retrieve(invoice.subscription as string).catch(() => null);
           await sendPaymentFailed({
             email: invoice.customer_email,
             billingPortalUrl: portalUrl,
+            locale: emailLocale(failedSub?.metadata?.locale),
           });
         } catch (e) {
           console.error("[Webhook] sendPaymentFailed failed:", e);
@@ -451,6 +459,7 @@ export async function POST(req: Request) {
           email: customer.email,
           trialEndsAt: new Date(subscription.trial_end * 1000),
           billingPortalUrl: portalUrl,
+          locale: emailLocale(subscription.metadata?.locale),
         });
       }
     } catch (e) {

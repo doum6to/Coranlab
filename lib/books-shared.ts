@@ -8,6 +8,9 @@
 export type BookSlug = "85mots" | "dous" | "juzz";
 export const BOOK_SLUGS: BookSlug[] = ["85mots", "dous", "juzz"];
 
+/** Translated copy of a book (the PDF itself stays in French for now). */
+export type BookI18n = { title: string; subtitle: string; description: string; bullets: string[]; meta: string };
+
 export type Book = {
   slug: BookSlug;
   title: string;
@@ -26,6 +29,8 @@ export type Book = {
   bullets: string[];
   /** Pages, format… shown under the title. */
   meta: string;
+  /** English / Spanish copy (admin-editable). */
+  i18n: { en: BookI18n; es: BookI18n };
 };
 
 export type BooksContent = {
@@ -69,6 +74,10 @@ export const BOOKS_DEFAULTS: BooksContent = {
       compareLabel: "19,99 €",
       bullets: ["500 mots = 85 % du Coran", "Un verset d'exemple par mot", "Lecture dans l'app, à vie"],
       meta: "PDF · lecture dans l'app",
+      i18n: {
+        en: { title: "85% of the words of the Qur'an", subtitle: "The 500 essential words", description: "The guide to the 500 words that make up 85% of the Qur'anic text, sorted by frequency and theme, with their meaning and an example verse.", bullets: ["500 words = 85% of the Qur'an", "One example verse per word", "Read in the app, for life"], meta: "PDF · read in the app" },
+        es: { title: "El 85% de las palabras del Corán", subtitle: "Las 500 palabras esenciales", description: "La guía de las 500 palabras que forman el 85% del texto coránico, por frecuencia y tema, con su significado y un versículo de ejemplo.", bullets: ["500 palabras = 85% del Corán", "Un versículo de ejemplo por palabra", "Lectura en la app, de por vida"], meta: "PDF · lectura en la app" },
+      },
     },
     {
       slug: "dous",
@@ -83,6 +92,10 @@ export const BOOKS_DEFAULTS: BooksContent = {
       compareLabel: "19,99 €",
       bullets: ["Toutes les invocations du Coran", "Arabe, phonétique et traduction", "Classées par situation"],
       meta: "PDF · lecture dans l'app",
+      i18n: {
+        en: { title: "Du'as of the Qur'an", subtitle: "Every supplication in the Qur'an", description: "Every du'a found in the Qur'an, in Arabic, transliteration and translation, with its context. To read and remember for your prayer.", bullets: ["Every supplication in the Qur'an", "Arabic, transliteration and translation", "Sorted by situation"], meta: "PDF · read in the app" },
+        es: { title: "Du'as del Corán", subtitle: "Todas las súplicas del Corán", description: "Todas las du'as del Corán, en árabe, transliteración y traducción, con su contexto. Para leer y recordar en tu oración.", bullets: ["Todas las súplicas del Corán", "Árabe, transliteración y traducción", "Clasificadas por situación"], meta: "PDF · lectura en la app" },
+      },
     },
     {
       slug: "juzz",
@@ -97,6 +110,10 @@ export const BOOKS_DEFAULTS: BooksContent = {
       compareLabel: "14,99 €",
       bullets: ["Les 30 juz résumés", "Thèmes et enseignements clés", "Idéal pour le Ramadan"],
       meta: "PDF · lecture dans l'app",
+      i18n: {
+        en: { title: "Juz by Juz summary", subtitle: "Understand the Qur'an, part by part", description: "A summary of each juz of the Qur'an: the themes, stories and lessons, to follow the thread of the Book from start to finish.", bullets: ["All 30 juz summarised", "Key themes and lessons", "Ideal for Ramadan"], meta: "PDF · read in the app" },
+        es: { title: "Resumen Juz por Juz", subtitle: "Entender el Corán, parte por parte", description: "El resumen de cada juz del Corán: temas, relatos y enseñanzas, para seguir el hilo del Libro de principio a fin.", bullets: ["Los 30 juz resumidos", "Temas y enseñanzas clave", "Ideal para el Ramadán"], meta: "PDF · lectura en la app" },
+      },
     },
   ],
 };
@@ -108,6 +125,20 @@ export const isBookSlug = (v: unknown): v is BookSlug => typeof v === "string" &
 
 const s = (v: unknown, fb: string) => (typeof v === "string" ? v : fb);
 const n = (v: unknown, fb: number) => (typeof v === "number" && Number.isFinite(v) && v >= 0 ? Math.round(v) : fb);
+
+function mergeI18n(v: any, d: BookI18n): BookI18n {
+  return {
+    title: s(v?.title, d.title), subtitle: s(v?.subtitle, d.subtitle), description: s(v?.description, d.description),
+    bullets: Array.isArray(v?.bullets) ? v.bullets.filter((x: unknown): x is string => typeof x === "string") : d.bullets,
+    meta: s(v?.meta, d.meta),
+  };
+}
+
+/** The book's copy in the given language (French = the base fields). */
+export function localizeBook(book: Book, locale: "fr" | "en" | "es"): Book {
+  if (locale === "fr") return book;
+  return { ...book, ...book.i18n[locale] };
+}
 
 export function mergeBooksContent(stored: Partial<BooksContent> | null): BooksContent {
   const d = BOOKS_DEFAULTS;
@@ -140,6 +171,7 @@ export function mergeBooksContent(stored: Partial<BooksContent> | null): BooksCo
         compareLabel: s(sb.compareLabel, db.compareLabel),
         bullets: Array.isArray(sb.bullets) ? sb.bullets.filter((x: unknown): x is string => typeof x === "string") : db.bullets,
         meta: s(sb.meta, db.meta),
+        i18n: { en: mergeI18n(sb.i18n?.en, db.i18n.en), es: mergeI18n(sb.i18n?.es, db.i18n.es) },
       };
     }),
   };

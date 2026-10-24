@@ -1,5 +1,6 @@
 import { getResend } from "./resend";
-import { renderCoursePurchaseEmailHtml } from "./templates/course-purchase";
+import { coursePurchaseSubject, renderCoursePurchaseEmailHtml } from "./templates/course-purchase";
+import type { Locale } from "@/lib/i18n/locales";
 import { absoluteUrl } from "@/lib/utils";
 
 type Params = {
@@ -8,6 +9,8 @@ type Params = {
   activationToken: string;
   /** Override the Drive link (e.g. the dedicated VIP Drive for /coran buyers). */
   driveUrl?: string;
+  /** Language of the email (French by default). */
+  locale?: Locale;
 };
 
 /**
@@ -24,6 +27,7 @@ export async function sendCoursePurchaseEmail({
   hasApp,
   activationToken,
   driveUrl: driveUrlOverride,
+  locale = "fr",
 }:
 Params):
   Promise<{ ok: true; id: string } | { ok: false; error: string; details?: unknown }>
@@ -55,13 +59,14 @@ Params):
       driveUrl,
       hasApp,
       activationUrl,
+      locale,
     });
 
     const result = await getResend().emails.send({
       from,
       to: email,
       replyTo,
-      subject: "Bienvenue ! Ton cours 85% des mots du Coran est prêt",
+      subject: coursePurchaseSubject(locale),
       html,
     });
 

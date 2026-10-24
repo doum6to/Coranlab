@@ -4,7 +4,8 @@ import { stripe } from "@/lib/stripe";
 import { absoluteUrl } from "@/lib/utils";
 import { currentUser } from "@/lib/supabase/server";
 import { getBooksContent } from "@/lib/books-content";
-import { bookPurchaseType, isBookSlug } from "@/lib/books-shared";
+import { bookPurchaseType, isBookSlug, localizeBook } from "@/lib/books-shared";
+import { getRequestLocale } from "@/lib/i18n/request-locale";
 
 type Origin =
   | { from: "boutique" }
@@ -19,8 +20,9 @@ type Origin =
 export async function createBookCheckout(slug: string, origin: Origin) {
   try {
     if (!isBookSlug(slug)) return { error: "Livre inconnu." };
+    const locale = origin.from === "boutique" ? getRequestLocale() : "fr";
     const { books } = await getBooksContent();
-    const book = books.find((b) => b.slug === slug)!;
+    const book = localizeBook(books.find((b) => b.slug === slug)!, locale);
 
     let email: string | undefined;
     let customer: string | undefined;
@@ -48,7 +50,7 @@ export async function createBookCheckout(slug: string, origin: Origin) {
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      locale: "fr",
+      locale,
       ...(customer ? { customer } : email ? { customer_email: email } : {}),
       line_items: [{
         quantity: 1,
@@ -58,7 +60,7 @@ export async function createBookCheckout(slug: string, origin: Origin) {
           unit_amount: Math.max(50, book.amountCents),
         },
       }],
-      metadata: { productType: "book", bookSlug: slug, bookType: bookPurchaseType(slug), offer: origin.from === "commencer" ? "commencer_upsell" : "boutique" },
+      metadata: { productType: "book", bookSlug: slug, bookType: bookPurchaseType(slug), offer: origin.from === "commencer" ? "commencer_upsell" : "boutique", locale },
       success_url: success,
       cancel_url: cancel,
     });

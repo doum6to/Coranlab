@@ -21,7 +21,7 @@ export function BoutiqueView({
   isPro: boolean;
   bought: string | null;
   initialTab: "shop" | "library";
-  strings: { bought: string };
+  strings: { bought: string; notice: string };
 }) {
   const [tab, setTab] = useState<"shop" | "library">(initialTab);
   const owned = new Set(ownedSlugs);
@@ -33,6 +33,10 @@ export function BoutiqueView({
       <div className="mx-auto max-w-3xl">
         <h1 className="mt-2 text-center font-heading text-[26px] font-bold text-brilliant-text sm:text-[30px]">{content.shopTitle}</h1>
         <p className="mt-1 text-center text-[14px] text-brilliant-muted">{content.shopSubtitle}</p>
+
+        {strings.notice && (
+          <p className="mx-auto mt-4 max-w-md rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-center text-[13px] font-medium text-amber-800">{strings.notice}</p>
+        )}
 
         {boughtBook && (
           <div className="mx-auto mt-5 flex max-w-md items-center gap-2 rounded-2xl border border-[#BBF7D0] bg-[#F0FDF4] px-4 py-3 text-[14px] font-semibold text-[#166534]">

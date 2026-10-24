@@ -8,10 +8,10 @@ import type { CmOption } from "@/lib/commencer-shared";
 import { IconBadge, P } from "../ui";
 
 /** One-tap attribution question asked AFTER the trial started (never inside the funnel). */
-export function SourceQuestion({ headline, options }: { headline: string; options: CmOption[] }) {
+export function SourceQuestion({ headline, options, thanks = "Merci ! 🙏" }: { headline: string; options: CmOption[]; thanks?: string }) {
   const [done, setDone] = useState<string | null>(null);
   if (options.length === 0) return null;
-  if (done) return <p className="mt-8 text-[14px] font-semibold" style={{ color: P.purple }}>Merci ! 🙏</p>;
+  if (done) return <p className="mt-8 text-[14px] font-semibold" style={{ color: P.purple }}>{thanks}</p>;
   return (
     <div className="mt-8 w-full max-w-sm">
       <p className="text-[15px] font-semibold" style={{ color: P.text }}>{headline}</p>

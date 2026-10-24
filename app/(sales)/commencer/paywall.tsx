@@ -7,14 +7,15 @@ import { createCommencerCheckout } from "@/actions/commencer-checkout";
 import { ttqTrack } from "@/lib/analytics/tiktok";
 import type { CommencerContent } from "@/lib/commencer-shared";
 
-import { Check, Icon, P, PrimaryButton, Shell, fill, rich } from "./ui";
+import { CM_UI, Check, Icon, P, PrimaryButton, Shell, fill, rich, type CmLocale } from "./ui";
 
 /**
  * Lifetime paywall: ONE offer, one price, one button. Sells the value stack
  * built during the onboarding, anchors the price against the compare label,
  * then removes every risk (one-time payment, guarantee).
  */
-export function Paywall({ paywall, email, whenLabel }: { paywall: CommencerContent["paywall"]; email?: string; whenLabel: string }) {
+export function Paywall({ paywall, email, whenLabel, locale = "fr" }: { paywall: CommencerContent["paywall"]; email?: string; whenLabel: string; locale?: CmLocale }) {
+  const ui = CM_UI[locale];
   const reduce = useReducedMotion();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -25,14 +26,14 @@ export function Paywall({ paywall, email, whenLabel }: { paywall: CommencerConte
     setErr(null);
     ttqTrack("InitiateCheckout", { content_category: "commencer", content_id: "commencer_lifetime", currency: "EUR", value: paywall.amountCents / 100 });
     try {
-      const res = await createCommencerCheckout(email || undefined);
+      const res = await createCommencerCheckout(email || undefined, locale);
       if ("url" in res && res.url) {
         window.location.href = res.url;
         return;
       }
-      setErr(("error" in res && res.error) || "Une erreur est survenue.");
+      setErr(("error" in res && res.error) || ui.error);
     } catch {
-      setErr("Une erreur est survenue.");
+      setErr(ui.error);
     }
     setBusy(false);
   };
@@ -45,12 +46,12 @@ export function Paywall({ paywall, email, whenLabel }: { paywall: CommencerConte
       footer={
         <>
           {err && <p className="text-center text-[13px]" style={{ color: P.danger }} role="alert">{err}</p>}
-          <PrimaryButton onClick={checkout} busy={busy}>{busy ? "Redirection…" : paywall.cta}</PrimaryButton>
+          <PrimaryButton onClick={checkout} busy={busy}>{busy ? ui.redirect : paywall.cta}</PrimaryButton>
           <p className="text-center text-[12px] leading-snug" style={{ color: P.muted }}>{paywall.finePrint}</p>
           <p className="flex items-center justify-center gap-2 text-[11px]" style={{ color: P.muted }}>
-            <a href="/conditions" className="underline underline-offset-2">Conditions</a>
+            <a href="/conditions" className="underline underline-offset-2">{ui.terms}</a>
             <span aria-hidden>·</span>
-            <a href="/confidentialite" className="underline underline-offset-2">Confidentialité</a>
+            <a href="/confidentialite" className="underline underline-offset-2">{ui.privacy}</a>
           </p>
         </>
       }
