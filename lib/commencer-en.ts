@@ -1,7 +1,7 @@
 import type { CommencerContent } from "@/lib/commencer-shared";
 
 /**
- * English content for /en/commencer. Static (not admin-editable for now):
+ * English content for /start (English onboarding). Static (not admin-editable for now):
  * the admin edits the French flow; this file mirrors its structure with
  * the same option ids so personalisation (level, reminder time, alphabet)
  * keeps working. No upsells in English: the add-on products are French.

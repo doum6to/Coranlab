@@ -17,7 +17,7 @@ function rich(text: string) {
 
 export type MerciParams = { session_id?: string; upsell?: string; item?: string };
 
-/** Shared by /commencer/merci (FR, admin content + upsells) and /en/commencer/merci (EN, no upsell). */
+/** Shared by /commencer/merci (FR, admin content + upsells) and /start/merci (EN, no upsell). */
 export async function CommencerMerciView({ searchParams, locale }: { searchParams?: MerciParams; locale: CmLocale }) {
   const ui = CM_UI[locale];
   const [{ merci, upsell }, { books }] = await Promise.all([locale === "en" ? Promise.resolve(COMMENCER_EN) : getCommencerContent(), getBooksContent()]);

@@ -15,7 +15,8 @@ import { COMMENCER_EN } from "@/lib/commencer-en";
 export async function createCommencerCheckout(email?: string, locale: "fr" | "en" | "es" = "fr") {
   try {
     const { paywall } = locale === "en" ? COMMENCER_EN : await getCommencerContent();
-    const prefix = locale === "fr" ? "" : `/${locale}`;
+    // FR flow lives at /commencer, the English one at /start.
+    const base = locale === "fr" ? "/commencer" : "/start";
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       locale,
@@ -32,8 +33,8 @@ export async function createCommencerCheckout(email?: string, locale: "fr" | "en
         },
       }],
       metadata: { productType: "course", hasApp: "true", offer: "commencer", plan: "lifetime", locale },
-      success_url: absoluteUrl(`${prefix}/commencer/merci?session_id={CHECKOUT_SESSION_ID}&value=${(paywall.amountCents / 100).toFixed(2)}`),
-      cancel_url: absoluteUrl(`${prefix}/commencer?step=paywall`),
+      success_url: absoluteUrl(`${base}/merci?session_id={CHECKOUT_SESSION_ID}&value=${(paywall.amountCents / 100).toFixed(2)}`),
+      cancel_url: absoluteUrl(`${base}?step=paywall`),
     });
     return { url: session.url };
   } catch (error: any) {

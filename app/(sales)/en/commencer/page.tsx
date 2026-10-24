@@ -1,24 +1,6 @@
-import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
-import { RivePreloads } from "@/components/rive-preloads";
-import { LocaleProvider } from "@/components/i18n/locale-provider";
-import { COMMENCER_EN } from "@/lib/commencer-en";
-
-import { CommencerOnboarding } from "../../commencer/onboarding";
-
-export const revalidate = 60;
-
-export const metadata: Metadata = {
-  title: "Understand the Qur'an — Quranlab",
-  robots: { index: false, follow: false },
-};
-
-/** English onboarding + lifetime paywall (static content, no upsells). */
-export default function CommencerEnPage({ searchParams }: { searchParams?: { step?: string } }) {
-  return (
-    <LocaleProvider locale="en">
-      <RivePreloads />
-      <CommencerOnboarding content={COMMENCER_EN} locale="en" initialStep={searchParams?.step === "paywall" ? "paywall" : undefined} />
-    </LocaleProvider>
-  );
+/** Old English entry point → /start (keeps any shared link working). */
+export default function EnCommencerRedirect({ searchParams }: { searchParams?: { step?: string } }) {
+  redirect(searchParams?.step === "paywall" ? "/start?step=paywall" : "/start");
 }

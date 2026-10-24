@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { LocaleProvider } from "@/components/i18n/locale-provider";
-import { CommencerMerciView } from "../../../commencer/merci/merci-view";
+import { CommencerMerciView } from "../../commencer/merci/merci-view";
 
 export const metadata: Metadata = { title: "Access activated — Quranlab", robots: { index: false, follow: false } };
 

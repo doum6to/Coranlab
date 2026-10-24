@@ -48,6 +48,7 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/pack-coran") ||
     request.nextUrl.pathname.startsWith("/telecharger") ||
     request.nextUrl.pathname.startsWith("/commencer") ||
+    request.nextUrl.pathname.startsWith("/start") ||
     request.nextUrl.pathname.startsWith("/en/commencer") ||
     // Cron endpoints are gated by CRON_SECRET at the route level; the lead
     // unsubscribe link is a public GET gated by a signed token.
