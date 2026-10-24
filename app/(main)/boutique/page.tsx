@@ -20,11 +20,19 @@ export default async function BoutiquePage({ searchParams }: { searchParams?: { 
   if (!userId) redirect("/auth/login");
 
   const [content, owned, sub] = await Promise.all([getBooksContent(), getOwnedBookSlugs(), getUserSubscription()]);
-  const { t } = getServerStrings();
+  const { t, locale } = getServerStrings();
+  // Admin copy is French-only: in other languages the shop chrome comes from
+  // the dictionary (book titles/descriptions stay as entered in the admin).
+  const localized = locale === "fr" ? content : {
+    ...content,
+    shopTitle: t.shop.title, shopSubtitle: t.shop.subtitle, tabShop: t.shop.tabShop, tabLibrary: t.shop.tabLibrary,
+    includedLabel: t.shop.included, ownedLabel: t.shop.owned, buyLabel: t.shop.buy, readLabel: t.shop.read,
+    premiumLabel: t.shop.premium, emptyLibrary: t.shop.empty,
+  };
 
   return (
     <BoutiqueView
-      content={content}
+      content={localized}
       ownedSlugs={Array.from(owned)}
       isPro={!!sub?.isActive}
       bought={searchParams?.bought ?? null}
