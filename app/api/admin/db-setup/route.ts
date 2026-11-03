@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { sql } from "drizzle-orm";
 
 import db from "@/db/drizzle";
+import { lockDownPublicSchema } from "@/lib/db-security";
 
 /**
  * GET /api/admin/db-setup?token=ADMIN_TOKEN
@@ -147,8 +148,12 @@ export async function GET(req: Request) {
       CREATE INDEX IF NOT EXISTS "drive_product_order_status" ON "drive_product_order" ("status");
     `);
 
+    // Close the public Supabase API on every table (RLS + revoked grants).
+    const security = await lockDownPublicSchema();
+
     return NextResponse.json({
       ok: true,
+      security,
       message:
         "Tables prêtes (app_setting, course_video, analytics_event, funnel_lead, coran_manual_order, drive_product_order). Tu peux gérer l'offre, le contenu, les vidéos et voir les leads du tunnel depuis /admin/premium.",
     });

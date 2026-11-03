@@ -6,6 +6,8 @@ const withBundleAnalyzer = bundleAnalyzer({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Enables instrumentation.ts (runs the DB security lockdown at server start).
+  experimental: { instrumentationHook: true },
   // Image optimization: prefer AVIF, fallback WebP
   images: {
     formats: ["image/avif", "image/webp"],

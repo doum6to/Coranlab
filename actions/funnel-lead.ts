@@ -5,6 +5,7 @@ import { sql } from "drizzle-orm";
 import db from "@/db/drizzle";
 import { funnelLead, analyticsEvent } from "@/db/schema";
 import { isLocale, DEFAULT_LOCALE, type Locale } from "@/lib/i18n/locales";
+import { ensureDbLockdown } from "@/lib/db-security";
 
 /** Step of the funnel a lead has reached (each implies the previous ones). */
 export type FunnelStage = "lead" | "exercise" | "offer" | "checkout";
@@ -13,6 +14,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** Creates the funnel_lead table on the fly (idempotent) so capture self-heals. */
 async function ensureFunnelLeadTable() {
+  void ensureDbLockdown();
   await db.execute(sql`
     CREATE TABLE IF NOT EXISTS "funnel_lead" (
       "id" serial PRIMARY KEY,

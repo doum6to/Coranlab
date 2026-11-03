@@ -7,6 +7,7 @@ import { funnelLead, analyticsEvent } from "@/db/schema";
 import { isLocale, DEFAULT_LOCALE, type Locale } from "@/lib/i18n/locales";
 import { getLeadMagnetContent } from "@/lib/lead-magnet-content";
 import { sendLeadMagnetEmail } from "@/lib/email/send-lead-emails";
+import { ensureDbLockdown } from "@/lib/db-security";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const DAY_MS = 86_400_000;
@@ -16,6 +17,7 @@ const DAY_MS = 86_400_000;
  * self-healing so lead capture + the drip cron work without a manual db:push.
  */
 export async function ensureLeadTable() {
+  void ensureDbLockdown();
   await db.execute(sql`
     CREATE TABLE IF NOT EXISTS "funnel_lead" (
       "id" serial PRIMARY KEY,

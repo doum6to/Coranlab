@@ -9,6 +9,7 @@ import { courseVideo } from "@/db/schema";
 import { isAdminAuthed } from "@/lib/admin-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { COURSE_VIDEO_BUCKET, ARABIC_COURSE_SLUG as COURSE_SLUG } from "@/lib/course-videos";
+import { ensureDbLockdown } from "@/lib/db-security";
 
 /**
  * Self-healing schema: makes sure the course_video table and its columns
@@ -17,6 +18,7 @@ import { COURSE_VIDEO_BUCKET, ARABIC_COURSE_SLUG as COURSE_SLUG } from "@/lib/co
  * idempotent and cheap.
  */
 async function ensureCourseVideoSchema() {
+  void ensureDbLockdown();
   await db.execute(sql`
     CREATE TABLE IF NOT EXISTS "course_video" (
       "id" serial PRIMARY KEY,
