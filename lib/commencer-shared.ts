@@ -53,6 +53,30 @@ export type CmPaywall = {
   finePrint: string;
   guaranteeTitle: string;
   guaranteeText: string;
+  /** "Paiement unique" chip on the price card. */
+  oneTimeChip: string;
+  /** Product name shown on the price card. */
+  productName: string;
+  /** Bold line under the price, kills the "is it a subscription?" doubt. */
+  payOnceLine: string;
+  /** What you pay over time: today = price, then 0. */
+  timelineToday: string;
+  timelineMonth: string;
+  timelineYear: string;
+  /** Once vs every month comparison ({price}, {year} placeholders). */
+  compareTitle: string;
+  compareThemLabel: string;
+  compareThemValue: string;
+  compareUsLabel: string;
+  compareUsValue: string;
+  perksTitle: string;
+  ratingValue: string;
+  ratingLabel: string;
+  reviewText: string;
+  reviewName: string;
+  /** Short reassurance points under the button. */
+  footerPoints: string[];
+  paymentMethods: string;
 };
 
 export type CommencerContent = {
@@ -152,9 +176,9 @@ export const COMMENCER_DEFAULTS: CommencerContent = {
     ], doneHeadline: "Tu viens de comprendre 3 mots du Coran", doneSub: "Il en reste 497. Continue sur ta lancée.", cta: "Continuer" },
   ],
   paywall: {
-    badge: "Offre de lancement · Accès à vie",
-    title: "Débloque **tout Quranlab** pour le prix d'un café",
-    subtitle: "Un seul paiement. Aucun abonnement. Accès à vie.",
+    badge: "Offre de lancement",
+    title: "Débloque **tout Quranlab**, pour toujours",
+    subtitle: "Un seul paiement de {price}. Jamais d'abonnement.",
     perks: [
       { icon: "unlock", title: "Les 500 mots = 85 % du Coran", text: "Toutes les leçons, tous les niveaux, débloqués immédiatement." },
       { icon: "target", title: "Ton plan personnalisé", text: "Le parcours qu'on vient de construire ensemble, prêt à démarrer." },
@@ -164,13 +188,31 @@ export const COMMENCER_DEFAULTS: CommencerContent = {
     amountCents: 999,
     priceLabel: "9,99 €",
     compareLabel: "49 €",
-    priceNote: "une seule fois · à vie",
+    priceNote: "une seule fois",
     urgency: "Prix de lancement réservé aux nouveaux apprenants. Il passera à 49 € prochainement.",
     reassurance: "Paiement sécurisé · Accès immédiat · Garantie 30 jours",
     cta: "Débloquer l'accès à vie — 9,99 €",
-    finePrint: "Paiement unique de 9,99 €. Aucun renouvellement, aucun abonnement. Satisfait ou remboursé 30 jours.",
+    finePrint: "Paiement unique de 9,99 €, débité une seule fois. Aucun renouvellement automatique.",
     guaranteeTitle: "Garantie 30 jours",
     guaranteeText: "Si tu ne reconnais pas plus de mots dans ta prière d'ici 30 jours, un email suffit et tu es remboursé.",
+    oneTimeChip: "Paiement unique",
+    productName: "Accès à vie",
+    payOnceLine: "Tu paies une seule fois. Aucun abonnement, rien à résilier.",
+    timelineToday: "Aujourd'hui",
+    timelineMonth: "Le mois prochain",
+    timelineYear: "Dans 1 an",
+    compareTitle: "Pourquoi c'est une super offre",
+    compareThemLabel: "Une app d'apprentissage classique",
+    compareThemValue: "{price} / mois, soit {year} par an",
+    compareUsLabel: "Quranlab aujourd'hui",
+    compareUsValue: "{price} une seule fois, pour toujours",
+    perksTitle: "Ce que tu débloques",
+    ratingValue: "4,9",
+    ratingLabel: "Plus de 1 500 apprenants",
+    reviewText: "En quelques jours je reconnais des mots dans ma prière. Et je n'ai payé qu'une fois.",
+    reviewName: "Omar",
+    footerPoints: ["Paiement unique", "Pas d'abonnement"],
+    paymentMethods: "Carte bancaire · Apple Pay · Google Pay — paiement sécurisé par Stripe",
   },
   merci: {
     title: "Ton accès à vie est activé, barak Allah fik !",
@@ -258,6 +300,17 @@ export function mergeCommencerContent(stored: Partial<CommencerContent> | null):
       priceNote: s(pw.priceNote, d.paywall.priceNote), urgency: s(pw.urgency, d.paywall.urgency),
       reassurance: s(pw.reassurance, d.paywall.reassurance), cta: s(pw.cta, d.paywall.cta), finePrint: s(pw.finePrint, d.paywall.finePrint),
       guaranteeTitle: s(pw.guaranteeTitle, d.paywall.guaranteeTitle), guaranteeText: s(pw.guaranteeText, d.paywall.guaranteeText),
+      oneTimeChip: s(pw.oneTimeChip, d.paywall.oneTimeChip), productName: s(pw.productName, d.paywall.productName),
+      payOnceLine: s(pw.payOnceLine, d.paywall.payOnceLine),
+      timelineToday: s(pw.timelineToday, d.paywall.timelineToday), timelineMonth: s(pw.timelineMonth, d.paywall.timelineMonth), timelineYear: s(pw.timelineYear, d.paywall.timelineYear),
+      compareTitle: s(pw.compareTitle, d.paywall.compareTitle),
+      compareThemLabel: s(pw.compareThemLabel, d.paywall.compareThemLabel), compareThemValue: s(pw.compareThemValue, d.paywall.compareThemValue),
+      compareUsLabel: s(pw.compareUsLabel, d.paywall.compareUsLabel), compareUsValue: s(pw.compareUsValue, d.paywall.compareUsValue),
+      perksTitle: s(pw.perksTitle, d.paywall.perksTitle),
+      ratingValue: s(pw.ratingValue, d.paywall.ratingValue), ratingLabel: s(pw.ratingLabel, d.paywall.ratingLabel),
+      reviewText: s(pw.reviewText, d.paywall.reviewText), reviewName: s(pw.reviewName, d.paywall.reviewName),
+      footerPoints: Array.isArray(pw.footerPoints) ? pw.footerPoints.filter((x): x is string => typeof x === "string") : d.paywall.footerPoints,
+      paymentMethods: s(pw.paymentMethods, d.paywall.paymentMethods),
     },
     merci: {
       title: s(m.title, d.merci.title), text: s(m.text, d.merci.text), cta: s(m.cta, d.merci.cta),

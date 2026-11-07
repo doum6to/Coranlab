@@ -614,7 +614,34 @@ export function CommencerForm({ initial }: { initial: CommencerContent }) {
         </div>
         <Area label="Texte garantie" value={pw.guaranteeText} onChange={(guaranteeText) => setPw({ guaranteeText })} rows={2} />
         <Text label="Bouton" value={pw.cta} onChange={(cta) => setPw({ cta })} />
-        <Area label="Mentions sous le bouton" value={pw.finePrint} onChange={(finePrint) => setPw({ finePrint })} rows={2} />
+        <Area label="Mentions (bas de page)" value={pw.finePrint} onChange={(finePrint) => setPw({ finePrint })} rows={2} />
+        <p className="text-xs text-neutral-500">Clarté « paiement unique » — {"{price}"} = prix dans la devise du visiteur, {"{year}"} = prix × 12.</p>
+        <div className="grid grid-cols-2 gap-3">
+          <Text label="Nom du produit (carte prix)" value={pw.productName} onChange={(productName) => setPw({ productName })} />
+          <Text label="Pastille « paiement unique »" value={pw.oneTimeChip} onChange={(oneTimeChip) => setPw({ oneTimeChip })} />
+        </div>
+        <Text label="Phrase sous le prix" value={pw.payOnceLine} onChange={(payOnceLine) => setPw({ payOnceLine })} />
+        <div className="grid grid-cols-3 gap-3">
+          <Text label="Frise : aujourd'hui" value={pw.timelineToday} onChange={(timelineToday) => setPw({ timelineToday })} />
+          <Text label="Frise : mois prochain" value={pw.timelineMonth} onChange={(timelineMonth) => setPw({ timelineMonth })} />
+          <Text label="Frise : dans 1 an" value={pw.timelineYear} onChange={(timelineYear) => setPw({ timelineYear })} />
+        </div>
+        <Text label="Comparaison — titre (vide = masquée)" value={pw.compareTitle} onChange={(compareTitle) => setPw({ compareTitle })} />
+        <div className="grid grid-cols-2 gap-3">
+          <Text label="Ailleurs — libellé" value={pw.compareThemLabel} onChange={(compareThemLabel) => setPw({ compareThemLabel })} />
+          <Text label="Ailleurs — prix" value={pw.compareThemValue} onChange={(compareThemValue) => setPw({ compareThemValue })} />
+          <Text label="Quranlab — libellé" value={pw.compareUsLabel} onChange={(compareUsLabel) => setPw({ compareUsLabel })} />
+          <Text label="Quranlab — prix" value={pw.compareUsValue} onChange={(compareUsValue) => setPw({ compareUsValue })} />
+        </div>
+        <Text label="Titre de la liste d'avantages" value={pw.perksTitle} onChange={(perksTitle) => setPw({ perksTitle })} />
+        <div className="grid grid-cols-2 gap-3">
+          <Text label="Note (ex : 4,9)" value={pw.ratingValue} onChange={(ratingValue) => setPw({ ratingValue })} />
+          <Text label="Libellé de la note" value={pw.ratingLabel} onChange={(ratingLabel) => setPw({ ratingLabel })} />
+        </div>
+        <Area label="Avis (vide = masqué)" value={pw.reviewText} onChange={(reviewText) => setPw({ reviewText })} rows={2} />
+        <Text label="Prénom de l'avis" value={pw.reviewName} onChange={(reviewName) => setPw({ reviewName })} />
+        <StringList label="Points sous le bouton" items={pw.footerPoints} onChange={(footerPoints) => setPw({ footerPoints })} />
+        <Text label="Moyens de paiement" value={pw.paymentMethods} onChange={(paymentMethods) => setPw({ paymentMethods })} />
       </Section>
 
       <Section title="Upsell après paiement — cours « Lire l'arabe »">
