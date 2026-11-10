@@ -18,7 +18,7 @@ export async function linkCoursePurchaseByEmail(
   userId: string,
   email: string,
 ): Promise<boolean> {
-  const normalizedEmail = email.toLowerCase();
+  const normalizedEmail = email.trim().toLowerCase();
 
   const purchase = await db.query.coursePurchase.findFirst({
     where: and(

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { linkCoursePurchaseByEmail } from "@/lib/link-purchase";
 import { eq, and, inArray } from "drizzle-orm";
 
 import db from "@/db/drizzle";
@@ -46,12 +47,14 @@ export async function GET(req: Request) {
   const token = authz.startsWith("Bearer ") ? authz.slice(7) : "";
   let userId = "";
   let guest = true;
+  let userEmail: string | null = null;
   let displayName = "User";
   if (token) {
     const supabase = createAdminClient();
     const { data: userData } = await supabase.auth.getUser(token);
     if (userData?.user) {
       userId = userData.user.id;
+      userEmail = userData.user.email ?? null;
       guest = false;
       displayName =
         (userData.user.user_metadata?.full_name as string | undefined) ||
@@ -138,6 +141,16 @@ export async function GET(req: Request) {
   }
 
   // 3. Subscription → isPro (same rule as getUserSubscription().isActive).
+  // A web purchase (landing page checkout) made with this email is claimed
+  // here too: iOS sign-in (email, Apple, Google) never goes through the web
+  // signup/login that used to link it. No-op once linked.
+  if (!guest && userEmail) {
+    try {
+      await linkCoursePurchaseByEmail(userId, userEmail);
+    } catch (e) {
+      console.error("[native/learn] purchase claim failed:", e);
+    }
+  }
   const sub = guest
     ? undefined
     : await db.query.userSubscription.findFirst({

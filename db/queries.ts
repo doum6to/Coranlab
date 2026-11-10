@@ -1,7 +1,8 @@
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import { and, eq, desc, inArray } from "drizzle-orm";
-import { auth } from "@/lib/supabase/server";
+import { auth, currentUser } from "@/lib/supabase/server";
+import { linkCoursePurchaseByEmail } from "@/lib/link-purchase";
 
 import db from "@/db/drizzle";
 import {
@@ -542,14 +543,37 @@ export const getLessonPercentage = cache(async () => {
 });
 
 const DAY_IN_MS = 86_400_000;
+function isSubActive(data: { isLifetime: boolean; stripeCurrentPeriodEnd: Date | null } | undefined): boolean {
+  if (!data) return false;
+  if (data.isLifetime) return true;
+  const end = data.stripeCurrentPeriodEnd?.getTime();
+  return typeof end === "number" && !Number.isNaN(end) && end + DAY_IN_MS > Date.now();
+}
+
 export const getUserSubscription = cache(async () => {
   const { userId } = await auth();
 
   if (!userId) return null;
 
-  const data = await db.query.userSubscription.findFirst({
+  let data = await db.query.userSubscription.findFirst({
     where: eq(userSubscription.userId, userId),
   });
+
+  // Safety net: a buyer who paid on a landing page (anonymous checkout) and
+  // signed in by a path that doesn't claim purchases (Google/Apple sign-in,
+  // already logged in…) would otherwise be shown the paywall. If they have
+  // no active plan, claim any pending purchase made with their email.
+  if (!isSubActive(data)) {
+    try {
+      const user = await currentUser();
+      const email = user?.emailAddresses?.[0]?.emailAddress;
+      if (email && (await linkCoursePurchaseByEmail(userId, email))) {
+        data = await db.query.userSubscription.findFirst({ where: eq(userSubscription.userId, userId) });
+      }
+    } catch (e) {
+      console.error("[getUserSubscription] purchase claim failed:", e);
+    }
+  }
 
   if (!data) return null;
 

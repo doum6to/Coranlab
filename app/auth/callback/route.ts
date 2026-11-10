@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { linkCoursePurchaseByEmail } from "@/lib/link-purchase";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -19,8 +20,13 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      // Google/Apple sign-in: link a purchase made with the same email.
+      const u = data?.user;
+      if (u?.email) {
+        try { await linkCoursePurchaseByEmail(u.id, u.email); } catch (e) { console.error("[auth/callback] claim failed:", e); }
+      }
       return NextResponse.redirect(`${origin}${next}`);
     }
   }
