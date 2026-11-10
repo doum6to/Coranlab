@@ -40,6 +40,7 @@ import { DownloadLinksForm } from "./download-links-form";
 import { Ebook30Form } from "./ebook30-form";
 import { PackForm } from "./pack-form";
 import { BooksForm } from "./books-form";
+import { PendingPurchases } from "./pending-purchases";
 import { CommencerForm } from "./commencer-form";
 import { ApprendreCoranForm } from "./apprendre-coran-form";
 import { ManualOrdersForm } from "./manual-orders-form";
@@ -356,6 +357,11 @@ const AdminPremiumPage = async () => {
               key: "ebook30",
               label: "Ebook /coran-30-jours",
               node: <Ebook30Form initial={ebook30Content} />,
+            },
+            {
+              key: "pending",
+              label: "Achats en attente",
+              node: <PendingPurchases />,
             },
             {
               key: "books",

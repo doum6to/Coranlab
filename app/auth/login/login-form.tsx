@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { RiveMascot } from "@/components/rive-mascot";
@@ -14,7 +14,10 @@ type ErrKind = "generic" | "hasAccount" | "paidNoAccount";
 
 export function LoginForm() {
   const t = useT();
-  const [email, setEmail] = useState("");
+  const searchParams = useSearchParams();
+  const courseToken = searchParams.get("course_token") || undefined;
+  const accountExists = searchParams.get("exists") === "1";
+  const [email, setEmail] = useState(searchParams.get("email") || "");
   const [password, setPassword] = useState("");
   const [errKind, setErrKind] = useState<ErrKind | null>(null);
   const [loading, setLoading] = useState(false);
@@ -50,7 +53,7 @@ export function LoginForm() {
     // Link any pending purchase made with this email (covers buyers who
     // already had an account). Non-blocking on failure.
     try {
-      await claimPurchase();
+      await claimPurchase(courseToken);
     } catch {
       /* non-fatal */
     }
@@ -73,6 +76,10 @@ export function LoginForm() {
             {t.auth.loginSubtitle}
           </p>
         </div>
+
+        {accountExists && courseToken && (
+          <p className="rounded-xl border border-[#6967fb]/30 bg-[#6967fb]/5 p-3 text-sm text-brilliant-text">{t.authMore.existsClaim}</p>
+        )}
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>

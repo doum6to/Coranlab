@@ -52,6 +52,13 @@ export function SignUpForm() {
       const body = await res.json();
 
       if (!res.ok) {
+        // Buyer whose account already exists: send them to login with the
+        // purchase token so the purchase is attached after they sign in.
+        const token = searchParams.get("course_token");
+        if (res.status === 409 && token) {
+          router.push(`/auth/login?email=${encodeURIComponent(email.trim())}&course_token=${encodeURIComponent(token)}&exists=1`);
+          return;
+        }
         setError(body.error || t.auth.createError);
         setLoading(false);
         return;

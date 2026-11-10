@@ -4,6 +4,8 @@ import { NextResponse } from "next/server";
 import db from "@/db/drizzle";
 import { coursePurchase } from "@/db/schema";
 import { absoluteUrl } from "@/lib/utils";
+import { auth } from "@/lib/supabase/server";
+import { linkCoursePurchaseByToken } from "@/lib/link-purchase";
 
 /**
  * GET /api/course/activate?token=xxx
@@ -26,6 +28,17 @@ export async function GET(req: Request) {
 
   if (!purchase || !purchase.hasAppSubscription) {
     return NextResponse.redirect(absoluteUrl("/auth/signup"));
+  }
+
+  // Already signed in (e.g. inside the app): attach the purchase to THIS
+  // account, whatever its email, and go straight to the app.
+  try {
+    const { userId } = await auth();
+    if (userId && (await linkCoursePurchaseByToken(userId, token))) {
+      return NextResponse.redirect(absoluteUrl("/learn"));
+    }
+  } catch (e) {
+    console.error("[course/activate] token claim failed:", e);
   }
 
   const signupUrl = absoluteUrl(

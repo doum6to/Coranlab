@@ -61,6 +61,7 @@ export const EXT_FR = {
     passwordTooShort: "Le mot de passe doit faire au moins 6 caractères.",
     passwordsMismatch: "Les deux mots de passe ne correspondent pas.",
     rateLimited: "Trop de demandes pour le moment. Réessaie dans quelques minutes.",
+    existsClaim: "Tu as déjà un compte avec cette adresse. Connecte-toi : ton achat sera activé automatiquement sur ce compte.",
     sendFailed: "L'envoi a échoué. Vérifie l'adresse et réessaie.",
   },
   pricingMore: {
@@ -305,6 +306,7 @@ export const EXT_EN: AppStringsExt = {
     passwordTooShort: "The password must be at least 6 characters.",
     passwordsMismatch: "The two passwords don't match.",
     rateLimited: "Too many requests right now. Please try again in a few minutes.",
+    existsClaim: "You already have an account with this address. Log in: your purchase will be activated on it automatically.",
     sendFailed: "Sending failed. Check the address and try again.",
   },
   pricingMore: {
@@ -547,6 +549,7 @@ export const EXT_ES: AppStringsExt = {
     passwordTooShort: "La contraseña debe tener al menos 6 caracteres.",
     passwordsMismatch: "Las dos contraseñas no coinciden.",
     rateLimited: "Demasiadas solicitudes por ahora. Inténtalo de nuevo en unos minutos.",
+    existsClaim: "Ya tienes una cuenta con esta dirección. Inicia sesión: tu compra se activará automáticamente en ella.",
     sendFailed: "El envío falló. Comprueba la dirección e inténtalo de nuevo.",
   },
   pricingMore: {
