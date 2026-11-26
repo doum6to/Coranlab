@@ -52,13 +52,16 @@ export async function POST(req: Request) {
     if (!event || !(ALLOWED.has(event) || ALLOWED_PATTERN.test(event))) {
       return NextResponse.json({ ok: true });
     }
-    await db.insert(analyticsEvent).values({
+    const insert = db.insert(analyticsEvent).values({
       event,
       path: str(body?.path, 200),
       locale: str(body?.locale, 8),
       sessionId: str(body?.sessionId, 64),
       meta: str(body?.meta, 200),
-    });
+    }).then(() => undefined, (e: unknown) => { console.error("[track] failed:", e); });
+    // Never hold the visitor's connection: a slow database must not delay the page
+    // (browsers allow few parallel requests per site, and pending ones queue the rest).
+    await Promise.race([insert, new Promise<void>((resolve) => setTimeout(resolve, 1500))]);
   } catch (e) {
     // Swallow — analytics must never break the page or checkout.
     console.error("[track] failed:", e);

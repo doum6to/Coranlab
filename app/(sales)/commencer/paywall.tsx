@@ -10,6 +10,7 @@ import type { CommencerContent } from "@/lib/commencer-shared";
 import { centsFromLabel, formatPaywallPrice, type PaywallCurrency } from "@/lib/geo-currency";
 
 import { StreakFlame } from "./fx";
+import { PaySheet } from "./pay-sheet";
 import { CM_UI, Check, Icon, KOJI_CROP, P, PrimaryButton, RiveAnim, Shell, Star, fill, type CmLocale } from "./ui";
 
 const GREEN = "#16A34A";
@@ -49,12 +50,21 @@ export function Paywall({ paywall, email, whenLabel, locale = "fr", currency = "
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  const checkout = async () => {
-    if (busy) return;
-    setBusy(true);
+  const [sheet, setSheet] = useState(false);
+
+  // The button opens the on-page payment sheet (no page change).
+  const openSheet = () => {
     setErr(null);
     track("cm_checkout_start", currency);
     ttqTrack("InitiateCheckout", { content_category: "commencer", content_id: "commencer_lifetime", currency, value: paywall.amountCents / 100 });
+    setSheet(true);
+  };
+
+  // Fallback offered inside the sheet: Stripe's hosted page (redirect).
+  const hostedCheckout = async () => {
+    if (busy) return;
+    setBusy(true);
+    setErr(null);
     try {
       const res = await createCommencerCheckout(email || undefined, locale, currency);
       if ("url" in res && res.url) {
@@ -66,6 +76,7 @@ export function Paywall({ paywall, email, whenLabel, locale = "fr", currency = "
       setErr(ui.error);
     }
     setBusy(false);
+    setSheet(false);
   };
 
   const wave = (i: number) => (reduce ? { duration: 0 } : { delay: 0.08 + i * 0.07, duration: 0.4, ease: "easeOut" as const });
@@ -81,7 +92,7 @@ export function Paywall({ paywall, email, whenLabel, locale = "fr", currency = "
       footer={
         <>
           {err && <p className="text-center text-[0.8125rem]" style={{ color: P.danger }} role="alert">{err}</p>}
-          <PrimaryButton onClick={checkout} busy={busy}>{busy ? ui.redirect : t(paywall.cta)}</PrimaryButton>
+          <PrimaryButton onClick={openSheet}>{t(paywall.cta)}</PrimaryButton>
           {paywall.footerPoints.length > 0 && (
             <p className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-[0.75rem] font-semibold" style={{ color: P.text }}>
               {paywall.footerPoints.map((pt) => (
@@ -201,13 +212,8 @@ export function Paywall({ paywall, email, whenLabel, locale = "fr", currency = "
         {paywall.paymentMethods && <p className="text-[0.7188rem]" style={{ color: P.muted }}>{paywall.paymentMethods}</p>}
       </div>
 
-      {busy && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center" style={{ background: "rgba(0,0,0,.45)" }} aria-hidden>
-          <div className="flex h-20 w-20 items-center justify-center rounded-[20px]" style={{ background: P.purple }}>
-            <span className="h-8 w-8 animate-spin rounded-full border-[3px]" style={{ borderColor: "rgba(239,233,222,.3)", borderTopColor: "#fff" }} />
-          </div>
-        </div>
-      )}
+      <PaySheet open={sheet} onClose={() => setSheet(false)} onHosted={hostedCheckout} hostedBusy={busy} email={email} locale={locale} currency={currency} ui={ui}
+        title={ui.pay.sheetTitle} summary={fill(ui.pay.sheetSummary, { product: paywall.productName, price: priceLabel })} />
     </Shell>
   );
 }

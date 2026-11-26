@@ -26,7 +26,7 @@ export const CM_UI = {
       fact: "Ces mots sont dans Al-Fatiha. Tu les récites au moins **17 fois par jour** en priant, et maintenant tu les comprends.",
     },
     recap: "Tes {xp} XP, tes {words} mots et ta série sont prêts à être enregistrés.",
-    pay: { how: "Comment ça marche", today: "Tu paies {price}. Tout Quranlab est débloqué.", month: "{zero}. Rien à payer, rien à résilier.", year: "{zero}. Ton accès est toujours là.", versus: "Une app classique à {price} par mois te coûterait {year} par an." },
+    pay: { how: "Comment ça marche", today: "Tu paies {price}. Tout Quranlab est débloqué.", month: "{zero}. Rien à payer, rien à résilier.", year: "{zero}. Ton accès est toujours là.", versus: "Une app classique à {price} par mois te coûterait {year} par an.", sheetTitle: "Paiement sécurisé", sheetSummary: "{product} · {price}, une seule fois", close: "Fermer", secured: "Paiement chiffré par Stripe", hosted: "Un souci ? Payer sur la page Stripe", hostedCta: "Payer sur la page Stripe", loadFailed: "Le formulaire de paiement n'a pas pu se charger.", retry: "Réessayer" },
     planReady: "Plan prêt",
   },
   en: {
@@ -51,7 +51,7 @@ export const CM_UI = {
       fact: "These words are in Al-Fatiha. You recite them at least **17 times a day** when you pray, and now you understand them.",
     },
     recap: "Your {xp} XP, your {words} words and your streak are ready to be saved.",
-    pay: { how: "How it works", today: "You pay {price}. All of Quranlab is unlocked.", month: "{zero}. Nothing to pay, nothing to cancel.", year: "{zero}. Your access is still there.", versus: "A typical app at {price} a month would cost you {year} a year." },
+    pay: { how: "How it works", today: "You pay {price}. All of Quranlab is unlocked.", month: "{zero}. Nothing to pay, nothing to cancel.", year: "{zero}. Your access is still there.", versus: "A typical app at {price} a month would cost you {year} a year.", sheetTitle: "Secure payment", sheetSummary: "{product} · {price}, one time", close: "Close", secured: "Payment encrypted by Stripe", hosted: "Trouble? Pay on the Stripe page", hostedCta: "Pay on the Stripe page", loadFailed: "The payment form could not load.", retry: "Try again" },
     planReady: "Plan ready",
   },
   es: {
@@ -76,7 +76,7 @@ export const CM_UI = {
       fact: "Estas palabras están en Al-Fatiha. Las recitas al menos **17 veces al día** al rezar, y ahora las entiendes.",
     },
     recap: "Tus {xp} XP, tus {words} palabras y tu racha están listos para guardarse.",
-    pay: { how: "Cómo funciona", today: "Pagas {price}. Todo Quranlab queda desbloqueado.", month: "{zero}. Nada que pagar, nada que cancelar.", year: "{zero}. Tu acceso sigue ahí.", versus: "Una app típica a {price} al mes te costaría {year} al año." },
+    pay: { how: "Cómo funciona", today: "Pagas {price}. Todo Quranlab queda desbloqueado.", month: "{zero}. Nada que pagar, nada que cancelar.", year: "{zero}. Tu acceso sigue ahí.", versus: "Una app típica a {price} al mes te costaría {year} al año.", sheetTitle: "Pago seguro", sheetSummary: "{product} · {price}, una sola vez", close: "Cerrar", secured: "Pago cifrado por Stripe", hosted: "¿Algún problema? Pagar en la página de Stripe", hostedCta: "Pagar en la página de Stripe", loadFailed: "No se pudo cargar el formulario de pago.", retry: "Reintentar" },
     planReady: "Plan listo",
   },
 } as const;

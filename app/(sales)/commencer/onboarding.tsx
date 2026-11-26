@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { preload } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
 import { captureFunnelLead } from "@/actions/funnel-lead";
@@ -17,7 +18,7 @@ import { SpeakButton } from "@/components/word-audio";
 import { ProgressChart, TimeChart } from "./charts";
 import { ConfettiBurst, CountUp, FxMuteButton, RewardBurst, StreakFlame, fx } from "./fx";
 import { Paywall } from "./paywall";
-import { AMIRI_CSS, AR_FONT, Bubble, CM_UI, Crop, EMAIL_RE, Heading, Icon, KOJI_CROP, KojiSays, OptionCard, P, PEDESTAL_CROP, PrimaryButton, RiveAnim, Shell, Stars, addDays, cascade, easeInOutCubic, fill, fmtShort, rich, useToday, type CmLocale, type CmUi } from "./ui";
+import { AMIRI_CSS, AR_FONT, Bubble, CM_UI, EMAIL_RE, Heading, Icon, KOJI_CROP, KojiSays, OptionCard, P, PEDESTAL_CROP, PrimaryButton, RiveAnim, Shell, Stars, addDays, cascade, easeInOutCubic, fill, fmtShort, rich, useToday, type CmLocale, type CmUi } from "./ui";
 
 /* ------------------------------------------------------------------ */
 /* Types & transitions                                                  */
@@ -35,7 +36,7 @@ const EASE_PUSH = [0.32, 0.72, 0, 1] as const;
 
 function screenVariants(reduce: boolean) {
   const t = (n: Nav) =>
-    reduce ? { duration: 0.15 } : n.kind === "push" ? { type: "tween" as const, ease: EASE_PUSH, duration: 0.45 } : n.kind === "dissolve" ? { duration: 0.7, ease: "easeInOut" as const } : { duration: 0.35, ease: EASE_OUT };
+    reduce ? { duration: 0.15 } : n.kind === "push" ? { type: "tween" as const, ease: EASE_PUSH, duration: 0.45 } : n.kind === "dissolve" ? { duration: 0.22, ease: "easeOut" as const } : { duration: 0.35, ease: EASE_OUT };
   return {
     enter: (n: Nav) => (n.kind === "push" && !reduce ? { x: n.dir > 0 ? "100%" : "-100%", y: 0, opacity: 1 } : n.kind === "dissolve" || reduce ? { x: 0, y: 0, opacity: 0 } : { x: 0, y: 18, opacity: 0 }),
     center: (n: Nav) => ({ x: 0, y: 0, opacity: 1, transition: t(n) }),
@@ -61,6 +62,9 @@ const GLOBAL_CSS = `${AMIRI_CSS}
 
 export function CommencerOnboarding({ content, initialStep, locale = "fr", currency = "EUR" }: { content: CommencerContent; initialStep?: string; locale?: CmLocale; currency?: PaywallCurrency }) {
   const ui = CM_UI[locale];
+  // The Qur'anic font is fetched up front: the first Arabic word only appears a dozen screens in,
+  // and it should not flash in a fallback face at that moment.
+  preload("/fonts/amiri-arabic-400-normal.woff2", { as: "font", crossOrigin: "anonymous" });
   // The old "trial" mockup screen is superseded by the interactive lesson.
   // The "bell" (trial reminder) screen is gone with the free trial.
   const steps = useMemo(() => content.steps.filter((s) => s.type !== "trial" && s.type !== "bell"), [content.steps]);
@@ -138,7 +142,7 @@ export function CommencerOnboarding({ content, initialStep, locale = "fr", curre
   const minutes = time?.minutes ?? timeStep?.options[0]?.minutes ?? 15;
   const goalDate = useMemo(() => (today && time ? addDays(today, time.weeks * 7) : null), [today, time]);
   const goalDateLabel = goalDate ? fmtShort(goalDate, locale) : null;
-  const splash = steps.find((s): s is Step<"splash"> => s.type === "splash");
+  const splash = content.steps.find((s): s is Step<"splash"> => s.type === "splash");
 
   const onEmail = (value: string) => {
     setEmail(value);
@@ -149,11 +153,12 @@ export function CommencerOnboarding({ content, initialStep, locale = "fr", curre
 
   const showBar = step !== null && !NO_BAR.includes(step.type);
   const showHeader = showBar || isPaywall;
-  const dark = step?.type === "loader";
+  // Full-colour screens: the brand splash and the plan loader.
+  const dark = step?.type === "loader" || step?.type === "splash";
   const variants = useMemo(() => screenVariants(reduce), [reduce]);
 
   return (
-    <div className="z-50 flex flex-col overflow-hidden font-sans" style={{ position: "fixed", inset: 0, background: dark ? P.purple : "#fff", color: P.text, transition: "background-color .4s ease" }}>
+    <div className="z-50 flex flex-col overflow-hidden font-sans" style={{ position: "fixed", inset: 0, background: dark ? P.purple : "#fff", color: P.text, transition: "background-color .22s ease-out" }}>
       <style dangerouslySetInnerHTML={{ __html: GLOBAL_CSS }} />
       <OpenInBrowserHint accent={P.purple} />
 
@@ -215,25 +220,22 @@ function Screen(props: { ui: CmUi; locale: CmLocale; onEarned: (e: Earned) => vo
 /* ------------------------------------------------------------------ */
 /* Splash                                                               */
 
+/** Brand splash: Koji on the brand colour, wordmark at the bottom. Short, and a tap skips it. */
 function SplashScreen({ step, onDone }: { step: Step<"splash">; onDone: () => void }) {
   const reduce = useReducedMotion();
   useEffect(() => {
-    const t = window.setTimeout(onDone, 2200);
+    const t = window.setTimeout(onDone, 1500);
     return () => window.clearTimeout(t);
   }, [onDone]);
-  const d = (s: number) => (reduce ? { duration: 0 } : { delay: s, duration: 0.5, ease: EASE_OUT });
   return (
-    <button type="button" onClick={onDone} className="flex h-full w-full flex-col items-center justify-center px-6 text-center" aria-label={`${step.brand} — ${step.tagline}`}>
-      <motion.span className="block" lang="ar" dir="rtl" style={{ fontFamily: AR_FONT, fontSize: 96, color: P.purple, lineHeight: 1.6 }} initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} transition={d(0.1)}>
-        {step.arabic}
-      </motion.span>
-      <span className="mt-5 flex items-center justify-center font-heading text-[1.375rem] font-extrabold" style={{ letterSpacing: ".34em", paddingLeft: ".34em", color: P.text }} aria-hidden>
-        {step.brand.split("").map((ch, i) => (
-          <motion.span key={`${ch}-${i}`} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={reduce ? { duration: 0 } : { delay: 0.5 + i * 0.07, duration: 0.18 }}>{ch === " " ? " " : ch}</motion.span>
-        ))}
+    <button type="button" onClick={onDone} className="relative block h-full w-full select-none" style={{ background: P.purple }} aria-label={`${step.brand} — ${step.tagline}`}>
+      <span className="absolute inset-0 flex items-center justify-center">
+        <motion.span className="block h-44 w-44" initial={reduce ? false : { opacity: 0, scale: 0.86 }} animate={{ opacity: 1, scale: 1 }} transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 260, damping: 20 }}>
+          <RiveAnim src="/animations/loading.riv" crop={KOJI_CROP} />
+        </motion.span>
       </span>
-      <motion.span className="mt-2 block text-[0.6875rem] font-semibold uppercase tracking-[.28em]" style={{ color: P.muted }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={d(0.5 + step.brand.length * 0.07 + 0.2)} aria-hidden>
-        {step.tagline}
+      <motion.span className="absolute inset-x-0 block text-center font-display text-[2.125rem] font-semibold lowercase leading-none text-white" style={{ bottom: "max(36px, calc(env(safe-area-inset-bottom) + 20px))", letterSpacing: "-0.01em" }} initial={reduce ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={reduce ? { duration: 0 } : { delay: 0.15, duration: 0.4, ease: EASE_OUT }} aria-hidden>
+        {step.brand}
       </motion.span>
     </button>
   );
@@ -242,9 +244,41 @@ function SplashScreen({ step, onDone }: { step: Step<"splash">; onDone: () => vo
 /* ------------------------------------------------------------------ */
 /* Welcome — Koji intro, compact (no dead space)                        */
 
+/** Side of the square frame Koji's intro animation is drawn in (px). */
+const INTRO_FRAME = 380;
+// Measured on the animation: Koji shoots up from the bottom of the frame, jumps almost to its
+// top, then settles in the middle (between 32 % and 69 % of the height). The stage shows the
+// whole travel so nothing is ever cut; the bubble and the headline use the room he leaves once
+// he has landed.
+const INTRO_TOP = 0.08;      // part of the frame hidden above the stage
+const INTRO_HEIGHT = 0.89;   // part of the frame the stage shows
+const INTRO_REST_TOP = 0.32; // top of Koji at rest
+const INTRO_REST_BOTTOM = 0.69;
+
 function WelcomeScreen({ step, onNext }: { step: Step<"welcome">; onNext: () => void }) {
   const reduce = useReducedMotion();
-  const d = (s: number) => (reduce ? { duration: 0 } : { delay: s, duration: 0.45, ease: EASE_OUT });
+  // The words arrive once Koji has landed (about 0.95 s into his animation).
+  const [landed, setLanded] = useState(false);
+  // Koji's frame is opaque white: he is brought in once the coloured splash has fully faded.
+  const [onStage, setOnStage] = useState(false);
+  useEffect(() => {
+    const t = window.setTimeout(() => setOnStage(true), 280);
+    return () => window.clearTimeout(t);
+  }, []);
+  const landTimer = useRef<number | null>(null);
+  const onPlayStart = useCallback(() => {
+    if (landTimer.current === null) landTimer.current = window.setTimeout(() => setLanded(true), 950);
+  }, []);
+  useEffect(() => {
+    if (reduce) setLanded(true);
+    const fallback = window.setTimeout(() => setLanded(true), 3200); // animation blocked or slow to load
+    return () => { window.clearTimeout(fallback); if (landTimer.current !== null) window.clearTimeout(landTimer.current); };
+  }, [reduce]);
+  const F = INTRO_FRAME;
+  const stageH = F * INTRO_HEIGHT;
+  const restTop = (INTRO_REST_TOP - INTRO_TOP) * F;
+  const restBottom = (INTRO_REST_BOTTOM - INTRO_TOP) * F;
+  const say = { duration: reduce ? 0 : 0.4, ease: EASE_OUT };
   return (
     <Shell
       center
@@ -260,13 +294,17 @@ function WelcomeScreen({ step, onNext }: { step: Step<"welcome">; onNext: () => 
         </>
       }
     >
-      <motion.div initial={{ opacity: 0, y: 8, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={d(0.35)}>
-        <Bubble tail="bottom"><p className="font-heading text-[1.0625rem] font-bold leading-snug" style={{ color: P.text }}>{step.headline}</p></Bubble>
-      </motion.div>
-      <motion.div className="mt-5 h-48 w-48 sm:h-56 sm:w-56" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={d(0)}>
-        <Crop box={KOJI_CROP}><OnboardingMascot phase="intro" /></Crop>
-      </motion.div>
-      <motion.h1 className="mt-7 max-w-[21rem] font-heading text-[2.125rem] font-extrabold leading-[1.1] sm:text-[2.5rem]" style={{ color: P.text, letterSpacing: "-0.02em", textWrap: "balance" as never }} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={d(0.5)}>
+      <div className="relative w-full overflow-hidden" style={{ height: stageH }}>
+        <div className="absolute left-1/2" style={{ width: F, height: F, top: -INTRO_TOP * F, marginLeft: -F / 2 }}>
+          {onStage && <OnboardingMascot phase="intro" onPlayStart={onPlayStart} />}
+        </div>
+        <div className="absolute inset-x-0 z-10 flex justify-center" style={{ bottom: stageH - restTop + 16 }}>
+          <motion.div initial={false} animate={{ opacity: landed ? 1 : 0, y: landed ? 0 : 8, scale: landed ? 1 : 0.94 }} transition={say} style={{ transformOrigin: "50% 100%" }}>
+            <Bubble tail="bottom"><p className="font-heading text-[1.0625rem] font-bold leading-snug" style={{ color: P.text }}>{step.headline}</p></Bubble>
+          </motion.div>
+        </div>
+      </div>
+      <motion.h1 className="relative z-10 max-w-[21rem] font-heading text-[2.125rem] font-extrabold leading-[1.1] sm:text-[2.5rem]" style={{ marginTop: -(stageH - restBottom) + 24, color: P.text, letterSpacing: "-0.02em", textWrap: "balance" as never }} initial={false} animate={{ opacity: landed ? 1 : 0, y: landed ? 0 : 12 }} transition={{ ...say, delay: reduce ? 0 : 0.12 }}>
         {rich(step.tagline)}
       </motion.h1>
     </Shell>
@@ -661,9 +699,9 @@ function LessonScreen({ ui, locale, step, onNext, onEarned }: { ui: CmUi; locale
           <motion.div key={i} className={`relative mt-5 text-center ${answered && !ok ? "cm-shake" : ""}`} style={{ borderRadius: 24, background: "#F7F7FF" }} initial={{ opacity: 0, x: reduce ? 0 : 32 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: reduce ? 0 : -32 }} transition={{ duration: reduce ? 0 : 0.26, ease: EASE_OUT }}>
             <div className="relative px-5 pb-5 pt-6">
               <p lang="ar" dir="rtl" style={{ fontFamily: AR_FONT, fontSize: 60, lineHeight: 1.75, color: P.text }}>{card.arabic}</p>
-              {/* Phonetics and voice come with the answer: shown before, they give it away. The line keeps its place. */}
-              <p className="text-[1rem] italic" style={{ color: P.muted, opacity: answered ? 1 : 0, transition: reduce ? "none" : "opacity .25s ease-out" }} aria-hidden={!answered}>{card.translit}</p>
-              {answered && <SpeakButton arabic={card.arabic} size="sm" className="absolute right-3 top-3 bg-white" />}
+              {/* Phonetics stay visible: many visitors cannot read Arabic script yet. */}
+              <p className="text-[1rem] italic" style={{ color: P.muted }}>{card.translit}</p>
+              <SpeakButton arabic={card.arabic} size="sm" className="absolute right-3 top-3 bg-white" />
               <RewardBurst fireKey={burst} className="absolute -right-7 -top-9 h-28 w-28" />
             </div>
             <AnimatePresence initial={false}>
@@ -675,8 +713,9 @@ function LessonScreen({ ui, locale, step, onNext, onEarned }: { ui: CmUi; locale
                         <span key={k}>{k > 0 ? " " : ""}<span style={k === inFatiha.index ? { color: P.purple, fontWeight: 700 } : undefined}>{w}</span></span>
                       ))}
                     </p>
-                    {/* No translation of the verse: it would hand over the meaning of the words still to come. */}
-                    <p className="mt-1 text-[0.8125rem] font-semibold leading-snug" style={{ color: P.soft }}>{fill(L.inFatiha, { n: inFatiha.verse.n })}</p>
+                    <p className="mt-1 text-[0.8125rem] leading-snug" style={{ color: P.muted, textWrap: "pretty" as never }}>
+                      <span className="font-semibold" style={{ color: P.soft }}>{fill(L.inFatiha, { n: inFatiha.verse.n })}</span> · {inFatiha.verse[locale]}
+                    </p>
                   </div>
                 </motion.div>
               )}
