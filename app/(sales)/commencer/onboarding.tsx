@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { preload } from "react-dom";
+import { createPortal, preload } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
 import { captureFunnelLead } from "@/actions/funnel-lead";
@@ -163,34 +163,26 @@ export function CommencerOnboarding({ content, initialStep, locale = "fr", curre
   const dark = step?.type === "loader" || step?.type === "splash";
   const variants = useMemo(() => screenVariants(reduce), [reduce]);
 
-  // The browser paints its own bars (status bar, toolbar) from the page colour. It took the purple
-  // of the splash and kept it: the page colour and the theme colour now follow each screen.
+  // iOS tints its status bar and toolbar from what it reads at the page's top and bottom edges
+  // when the page first paints, and keeps that colour. So the page itself (html, body and this
+  // root) stays white for good; coloured screens are a layer drawn over it, and <EdgeStrips>
+  // states the colour of each edge with small fixed elements of their own.
   const edgeColor = dark ? P.purple : isPaywall ? PAYWALL_EDGE : "#ffffff";
   useEffect(() => {
-    const html = document.documentElement;
-    const body = document.body;
-    const before = { html: html.style.backgroundColor, body: body.style.backgroundColor };
-    html.style.backgroundColor = edgeColor;
-    body.style.backgroundColor = edgeColor;
-    let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-    const metaBefore = meta?.content;
-    if (!meta) { meta = document.createElement("meta"); meta.name = "theme-color"; document.head.appendChild(meta); }
+    // Android Chrome follows the theme colour live.
+    const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    if (!meta) return;
+    const before = meta.content;
     meta.content = edgeColor;
-    return () => {
-      html.style.backgroundColor = before.html;
-      body.style.backgroundColor = before.body;
-      if (meta && metaBefore !== undefined) meta.content = metaBefore;
-    };
+    return () => { meta.content = before; };
   }, [edgeColor]);
 
   return (
-    <div className="z-50 flex flex-col overflow-hidden font-sans" style={{ position: "fixed", inset: 0, background: dark ? P.purple : "#fff", color: P.text, transition: "background-color .22s ease-out" }}>
+    <div className="z-50 flex flex-col overflow-hidden font-sans" style={{ position: "fixed", inset: 0, background: "#fff", color: P.text }}>
       <style dangerouslySetInnerHTML={{ __html: GLOBAL_CSS }} />
-      {/* iOS tints its status bar and toolbar from what touches the top and bottom edges of the page.
-          These two strips state that colour explicitly for each screen (new element per colour, so the
-          browser re-reads it instead of keeping the splash's purple). */}
-      <div key={`top-${edgeColor}`} className="pointer-events-none absolute inset-x-0 top-0 h-4" style={{ background: edgeColor }} aria-hidden />
-      <div key={`bottom-${dark ? "c" : "w"}`} className="pointer-events-none absolute inset-x-0 bottom-0 h-4" style={{ background: dark ? P.purple : "#ffffff" }} aria-hidden />
+      {/* Coloured screens (splash, plan loader): a layer over the white page */}
+      <div className="pointer-events-none absolute inset-0" style={{ background: P.purple, opacity: dark ? 1 : 0, transition: reduce ? "none" : "opacity .22s ease-out" }} aria-hidden />
+      <EdgeStrips top={edgeColor} bottom={dark ? P.purple : "#ffffff"} />
       {/* Paywall backdrop: from the very top edge of the screen, behind the header */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[480px]" style={{ background: PAYWALL_BACKDROP, opacity: isPaywall ? 1 : 0, transition: reduce ? "none" : "opacity .4s ease-out" }} aria-hidden />
       <OpenInBrowserHint accent={P.purple} />
@@ -226,6 +218,25 @@ export function CommencerOnboarding({ content, initialStep, locale = "fr", curre
         </div>
       </div>
     </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Edge strips: tell the phone which colour sits at the top and bottom   */
+
+function EdgeStrips({ top, bottom }: { top: string; bottom: string }) {
+  const [ready, setReady] = useState(false);
+  useEffect(() => setReady(true), []);
+  if (!ready) return null;
+  // Independent fixed elements in <body>, one per edge, re-created when the colour changes so the
+  // browser reads them afresh. They sit in the safe areas (status bar, home indicator), over nothing
+  // that can be tapped.
+  return createPortal(
+    <>
+      <div key={`t-${top}`} aria-hidden style={{ position: "fixed", top: 0, left: 0, right: 0, height: "max(env(safe-area-inset-top), 6px)", background: top, zIndex: 60 }} />
+      <div key={`b-${bottom}`} aria-hidden style={{ position: "fixed", bottom: 0, left: 0, right: 0, height: "max(env(safe-area-inset-bottom), 4px)", background: bottom, zIndex: 60 }} />
+    </>,
+    document.body,
   );
 }
 
