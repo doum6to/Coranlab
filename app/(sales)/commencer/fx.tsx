@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Alignment, Fit, Layout, useRive, useStateMachineInput } from "@rive-app/react-canvas";
+import { Alignment, EventType, Fit, Layout, useRive, useStateMachineInput } from "@rive-app/react-canvas";
 import { Volume2, VolumeX } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
@@ -238,4 +238,25 @@ export function StreakFlame({ className }: { className?: string }) {
       )}
     </div>
   );
+}
+
+/* ------------------------------------------------------------------ */
+/* Splash: Koji's eyes on the brand colour                              */
+
+function SplashEyesInner({ onStart }: { onStart: () => void }) {
+  const { rive, RiveComponent } = useRive({ src: "/animations/splash_eyes.riv", stateMachines: "State Machine 1", autoplay: true, layout: new Layout({ fit: Fit.Contain, alignment: Alignment.Center }) });
+  // Tell the screen when the eyes actually start moving, so a slow connection never skips them.
+  useEffect(() => {
+    if (!rive) return;
+    let fired = false;
+    const handler = () => { if (!fired) { fired = true; onStart(); } };
+    rive.on(EventType.Advance, handler);
+    return () => { rive.off(EventType.Advance, handler); };
+  }, [rive, onStart]);
+  return <RiveComponent className="h-full w-full" aria-hidden />;
+}
+/** The eyes open, look around and blink (about 1.7 s), then idle. */
+export function SplashEyes({ className, onStart }: { className?: string; onStart: () => void }) {
+  const mounted = useMounted();
+  return <div className={className} aria-hidden>{mounted && <SplashEyesInner onStart={onStart} />}</div>;
 }

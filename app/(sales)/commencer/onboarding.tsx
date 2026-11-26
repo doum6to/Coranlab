@@ -16,7 +16,7 @@ import { findInFatiha } from "@/lib/fatiha";
 import { SpeakButton } from "@/components/word-audio";
 
 import { ProgressChart, TimeChart } from "./charts";
-import { ConfettiBurst, CountUp, FxMuteButton, RewardBurst, StreakFlame, fx } from "./fx";
+import { ConfettiBurst, CountUp, FxMuteButton, RewardBurst, SplashEyes, StreakFlame, fx } from "./fx";
 import { Paywall } from "./paywall";
 import { AMIRI_CSS, AR_FONT, Bubble, CM_UI, EMAIL_RE, Heading, Icon, KOJI_CROP, KojiSays, OptionCard, P, PEDESTAL_CROP, PrimaryButton, RiveAnim, Shell, Stars, addDays, cascade, easeInOutCubic, fill, fmtShort, rich, useToday, type CmLocale, type CmUi } from "./ui";
 
@@ -65,6 +65,8 @@ export function CommencerOnboarding({ content, initialStep, locale = "fr", curre
   // The Qur'anic font is fetched up front: the first Arabic word only appears a dozen screens in,
   // and it should not flash in a fallback face at that moment.
   preload("/fonts/amiri-arabic-400-normal.woff2", { as: "font", crossOrigin: "anonymous" });
+  // The splash animation is the very first thing shown: fetched as early as possible.
+  preload("/animations/splash_eyes.riv", { as: "fetch", crossOrigin: "anonymous" });
   // The old "trial" mockup screen is superseded by the interactive lesson.
   // The "bell" (trial reminder) screen is gone with the free trial.
   const steps = useMemo(() => content.steps.filter((s) => s.type !== "trial" && s.type !== "bell"), [content.steps]);
@@ -220,19 +222,27 @@ function Screen(props: { ui: CmUi; locale: CmLocale; onEarned: (e: Earned) => vo
 /* ------------------------------------------------------------------ */
 /* Splash                                                               */
 
-/** Brand splash: Koji on the brand colour, wordmark at the bottom. Short, and a tap skips it. */
+/**
+ * Brand splash: only Koji's eyes on the brand colour, so the whole screen reads as his face,
+ * with the wordmark at the bottom. The eyes open, look left and right and blink; the funnel
+ * moves on once that little scene has played. A tap skips it.
+ */
 function SplashScreen({ step, onDone }: { step: Step<"splash">; onDone: () => void }) {
   const reduce = useReducedMotion();
-  useEffect(() => {
-    const t = window.setTimeout(onDone, 1500);
-    return () => window.clearTimeout(t);
+  const timer = useRef<number | null>(null);
+  // Counted from the moment the eyes start moving; capped so a blocked animation never traps the visitor.
+  const onStart = useCallback(() => {
+    if (timer.current !== null) window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(onDone, 2000);
   }, [onDone]);
+  useEffect(() => {
+    timer.current = window.setTimeout(onDone, reduce ? 900 : 3500);
+    return () => { if (timer.current !== null) window.clearTimeout(timer.current); };
+  }, [onDone, reduce]);
   return (
     <button type="button" onClick={onDone} className="relative block h-full w-full select-none" style={{ background: P.purple }} aria-label={`${step.brand} — ${step.tagline}`}>
       <span className="absolute inset-0 flex items-center justify-center">
-        <motion.span className="block h-44 w-44" initial={reduce ? false : { opacity: 0, scale: 0.86 }} animate={{ opacity: 1, scale: 1 }} transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 260, damping: 20 }}>
-          <RiveAnim src="/animations/loading.riv" crop={KOJI_CROP} />
-        </motion.span>
+        <SplashEyes className="h-72 w-72" onStart={onStart} />
       </span>
       <motion.span className="absolute inset-x-0 block text-center font-display text-[2.125rem] font-semibold lowercase leading-none text-white" style={{ bottom: "max(36px, calc(env(safe-area-inset-bottom) + 20px))", letterSpacing: "-0.01em" }} initial={reduce ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={reduce ? { duration: 0 } : { delay: 0.15, duration: 0.4, ease: EASE_OUT }} aria-hidden>
         {step.brand}
