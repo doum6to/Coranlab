@@ -24,7 +24,7 @@ type IntroMascotProps = {
  */
 const IntroMascot = ({ onPlayStart, className }: IntroMascotProps) => {
   const { rive, RiveComponent } = useRive({
-    src: "/animations/hi_ok.riv",
+    src: "/animations/hi_ok_clear.riv",
     autoplay: true,
     stateMachines: "State Machine 1",
     layout: new Layout({ fit: Fit.Contain, alignment: Alignment.Center }),
@@ -72,7 +72,7 @@ type QuestionMascotProps = {
  */
 const QuestionMascot = ({ replayKey, className }: QuestionMascotProps) => {
   const { rive, RiveComponent } = useRive({
-    src: "/animations/okok.riv",
+    src: "/animations/okok_clear.riv",
     autoplay: true,
     animations: ["yup"],
     layout: new Layout({ fit: Fit.Contain, alignment: Alignment.Center }),

@@ -8,8 +8,8 @@
  * anywhere in a page/layout tree.
  */
 const RIVE_FILES = [
-  "/animations/hi_ok.riv",
-  "/animations/okok.riv",
+  "/animations/hi_ok_clear.riv",
+  "/animations/okok_clear.riv",
   "/animations/eyes_down.riv",
   "/animations/mascot_breath.riv",
   "/animations/completed_lvl.riv",
