@@ -1,9 +1,10 @@
 import { useKey } from "react-use";
-import { CheckCircle, XCircle } from "lucide-react";
+import { Sparkles } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { useT } from "@/lib/i18n/use-t";
+import { KOJI_CROP, RiveAnim } from "@/app/(sales)/commencer/ui";
 
 type Props = {
   onCheck: () => void;
@@ -11,6 +12,8 @@ type Props = {
   disabled?: boolean;
   lessonId?: number;
   correctAnswer?: string;
+  /** XP this answer is worth (shown on a right answer). */
+  gain?: number;
 };
 
 export const Footer = ({
@@ -19,58 +22,76 @@ export const Footer = ({
   disabled,
   lessonId,
   correctAnswer,
+  gain,
 }: Props) => {
   const t = useT();
   useKey("Enter", onCheck, {}, [onCheck]);
+  const answered = status === "correct" || status === "wrong";
+  const ok = status === "correct";
 
   return (
-    <footer className={cn(
-      "lg:h-[140px] shrink-0 border-t border-[#E0E0E0]",
-      status === "correct" && "border-transparent bg-brilliant-success",
-      status === "wrong" && "border-transparent bg-rose-50",
-      status === "wrong" ? "h-auto min-h-[80px] py-3" : "h-[80px]",
-    )}>
-      <div className="max-w-[1140px] h-full mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-10">
-        {status === "correct" && (
-          <div className="text-brilliant-green font-bold text-sm sm:text-base lg:text-2xl flex items-center">
-            <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 lg:h-10 lg:w-10 mr-2 sm:mr-4" />
-            {t.lesson.goodJob}
-          </div>
-        )}
-        {status === "wrong" && (
-          <div className="flex flex-col gap-0.5">
-            <div className="text-rose-500 font-bold text-sm sm:text-base lg:text-2xl flex items-center">
-              <XCircle className="h-5 w-5 sm:h-6 sm:w-6 lg:h-10 lg:w-10 mr-2 sm:mr-4 shrink-0" />
-              {t.lesson.notQuite}
+    <footer
+      className={cn(
+        "relative shrink-0 transition-colors duration-200",
+        !answered && "border-t border-[#E0E0E0] bg-white",
+        ok && "bg-[#E9F9EC]",
+        status === "wrong" && "bg-[#FDEEEE]",
+        answered && "rounded-t-3xl",
+      )}
+    >
+      {/* Koji pops over the edge of the sheet on a right answer */}
+      {ok && (
+        <div className="pointer-events-none absolute -top-[46px] right-6 h-[68px] w-[68px] animate-fade-in-up" aria-hidden>
+          <RiveAnim src="/animations/okok_clear.riv" animation="yup" crop={KOJI_CROP} />
+        </div>
+      )}
+      <div className={cn("relative mx-auto w-full max-w-lg px-4 pb-[max(18px,env(safe-area-inset-bottom))] sm:px-6", answered ? "pt-4" : "pt-3")}>
+        {answered && (
+          <div aria-live="polite">
+            <div className="flex items-baseline justify-between gap-3">
+              <p className={cn("font-heading text-[1.1875rem] font-extrabold", ok ? "text-[#15803D]" : "text-[#B42323]")} style={{ letterSpacing: "-0.01em" }}>
+                {ok ? t.reward.right : t.reward.almost}
+              </p>
+              {ok && gain !== undefined && (
+                <p className="flex items-center gap-1 text-sm font-bold text-[#15803D]">
+                  <Sparkles className="h-[15px] w-[15px]" strokeWidth={2.4} fill="currentColor" fillOpacity={0.14} aria-hidden />+{gain} {t.reward.xp}
+                </p>
+              )}
             </div>
-            {correctAnswer && (
-              <p className="text-rose-400 text-xs sm:text-sm ml-7 sm:ml-10 lg:ml-14">
-                {t.lesson.correctAnswerLabel} <span className="font-semibold">{correctAnswer}</span>
+            {!ok && correctAnswer && (
+              <p className="mt-0.5 text-[0.9375rem] leading-snug text-brilliant-text">
+                <span className="text-[#555]">{t.reward.answerWas}</span> <span className="font-semibold">{correctAnswer}</span>
               </p>
             )}
           </div>
         )}
-        {status === "completed" && (
-          <div className="w-auto min-w-[140px] lg:min-w-[180px]">
-            <ShinyButton
-              variant="outline-green"
-              onClick={() => window.location.href = `/lesson/${lessonId}`}
+        <div className={cn("flex items-center gap-3", answered && "mt-3.5")}>
+          {status === "completed" && (
+            <div className="flex-1">
+              <ShinyButton variant="outline-green" onClick={() => window.location.href = `/lesson/${lessonId}`}>
+                {t.lesson.practiceAgain}
+              </ShinyButton>
+            </div>
+          )}
+          {ok ? (
+            <button
+              type="button"
+              onClick={onCheck}
+              className="h-[54px] w-full select-none rounded-2xl bg-[#22B455] text-base font-bold text-white shadow-[0_4px_0_0_#16873E] transition-[transform,box-shadow] duration-100 active:translate-y-[4px] active:!shadow-none"
             >
-              {t.lesson.practiceAgain}
-            </ShinyButton>
-          </div>
-        )}
-        <div className="ml-auto w-auto min-w-[140px] lg:min-w-[180px]">
-          <ShinyButton
-            variant={status === "wrong" ? "dark" : "green"}
-            disabled={disabled}
-            onClick={onCheck}
-          >
-            {status === "none" && t.lesson.check}
-            {status === "correct" && t.lesson.next}
-            {status === "wrong" && t.lesson.next}
-            {status === "completed" && t.lesson.continue}
-          </ShinyButton>
+              {t.lesson.next}
+            </button>
+          ) : (
+            <div className="flex-1">
+              <ShinyButton variant={status === "wrong" ? "dark" : "green"} disabled={disabled} onClick={onCheck} className="text-base">
+                <span className="block py-1">
+                  {status === "none" && t.lesson.check}
+                  {status === "wrong" && t.lesson.next}
+                  {status === "completed" && t.lesson.continue}
+                </span>
+              </ShinyButton>
+            </div>
+          )}
         </div>
       </div>
     </footer>

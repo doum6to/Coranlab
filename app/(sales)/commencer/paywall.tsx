@@ -9,7 +9,7 @@ import { track } from "@/lib/analytics/track";
 import type { CommencerContent } from "@/lib/commencer-shared";
 import { centsFromLabel, formatPaywallPrice, type PaywallCurrency } from "@/lib/geo-currency";
 
-import { StreakFlame } from "./fx";
+import { StreakFlame } from "@/components/fx";
 import { PaySheet } from "./pay-sheet";
 import { CM_UI, Check, Icon, KOJI_CROP, P, PrimaryButton, RiveAnim, Shell, Star, fill, type CmLocale } from "./ui";
 

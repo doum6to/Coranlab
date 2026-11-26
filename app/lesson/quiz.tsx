@@ -12,7 +12,7 @@ const Confetti = dynamic(() => import("react-confetti"), { ssr: false });
 
 import { challengeOptions, challenges, userSubscription } from "@/db/schema";
 import { usePremiumModal } from "@/store/use-premium-modal";
-import { completeLessonChallenges } from "@/actions/challenge-progress";
+import { completeLessonChallenges, type LessonResult } from "@/actions/challenge-progress";
 
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { Header } from "./header";
@@ -36,8 +36,25 @@ import { useT } from "@/lib/i18n/use-t";
 import { tpl } from "@/lib/i18n/locales";
 import { listenMode } from "@/lib/word-audio";
 import { useUnlockWordAudio, useWordSoundOn } from "@/components/word-audio";
+import { ConfettiBurst, CountUp, StreakFlame } from "@/components/fx";
 
 const TEST_MODE_LIMIT = 5;
+/** Same values as the server: full XP for a first time, a small reward for revising. */
+const XP_NEW = 10;
+const XP_REVISION = 2;
+
+/** Short vibration on Android (iOS has none on the web). */
+const buzz = (pattern: number | number[]) => {
+  try {
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate(pattern);
+  } catch { /* ignore */ }
+};
+
+/** The learner's calendar day, so the streak follows their own midnight. */
+const localDay = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
 
 /** Renders a string with `\n` as line breaks. */
 const multiline = (s: string) =>
@@ -126,6 +143,12 @@ export const Quiz = ({
   // Track completed challenge IDs locally — only saved if level is passed
   const completedIdsRef = useRef<number[]>([]);
   const [saving, setSaving] = useState(false);
+  // What the server really credited (XP, streak) once the level is saved.
+  const [result, setResult] = useState<LessonResult | null>(null);
+  // Live rewards of the session: XP collected so far and right answers in a row.
+  const [sessionXp, setSessionXp] = useState(0);
+  const [combo, setCombo] = useState(0);
+  const [showStreak, setShowStreak] = useState(false);
 
   const isFinished = activeIndex >= challengesList.length;
   const challenge = challengesList[activeIndex];
@@ -148,7 +171,8 @@ export const Quiz = ({
     ) {
       savedRef.current = true;
       setSaving(true);
-      completeLessonChallenges(completedIdsRef.current)
+      completeLessonChallenges(completedIdsRef.current, localDay())
+        .then((r) => { if (r) setResult(r); })
         .catch(() => console.error("Failed to save progress"))
         .finally(() => setSaving(false));
     }
@@ -167,6 +191,18 @@ export const Quiz = ({
     setActiveIndex((current) => current + 1);
   };
 
+  // An exercise already done on a previous visit is revision: it is worth less.
+  const gainOf = (c: (typeof challengesList)[number] | undefined) => (c?.completed ? XP_REVISION : XP_NEW);
+  const rewardRight = () => {
+    setSessionXp((x) => x + gainOf(challenge));
+    setCombo((n) => n + 1);
+    buzz([10, 40, 18]);
+  };
+  const noteWrong = () => {
+    setCombo(0);
+    buzz(45);
+  };
+
   const onSelect = (id: number) => {
     if (status !== "none") return;
     setSelectedOption(id);
@@ -176,6 +212,7 @@ export const Quiz = ({
   const handleSelfComplete = () => {
     completedIdsRef.current.push(challenge.id);
     correctControls.play();
+    rewardRight();
     setPercentage((prev) => prev + 100 / challengesList.length);
     setTotalCorrect((prev) => prev + 1);
     setTotalAttempts((prev) => prev + 1);
@@ -186,6 +223,7 @@ export const Quiz = ({
 
   const handleSelfWrong = () => {
     incorrectControls.play();
+    noteWrong();
     setTotalAttempts((prev) => prev + 1);
   };
 
@@ -222,12 +260,14 @@ export const Quiz = ({
     if (picked.correct) {
       completedIdsRef.current.push(challenge.id);
       correctControls.play();
+      rewardRight();
       setStatus("correct");
       setPercentage((prev) => prev + 100 / challengesList.length);
       setTotalCorrect((prev) => prev + 1);
       setTotalAttempts((prev) => prev + 1);
     } else {
       incorrectControls.play();
+      noteWrong();
       setStatus("wrong");
       setTotalAttempts((prev) => prev + 1);
     }
@@ -251,19 +291,27 @@ export const Quiz = ({
     window.location.href = `/lesson/${lessonId}`;
   };
 
+  // Streak screen: shown after the finished screen when this lesson extended the streak today
+  if (isFinished && showStreak && result) {
+    return <StreakScreen streak={result.streak} onContinue={handleFinishContinue} />;
+  }
+
   // Finished screen
   if (isFinished) {
+    // XP shown = what was really credited: nothing while the level is not passed, the server's
+    // figure once saved (the session's own count stands in until it answers, and in the demo).
+    const earnedXP = !testMode && !passed ? 0 : result ? result.xp : sessionXp;
     return (
       <FinishedScreen
         passed={passed}
         scorePercentage={scorePercentage}
-        totalXP={challengesList.length * 10}
+        totalXP={earnedXP}
         levelOrder={levelOrder}
         lessonId={lessonId}
         saving={saving}
         testMode={testMode}
         isPro={!!userSubscription?.isActive}
-        onContinue={testMode || passed ? handleFinishContinue : handlePracticeAgain}
+        onContinue={testMode ? handleFinishContinue : !passed ? handlePracticeAgain : result?.streakExtended ? () => setShowStreak(true) : handleFinishContinue}
       />
     );
   }
@@ -312,6 +360,8 @@ export const Quiz = ({
         hearts={0}
         percentage={percentage}
         hasActiveSubscription={!!userSubscription?.isActive}
+        xp={sessionXp}
+        combo={combo}
       />
       <div className="flex-1 overflow-y-auto">
         <div className="min-h-full flex items-center justify-center py-2 sm:py-6">
@@ -330,6 +380,7 @@ export const Quiz = ({
           disabled={pending || !selectedOption}
           status={status}
           onCheck={onContinue}
+          gain={gainOf(challenge)}
           correctAnswer={
             status === "wrong"
               ? localizeAnswer(
@@ -694,6 +745,51 @@ function FinishedScreen({
           {t.exercises.victoryNudge}
         </button>
       )}
+    </div>
+  );
+}
+
+/* ─────────────────────── Streak screen ──────────────────────── */
+
+/** After a passed level that extended the streak today: the flame, the count, the week. */
+export function StreakScreen({ streak, onContinue }: { streak: number; onContinue: () => void }) {
+  const t = useT();
+  const [confetti, setConfetti] = useState(0);
+  useEffect(() => {
+    const id = window.setTimeout(() => setConfetti(1), 250);
+    return () => window.clearTimeout(id);
+  }, []);
+  const todayIdx = (new Date().getDay() + 6) % 7; // Monday first
+  const lang = typeof document !== "undefined" ? document.documentElement.lang || "fr" : "fr";
+  const dayLetter = (k: number) => new Intl.DateTimeFormat(lang, { weekday: "narrow" }).format(new Date(2024, 0, 1 + k)); // 1 Jan 2024 is a Monday
+  // Days of this week covered by the current streak, today included.
+  const lit = (k: number) => k <= todayIdx && k > todayIdx - streak;
+  return (
+    <div className="relative flex h-[100dvh] flex-col items-center justify-center overflow-hidden px-6 text-center">
+      <ConfettiBurst fireKey={confetti} pieces={30} originY="30%" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[60%]" style={{ background: "radial-gradient(60% 55% at 50% 40%, #FFF0DB 0%, rgba(255,240,219,0) 100%)" }} aria-hidden />
+      <StreakFlame className="relative h-48 w-48" />
+      <p className="relative -mt-2 font-heading text-[4rem] font-extrabold leading-none text-[#F0641E]" style={{ letterSpacing: "-0.03em" }}>
+        <CountUp value={streak} duration={700} />
+      </p>
+      <p className="relative mt-1 text-[0.9375rem] font-semibold text-[#C2570C]">{streak > 1 ? t.reward.streakDays : t.reward.streakDay}</p>
+      <div className="relative mt-6 flex justify-center gap-2" aria-hidden>
+        {Array.from({ length: 7 }, (_, k) => (
+          <span key={k} className="flex w-9 flex-col items-center gap-1.5">
+            <span className={`text-xs font-semibold uppercase ${k === todayIdx ? "text-[#C2570C]" : "text-brilliant-muted"}`}>{dayLetter(k)}</span>
+            <span className="flex h-9 w-9 items-center justify-center rounded-full text-white" style={lit(k) ? { background: "#FF8A1F", boxShadow: "0 2px 0 0 #E0680A" } : { background: "#F3F3F3" }}>
+              {lit(k) && (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+              )}
+            </span>
+          </span>
+        ))}
+      </div>
+      <h1 className="relative mt-8 text-[1.625rem] font-bold leading-tight text-brilliant-text">{streak > 1 ? t.reward.streakKept : t.reward.streakStart}</h1>
+      <p className="relative mt-2 max-w-xs text-base text-[#555]">{t.reward.streakHint}</p>
+      <div className="relative mt-8 w-full max-w-md">
+        <ShinyButton variant="green" onClick={onContinue}>{t.lesson.continue}</ShinyButton>
+      </div>
     </div>
   );
 }

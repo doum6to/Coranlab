@@ -11,8 +11,25 @@ import { getCurrentWeekStart } from "@/lib/league-utils";
 import { maybeJoinLeague } from "@/actions/league";
 import { MAX_STREAK_CHARGES, getToday, daysBetween } from "@/lib/streak-utils";
 
+/** XP for an exercise done for the first time, and for one replayed as revision. */
+const XP_NEW = 10;
+const XP_REVISION = 2;
+
+export type LessonResult = { xp: number; streak: number; streakExtended: boolean };
+
+/**
+ * The learner's calendar day ("YYYY-MM-DD" from their device), accepted only within a day of the
+ * server's date: a streak follows the learner's own midnight, not UTC's, without letting a
+ * tampered clock claim arbitrary days.
+ */
+function learnerToday(clientDate: string | undefined): string {
+  const server = getToday();
+  if (!clientDate || !/^\d{4}-\d{2}-\d{2}$/.test(clientDate)) return server;
+  return Math.abs(daysBetween(server, clientDate)) <= 1 ? clientDate : server;
+}
+
 // Batch complete all challenges at end of lesson
-export const completeLessonChallenges = async (challengeIds: number[]) => {
+export const completeLessonChallenges = async (challengeIds: number[], clientDate?: string): Promise<LessonResult | undefined> => {
   const { userId } = await auth();
 
   if (!userId) {
@@ -51,7 +68,7 @@ export const completeLessonChallenges = async (challengeIds: number[]) => {
   }
 
   // Calculate streak + charges
-  const today = getToday();
+  const today = learnerToday(clientDate);
   const lastStreakDate = currentUserProgress.lastStreakDate;
   let newStreak = currentUserProgress.streak;
   let newCharges = currentUserProgress.streakCharges ?? 0;
@@ -90,8 +107,8 @@ export const completeLessonChallenges = async (challengeIds: number[]) => {
     .values({ userId, date: today })
     .onConflictDoNothing();
 
-  // Fix: only count NEW challenges for points (no XP for repeating)
-  const pointsEarned = newChallengeIds.length * 10;
+  // Full XP for exercises done for the first time, a small reward for revising the others.
+  const pointsEarned = newChallengeIds.length * XP_NEW + (challengeIds.length - newChallengeIds.length) * XP_REVISION;
 
   // Update points + streak + charges in one query
   await db.update(userProgress).set({
@@ -130,6 +147,8 @@ export const completeLessonChallenges = async (challengeIds: number[]) => {
   revalidatePath("/learn");
   revalidatePath("/leaderboard");
   revalidateTag("leaderboard");
+
+  return { xp: pointsEarned, streak: newStreak, streakExtended: !alreadyActiveToday };
 };
 
 // Keep single challenge progress for backward compat (unused now)

@@ -42,9 +42,9 @@ const LessonIdPage = async ({
     redirect("/learn");
   }
 
-  // Skip premium lock in test mode — the first lesson is free anyway but
-  // this makes the bypass explicit and safe.
-  if (!testMode && (await isListPremiumLocked(lesson.listId))) {
+  // The premium lock applies in every mode. Test mode is only the welcome tutorial's short demo
+  // of the first, free lesson: it must never open a locked one from the address bar.
+  if (await isListPremiumLocked(lesson.listId)) {
     redirect("/premium");
   }
 

@@ -16,7 +16,7 @@ import { findInFatiha } from "@/lib/fatiha";
 import { SpeakButton } from "@/components/word-audio";
 
 import { ProgressChart, TimeChart } from "./charts";
-import { ConfettiBurst, CountUp, FxMuteButton, RewardBurst, SplashEyes, StreakFlame, fx } from "./fx";
+import { ConfettiBurst, CountUp, FxMuteButton, RewardBurst, SplashEyes, StreakFlame, fx } from "@/components/fx";
 import { Paywall } from "./paywall";
 import { AMIRI_CSS, AR_FONT, Bubble, CM_UI, EMAIL_RE, Heading, Icon, KOJI_CROP, KojiSays, OptionCard, P, PEDESTAL_CROP, PrimaryButton, RiveAnim, Shell, Stars, addDays, cascade, easeInOutCubic, fill, fmtShort, rich, useToday, type CmLocale, type CmUi } from "./ui";
 
