@@ -691,9 +691,8 @@ function LessonScreen({ ui, locale, step, onNext, onEarned }: { ui: CmUi; locale
                         <span key={k}>{k > 0 ? " " : ""}<span style={k === inFatiha.index ? { color: P.purple, fontWeight: 700 } : undefined}>{w}</span></span>
                       ))}
                     </p>
-                    <p className="mt-1 text-[13px] leading-snug" style={{ color: P.muted, textWrap: "pretty" as never }}>
-                      <span className="font-semibold" style={{ color: P.soft }}>{fill(L.inFatiha, { n: inFatiha.verse.n })}</span> · {inFatiha.verse[locale]}
-                    </p>
+                    {/* No translation of the verse: it would hand over the meaning of the words still to come. */}
+                    <p className="mt-1 text-[13px] font-semibold leading-snug" style={{ color: P.soft }}>{fill(L.inFatiha, { n: inFatiha.verse.n })}</p>
                   </div>
                 </motion.div>
               )}
