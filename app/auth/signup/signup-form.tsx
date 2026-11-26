@@ -137,7 +137,7 @@ export function SignUpForm() {
             <p className="text-xs font-semibold text-[#6967fb] text-center tracking-wide uppercase">
               {t.auth.trialBadge}
             </p>
-            <p className="mt-1 text-[11px] text-brilliant-muted text-center leading-relaxed">
+            <p className="mt-1 text-xs text-brilliant-muted text-center leading-relaxed">
               {t.auth.trialDesc}
             </p>
           </div>
@@ -179,7 +179,7 @@ export function SignUpForm() {
               required
             />
             {lockEmail && (
-              <p className="mt-1 text-[11px] text-brilliant-muted">
+              <p className="mt-1 text-xs text-brilliant-muted">
                 {t.auth.emailLocked}
               </p>
             )}

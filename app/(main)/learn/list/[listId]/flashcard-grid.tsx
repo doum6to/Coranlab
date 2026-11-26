@@ -42,7 +42,7 @@ const Flashcard = ({ word }: { word: Word }) => {
           >
             {word.arabic}
           </p>
-          <p className="text-[9px] sm:text-[10px] text-brilliant-muted mt-2 uppercase tracking-wider">
+          <p className="text-xs text-brilliant-muted mt-2">
             {t.exercises.flip}
           </p>
         </div>

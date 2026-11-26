@@ -127,7 +127,7 @@ export const ListButton = ({
         )}
         {/* List title label */}
         <p className={cn(
-          "text-[11px] sm:text-xs text-center mt-2 font-semibold max-w-[110px] leading-tight",
+          "text-xs text-center mt-2 font-semibold max-w-[110px] leading-tight",
           locked ? "text-brilliant-muted" : "text-brilliant-text",
           completed && "text-brilliant-green"
         )}>

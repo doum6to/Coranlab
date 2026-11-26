@@ -101,7 +101,7 @@ export function CoursePlayer({ videos }: { videos: ArabicCourseVideo[] }) {
           </span>
           <div className="min-w-0">
             <p
-              className="text-[11px] font-bold uppercase tracking-[0.18em]"
+              className="text-xs font-bold uppercase tracking-[0.08em]"
               style={{ color: GOLD }}
             >
               {t.course.videoTraining}

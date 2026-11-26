@@ -37,7 +37,7 @@ export const EXT_FR = {
     wrongCredentials: "E-mail ou mot de passe incorrect.",
     wrongPassword: "Mot de passe incorrect.",
     resetMyPassword: "Réinitialiser mon mot de passe",
-    paidNoAccountPre: "✅ Ton paiement est bien reçu — mais ton compte n'est ",
+    paidNoAccountPre: "Ton paiement est bien reçu, mais ton compte n'est ",
     paidNoAccountStrong: "pas encore créé",
     paidNoAccountPost:
       ". Crée-le (choisis un mot de passe) et ton Premium sera activé automatiquement.",
@@ -98,12 +98,12 @@ export const EXT_FR = {
     invalidTitle: "Lien invalide",
     invalidBody:
       "Ce lien d'activation n'est pas valide ou a expiré. Vérifie que tu as bien copié le lien complet, ou contacte le support.",
-    activatedTitle: "Ton accès est activé 🤍",
+    activatedTitle: "Ton accès est activé",
     activatedExisting:
       "Ton accès premium a été ajouté à ton compte existant. Connecte-toi avec ton mot de passe habituel pour accéder à l'application.",
     activatedNew:
       "Ton compte premium est prêt. Tu es connecté(e) : tu peux ouvrir l'application quand tu veux.",
-    documents: "📂 Tes documents (PDF) — Comprendre 85% du Coran",
+    documents: "Tes documents (PDF) : Comprendre 85% du Coran",
     pdfDocument: "Document PDF",
     logIn: "Me connecter",
     openApp: "Ouvrir l'application",
@@ -126,7 +126,7 @@ export const EXT_FR = {
     memorize: "Mémorise ce mot…",
     arabicColumn: "Arabe",
     translationColumn: "Français",
-    victoryNudge: "✨ Tu apprends vite — continue sans limite avec Premium",
+    victoryNudge: "Tu apprends vite. Continue sans limite avec Premium",
     spotInstruction: "Une de ces paires est fausse. Trouve l'erreur !",
     spotConfirm: "C'est celle-ci !",
     flip: "Retourner",
@@ -186,8 +186,8 @@ export const EXT_FR = {
     tierFIRDAUS: "Le paradis",
   },
   nudge: {
-    streakOne: "Série de 1 jour 🔥",
-    streakMany: "Série de {n} jours 🔥",
+    streakOne: "Série de 1 jour",
+    streakMany: "Série de {n} jours",
     keepGoing: "Continue ta progression",
     streakSub: "Garde ta série en sécurité et débloque tout avec Premium.",
     percentSub: "Tu comprends déjà {percent}% — débloque les 500 mots du Coran.",
@@ -342,7 +342,7 @@ export const EXT_EN: AppStringsExt = {
     wrongCredentials: "Incorrect email or password.",
     wrongPassword: "Incorrect password.",
     resetMyPassword: "Reset my password",
-    paidNoAccountPre: "✅ Your payment went through — but your account is ",
+    paidNoAccountPre: "Your payment went through, but your account is ",
     paidNoAccountStrong: "not created yet",
     paidNoAccountPost:
       ". Create it (choose a password) and your Premium access will be activated automatically.",
@@ -403,12 +403,12 @@ export const EXT_EN: AppStringsExt = {
     invalidTitle: "Invalid link",
     invalidBody:
       "This activation link is invalid or has expired. Make sure you copied the full link, or contact support.",
-    activatedTitle: "Your access is activated 🤍",
+    activatedTitle: "Your access is activated",
     activatedExisting:
       "Premium access has been added to your existing account. Log in with your usual password to open the app.",
     activatedNew:
       "Your Premium account is ready. You're logged in: open the app whenever you like.",
-    documents: "📂 Your documents (PDF) — Understand 85% of the Qur'an",
+    documents: "Your documents (PDF): Understand 85% of the Qur'an",
     pdfDocument: "PDF document",
     logIn: "Log in",
     openApp: "Open the app",
@@ -431,7 +431,7 @@ export const EXT_EN: AppStringsExt = {
     memorize: "Memorize this word…",
     arabicColumn: "Arabic",
     translationColumn: "English",
-    victoryNudge: "✨ You're learning fast — keep going without limits with Premium",
+    victoryNudge: "You're learning fast. Keep going without limits with Premium",
     spotInstruction: "One of these pairs is wrong. Find the mistake!",
     spotConfirm: "It's this one!",
     flip: "Flip",
@@ -491,8 +491,8 @@ export const EXT_EN: AppStringsExt = {
     tierFIRDAUS: "Paradise",
   },
   nudge: {
-    streakOne: "1-day streak 🔥",
-    streakMany: "{n}-day streak 🔥",
+    streakOne: "1-day streak",
+    streakMany: "{n}-day streak",
     keepGoing: "Keep up your progress",
     streakSub: "Keep your streak safe and unlock everything with Premium.",
     percentSub: "You already understand {percent}% — unlock the 500 words of the Qur'an.",
@@ -645,7 +645,7 @@ export const EXT_ES: AppStringsExt = {
     wrongCredentials: "Correo o contraseña incorrectos.",
     wrongPassword: "Contraseña incorrecta.",
     resetMyPassword: "Restablecer mi contraseña",
-    paidNoAccountPre: "✅ Tu pago se ha recibido — pero tu cuenta ",
+    paidNoAccountPre: "Tu pago se ha recibido, pero tu cuenta ",
     paidNoAccountStrong: "aún no está creada",
     paidNoAccountPost:
       ". Créala (elige una contraseña) y tu Premium se activará automáticamente.",
@@ -706,12 +706,12 @@ export const EXT_ES: AppStringsExt = {
     invalidTitle: "Enlace inválido",
     invalidBody:
       "Este enlace de activación no es válido o ha caducado. Comprueba que copiaste el enlace completo o contacta con el soporte.",
-    activatedTitle: "Tu acceso está activado 🤍",
+    activatedTitle: "Tu acceso está activado",
     activatedExisting:
       "Tu acceso Premium se ha añadido a tu cuenta existente. Inicia sesión con tu contraseña habitual para abrir la aplicación.",
     activatedNew:
       "Tu cuenta Premium está lista. Ya has iniciado sesión: puedes abrir la aplicación cuando quieras.",
-    documents: "📂 Tus documentos (PDF) — Entender el 85% del Corán",
+    documents: "Tus documentos (PDF): Entender el 85% del Corán",
     pdfDocument: "Documento PDF",
     logIn: "Iniciar sesión",
     openApp: "Abrir la aplicación",
@@ -734,7 +734,7 @@ export const EXT_ES: AppStringsExt = {
     memorize: "Memoriza esta palabra…",
     arabicColumn: "Árabe",
     translationColumn: "Español",
-    victoryNudge: "✨ Aprendes rápido — sigue sin límites con Premium",
+    victoryNudge: "Aprendes rápido. Sigue sin límites con Premium",
     spotInstruction: "Una de estas parejas es incorrecta. ¡Encuentra el error!",
     spotConfirm: "¡Es esta!",
     flip: "Girar",
@@ -794,8 +794,8 @@ export const EXT_ES: AppStringsExt = {
     tierFIRDAUS: "El paraíso",
   },
   nudge: {
-    streakOne: "Racha de 1 día 🔥",
-    streakMany: "Racha de {n} días 🔥",
+    streakOne: "Racha de 1 día",
+    streakMany: "Racha de {n} días",
     keepGoing: "Continúa tu progreso",
     streakSub: "Protege tu racha y desbloquea todo con Premium.",
     percentSub: "Ya entiendes el {percent}% — desbloquea las 500 palabras del Corán.",

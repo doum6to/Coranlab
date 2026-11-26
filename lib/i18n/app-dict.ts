@@ -224,7 +224,7 @@ const fr = {
     signupSubtitleDefault:
       "Commence à apprendre le vocabulaire du Coran aujourd'hui",
     premiumDetected:
-      "✨ Abonnement détecté — ton accès Premium sera activé automatiquement après inscription.",
+      "Abonnement détecté : ton accès Premium sera activé automatiquement après inscription.",
     trialBadge: "Essai 7 jours gratuits",
     trialDesc:
       "Tu entreras ta CB à l'étape suivante. Aucun prélèvement pendant 7 jours. Résiliable en 1 clic depuis tes paramètres.",
@@ -315,9 +315,9 @@ const fr = {
       "Dernière étape : crée ton compte avec l'adresse {email} pour activer ton accès Premium à vie.",
     createAccount: "Créer mon compte",
     warnNoEmail:
-      "⚠️ Important : crée ton compte avec le même email que lors de l'achat, sinon ton accès Premium ne sera pas activé.",
+      "Important : crée ton compte avec le même email que lors de l'achat, sinon ton accès Premium ne sera pas activé.",
     warnWithEmail:
-      "⚠️ Important : crée ton compte avec le même email que lors de l'achat ({email}), sinon ton accès Premium ne sera pas activé.",
+      "Important : crée ton compte avec le même email que lors de l'achat ({email}), sinon ton accès Premium ne sera pas activé.",
     emailComingTitle: "Un email de confirmation arrive aussi",
     emailComingBody:
       "Il contient le lien d'activation et tes documents PDF en bonus. Pense à vérifier tes spams si tu ne le vois pas.",
@@ -546,7 +546,7 @@ const en: AppStringsBase = {
       "Step 1 of 2 — create your account, then enter your card (no charge for 7 days).",
     signupSubtitleDefault: "Start learning Qur'anic vocabulary today",
     premiumDetected:
-      "✨ Subscription detected — your Premium access will be activated automatically after sign-up.",
+      "Subscription detected: your Premium access will be activated automatically after sign-up.",
     trialBadge: "7-day free trial",
     trialDesc:
       "You'll enter your card on the next step. No charge for 7 days. Cancel in 1 click from your settings.",
@@ -636,9 +636,9 @@ const en: AppStringsBase = {
       "Last step: create your account with the address {email} to activate your lifetime Premium access.",
     createAccount: "Create my account",
     warnNoEmail:
-      "⚠️ Important: create your account with the same email you used to buy, otherwise your Premium access won't be activated.",
+      "Important: create your account with the same email you used to buy, otherwise your Premium access won't be activated.",
     warnWithEmail:
-      "⚠️ Important: create your account with the same email you used to buy ({email}), otherwise your Premium access won't be activated.",
+      "Important: create your account with the same email you used to buy ({email}), otherwise your Premium access won't be activated.",
     emailComingTitle: "A confirmation email is on its way too",
     emailComingBody:
       "It contains the activation link and your bonus PDF documents. Check your spam folder if you don't see it.",
@@ -864,7 +864,7 @@ const es: AppStringsBase = {
       "Paso 1 de 2: crea tu cuenta y luego introduce tu tarjeta (sin cargo durante 7 días).",
     signupSubtitleDefault: "Empieza a aprender el vocabulario del Corán hoy",
     premiumDetected:
-      "✨ Suscripción detectada — tu acceso Premium se activará automáticamente tras el registro.",
+      "Suscripción detectada: tu acceso Premium se activará automáticamente tras el registro.",
     trialBadge: "Prueba gratis de 7 días",
     trialDesc:
       "Introducirás tu tarjeta en el siguiente paso. Sin cargo durante 7 días. Cancela en 1 clic desde tus ajustes.",
@@ -954,9 +954,9 @@ const es: AppStringsBase = {
       "Último paso: crea tu cuenta con la dirección {email} para activar tu acceso Premium de por vida.",
     createAccount: "Crear mi cuenta",
     warnNoEmail:
-      "⚠️ Importante: crea tu cuenta con el mismo correo que usaste en la compra, de lo contrario tu acceso Premium no se activará.",
+      "Importante: crea tu cuenta con el mismo correo que usaste en la compra, de lo contrario tu acceso Premium no se activará.",
     warnWithEmail:
-      "⚠️ Importante: crea tu cuenta con el mismo correo que usaste en la compra ({email}), de lo contrario tu acceso Premium no se activará.",
+      "Importante: crea tu cuenta con el mismo correo que usaste en la compra ({email}), de lo contrario tu acceso Premium no se activará.",
     emailComingTitle: "También recibirás un correo de confirmación",
     emailComingBody:
       "Contiene el enlace de activación y tus documentos PDF de regalo. Revisa tu carpeta de spam si no lo ves.",

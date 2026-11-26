@@ -54,7 +54,7 @@ export const PremiumLockModal = () => {
         {/* Header */}
         <div className="text-center">
           <span
-            className="inline-block rounded-full px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-white"
+            className="inline-block rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-white"
             style={{ background: GRADIENT }}
           >
             Premium
@@ -85,7 +85,7 @@ export const PremiumLockModal = () => {
             {[0, 1, 2, 3, 4].map((i) => (
               <Star key={i} className="h-3.5 w-3.5 fill-current" strokeWidth={0} />
             ))}
-            <span className="ml-1 text-[11px] font-semibold text-brilliant-muted">
+            <span className="ml-1 text-xs font-semibold text-brilliant-muted">
               {t.lockModal.adopted}
             </span>
           </div>

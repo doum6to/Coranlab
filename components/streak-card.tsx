@@ -81,7 +81,7 @@ export const StreakCard = ({ data }: Props) => {
                 {d.active ? <BoltSolid size={16} /> : <BoltOutline size={16} />}
               </div>
               <span
-                className={`text-[11px] ${
+                className={`text-xs ${
                   d.isToday ? "font-bold text-brilliant-text" : "text-brilliant-muted"
                 }`}
               >

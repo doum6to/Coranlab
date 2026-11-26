@@ -73,7 +73,7 @@ export const WelcomeTutorial = () => {
                 >
                   <BoltSolid size={14} />
                 </div>
-                <span className={`text-[11px] ${i === 0 ? "font-bold text-brilliant-text" : "text-brilliant-muted"}`}>
+                <span className={`text-xs ${i === 0 ? "font-bold text-brilliant-text" : "text-brilliant-muted"}`}>
                   {d}
                 </span>
               </div>
