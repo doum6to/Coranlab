@@ -1,7 +1,7 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { challengeOptions, challenges } from "@/db/schema";
+import { Choice, Choices, MeaningPrompt } from "./choice";
 import { AFTER_ANSWER_MS, SpeakButton, useAutoPlayWord } from "@/components/word-audio";
 import { listenWord } from "@/lib/word-audio";
 import { useT } from "@/lib/i18n/use-t";
@@ -34,7 +34,7 @@ export const QCMInverse = ({
   useAutoPlayWord(heard, listen || answered, listen, listen ? 250 : AFTER_ANSWER_MS);
   const hidden = listen && !answered;
   return (
-    <div className="flex flex-col items-center gap-3 sm:gap-6">
+    <div className="flex flex-col items-center gap-4 sm:gap-6">
       {/* French translation display */}
       {hidden ? (
         <div className="flex flex-col items-center gap-2 py-1">
@@ -42,63 +42,24 @@ export const QCMInverse = ({
           <span className="text-xs font-semibold text-brilliant-muted">{t.audio.tapToListen}</span>
         </div>
       ) : (
-      <div
-        className="flex items-center justify-center gap-3 p-3 sm:p-6 bg-[#f0f0ff] rounded-2xl border-2 border-[#6967FB]/30 w-full max-w-[280px]"
-        style={{ boxShadow: "0 4px 0 0 #c8c7f0" }}
-      >
-        {listen && <SpeakButton arabic={heard} size="sm" className="bg-white" />}
-        <span className="text-xl sm:text-2xl font-bold text-[#6967FB] text-center">
-          {challenge.frenchTranslation}
-        </span>
-      </div>
+      <MeaningPrompt className="gap-3">
+        {listen && <SpeakButton arabic={heard} size="sm" className="!bg-white" />}
+        {challenge.frenchTranslation}
+      </MeaningPrompt>
       )}
 
 
       {/* Arabic options */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-3 w-full max-w-md">
+      <Choices>
         {options.map((option, i) => (
-          <button
-            key={option.id}
-            onClick={() => onSelect(option.id)}
-            disabled={disabled}
-            className={cn(
-              "h-12 sm:h-16 px-4 rounded-2xl border-2 transition flex items-center gap-3",
-              selectedOption === option.id && status === "none" &&
-                "border-[#6967FB] bg-[#f0f0ff]",
-              selectedOption === option.id && status === "correct" &&
-                "border-brilliant-green bg-brilliant-success",
-              selectedOption === option.id && status === "wrong" &&
-                "border-red-400 bg-red-50",
-              selectedOption !== option.id && status === "none" &&
-                "border-[#E0E0E0] bg-white hover:bg-gray-50",
-              selectedOption !== option.id && status !== "none" &&
-                option.correct && "border-brilliant-green bg-brilliant-success",
-              selectedOption !== option.id && status !== "none" &&
-                !option.correct && "border-[#E0E0E0] bg-white opacity-40",
-              disabled && "cursor-not-allowed"
-            )}
-            style={{
-              boxShadow: selectedOption === option.id ? "none" :
-                status !== "none" ? "none" : "0 4px 0 0 #D4D4D4"
-            }}
-          >
-            <span className={cn(
-              "w-6 h-6 rounded-lg border-2 border-[#E0E0E0] flex items-center justify-center text-xs text-brilliant-muted shrink-0",
-              selectedOption === option.id && status === "none" && "border-[#6967FB] text-[#6967FB]",
-              selectedOption === option.id && status === "correct" && "border-brilliant-green text-brilliant-green",
-              selectedOption === option.id && status === "wrong" && "border-red-400 text-red-600",
-            )}>
-              {i + 1}
+          <Choice key={option.id} className="min-h-[68px]" index={i + 1} selected={selectedOption === option.id} status={status} correct={option.correct} disabled={disabled} onClick={() => onSelect(option.id)}>
+            <span className="flex flex-col items-start">
+              <span className="font-arabic text-[1.625rem] leading-[1.35] text-brilliant-text" dir="rtl" lang="ar">{option.arabicText || option.text}</span>
+              {answered && <Translit arabic={option.arabicText || option.text} className="-mt-0.5 text-xs" />}
             </span>
-            <span className="flex flex-col items-start leading-none">
-              <span className="font-arabic text-xl sm:text-2xl text-brilliant-text" dir="rtl">
-                {option.arabicText || option.text}
-              </span>
-              <Translit arabic={option.arabicText || option.text} className="text-[10px] sm:text-xs" reveal={answered} />
-            </span>
-          </button>
+          </Choice>
         ))}
-      </div>
+      </Choices>
     </div>
   );
 };

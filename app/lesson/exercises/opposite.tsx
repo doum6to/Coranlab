@@ -1,10 +1,8 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { challengeOptions, challenges } from "@/db/schema";
-import { Translit } from "@/components/translit";
-import { AFTER_ANSWER_MS, SpeakButton, useAutoPlayWord } from "@/components/word-audio";
-import { useT } from "@/lib/i18n/use-t";
+import { Choice, Choices, WordPrompt } from "./choice";
+import { AFTER_ANSWER_MS, useAutoPlayWord } from "@/components/word-audio";
 
 type Props = {
   challenge: typeof challenges.$inferSelect;
@@ -23,69 +21,22 @@ export const Opposite = ({
   status,
   disabled,
 }: Props) => {
-  const t = useT();
   // The reading aids (phonetics, voice) come once the answer is given: before, they would give it away.
   const answered = status !== "none";
   useAutoPlayWord(challenge.arabicWord, answered, false, AFTER_ANSWER_MS);
   return (
-    <div className="flex flex-col items-center gap-3 sm:gap-6">
+    <div className="flex flex-col items-center gap-4 sm:gap-6">
       {/* Arabic word */}
-      <div
-        className="relative flex flex-col items-center justify-center p-3 sm:p-6 bg-white rounded-2xl border-2 border-[#E0E0E0] w-full max-w-[280px]"
-        style={{ boxShadow: "0 4px 0 0 #D4D4D4" }}
-      >
-        <span className="font-arabic text-3xl sm:text-4xl text-brilliant-text" dir="rtl">
-          {challenge.arabicWord}
-        </span>
-        <Translit arabic={challenge.arabicWord} className="mt-1 text-sm" reveal={answered} />
-        {answered && <SpeakButton arabic={challenge.arabicWord} size="sm" className="absolute left-2 top-2" />}
-      </div>
-
-      {/* Instruction */}
-      <p className="text-xs sm:text-sm text-brilliant-muted font-medium text-center">
-        {t.lesson.oppositeInstruction}
-      </p>
+      <WordPrompt arabic={challenge.arabicWord} revealAids={answered} />
 
       {/* Options */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-3 w-full max-w-md">
+      <Choices>
         {options.map((option, i) => (
-          <button
-            key={option.id}
-            onClick={() => onSelect(option.id)}
-            disabled={disabled}
-            className={cn(
-              "h-12 sm:h-16 px-4 rounded-2xl border-2 font-semibold text-sm transition flex items-center gap-3",
-              selectedOption === option.id && status === "none" &&
-                "border-[#6967FB] bg-[#f0f0ff] text-brilliant-text",
-              selectedOption === option.id && status === "correct" &&
-                "border-brilliant-green bg-brilliant-success text-brilliant-green",
-              selectedOption === option.id && status === "wrong" &&
-                "border-red-400 bg-red-50 text-red-600",
-              selectedOption !== option.id && status === "none" &&
-                "border-[#E0E0E0] bg-white hover:bg-gray-50 text-brilliant-text",
-              selectedOption !== option.id && status !== "none" &&
-                option.correct && "border-brilliant-green bg-brilliant-success text-brilliant-green",
-              selectedOption !== option.id && status !== "none" &&
-                !option.correct && "border-[#E0E0E0] bg-white opacity-40",
-              disabled && "cursor-not-allowed"
-            )}
-            style={{
-              boxShadow: selectedOption === option.id ? "none" :
-                status !== "none" ? "none" : "0 4px 0 0 #D4D4D4"
-            }}
-          >
-            <span className={cn(
-              "w-6 h-6 rounded-lg border-2 border-[#E0E0E0] flex items-center justify-center text-xs shrink-0 text-brilliant-muted",
-              selectedOption === option.id && status === "none" && "border-[#6967FB] text-[#6967FB]",
-              selectedOption === option.id && status === "correct" && "border-brilliant-green text-brilliant-green",
-              selectedOption === option.id && status === "wrong" && "border-red-400 text-red-600",
-            )}>
-              {i + 1}
-            </span>
-            <span className="text-left">{option.frenchText || option.text}</span>
-          </button>
+          <Choice key={option.id} index={i + 1} selected={selectedOption === option.id} status={status} correct={option.correct} disabled={disabled} onClick={() => onSelect(option.id)}>
+            {option.frenchText || option.text}
+          </Choice>
         ))}
-      </div>
+      </Choices>
     </div>
   );
 };

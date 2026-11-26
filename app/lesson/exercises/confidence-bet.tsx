@@ -1,18 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { cn } from "@/lib/utils";
+
 import { challengeOptions, challenges } from "@/db/schema";
-import { Translit } from "@/components/translit";
-import { AFTER_ANSWER_MS, SpeakButton, useAutoPlayWord } from "@/components/word-audio";
+import { Choice, Choices, WordPrompt } from "./choice";
+import { AFTER_ANSWER_MS, useAutoPlayWord } from "@/components/word-audio";
 import { useT } from "@/lib/i18n/use-t";
+import { tpl } from "@/lib/i18n/locales";
 
-type BetLevel = "sure" | "hesitant" | "fifty";
-
-const BET_STYLE = {
-  borderColor: "border-[#6967FB]",
-  bgColor: "bg-[#f0f0ff]",
-};
+type Level = "sure" | "hesitant" | "none";
 
 type Props = {
   challenge: typeof challenges.$inferSelect;
@@ -23,140 +19,52 @@ type Props = {
   disabled?: boolean;
 };
 
-export const ConfidenceBet = ({
-  challenge,
-  options,
-  onSelect,
-  selectedOption,
-  status,
-  disabled,
-}: Props) => {
+/**
+ * The learner first says how well they know the word, then answers. Saying it before seeing
+ * the choices is what makes the answer stick; nothing is won or lost on it.
+ */
+export const ConfidenceBet = ({ challenge, options, onSelect, selectedOption, status, disabled }: Props) => {
   const t = useT();
   // The reading aids (phonetics, voice) come once the answer is given: before, they would give it away.
   const answered = status !== "none";
   useAutoPlayWord(challenge.arabicWord, answered, false, AFTER_ANSWER_MS);
-  const BET_CONFIG: Record<
-    BetLevel,
-    { label: string; description: string; borderColor: string; bgColor: string }
-  > = {
-    sure: { label: t.lesson.confident, description: t.lesson.betSureDesc, ...BET_STYLE },
-    hesitant: { label: t.lesson.hesitant, description: t.lesson.betHesitantDesc, ...BET_STYLE },
-    fifty: { label: "50/50", description: t.lesson.betFiftyDesc, ...BET_STYLE },
-  };
-  const [bet, setBet] = useState<BetLevel | null>(null);
-  const [phase, setPhase] = useState<"bet" | "answer">("bet");
+  const levels: [Level, string][] = [["sure", t.lesson.confident], ["hesitant", t.lesson.hesitant], ["none", t.exercises.noIdea]];
+  const [level, setLevel] = useState<Level | null>(null);
+  const [phase, setPhase] = useState<"ask" | "answer">("ask");
 
-  const handleBet = (level: BetLevel) => {
-    setBet(level);
-    setTimeout(() => setPhase("answer"), 400);
+  const say = (l: Level) => {
+    if (level) return;
+    setLevel(l);
+    setTimeout(() => setPhase("answer"), 350);
   };
 
   return (
-    <div className="flex flex-col items-center gap-3 sm:gap-6">
-      {/* Arabic word always visible */}
-      <div
-        className="relative flex flex-col items-center justify-center p-3 sm:p-6 bg-white rounded-2xl border-2 border-[#E0E0E0] w-full max-w-[280px]"
-        style={{ boxShadow: "0 4px 0 0 #D4D4D4" }}
-      >
-        <span className="font-arabic text-3xl sm:text-4xl text-brilliant-text" dir="rtl">
-          {challenge.arabicWord}
-        </span>
-        <Translit arabic={challenge.arabicWord} className="mt-1 text-sm" reveal={answered} />
-        {answered && <SpeakButton arabic={challenge.arabicWord} size="sm" className="absolute left-2 top-2" />}
-      </div>
+    <div className="flex flex-col items-center gap-4 sm:gap-6">
+      <WordPrompt arabic={challenge.arabicWord} revealAids={answered} />
 
-      {phase === "bet" && (
+      {phase === "ask" ? (
         <>
-          <p className="text-xs sm:text-sm text-brilliant-muted text-center font-medium">
-            {t.lesson.betIntro}
-          </p>
-          <p className="text-[10px] sm:text-xs text-gray-400 text-center">
-            {t.lesson.betSubIntro}
-          </p>
-
-          <div className="flex flex-col gap-2 sm:gap-3 w-full max-w-sm">
-            {(Object.entries(BET_CONFIG) as [BetLevel, typeof BET_CONFIG.sure][]).map(
-              ([level, config]) => (
-                <button
-                  key={level}
-                  onClick={() => handleBet(level)}
-                  className={cn(
-                    "flex items-center gap-3 px-4 py-3 sm:py-4 rounded-2xl border-2 transition-all",
-                    "border-[#E0E0E0] bg-white hover:bg-gray-50",
-                    bet === level && `${config.borderColor} ${config.bgColor}`
-                  )}
-                  style={{
-                    boxShadow: bet === level ? "none" : "0 4px 0 0 #D4D4D4",
-                  }}
-                >
-                  <div className="flex flex-col items-start">
-                    <span className="font-bold text-sm sm:text-base text-brilliant-text">
-                      {config.label}
-                    </span>
-                    <span className="text-[10px] sm:text-xs text-gray-400">
-                      {config.description}
-                    </span>
-                  </div>
-                </button>
-              )
-            )}
-          </div>
-        </>
-      )}
-
-      {phase === "answer" && bet && (
-        <>
-          {/* Bet indicator */}
-          <div className={cn(
-            "flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold text-brilliant-text",
-            BET_CONFIG[bet].bgColor
-          )}>
-            <span>{BET_CONFIG[bet].label}</span>
-          </div>
-
-          <p className="text-xs sm:text-sm text-brilliant-muted">
-            {t.lesson.whatTranslation}
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-3 w-full max-w-md">
-            {options.map((option, i) => (
-              <button
-                key={option.id}
-                onClick={() => onSelect(option.id)}
-                disabled={disabled}
-                className={cn(
-                  "h-12 sm:h-16 px-4 rounded-2xl border-2 font-semibold text-sm transition flex items-center gap-3",
-                  selectedOption === option.id && status === "none" &&
-                    "border-[#6967FB] bg-[#f0f0ff] text-brilliant-text",
-                  selectedOption === option.id && status === "correct" &&
-                    "border-brilliant-green bg-brilliant-success text-brilliant-green",
-                  selectedOption === option.id && status === "wrong" &&
-                    "border-red-400 bg-red-50 text-red-600",
-                  selectedOption !== option.id && status === "none" &&
-                    "border-[#E0E0E0] bg-white hover:bg-gray-50 text-brilliant-text",
-                  selectedOption !== option.id && status !== "none" &&
-                    option.correct && "border-brilliant-green bg-brilliant-success text-brilliant-green",
-                  selectedOption !== option.id && status !== "none" &&
-                    !option.correct && "border-[#E0E0E0] bg-white opacity-40",
-                  disabled && "cursor-not-allowed"
-                )}
-                style={{
-                  boxShadow: selectedOption === option.id ? "none" :
-                    status !== "none" ? "none" : "0 4px 0 0 #D4D4D4"
-                }}
-              >
-                <span className={cn(
-                  "w-6 h-6 rounded-lg border-2 border-[#E0E0E0] flex items-center justify-center text-xs shrink-0 text-brilliant-muted",
-                  selectedOption === option.id && status === "none" && "border-[#6967FB] text-[#6967FB]",
-                  selectedOption === option.id && status === "correct" && "border-brilliant-green text-brilliant-green",
-                  selectedOption === option.id && status === "wrong" && "border-red-400 text-red-600",
-                )}>
-                  {i + 1}
-                </span>
-                <span className="text-left">{option.frenchText || option.text}</span>
-              </button>
+          <p className="text-center text-[0.9375rem] leading-snug text-brilliant-muted">{t.lesson.betIntro}</p>
+          <div className="flex w-full max-w-sm flex-col gap-2.5" role="group">
+            {levels.map(([l, label]) => (
+              <Choice key={l} selected={level === l} status="none" correct={false} disabled={disabled} onClick={() => say(l)} align="center">
+                {label}
+              </Choice>
             ))}
           </div>
+        </>
+      ) : (
+        <>
+          <p className="rounded-full bg-[#F1F1F4] px-3 py-1 text-[0.8125rem] font-semibold text-brilliant-muted">
+            {tpl(t.exercises.yourGuess, { label: levels.find(([l]) => l === level)?.[1] ?? "" })}
+          </p>
+          <Choices label={t.lesson.whatTranslation}>
+            {options.map((option, i) => (
+              <Choice key={option.id} index={i + 1} selected={selectedOption === option.id} status={status} correct={option.correct} disabled={disabled} onClick={() => onSelect(option.id)}>
+                {option.frenchText || option.text}
+              </Choice>
+            ))}
+          </Choices>
         </>
       )}
     </div>

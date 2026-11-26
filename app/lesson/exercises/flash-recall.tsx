@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
+
 import { challengeOptions, challenges } from "@/db/schema";
-import { useT } from "@/lib/i18n/use-t";
+import { Choice, Choices, WordPrompt } from "./choice";
 import { AFTER_ANSWER_MS, useAutoPlayWord } from "@/components/word-audio";
+import { useT } from "@/lib/i18n/use-t";
 
 type Props = {
   challenge: typeof challenges.$inferSelect;
@@ -15,124 +16,46 @@ type Props = {
   disabled?: boolean;
 };
 
-export const FlashRecall = ({
-  challenge,
-  options,
-  onSelect,
-  selectedOption,
-  status,
-  disabled,
-}: Props) => {
+/** How long the word stays on screen before it has to be recalled. */
+const SHOW_MS = 2000;
+
+/** The word is shown for two seconds, hidden, then asked for; it comes back once the answer is given. */
+export const FlashRecall = ({ challenge, options, onSelect, selectedOption, status, disabled }: Props) => {
   const t = useT();
+  const answered = status !== "none";
   // Read out once the answer is given (before, the sound would give it away).
-  useAutoPlayWord(challenge.arabicWord, status !== "none", false, AFTER_ANSWER_MS);
-  const [phase, setPhase] = useState<"show" | "fade" | "answer">("show");
+  useAutoPlayWord(challenge.arabicWord, answered, false, AFTER_ANSWER_MS);
+  const [shown, setShown] = useState(true);
 
   useEffect(() => {
-    // Show the word for 2 seconds
-    const fadeTimer = setTimeout(() => setPhase("fade"), 2000);
-    const answerTimer = setTimeout(() => setPhase("answer"), 2500);
-    return () => {
-      clearTimeout(fadeTimer);
-      clearTimeout(answerTimer);
-    };
+    const timer = setTimeout(() => setShown(false), SHOW_MS);
+    return () => clearTimeout(timer);
   }, []);
 
   return (
-    <div className="flex flex-col items-center gap-3 sm:gap-6">
-      {/* Arabic word — visible briefly then fades */}
-      <div
-        className={cn(
-          "flex items-center justify-center p-4 sm:p-6 bg-white rounded-2xl border-2 border-[#E0E0E0] w-full max-w-[280px] transition-all duration-500",
-          phase === "show" && "opacity-100 scale-100",
-          phase === "fade" && "opacity-0 scale-95",
-          phase === "answer" && "opacity-0 scale-95 h-0 p-0 border-0 overflow-hidden"
-        )}
-        style={{ boxShadow: phase === "show" ? "0 4px 0 0 #D4D4D4" : "none" }}
-      >
-        <span className="font-arabic text-3xl sm:text-5xl text-brilliant-text" dir="rtl">
-          {challenge.arabicWord}
-        </span>
-      </div>
+    <div className="flex flex-col items-center gap-4 sm:gap-6">
+      {/* The panel never moves: the word leaves it, then returns with its reading aids */}
+      <WordPrompt arabic={challenge.arabicWord} revealAids={answered} size="lg" concealed={!shown && !answered ? t.lesson.whatWord : undefined} />
 
-      {/* Timer / prompt */}
-      {phase === "show" && (
-        <div className="flex flex-col items-center gap-2">
-          <p className="text-xs sm:text-sm text-brilliant-muted font-medium">
-            {t.exercises.memorize}
-          </p>
-          <div className="w-32 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-[#6967FB] rounded-full"
-              style={{
-                animation: "shrink 2s linear forwards",
-              }}
-            />
-          </div>
+      {shown ? (
+        // The heading already says to memorise: here, only the time left.
+        <div className="h-1.5 w-32 overflow-hidden rounded-full bg-[#E9E9EF]" role="img" aria-label={t.exercises.memorize}>
+          <div className="h-full origin-left rounded-full bg-[#6967FB]" style={{ animation: `recall-countdown ${SHOW_MS}ms linear forwards` }} />
         </div>
-      )}
-
-      {phase === "fade" && (
-        <p className="text-sm text-brilliant-muted animate-pulse">...</p>
-      )}
-
-      {/* Answer choices — appear after the word disappears */}
-      {phase === "answer" && (
-        <>
-          <div className="flex items-center justify-center p-3 sm:p-4 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-300 w-full max-w-[280px]">
-            <span className="text-sm sm:text-base text-gray-400 font-medium">
-              {t.lesson.whatWord}
-            </span>
-          </div>
-          <p className="text-xs sm:text-sm text-brilliant-muted">
-            {t.lesson.chooseTranslation}
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-3 w-full max-w-md">
-            {options.map((option, i) => (
-              <button
-                key={option.id}
-                onClick={() => onSelect(option.id)}
-                disabled={disabled}
-                className={cn(
-                  "h-12 sm:h-16 px-4 rounded-2xl border-2 font-semibold text-sm transition flex items-center gap-3",
-                  selectedOption === option.id && status === "none" &&
-                    "border-[#6967FB] bg-[#f0f0ff] text-brilliant-text",
-                  selectedOption === option.id && status === "correct" &&
-                    "border-brilliant-green bg-brilliant-success text-brilliant-green",
-                  selectedOption === option.id && status === "wrong" &&
-                    "border-red-400 bg-red-50 text-red-600",
-                  selectedOption !== option.id && status === "none" &&
-                    "border-[#E0E0E0] bg-white hover:bg-gray-50 text-brilliant-text",
-                  selectedOption !== option.id && status !== "none" &&
-                    option.correct && "border-brilliant-green bg-brilliant-success text-brilliant-green",
-                  selectedOption !== option.id && status !== "none" &&
-                    !option.correct && "border-[#E0E0E0] bg-white opacity-40",
-                  disabled && "cursor-not-allowed"
-                )}
-                style={{
-                  boxShadow: selectedOption === option.id ? "none" :
-                    status !== "none" ? "none" : "0 4px 0 0 #D4D4D4"
-                }}
-              >
-                <span className={cn(
-                  "w-6 h-6 rounded-lg border-2 border-[#E0E0E0] flex items-center justify-center text-xs shrink-0 text-brilliant-muted",
-                  selectedOption === option.id && status === "none" && "border-[#6967FB] text-[#6967FB]",
-                  selectedOption === option.id && status === "correct" && "border-brilliant-green text-brilliant-green",
-                  selectedOption === option.id && status === "wrong" && "border-red-400 text-red-600",
-                )}>
-                  {i + 1}
-                </span>
-                <span className="text-left">{option.frenchText || option.text}</span>
-              </button>
-            ))}
-          </div>
-        </>
+      ) : (
+        <Choices label={t.lesson.chooseTranslation}>
+          {options.map((option, i) => (
+            <Choice key={option.id} index={i + 1} selected={selectedOption === option.id} status={status} correct={option.correct} disabled={disabled} onClick={() => onSelect(option.id)}>
+              {option.frenchText || option.text}
+            </Choice>
+          ))}
+        </Choices>
       )}
 
       <style jsx>{`
-        @keyframes shrink {
-          from { width: 100%; }
-          to { width: 0%; }
+        @keyframes recall-countdown {
+          from { transform: scaleX(1); }
+          to { transform: scaleX(0); }
         }
       `}</style>
     </div>

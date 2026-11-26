@@ -4,7 +4,7 @@ import { toast } from "sonner";
 
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { useState, useTransition, useEffect, useRef } from "react";
+import { useState, useTransition, useEffect, useRef, type ReactNode } from "react";
 import { useAudio, useWindowSize } from "react-use";
 import { useRive, Layout, Fit, Alignment } from "@rive-app/react-canvas";
 
@@ -32,6 +32,7 @@ import {
   Opposite,
   SpotTheError,
 } from "./exercises";
+import type { ExerciseAction } from "./exercises/choice";
 import { useT } from "@/lib/i18n/use-t";
 import { tpl } from "@/lib/i18n/locales";
 import { listenMode } from "@/lib/word-audio";
@@ -149,9 +150,12 @@ export const Quiz = ({
   const [sessionXp, setSessionXp] = useState(0);
   const [combo, setCombo] = useState(0);
   const [showStreak, setShowStreak] = useState(false);
+  const [selfAction, setSelfAction] = useState<ExerciseAction | null>(null);
 
   const isFinished = activeIndex >= challengesList.length;
   const challenge = challengesList[activeIndex];
+  // Exercises that judge themselves and only tell the footer what its button does.
+  const isSelfManaged = !!challenge && ["FLASHCARD", "MATCHING", "ANAGRAM"].includes(challenge.type);
   const options = challenge?.challengeOptions ?? [];
 
   const scorePercentage = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 100;
@@ -208,69 +212,50 @@ export const Quiz = ({
     setSelectedOption(id);
   };
 
-  // Handle correct answer for self-managing exercises (instant, no server call)
-  const handleSelfComplete = () => {
+  const step = 100 / challengesList.length;
+
+  const judgeRight = () => {
     completedIdsRef.current.push(challenge.id);
     correctControls.play();
     rewardRight();
-    setPercentage((prev) => prev + 100 / challengesList.length);
+    setStatus("correct");
+    setPercentage((prev) => prev + step);
     setTotalCorrect((prev) => prev + 1);
     setTotalAttempts((prev) => prev + 1);
-    onNext();
-    setStatus("none");
-    setSelectedOption(undefined);
   };
 
-  const handleSelfWrong = () => {
+  const judgeWrong = () => {
     incorrectControls.play();
     noteWrong();
+    setStatus("wrong");
     setTotalAttempts((prev) => prev + 1);
   };
 
-  // Move to next exercise after a wrong answer was shown (no retry)
-  const handleSelfSkip = () => {
-    setPercentage((prev) => prev + 100 / challengesList.length);
-    onNext();
-    setStatus("none");
-    setSelectedOption(undefined);
-  };
-
+  // The footer button. Every exercise goes through it: check, then move on.
   const onContinue = () => {
-    if (!selectedOption) return;
-
-    if (status === "wrong") {
-      // Move to the next exercise (don't retry)
+    if (status !== "none") {
+      // No retry: the bar follows the learner's place in the lesson, right answer or not.
+      if (status === "wrong") setPercentage((prev) => prev + step);
       onNext();
       setStatus("none");
       setSelectedOption(undefined);
+      setSelfAction(null);
       return;
     }
 
-    if (status === "correct") {
-      onNext();
-      setStatus("none");
-      setSelectedOption(undefined);
+    // Pairs, cards and letters say themselves what the button does.
+    if (isSelfManaged) {
+      if (selfAction && !selfAction.disabled) selfAction.run();
       return;
     }
 
     // Judge the option actually selected (robust if several are acceptable).
     const picked = options.find((option) => option.id === selectedOption);
     if (!picked) return;
-
-    if (picked.correct) {
-      completedIdsRef.current.push(challenge.id);
-      correctControls.play();
-      rewardRight();
-      setStatus("correct");
-      setPercentage((prev) => prev + 100 / challengesList.length);
-      setTotalCorrect((prev) => prev + 1);
-      setTotalAttempts((prev) => prev + 1);
-    } else {
-      incorrectControls.play();
-      noteWrong();
-      setStatus("wrong");
-      setTotalAttempts((prev) => prev + 1);
-    }
+    // "Spot the error" lists pairs and asks for the false one.
+    const right = challenge.type === "SPOT_THE_ERROR" ? !picked.correct : picked.correct;
+    if (right) judgeRight();
+    else judgeWrong();
   };
 
   const handleFinishContinue = () => {
@@ -316,25 +301,37 @@ export const Quiz = ({
     );
   }
 
-  const isSelfManaged = ["FLASHCARD", "MATCHING", "ANAGRAM", "SPOT_THE_ERROR"].includes(challenge.type);
 
   // Listening variant of a multiple-choice challenge (only with a clip, and
   // only while the learner keeps the sound on).
   const listen = soundOn ? listenMode(challenge) : null;
 
+  // What the red sheet shows after a wrong answer.
+  const wrongAnswer = (): ReactNode => {
+    const arabic = (text: string | null | undefined) => <bdi className="font-arabic text-[1.25rem] leading-none" lang="ar">{text}</bdi>;
+    if (challenge.type === "ANAGRAM") return arabic(challenge.arabicWord);
+    if (challenge.type === "SPOT_THE_ERROR") {
+      const faulty = options.find((o) => !o.correct);
+      return faulty ? <>{arabic(faulty.arabicText)} = {faulty.frenchText}</> : undefined;
+    }
+    const good = options.find((o) => o.correct);
+    if (!good) return undefined;
+    return good.frenchText ? localizeAnswer(good.frenchText) : good.arabicText ? arabic(good.arabicText) : localizeAnswer(good.text);
+  };
+
   const renderExercise = () => {
     const k = challenge.id;
     switch (challenge.type) {
       case "FLASHCARD":
-        return <Flashcard key={k} options={options} onComplete={handleSelfComplete} disabled={pending} />;
+        return <Flashcard key={k} options={options} onComplete={judgeRight} onAction={setSelfAction} disabled={pending || status !== "none"} />;
       case "QCM":
         return <QCM key={k} challenge={challenge} options={options} onSelect={onSelect} selectedOption={selectedOption} status={status} disabled={pending} listen={listen === "meaning"} />;
       case "VRAI_FAUX":
         return <VraiFaux key={k} challenge={challenge} options={options} onSelect={onSelect} selectedOption={selectedOption} status={status} disabled={pending} />;
       case "MATCHING":
-        return <Matching key={k} options={options} onComplete={handleSelfComplete} disabled={pending} />;
+        return <Matching key={k} options={options} onComplete={judgeRight} onAction={setSelfAction} disabled={pending || status !== "none"} />;
       case "ANAGRAM":
-        return <Anagram key={k} challenge={challenge} options={options} onCorrect={handleSelfComplete} onWrong={handleSelfWrong} onSkip={handleSelfSkip} disabled={pending} />;
+        return <Anagram key={k} challenge={challenge} options={options} status={status} onCorrect={judgeRight} onWrong={judgeWrong} onAction={setSelfAction} disabled={pending} />;
       case "QCM_INVERSE":
         return <QCMInverse key={k} challenge={challenge} options={options} onSelect={onSelect} selectedOption={selectedOption} status={status} disabled={pending} listen={listen === "written"} />;
       case "DRAG_DROP":
@@ -346,7 +343,7 @@ export const Quiz = ({
       case "OPPOSITE":
         return <Opposite key={k} challenge={challenge} options={options} onSelect={onSelect} selectedOption={selectedOption} status={status} disabled={pending} />;
       case "SPOT_THE_ERROR":
-        return <SpotTheError key={k} challenge={challenge} options={options} onCorrect={handleSelfComplete} onWrong={handleSelfWrong} onSkip={handleSelfSkip} disabled={pending} />;
+        return <SpotTheError key={k} options={options} onSelect={onSelect} selectedOption={selectedOption} status={status} disabled={pending} />;
       default:
         return null;
     }
@@ -365,8 +362,8 @@ export const Quiz = ({
       />
       <div className="flex-1 overflow-y-auto">
         <div className="min-h-full flex items-center justify-center py-2 sm:py-6">
-          <div className="lg:min-h-[350px] w-full max-w-lg px-4 sm:px-6 lg:px-0 flex flex-col gap-y-3 sm:gap-y-6 lg:gap-y-8">
-            <h1 className="text-sm sm:text-lg lg:text-2xl text-center font-bold text-brilliant-text">
+          <div className="lg:min-h-[350px] w-full max-w-lg px-4 sm:px-6 lg:px-0 flex flex-col gap-y-5 sm:gap-y-6 lg:gap-y-8">
+            <h1 className="text-center text-[1.125rem] font-bold leading-snug text-brilliant-text sm:text-xl lg:text-2xl" style={{ textWrap: "balance" as never }}>
               {listen === "meaning" ? tq.audio.qMeaning : listen === "written" ? tq.audio.qWritten : challenge.question}
             </h1>
             <div>
@@ -375,23 +372,15 @@ export const Quiz = ({
           </div>
         </div>
       </div>
-      {!isSelfManaged && (
-        <Footer
-          disabled={pending || !selectedOption}
-          status={status}
-          onCheck={onContinue}
-          gain={gainOf(challenge)}
-          correctAnswer={
-            status === "wrong"
-              ? localizeAnswer(
-                  options.find((o) => o.correct)?.frenchText
-                    || options.find((o) => o.correct)?.arabicText
-                    || options.find((o) => o.correct)?.text,
-                )
-              : undefined
-          }
-        />
-      )}
+      <Footer
+        disabled={pending || (isSelfManaged ? !selfAction || selfAction.disabled : !selectedOption)}
+        status={status}
+        onCheck={onContinue}
+        gain={gainOf(challenge)}
+        nextOnly={isSelfManaged && selfAction?.label === "next"}
+        correctAnswer={status === "wrong" ? wrongAnswer() : undefined}
+        answerLabel={challenge.type === "SPOT_THE_ERROR" ? tq.lesson.wrongPairLabel : undefined}
+      />
     </>
   );
 };

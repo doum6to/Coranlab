@@ -79,12 +79,12 @@ const QUESTIONS: Record<string, Tr> = {
     es: "Memoriza la palabra y luego elige su traducción",
   },
   "Parie sur ta confiance !": {
-    en: "Bet on your confidence!",
-    es: "¡Apuesta por tu confianza!",
+    en: "Do you know this word?",
+    es: "¿Conoces esta palabra?",
   },
   "Trouve la paire incorrecte": {
-    en: "Find the incorrect pair",
-    es: "Encuentra la pareja incorrecta",
+    en: "Find the wrong pair",
+    es: "Encuentra la pareja falsa",
   },
   "Trouve la traduction du contraire": {
     en: "Find the translation of the opposite",
@@ -96,6 +96,20 @@ const QUESTIONS: Record<string, Tr> = {
   // Lesson title suffixes
   Flashcards: { en: "Flashcards", es: "Tarjetas" },
   "Révision": { en: "Review", es: "Repaso" },
+};
+
+/**
+ * French wording of the generated questions. The stored templates mix "vous" and "tu"; the
+ * app speaks to the learner as "tu" everywhere, so they are reworded when shown.
+ */
+const FR_QUESTIONS: Record<string, string> = {
+  "Découvrez les mots": "Découvre ces mots",
+  "Reliez chaque mot arabe à sa traduction": "Relie chaque mot à sa traduction",
+  "Reconstituez le mot arabe": "Reconstitue le mot en arabe",
+  "Trouvez le mot arabe correspondant": "Trouve le mot arabe qui correspond",
+  "Choisissez la bonne traduction": "Choisis la bonne traduction",
+  "Trouve la paire incorrecte": "Trouve la paire fausse",
+  "Parie sur ta confiance !": "Tu connais ce mot ?",
 };
 
 const WORDS: Record<string, Tr> = {
@@ -518,7 +532,8 @@ export function translateContent(
   text: string | null | undefined,
   locale: Locale,
 ): string {
-  if (!text || locale === "fr") return text ?? "";
+  if (!text) return "";
+  if (locale === "fr") return FR_QUESTIONS[text] ?? text;
   const hit = lookup(text);
   if (hit) return hit[locale];
   if (text.includes(" - ")) {

@@ -101,6 +101,11 @@ const config = {
           "70%": { transform: "scale(0.95)" },
           "100%": { opacity: "1", transform: "scale(1)" },
         },
+        shake: {
+          "0%, 100%": { transform: "translateX(0)" },
+          "20%, 60%": { transform: "translateX(-5px)" },
+          "40%, 80%": { transform: "translateX(5px)" },
+        },
         "star-burst": {
           "0%": { opacity: "1", transform: "translate(0,0) scale(1)" },
           "100%": { opacity: "0", transform: "var(--star-translate) scale(0)" },
@@ -117,6 +122,7 @@ const config = {
         "shiny-sweep-once": "shinySweepOnce 1s ease-out 1",
         "fade-in-up": "fade-in-up 0.6s ease-out both",
         "xp-pop": "xp-pop 0.6s cubic-bezier(0.34,1.56,0.64,1) both",
+        shake: "shake 0.38s ease-in-out both",
         "star-burst": "star-burst 0.7s ease-out both",
         "star-twinkle": "star-twinkle 1.4s ease-in-out infinite",
       },

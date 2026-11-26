@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { useKey } from "react-use";
 import { Sparkles } from "lucide-react";
 
@@ -11,9 +12,13 @@ type Props = {
   status: "correct" | "wrong" | "none" | "completed";
   disabled?: boolean;
   lessonId?: number;
-  correctAnswer?: string;
+  correctAnswer?: ReactNode;
+  /** Replaces "Answer:" in front of `correctAnswer` (an exercise whose answer is not a word). */
+  answerLabel?: string;
   /** XP this answer is worth (shown on a right answer). */
   gain?: number;
+  /** The button moves on without anything to check (cards to read, pairs to finish). */
+  nextOnly?: boolean;
 };
 
 export const Footer = ({
@@ -22,7 +27,9 @@ export const Footer = ({
   disabled,
   lessonId,
   correctAnswer,
+  answerLabel,
   gain,
+  nextOnly,
 }: Props) => {
   const t = useT();
   useKey("Enter", onCheck, {}, [onCheck]);
@@ -60,7 +67,7 @@ export const Footer = ({
             </div>
             {!ok && correctAnswer && (
               <p className="mt-0.5 text-[0.9375rem] leading-snug text-brilliant-text">
-                <span className="text-[#555]">{t.reward.answerWas}</span> <span className="font-semibold">{correctAnswer}</span>
+                <span className="text-[#555]">{answerLabel ?? t.reward.answerWas}</span> <span className="font-semibold">{correctAnswer}</span>
               </p>
             )}
           </div>
@@ -85,7 +92,7 @@ export const Footer = ({
             <div className="flex-1">
               <ShinyButton variant={status === "wrong" ? "dark" : "green"} disabled={disabled} onClick={onCheck} className="text-base">
                 <span className="block py-1">
-                  {status === "none" && t.lesson.check}
+                  {status === "none" && (nextOnly ? t.lesson.continue : t.lesson.check)}
                   {status === "wrong" && t.lesson.next}
                   {status === "completed" && t.lesson.continue}
                 </span>

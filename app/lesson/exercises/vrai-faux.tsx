@@ -1,9 +1,8 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { challengeOptions, challenges } from "@/db/schema";
-import { Translit } from "@/components/translit";
-import { AFTER_ANSWER_MS, SpeakButton, useAutoPlayWord } from "@/components/word-audio";
+import { Choice, WordPrompt } from "./choice";
+import { AFTER_ANSWER_MS, useAutoPlayWord } from "@/components/word-audio";
 import { useT } from "@/lib/i18n/use-t";
 
 type Props = {
@@ -33,87 +32,24 @@ export const VraiFaux = ({
   const fauxOption = options.find((o) => o.text === "FAUX");
 
   return (
-    <div className="flex flex-col items-center gap-3 sm:gap-6">
-      {/* Arabic word */}
-      <div
-        className="relative flex flex-col items-center justify-center p-3 sm:p-6 bg-white rounded-2xl border-2 border-[#E0E0E0] w-full max-w-[280px]"
-        style={{ boxShadow: "0 4px 0 0 #D4D4D4" }}
-      >
-        <span className="font-arabic text-3xl sm:text-4xl text-brilliant-text" dir="rtl">
-          {challenge.arabicWord}
-        </span>
-        <Translit arabic={challenge.arabicWord} className="mt-1 text-sm" reveal={answered} />
-        {answered && <SpeakButton arabic={challenge.arabicWord} size="sm" className="absolute left-2 top-2" />}
-      </div>
+    <div className="flex flex-col items-center gap-5 sm:gap-6">
+      {/* The word and the meaning put to the learner, in one panel */}
+      <WordPrompt arabic={challenge.arabicWord} revealAids={answered}>
+        <span className="mr-1.5 font-medium text-brilliant-muted" aria-hidden>=</span>
+        {challenge.frenchTranslation}
+      </WordPrompt>
 
-      {/* Proposed translation */}
-      <div
-        className="flex items-center justify-center p-4 bg-[#f0f0ff] rounded-2xl border-2 border-[#6967FB]/30 w-full max-w-[280px]"
-        style={{ boxShadow: "0 4px 0 0 #c8c7f0" }}
-      >
-        <span className="text-lg sm:text-xl font-bold text-[#6967FB] text-center">
-          = &quot;{challenge.frenchTranslation}&quot; ?
-        </span>
-      </div>
-
-
-      {/* VRAI / FAUX buttons */}
-      <div className="grid grid-cols-2 gap-2 sm:gap-3 w-full max-w-sm">
+      {/* True / false */}
+      <div className="grid w-full max-w-sm grid-cols-2 gap-3">
         {vraiOption && (
-          <button
-            onClick={() => onSelect(vraiOption.id)}
-            disabled={disabled}
-            className={cn(
-              "h-14 sm:h-20 rounded-2xl border-2 font-bold text-lg sm:text-xl transition",
-              selectedOption === vraiOption.id && status === "none" &&
-                "border-[#6967FB] bg-[#f0f0ff] text-[#6967FB]",
-              selectedOption === vraiOption.id && status === "correct" &&
-                "border-brilliant-green bg-brilliant-success text-brilliant-green",
-              selectedOption === vraiOption.id && status === "wrong" &&
-                "border-red-400 bg-red-50 text-red-600",
-              selectedOption !== vraiOption.id && status === "none" &&
-                "border-[#E0E0E0] bg-white text-brilliant-green hover:border-[#6967FB]/40",
-              selectedOption !== vraiOption.id && status !== "none" &&
-                vraiOption.correct && "border-brilliant-green bg-brilliant-success text-brilliant-green",
-              selectedOption !== vraiOption.id && status !== "none" &&
-                !vraiOption.correct && "opacity-40",
-              disabled && "cursor-not-allowed"
-            )}
-            style={{
-              boxShadow: selectedOption === vraiOption.id ? "none" :
-                status !== "none" ? "none" : "0 4px 0 0 #D4D4D4"
-            }}
-          >
-            {t.lesson.answerTrue}
-          </button>
+          <Choice selected={selectedOption === vraiOption.id} status={status} correct={vraiOption.correct} disabled={disabled} onClick={() => onSelect(vraiOption.id)} align="center">
+            <span className="text-[1.0625rem] font-bold uppercase tracking-[0.04em]">{t.lesson.answerTrue}</span>
+          </Choice>
         )}
         {fauxOption && (
-          <button
-            onClick={() => onSelect(fauxOption.id)}
-            disabled={disabled}
-            className={cn(
-              "h-14 sm:h-20 rounded-2xl border-2 font-bold text-lg sm:text-xl transition",
-              selectedOption === fauxOption.id && status === "none" &&
-                "border-[#6967FB] bg-[#f0f0ff] text-[#6967FB]",
-              selectedOption === fauxOption.id && status === "correct" &&
-                "border-brilliant-green bg-brilliant-success text-brilliant-green",
-              selectedOption === fauxOption.id && status === "wrong" &&
-                "border-red-400 bg-red-50 text-red-600",
-              selectedOption !== fauxOption.id && status === "none" &&
-                "border-[#E0E0E0] bg-white text-rose-500 hover:border-[#6967FB]/40",
-              selectedOption !== fauxOption.id && status !== "none" &&
-                fauxOption.correct && "border-brilliant-green bg-brilliant-success text-brilliant-green",
-              selectedOption !== fauxOption.id && status !== "none" &&
-                !fauxOption.correct && "opacity-40",
-              disabled && "cursor-not-allowed"
-            )}
-            style={{
-              boxShadow: selectedOption === fauxOption.id ? "none" :
-                status !== "none" ? "none" : "0 4px 0 0 #D4D4D4"
-            }}
-          >
-            {t.lesson.answerFalse}
-          </button>
+          <Choice selected={selectedOption === fauxOption.id} status={status} correct={fauxOption.correct} disabled={disabled} onClick={() => onSelect(fauxOption.id)} align="center">
+            <span className="text-[1.0625rem] font-bold uppercase tracking-[0.04em]">{t.lesson.answerFalse}</span>
+          </Choice>
         )}
       </div>
     </div>

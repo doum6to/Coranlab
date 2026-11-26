@@ -1,207 +1,128 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { RotateCcw } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 import { challengeOptions, challenges } from "@/db/schema";
-import { ShinyButton } from "@/components/ui/shiny-button";
 import { useT } from "@/lib/i18n/use-t";
-import { playWord } from "@/components/word-audio";
+import { AFTER_ANSWER_MS, SpeakButton, useAutoPlayWord } from "@/components/word-audio";
+import { Translit } from "@/components/translit";
+import { MeaningPrompt, type ExerciseAction } from "./choice";
 
 type Props = {
   challenge: typeof challenges.$inferSelect;
   options: typeof challengeOptions.$inferSelect[];
+  /** The lesson's verdict on this exercise, once the word has been checked. */
+  status: "correct" | "wrong" | "none";
   onCorrect: () => void;
   onWrong: () => void;
-  onSkip: () => void;
+  /** Tells the lesson what its footer button does for this exercise. */
+  onAction: (action: ExerciseAction) => void;
   disabled?: boolean;
 };
 
-export const Anagram = ({
-  challenge,
-  options,
-  onCorrect,
-  onWrong,
-  onSkip,
-  disabled,
-}: Props) => {
+// Tatweel and spaces are dropped when the letter tiles are generated, so the target must drop
+// them too: otherwise a prefix written with a tatweel could never be matched.
+const normalize = (s: string) => s.replace(/[\sـ​-‏]/g, "");
+
+/** The meaning is given; the learner rebuilds the Arabic word from its letters, right to left. */
+export const Anagram = ({ challenge, options, status, onCorrect, onWrong, onAction, disabled }: Props) => {
   const t = useT();
-  const letters = useMemo(() => {
-    return options.map((o, idx) => ({
-      id: idx,
-      letter: o.arabicText || o.text,
-    }));
-  }, [options]);
-
-  // Shuffle ONCE on mount — stable across re-renders
-  const shuffledLetters = useMemo(
-    () => [...letters].sort(() => Math.random() - 0.5),
+  const letters = useMemo(() => options.map((o, id) => ({ id, letter: o.arabicText || o.text })), [options]);
+  // Mixed after mount: an order drawn during server rendering would not match the browser's.
+  const [bank, setBank] = useState<typeof letters | null>(null);
+  useEffect(() => {
+    setBank([...letters].sort(() => Math.random() - 0.5));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  );
+  }, []);
+  const [placed, setPlaced] = useState<number[]>([]);
 
-  const [selectedLetters, setSelectedLetters] = useState<number[]>([]);
-  const [availableLetters, setAvailableLetters] = useState(
-    shuffledLetters.map((l) => l.id)
-  );
-  const [status, setStatus] = useState<"none" | "correct" | "wrong">("none");
+  const judged = status !== "none";
+  const locked = disabled || judged;
+  const complete = letters.length > 0 && placed.length === letters.length;
+  const word = placed.map((id) => letters[id]?.letter ?? "").join("");
 
-  // Tatweel (ـ) and spaces are dropped when the letter tiles are generated, so
-  // the comparison target must drop them too — otherwise prefixes such as
-  // "لـ" could never be matched and always scored wrong.
-  const normalize = (s: string) => s.replace(/[\s\u0640\u200B-\u200F]/g, "");
-  const targetWord = normalize(challenge.arabicWord || "");
+  useEffect(() => {
+    onAction({
+      label: "check",
+      disabled: !complete,
+      run: () => (normalize(word) === normalize(challenge.arabicWord || "") ? onCorrect() : onWrong()),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [complete, word]);
 
-  const handleLetterClick = (letterId: number) => {
-    if (disabled || status !== "none") return;
-    setSelectedLetters((prev) => [...prev, letterId]);
-    setAvailableLetters((prev) => prev.filter((id) => id !== letterId));
-  };
+  // The word is read out once judged, right or wrong: that is the moment it sticks.
+  useAutoPlayWord(challenge.arabicWord, judged, false, AFTER_ANSWER_MS);
 
-  const handleRemoveLetter = (index: number) => {
-    if (disabled || status !== "none") return;
-    const letterId = selectedLetters[index];
-    setSelectedLetters((prev) => prev.filter((_, i) => i !== index));
-    setAvailableLetters((prev) => [...prev, letterId]);
-  };
-
-  const handleCheck = () => {
-    if (disabled) return;
-    const assembled = selectedLetters
-      .map((id) => letters.find((l) => l.id === id)?.letter || "")
-      .join("");
-
-    if (normalize(assembled) === targetWord) {
-      setStatus("correct");
-      setTimeout(() => onCorrect(), 500);
-    } else {
-      setStatus("wrong");
-      onWrong();
-      // Let the "wrong" sound finish, then say the right word.
-      setTimeout(() => { void playWord(challenge.arabicWord); }, 700);
-      // Don't reset — stay in "wrong" state showing the correct answer
-    }
-  };
-
-  const handleReset = () => {
-    setSelectedLetters([]);
-    setAvailableLetters(shuffledLetters.map((l) => l.id));
-    setStatus("none");
-  };
-
-  const handleContinue = () => {
-    // Move to next exercise after seeing the answer (wrong path)
-    onSkip();
-  };
+  const tile = "flex h-12 min-w-[48px] select-none items-center justify-center rounded-xl border-2 px-3 font-arabic text-[1.625rem] leading-none transition-[transform,background-color,border-color] duration-100";
 
   return (
-    <div className="flex flex-col items-center gap-3 sm:gap-6">
-      {/* French translation prompt */}
+    <div className="flex flex-col items-center gap-4 sm:gap-6">
+      <MeaningPrompt>{challenge.frenchTranslation}</MeaningPrompt>
+
+      {/* The word being built */}
       <div
-        className="flex items-center justify-center p-3 sm:p-5 bg-[#f0f0ff] rounded-2xl border-2 border-[#6967FB]/30 w-full max-w-[280px]"
-        style={{ boxShadow: "0 4px 0 0 #c8c7f0" }}
+        className={cn(
+          "relative flex min-h-[72px] w-full max-w-md flex-row-reverse flex-wrap items-center justify-center gap-2 rounded-2xl border-2 p-3",
+          !judged && (placed.length ? "border-[#E0E0E0] bg-white" : "border-dashed border-[#D2D2DC] bg-white"),
+          status === "correct" && "border-[#1F9D4D] bg-[#F1FBF3]",
+          status === "wrong" && "border-[#D93A3A] bg-[#FEF5F5]",
+        )}
+        dir="ltr"
       >
-        <span className="text-lg sm:text-xl font-bold text-[#6967FB] text-center">
-          {challenge.frenchTranslation}
-        </span>
-      </div>
-
-      {/* Answer zone */}
-      <div className={cn(
-        "flex flex-row-reverse gap-2 min-h-[56px] p-3 sm:p-4 rounded-2xl border-2 w-full max-w-md justify-center flex-wrap items-center",
-        status === "correct" && "border-brilliant-green bg-brilliant-success",
-        status === "wrong" && "border-red-400 bg-red-50",
-        status === "none" && "border-[#E0E0E0] bg-white"
-      )}>
-        {selectedLetters.length === 0 && status === "none" && (
-          <span className="text-brilliant-muted text-sm">{t.lesson.anagramInstruction}</span>
-        )}
-        {status === "wrong" ? (
-          // Show the correct word when wrong
-          <span className="font-arabic text-2xl sm:text-3xl font-bold text-red-500" dir="rtl">
-            {targetWord}
+        {status === "correct" ? (
+          <span className="flex flex-col items-center">
+            <span className="font-arabic text-[2rem] leading-[1.4] text-brilliant-text" dir="rtl" lang="ar">{challenge.arabicWord}</span>
+            <Translit arabic={challenge.arabicWord} className="text-[0.8125rem]" />
+            <SpeakButton arabic={challenge.arabicWord} size="sm" className="absolute left-2 top-1/2 -translate-y-1/2 !bg-white" />
           </span>
+        ) : placed.length === 0 ? (
+          <span className="text-[0.9375rem] text-brilliant-muted">{t.lesson.anagramInstruction}</span>
         ) : (
-          selectedLetters.map((letterId, idx) => {
-            const letter = letters.find((l) => l.id === letterId);
-            return (
-              <button
-                key={`sel-${idx}`}
-                onClick={() => handleRemoveLetter(idx)}
-                className="h-10 sm:h-12 px-3 bg-[#6967FB] text-white rounded-xl font-arabic text-xl sm:text-2xl hover:bg-[#6967FB]/90 transition-[transform,colors,box-shadow] duration-100 active:translate-y-[3px] active:!shadow-none"
-                style={{ boxShadow: "0 3px 0 0 #4a48d4" }}
-              >
-                {letter?.letter}
-              </button>
-            );
-          })
+          placed.map((id, at) => (
+            <button
+              key={id}
+              type="button"
+              disabled={locked}
+              onClick={() => setPlaced((p) => p.filter((_, i) => i !== at))}
+              className={cn(tile, status === "wrong" ? "border-[#EFB4B4] bg-white text-[#B42323]" : "border-[#6967FB] bg-[#6967FB] text-white active:translate-y-[3px] active:!shadow-none")}
+              style={{ boxShadow: status === "wrong" ? "none" : "0 3px 0 0 #4A48D4" }}
+            >
+              {letters[id]?.letter}
+            </button>
+          ))
         )}
       </div>
 
-      {/* Available letters — hide when wrong */}
-      {status !== "wrong" && (
-        <div className="flex flex-row-reverse gap-2 flex-wrap justify-center">
-          {shuffledLetters.map((letter) => (
+      {/* The letters to pick from: a used letter leaves its slot, so the others never move */}
+      <div className={cn("flex flex-row-reverse flex-wrap justify-center gap-2", (!bank || judged) && "invisible")} dir="ltr" aria-hidden={judged}>
+        {(bank ?? letters).map(({ id, letter }) => {
+          const used = placed.includes(id);
+          return (
             <button
-              key={`avail-${letter.id}`}
-              onClick={() => handleLetterClick(letter.id)}
-              disabled={!availableLetters.includes(letter.id) || disabled || status !== "none"}
-              className={cn(
-                "h-10 sm:h-12 px-3 sm:px-4 rounded-xl border-2 font-arabic text-xl sm:text-2xl transition-[transform,colors,box-shadow] duration-100",
-                availableLetters.includes(letter.id)
-                  ? "bg-white border-[#E0E0E0] hover:border-[#6967FB]/40 hover:bg-gray-50 text-brilliant-text active:translate-y-[3px] active:!shadow-none"
-                  : "bg-[#F5F5F5] border-[#F5F5F5] text-transparent"
-              )}
-              style={{
-                boxShadow: availableLetters.includes(letter.id) ? "0 3px 0 0 #D4D4D4" : "none"
-              }}
+              key={id}
+              type="button"
+              disabled={used || locked}
+              onClick={() => setPlaced((p) => [...p, id])}
+              className={cn(tile, used ? "border-transparent bg-[#F1F1F4] text-transparent" : "border-[#E0E0E0] bg-white text-brilliant-text hover:bg-gray-50 active:translate-y-[3px] active:!shadow-none")}
+              style={{ boxShadow: used ? "none" : "0 3px 0 0 #D4D4D4" }}
             >
-              {letter.letter}
+              {letter}
             </button>
-          ))}
-        </div>
-      )}
+          );
+        })}
+      </div>
 
-      {/* Action buttons — only when no answer yet */}
-      {status === "none" && (
-        <div className="flex gap-3 w-full max-w-xs">
-          <div className="w-1/2">
-            <ShinyButton
-              variant="outline-green"
-              onClick={handleReset}
-              disabled={disabled || selectedLetters.length === 0}
-            >
-              {t.exercises.reset}
-            </ShinyButton>
-          </div>
-          <div className="w-1/2">
-            <ShinyButton
-              variant={availableLetters.length === 0 && status === "none" ? "green" : "gray"}
-              onClick={handleCheck}
-              disabled={disabled || availableLetters.length > 0 || status !== "none"}
-            >
-              {t.lesson.check}
-            </ShinyButton>
-          </div>
-        </div>
-      )}
-
-      {/* Wrong answer: show correct answer + continue button */}
-      {status === "wrong" && (
-        <div className="w-full max-w-md flex flex-col items-center gap-3 mt-2">
-          <div className="rounded-2xl bg-red-50 border border-red-200 px-4 py-3 w-full text-center">
-            <p className="text-xs text-red-400 font-semibold mb-1">{t.lesson.notQuite}</p>
-            <p className="text-sm font-bold text-brilliant-text">
-              {t.lesson.correctWasLabel} <span className="font-arabic text-lg" dir="rtl">{targetWord}</span>
-            </p>
-          </div>
-          <button
-            onClick={handleContinue}
-            className="px-8 py-3 rounded-2xl font-bold text-sm bg-red-500 text-white hover:bg-red-600 shadow-[0_4px_0_0_#b91c1c] transition-all active:translate-y-[3px] active:!shadow-none"
-          >
-            {t.lesson.next}
-          </button>
-        </div>
-      )}
+      <button
+        type="button"
+        onClick={() => setPlaced([])}
+        disabled={locked || placed.length === 0}
+        className={cn("flex min-h-[44px] select-none items-center gap-1.5 rounded-full px-4 text-sm font-semibold text-brilliant-muted transition-opacity hover:bg-neutral-100", (judged || placed.length === 0) && "invisible")}
+      >
+        <RotateCcw className="h-4 w-4" strokeWidth={2.4} aria-hidden />
+        {t.exercises.reset}
+      </button>
     </div>
   );
 };

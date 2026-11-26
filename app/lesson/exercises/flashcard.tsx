@@ -1,229 +1,129 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useState } from "react";
+import { RotateCw } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 import { challengeOptions } from "@/db/schema";
-import { ShinyButton } from "@/components/ui/shiny-button";
 import { useT } from "@/lib/i18n/use-t";
-import { tpl } from "@/lib/i18n/locales";
 import { SpeakButton, playWord } from "@/components/word-audio";
 import { Translit } from "@/components/translit";
+import { MatchBoard, type ExerciseAction } from "./choice";
 
 type Props = {
   options: typeof challengeOptions.$inferSelect[];
   onComplete: () => void;
+  /** Tells the lesson what its footer button does for this exercise. */
+  onAction: (action: ExerciseAction) => void;
   disabled?: boolean;
 };
 
 type Phase = "learn" | "match";
 
-export const Flashcard = ({ options, onComplete, disabled }: Props) => {
+/** Words are discovered a few at a time: 2 per round up to 4 words, 4 beyond. A lone last word joins the round before it. */
+function rounds<T>(pairs: T[]): T[][] {
+  const size = pairs.length <= 4 ? 2 : 4;
+  const out: T[][] = [];
+  for (let i = 0; i < pairs.length; i += size) out.push(pairs.slice(i, i + size));
+  if (out.length > 1 && out[out.length - 1].length === 1) out[out.length - 2].push(...out.pop()!);
+  return out;
+}
+
+export const Flashcard = ({ options, onComplete, onAction, disabled }: Props) => {
   const t = useT();
   const pairs = options.filter((o) => o.arabicText && o.frenchText);
-
-  // Chunk size: 2 or 4 (always even). Use 2 if <= 4 pairs, else 4.
-  const chunkSize = pairs.length <= 4 ? 2 : 4;
-  const chunks: typeof pairs[] = [];
-  for (let i = 0; i < pairs.length; i += chunkSize) {
-    const chunk = pairs.slice(i, i + chunkSize);
-    // If last chunk is odd and > 1, trim to even
-    if (chunk.length > 1 && chunk.length % 2 !== 0) {
-      chunks.push(chunk.slice(0, chunk.length - 1));
-      // Push the remaining item with the next iteration if possible
-      if (i + chunkSize < pairs.length) {
-        // Will be picked up
-      } else {
-        // Last odd chunk — just include it
-        chunks[chunks.length - 1] = chunk;
-      }
-    } else {
-      chunks.push(chunk);
-    }
-  }
+  const chunks = rounds(pairs);
 
   const [chunkIndex, setChunkIndex] = useState(0);
   const [phase, setPhase] = useState<Phase>("learn");
-  const [flippedCards, setFlippedCards] = useState<Set<number>>(new Set());
-  const [selectedArabic, setSelectedArabic] = useState<number | null>(null);
-  const [matchedPairs, setMatchedPairs] = useState<Set<number>>(new Set());
-  const [wrongMatch, setWrongMatch] = useState<number | null>(null);
+  const [flipped, setFlipped] = useState<Set<number>>(new Set());
+  const chunk = chunks[chunkIndex] ?? [];
 
-  const currentChunk = chunks[chunkIndex] || [];
-
-  // Shuffle French ONCE per chunk (memoized by chunkIndex)
-  const shuffledFrench = useMemo(
-    () => [...currentChunk].sort(() => Math.random() - 0.5),
+  // Discovering: the footer moves on to the pairing. Pairing: it waits for the last pair.
+  useEffect(() => {
+    onAction(
+      phase === "learn"
+        ? { label: "next", disabled: false, run: () => { setFlipped(new Set()); setPhase("match"); } }
+        : { label: "next", disabled: true, run: () => {} },
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [chunkIndex]
-  );
+  }, [phase, chunkIndex]);
 
-  const toggleFlip = (idx: number) => {
+  const flip = (id: number) => {
     if (disabled) return;
-    setFlippedCards((prev) => {
+    setFlipped((prev) => {
       const next = new Set(prev);
-      if (next.has(idx)) next.delete(idx);
-      else next.add(idx);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   };
 
-  const goToMatch = () => {
-    setPhase("match");
-    setFlippedCards(new Set());
-    setSelectedArabic(null);
-    setMatchedPairs(new Set());
-    setWrongMatch(null);
-  };
-
-  const handleArabicClick = (pairIndex: number) => {
-    if (disabled || matchedPairs.has(pairIndex)) return;
-    setSelectedArabic(pairIndex);
-    setWrongMatch(null);
-  };
-
-  const handleFrenchClick = (pairIndex: number) => {
-    if (disabled || matchedPairs.has(pairIndex) || selectedArabic === null) return;
-
-    if (selectedArabic === pairIndex) {
-      void playWord(currentChunk.find((c) => c.pairIndex === pairIndex)?.arabicText);
-      const newMatched = new Set(matchedPairs);
-      newMatched.add(pairIndex);
-      setMatchedPairs(newMatched);
-      setSelectedArabic(null);
-      setWrongMatch(null);
-
-      if (newMatched.size === currentChunk.length) {
-        setTimeout(() => {
-          if (chunkIndex < chunks.length - 1) {
-            setChunkIndex((prev) => prev + 1);
-            setPhase("learn");
-            setFlippedCards(new Set());
-            setMatchedPairs(new Set());
-          } else {
-            onComplete();
-          }
-        }, 500);
-      }
+  const roundDone = () => {
+    if (chunkIndex < chunks.length - 1) {
+      setChunkIndex((i) => i + 1);
+      setPhase("learn");
     } else {
-      setWrongMatch(pairIndex);
-      setTimeout(() => setWrongMatch(null), 800);
+      onComplete();
     }
   };
 
-  if (phase === "learn") {
-    return (
-      <div className="flex flex-col items-center gap-3 sm:gap-6">
-        <p className="text-xs sm:text-sm font-semibold text-brilliant-muted">
-          {tpl(t.lesson.discoverWords, { current: chunkIndex + 1, total: chunks.length })}
-        </p>
-        <div className={cn(
-          "gap-2 sm:gap-4 w-full max-w-md",
-          currentChunk.length === 1
-            ? "flex justify-center"
-            : "grid grid-cols-2"
-        )}>
-          {currentChunk.map((pair, idx) => (
-            <div
-              key={pair.id}
-              className={cn(
-                "card-flip aspect-[4/3] cursor-pointer",
-                currentChunk.length === 1 && "w-1/2"
-              )}
-              onClick={() => { void playWord(pair.arabicText); toggleFlip(idx); }}
-            >
-              <div className={cn(
-                "card-flip-inner w-full h-full relative",
-                flippedCards.has(idx) && "flipped"
-              )}>
-                <div
-                  className="card-flip-front absolute inset-0 flex flex-col items-center justify-center bg-white border-2 border-[#E0E0E0] rounded-2xl p-3"
-                  style={{ boxShadow: "0 4px 0 0 #D4D4D4" }}
-                >
-                  <span className="arabic-text text-brilliant-text">{pair.arabicText}</span>
-                  <Translit arabic={pair.arabicText} className="mt-1" />
-                  <SpeakButton arabic={pair.arabicText} size="sm" className="absolute left-2 top-2" />
-                </div>
-                <div
-                  className="card-flip-back absolute inset-0 flex items-center justify-center bg-[#f0f0ff] border-2 border-[#6967FB]/30 rounded-2xl p-3"
-                  style={{ boxShadow: "0 4px 0 0 #c8c7f0" }}
-                >
-                  <span className="text-sm sm:text-base font-bold text-[#6967FB]">{pair.frenchText}</span>
-                </div>
-              </div>
-            </div>
+  // One line of guidance (the heading already names the exercise) and, when the words come in
+  // several rounds, a segment per round.
+  const step = (
+    <div className="flex flex-col items-center gap-2.5">
+      {chunks.length > 1 && (
+        <div className="flex gap-1.5" role="img" aria-label={`${chunkIndex + 1} / ${chunks.length}`}>
+          {chunks.map((_, i) => (
+            <span key={i} className={cn("h-1.5 w-6 rounded-full", i < chunkIndex ? "bg-[#6967FB]" : i === chunkIndex ? "bg-[#6967FB]/50" : "bg-[#E9E9EF]")} />
           ))}
         </div>
-        <div className="mt-2 w-full max-w-[200px]">
-          <ShinyButton variant="green" onClick={goToMatch} disabled={disabled}>
-            {t.lesson.next}
-          </ShinyButton>
-        </div>
+      )}
+      <p className="text-center text-[0.9375rem] leading-snug text-brilliant-muted">{phase === "learn" ? t.exercises.tapCard : t.lesson.matchPairs}</p>
+    </div>
+  );
+
+  if (phase === "match") {
+    return (
+      <div className="flex flex-col items-center gap-4 sm:gap-6">
+        {step}
+        <MatchBoard key={chunkIndex} pairs={chunk} onDone={roundDone} disabled={disabled} />
       </div>
     );
   }
 
-  // Match phase
   return (
-    <div className="flex flex-col items-center gap-3 sm:gap-6">
-      <p className="text-xs sm:text-sm font-semibold text-brilliant-muted">
-        {tpl(t.lesson.matchPairs, { current: chunkIndex + 1, total: chunks.length })}
-      </p>
-      <div className="grid grid-cols-2 gap-2 sm:gap-4 w-full max-w-md">
-        {/* Left column: Arabic */}
-        <div className="flex flex-col gap-1.5 sm:gap-3">
-          {currentChunk.map((pair) => (
-            <button
-              key={`ar-${pair.id}`}
-              onClick={() => handleArabicClick(pair.pairIndex!)}
-              disabled={matchedPairs.has(pair.pairIndex!)}
-              className={cn(
-                "h-11 sm:h-16 flex items-center justify-center rounded-2xl border-2 transition",
-                matchedPairs.has(pair.pairIndex!)
-                  ? "bg-brilliant-success border-brilliant-green/30 opacity-60"
-                  : selectedArabic === pair.pairIndex
-                    ? "bg-[#f0f0ff] border-[#6967FB]"
-                    : "bg-white border-[#E0E0E0] hover:bg-gray-50"
-              )}
-              style={{
-                boxShadow: matchedPairs.has(pair.pairIndex!) ? "none" :
-                  selectedArabic === pair.pairIndex ? "none" : "0 4px 0 0 #D4D4D4"
-              }}
+    <div className="flex flex-col items-center gap-4 sm:gap-6">
+      {step}
+      <div className={cn("w-full max-w-md gap-3", chunk.length === 1 ? "flex justify-center" : "grid grid-cols-2")}>
+        {chunk.map((pair) => {
+          const open = flipped.has(pair.id);
+          const turn = () => { if (!open) void playWord(pair.arabicText); flip(pair.id); };
+          return (
+            <div
+              key={pair.id}
+              role="button"
+              tabIndex={0}
+              aria-pressed={open}
+              aria-label={open ? pair.frenchText ?? undefined : pair.arabicText ?? undefined}
+              className={cn("card-flip aspect-[4/3] cursor-pointer select-none rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-[#6967FB] focus-visible:ring-offset-2", chunk.length === 1 && "w-1/2")}
+              onClick={turn}
+              onKeyDown={(e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); e.stopPropagation(); turn(); } }}
             >
-              <span className="flex flex-col items-center leading-none">
-                <span className="font-arabic text-xl sm:text-2xl text-brilliant-text" dir="rtl">
-                  {pair.arabicText}
-                </span>
-                <Translit arabic={pair.arabicText} className="text-[10px] sm:text-xs" reveal={matchedPairs.has(pair.pairIndex!)} />
-              </span>
-            </button>
-          ))}
-        </div>
-        {/* Right column: French (shuffled once) */}
-        <div className="flex flex-col gap-1.5 sm:gap-3">
-          {shuffledFrench.map((pair) => (
-            <button
-              key={`fr-${pair.id}`}
-              onClick={() => handleFrenchClick(pair.pairIndex!)}
-              disabled={matchedPairs.has(pair.pairIndex!)}
-              className={cn(
-                "h-11 sm:h-16 flex items-center justify-center rounded-2xl border-2 transition px-2",
-                matchedPairs.has(pair.pairIndex!)
-                  ? "bg-brilliant-success border-brilliant-green/30 opacity-60"
-                  : wrongMatch === pair.pairIndex
-                    ? "bg-red-50 border-red-400"
-                    : "bg-white border-[#E0E0E0] hover:bg-gray-50"
-              )}
-              style={{
-                boxShadow: matchedPairs.has(pair.pairIndex!) || wrongMatch === pair.pairIndex
-                  ? "none" : "0 4px 0 0 #D4D4D4"
-              }}
-            >
-              <span className="text-xs sm:text-sm font-semibold text-brilliant-text text-center leading-tight">
-                {pair.frenchText}
-              </span>
-            </button>
-          ))}
-        </div>
+              <div className={cn("card-flip-inner relative h-full w-full", open && "flipped")}>
+                <div className="card-flip-front absolute inset-0 flex flex-col items-center justify-center rounded-2xl border-2 border-[#E0E0E0] bg-white p-3" style={{ boxShadow: "0 4px 0 0 #D4D4D4" }}>
+                  <span className="font-arabic text-[2rem] leading-[1.5] text-brilliant-text" dir="rtl" lang="ar">{pair.arabicText}</span>
+                  <Translit arabic={pair.arabicText} className="text-[0.8125rem]" />
+                  <SpeakButton arabic={pair.arabicText} size="sm" className="absolute left-2 top-2" />
+                  <RotateCw className="absolute bottom-2.5 right-2.5 h-4 w-4 text-[#B4B4C2]" strokeWidth={2.2} aria-hidden />
+                </div>
+                <div className="card-flip-back absolute inset-0 flex items-center justify-center rounded-2xl border-2 border-[#6967FB]/30 bg-[#F4F4FF] p-3" style={{ boxShadow: "0 4px 0 0 #c8c7f0" }}>
+                  <span className="text-center text-[1.0625rem] font-bold leading-snug text-[#5452E0]" style={{ textWrap: "balance" as never }}>{pair.frenchText}</span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
