@@ -291,9 +291,13 @@ const stepKey = (st: CmStep) => (st.type === "question" ? `q_${st.id}` : st.type
 const FORMER_ORDER = ["splash", "welcome", "q_why", "q_pain", "chart", "q_gender", "q_level", "q_alphabet", "q_blockers", "q_when", "time", "social", "loader", "plan", "email", "lesson"];
 const RECOMMENDED_ORDER = ["splash", "welcome", "q_why", "lesson", "q_alphabet", "q_level", "q_gender", "q_pain", "chart", "q_blockers", "q_when", "time", "loader", "plan", "email", "social"];
 export function upgradeStepOrder(steps: CmStep[]): CmStep[] {
-  const keys = steps.map(stepKey);
+  // Retired screens (free trial, reminder) may still sit in a saved funnel: they are never shown,
+  // so they do not count when recognising the former order, and they are kept at the end.
+  const retired = steps.filter((st) => st.type === "trial" || st.type === "bell");
+  const live = steps.filter((st) => st.type !== "trial" && st.type !== "bell");
+  const keys = live.map(stepKey);
   if (keys.length !== FORMER_ORDER.length || keys.some((k, i) => k !== FORMER_ORDER[i])) return steps;
-  return RECOMMENDED_ORDER.map((k) => steps[keys.indexOf(k)]);
+  return [...RECOMMENDED_ORDER.map((k) => live[keys.indexOf(k)]), ...retired];
 }
 
 function upgradeCopy<T>(value: T): T {

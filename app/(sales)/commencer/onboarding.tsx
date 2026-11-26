@@ -12,7 +12,7 @@ import { track } from "@/lib/analytics/track";
 import type { CmStep, CommencerContent } from "@/lib/commencer-shared";
 import type { PaywallCurrency } from "@/lib/geo-currency";
 
-import { FATIHA, findInFatiha } from "@/lib/fatiha";
+import { findInFatiha } from "@/lib/fatiha";
 import { SpeakButton } from "@/components/word-audio";
 
 import { ProgressChart, TimeChart } from "./charts";
@@ -257,7 +257,7 @@ function Screen(props: { ui: CmUi; locale: CmLocale; onEarned: (e: Earned) => vo
   const { step, onNext } = props;
   switch (step.type) {
     case "splash": return <SplashScreen step={step} onDone={onNext} />;
-    case "welcome": return <WelcomeScreen ui={props.ui} locale={props.locale} step={step} onNext={onNext} />;
+    case "welcome": return <WelcomeScreen step={step} onNext={onNext} />;
     case "question": return <QuestionScreen ui={props.ui} cont={props.ui.continue} step={step} selected={props.answers[step.id] ?? []} onChange={(v) => props.setAnswer(step.id, v)} onNext={onNext} />;
     case "chart": return <ChartScreen cont={props.ui.continue} step={step} onNext={onNext} />;
     case "time": return <TimeScreen cont={props.ui.continue} step={step} choice={props.time} onChoose={props.setTime} goalDateLabel={props.goalDateLabel} onNext={onNext} />;
@@ -317,42 +317,7 @@ const INTRO_HEIGHT = 0.89;   // part of the frame the stage shows
 const INTRO_REST_TOP = 0.32; // top of Koji at rest
 const INTRO_REST_BOTTOM = 0.69;
 
-/**
- * The result, shown before anything is asked: a verse the visitor recites in every prayer,
- * its words lighting up one after the other with their meaning, then the whole translation.
- * (Verse 6 of Al-Fatiha: none of its words is asked in the mini-lesson that follows.)
- */
-function VerseDemo({ ui, locale, active }: { ui: CmUi; locale: CmLocale; active: boolean }) {
-  const reduce = useReducedMotion();
-  const verse = FATIHA[5];
-  const words = verse.ar.split(" ");
-  const [i, setI] = useState(0); // 0..words.length-1 = one word, words.length = the whole verse
-  useEffect(() => {
-    if (!active || reduce) return;
-    const t = window.setTimeout(() => setI((n) => (n + 1) % (words.length + 1)), i === words.length ? 2600 : 1300);
-    return () => window.clearTimeout(t);
-  }, [i, active, reduce, words.length]);
-  const whole = reduce || i === words.length;
-  return (
-    <div className="w-full max-w-[21rem] px-4 py-3.5 text-center" style={{ borderRadius: 20, background: "#F7F7FF" }}>
-      <p className="text-[0.75rem] font-semibold uppercase" style={{ color: P.muted, letterSpacing: "0.05em" }}>{ui.demo.caption}</p>
-      <p lang="ar" dir="rtl" className="mt-1" style={{ fontFamily: AR_FONT, fontSize: 26, lineHeight: 1.9, color: "#8A8A98" }}>
-        {words.map((w, k) => (
-          <span key={k}>{k > 0 ? " " : ""}<span style={{ color: whole || k === i ? P.purple : undefined, transition: reduce ? "none" : "color .3s ease-out" }}>{w}</span></span>
-        ))}
-      </p>
-      <div className="relative mt-0.5 h-6" aria-live="off">
-        <AnimatePresence initial={false}>
-          <motion.p key={whole ? "all" : i} className="absolute inset-x-0 text-[1rem] font-semibold leading-6" style={{ color: P.text }} initial={reduce ? false : { opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: reduce ? 0 : 0.28, ease: EASE_OUT }}>
-            {whole ? verse[locale] : ui.demo.glosses[i]}
-          </motion.p>
-        </AnimatePresence>
-      </div>
-    </div>
-  );
-}
-
-function WelcomeScreen({ ui, locale, step, onNext }: { ui: CmUi; locale: CmLocale; step: Step<"welcome">; onNext: () => void }) {
+function WelcomeScreen({ step, onNext }: { step: Step<"welcome">; onNext: () => void }) {
   const reduce = useReducedMotion();
   // The words arrive once Koji has landed (about 0.95 s into his animation).
   const [landed, setLanded] = useState(false);
@@ -374,7 +339,7 @@ function WelcomeScreen({ ui, locale, step, onNext }: { ui: CmUi; locale: CmLocal
   // Short phones: a smaller Koji and headline, so the demonstration stays above the button.
   const [short, setShort] = useState(false);
   useEffect(() => { setShort(window.innerHeight < 720); }, []);
-  const F = short ? 268 : INTRO_FRAME;
+  const F = short ? 300 : INTRO_FRAME;
   const stageH = F * INTRO_HEIGHT;
   const restTop = (INTRO_REST_TOP - INTRO_TOP) * F;
   const restBottom = (INTRO_REST_BOTTOM - INTRO_TOP) * F;
@@ -404,12 +369,9 @@ function WelcomeScreen({ ui, locale, step, onNext }: { ui: CmUi; locale: CmLocal
           </motion.div>
         </div>
       </div>
-      <motion.h1 className={`relative z-10 max-w-[21rem] font-heading font-extrabold leading-[1.1] ${short ? "text-[1.625rem]" : "text-[2.125rem] sm:text-[2.5rem]"}`} style={{ marginTop: -(stageH - restBottom) + (short ? 14 : 24), color: P.text, letterSpacing: "-0.02em", textWrap: "balance" as never }} initial={false} animate={{ opacity: landed ? 1 : 0, y: landed ? 0 : 12 }} transition={{ ...say, delay: reduce ? 0 : 0.12 }}>
+      <motion.h1 className={`relative z-10 max-w-[21rem] font-heading font-extrabold leading-[1.1] ${short ? "text-[1.875rem]" : "text-[2.125rem] sm:text-[2.5rem]"}`} style={{ marginTop: -(stageH - restBottom) + (short ? 14 : 24), color: P.text, letterSpacing: "-0.02em", textWrap: "balance" as never }} initial={false} animate={{ opacity: landed ? 1 : 0, y: landed ? 0 : 12 }} transition={{ ...say, delay: reduce ? 0 : 0.12 }}>
         {rich(step.tagline)}
       </motion.h1>
-      <motion.div className={`relative z-10 flex w-full justify-center ${short ? "mt-4" : "mt-6"}`} initial={false} animate={{ opacity: landed ? 1 : 0, y: landed ? 0 : 12 }} transition={{ ...say, delay: reduce ? 0 : 0.3 }}>
-        <VerseDemo ui={ui} locale={locale} active={landed} />
-      </motion.div>
     </Shell>
   );
 }
