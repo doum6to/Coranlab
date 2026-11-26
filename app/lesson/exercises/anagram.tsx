@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { challengeOptions, challenges } from "@/db/schema";
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { useT } from "@/lib/i18n/use-t";
-import { SpeakButton, playWord } from "@/components/word-audio";
+import { playWord } from "@/components/word-audio";
 
 type Props = {
   challenge: typeof challenges.$inferSelect;
@@ -97,14 +97,12 @@ export const Anagram = ({
     <div className="flex flex-col items-center gap-3 sm:gap-6">
       {/* French translation prompt */}
       <div
-        className="flex items-center justify-center gap-3 p-3 sm:p-5 bg-[#f0f0ff] rounded-2xl border-2 border-[#6967FB]/30 w-full max-w-[280px]"
+        className="flex items-center justify-center p-3 sm:p-5 bg-[#f0f0ff] rounded-2xl border-2 border-[#6967FB]/30 w-full max-w-[280px]"
         style={{ boxShadow: "0 4px 0 0 #c8c7f0" }}
       >
         <span className="text-lg sm:text-xl font-bold text-[#6967FB] text-center">
           {challenge.frenchTranslation}
         </span>
-        {/* Dictation hint: hear the word you have to assemble. */}
-        <SpeakButton arabic={challenge.arabicWord} size="sm" className="bg-white" />
       </div>
 
       {/* Answer zone */}

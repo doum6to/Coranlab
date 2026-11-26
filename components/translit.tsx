@@ -36,14 +36,19 @@ export function useTranslitOn(): boolean {
   );
 }
 
-/** Phonetic reading of an Arabic word, for learners who cannot read the script yet. */
-export function Translit({ arabic, className }: { arabic: string | null | undefined; className?: string }) {
+/**
+ * Phonetic reading of an Arabic word, for learners who cannot read the script
+ * yet. In an exercise it would give the answer away (a name such as "mûsâ",
+ * or any word the learner knows by ear), so pass `reveal={false}` until the
+ * learner has answered: the line keeps its place but stays blank.
+ */
+export function Translit({ arabic, className, reveal = true }: { arabic: string | null | undefined; className?: string; reveal?: boolean }) {
   const on = useTranslitOn();
   if (!on) return null;
   const text = transliterate(arabic);
   if (!text) return null;
   return (
-    <span dir="ltr" lang="ar-Latn" className={cn("block text-center text-xs font-medium italic leading-tight text-brilliant-muted", className)}>
+    <span dir="ltr" lang="ar-Latn" aria-hidden={!reveal} className={cn("block text-center text-xs font-medium italic leading-tight text-brilliant-muted transition-opacity duration-200", !reveal && "invisible opacity-0", className)}>
       {text}
     </span>
   );

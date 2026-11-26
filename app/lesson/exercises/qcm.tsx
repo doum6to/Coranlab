@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import { challengeOptions, challenges } from "@/db/schema";
 import { Translit } from "@/components/translit";
-import { SpeakButton, useAutoPlayWord } from "@/components/word-audio";
+import { AFTER_ANSWER_MS, SpeakButton, useAutoPlayWord } from "@/components/word-audio";
 import { useT } from "@/lib/i18n/use-t";
 
 type Props = {
@@ -27,8 +27,11 @@ export const QCM = ({
   listen = false,
 }: Props) => {
   const t = useT();
-  useAutoPlayWord(challenge.arabicWord, true, listen);
-  const hidden = listen && status === "none";
+  // The reading aids (phonetics, voice) come once the answer is given: before, they would give it away.
+  const answered = status !== "none";
+  // Listening variant: the word is the question, so it is heard at once. Otherwise it is read out after the answer.
+  useAutoPlayWord(challenge.arabicWord, listen || answered, listen, listen ? 250 : AFTER_ANSWER_MS);
+  const hidden = listen && !answered;
   return (
     <div className="flex flex-col items-center gap-3 sm:gap-6">
       {/* Arabic word display */}
@@ -45,8 +48,8 @@ export const QCM = ({
         <span className="font-arabic text-3xl sm:text-4xl text-brilliant-text" dir="rtl">
           {challenge.arabicWord}
         </span>
-        <Translit arabic={challenge.arabicWord} className="mt-1 text-sm" />
-        <SpeakButton arabic={challenge.arabicWord} size="sm" className="absolute left-2 top-2" />
+        <Translit arabic={challenge.arabicWord} className="mt-1 text-sm" reveal={answered} />
+        {answered && <SpeakButton arabic={challenge.arabicWord} size="sm" className="absolute left-2 top-2" />}
       </div>
       )}
 

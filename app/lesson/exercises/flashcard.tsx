@@ -85,6 +85,7 @@ export const Flashcard = ({ options, onComplete, disabled }: Props) => {
     if (disabled || matchedPairs.has(pairIndex) || selectedArabic === null) return;
 
     if (selectedArabic === pairIndex) {
+      void playWord(currentChunk.find((c) => c.pairIndex === pairIndex)?.arabicText);
       const newMatched = new Set(matchedPairs);
       newMatched.add(pairIndex);
       setMatchedPairs(newMatched);
@@ -173,7 +174,7 @@ export const Flashcard = ({ options, onComplete, disabled }: Props) => {
           {currentChunk.map((pair) => (
             <button
               key={`ar-${pair.id}`}
-              onClick={() => { void playWord(pair.arabicText); handleArabicClick(pair.pairIndex!); }}
+              onClick={() => handleArabicClick(pair.pairIndex!)}
               disabled={matchedPairs.has(pair.pairIndex!)}
               className={cn(
                 "h-11 sm:h-16 flex items-center justify-center rounded-2xl border-2 transition",
@@ -192,7 +193,7 @@ export const Flashcard = ({ options, onComplete, disabled }: Props) => {
                 <span className="font-arabic text-xl sm:text-2xl text-brilliant-text" dir="rtl">
                   {pair.arabicText}
                 </span>
-                <Translit arabic={pair.arabicText} className="text-[10px] sm:text-xs" />
+                <Translit arabic={pair.arabicText} className="text-[10px] sm:text-xs" reveal={matchedPairs.has(pair.pairIndex!)} />
               </span>
             </button>
           ))}
