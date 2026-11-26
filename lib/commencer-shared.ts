@@ -280,6 +280,22 @@ const COPY_UPGRADES: Record<string, string> = {
   "Comprendre les mots, c'est la première étape. Les lire directement dans le Coran, c'est la liberté totale. 21 vidéos courtes, sans grammaire, sans devoirs.": "Tu comprends les mots. Avec ce cours, tu les lis toi-même dans le Coran : 21 vidéos courtes, sans grammaire ni devoirs.",
   "Et si tu apprenais aussi à **lire l'arabe** en moins de 7h ?": "Et si tu apprenais aussi à **lire l'arabe** en moins de 7 h ?",
 };
+/**
+ * Order of the screens. The mini-lesson is the moment the visitor first feels the product work,
+ * so it comes right after the first question instead of at the very end; the email is asked
+ * once the plan exists, and the reviews come last, just before the offer. A funnel that still
+ * has the former default order is moved to this one; an order the owner arranged by hand in the
+ * admin is left alone.
+ */
+const stepKey = (st: CmStep) => (st.type === "question" ? `q_${st.id}` : st.type);
+const FORMER_ORDER = ["splash", "welcome", "q_why", "q_pain", "chart", "q_gender", "q_level", "q_alphabet", "q_blockers", "q_when", "time", "social", "loader", "plan", "email", "lesson"];
+const RECOMMENDED_ORDER = ["splash", "welcome", "q_why", "lesson", "q_alphabet", "q_level", "q_gender", "q_pain", "chart", "q_blockers", "q_when", "time", "loader", "plan", "email", "social"];
+export function upgradeStepOrder(steps: CmStep[]): CmStep[] {
+  const keys = steps.map(stepKey);
+  if (keys.length !== FORMER_ORDER.length || keys.some((k, i) => k !== FORMER_ORDER[i])) return steps;
+  return RECOMMENDED_ORDER.map((k) => steps[keys.indexOf(k)]);
+}
+
 function upgradeCopy<T>(value: T): T {
   if (typeof value === "string") return (COPY_UPGRADES[value] ?? value) as T;
   if (Array.isArray(value)) return value.map(upgradeCopy) as T;
@@ -319,7 +335,7 @@ function mergeStep(st: any): CmStep | null {
 
 export function mergeCommencerContent(stored: Partial<CommencerContent> | null): CommencerContent {
   const d = COMMENCER_DEFAULTS;
-  if (!stored) return d;
+  if (!stored) return { ...d, steps: upgradeStepOrder(d.steps) };
   stored = upgradeCopy(stored);
   const steps = arr<any>(stored.steps, []).map(mergeStep).filter((x): x is CmStep => x !== null);
   const pw = (stored.paywall ?? {}) as Partial<CommencerContent["paywall"]>;
@@ -327,7 +343,7 @@ export function mergeCommencerContent(stored: Partial<CommencerContent> | null):
   const u = (stored.upsell ?? {}) as Partial<CmUpsell>;
   return {
     accentColor: /^#[0-9a-fA-F]{6}$/.test(s(stored.accentColor, "")) ? (stored.accentColor as string) : d.accentColor,
-    steps: steps.length ? steps : d.steps,
+    steps: upgradeStepOrder(steps.length ? steps : d.steps),
     // Stored JSON from the former trial paywall (timeline/weekly/annual) is
     // ignored: only the lifetime fields are read, defaults fill the rest.
     paywall: {

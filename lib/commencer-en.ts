@@ -1,4 +1,4 @@
-import type { CommencerContent } from "@/lib/commencer-shared";
+import { upgradeStepOrder, type CommencerContent } from "@/lib/commencer-shared";
 
 /**
  * English content for /start (English onboarding). Static (not admin-editable for now):
@@ -6,7 +6,7 @@ import type { CommencerContent } from "@/lib/commencer-shared";
  * the same option ids so personalisation (level, reminder time, alphabet)
  * keeps working. No upsells in English: the add-on products are French.
  */
-export const COMMENCER_EN: CommencerContent = {
+const EN: CommencerContent = {
   accentColor: "#6967FB",
   steps: [
     { type: "splash", arabic: "قُرْآن", brand: "QURANLAB", tagline: "UNDERSTAND THE QUR'AN" },
@@ -123,3 +123,6 @@ export const COMMENCER_EN: CommencerContent = {
     bookBadge: "", bookTitle: "", bookCta: "", bookDecline: "", bookNote: "", bookDoneSuffix: "", bookDoneText: "",
   },
 };
+
+/** Same screen order as the French flow (mini-lesson early, reviews just before the offer). */
+export const COMMENCER_EN: CommencerContent = { ...EN, steps: upgradeStepOrder(EN.steps) };
