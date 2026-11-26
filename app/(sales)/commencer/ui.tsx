@@ -180,7 +180,7 @@ export function Shell({ children, footer, center, align = "left" }: { children: 
         <div className={`flex w-full flex-col ${center ? "my-auto" : ""} ${align === "center" ? "items-center text-center" : ""}`}>{children}</div>
       </div>
       {footer && (
-        <div className="relative shrink-0 px-5 pb-[max(18px,env(safe-area-inset-bottom))] pt-2">
+        <div className="relative shrink-0 px-5 pb-[max(26px,env(safe-area-inset-bottom))] pt-2">
           <div className="pointer-events-none absolute inset-x-0 -top-10 h-10" style={{ background: "linear-gradient(to bottom, rgba(255,255,255,0), #fff)" }} aria-hidden />
           <div className="relative flex flex-col gap-3">{footer}</div>
         </div>

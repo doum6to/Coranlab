@@ -83,7 +83,7 @@ export const COMMENCER_EN: CommencerContent = {
     priceNote: "one time",
     urgency: "Launch price reserved for new learners. It will go up to €49 soon.",
     reassurance: "Secure payment · Instant access · 30-day guarantee",
-    cta: "Unlock lifetime access for €14.99",
+    cta: "Unlock lifetime access",
     finePrint: "One-time payment of €14.99, charged once. No automatic renewal.",
     guaranteeTitle: "30-day guarantee",
     guaranteeText: "If you don't recognise more words in your prayer within 30 days, one email and you're refunded.",

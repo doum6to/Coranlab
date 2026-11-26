@@ -34,8 +34,8 @@ const PUSHY: CmStep["type"][] = ["bell"];
 const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 const noop = () => {};
 /** Soft premium gradient behind the top of the paywall, and the flat colour closest to its top edge. */
-const PAYWALL_BACKDROP = "radial-gradient(70% 60% at 15% 0%, rgba(184,169,245,.38) 0%, rgba(184,169,245,0) 70%), radial-gradient(60% 55% at 95% 5%, rgba(245,169,200,.30) 0%, rgba(245,169,200,0) 70%), radial-gradient(50% 45% at 60% 30%, rgba(245,200,138,.22) 0%, rgba(245,200,138,0) 70%), linear-gradient(180deg, #F1EDFE 0%, rgba(241,237,254,0) 55%)";
-const PAYWALL_EDGE = "#F1EDFE";
+const PAYWALL_EDGE = "#EEE9FE";
+const PAYWALL_BACKDROP = `linear-gradient(180deg, ${PAYWALL_EDGE} 0%, rgba(238,233,254,0) 78%), radial-gradient(70% 46% at 92% 50%, rgba(245,169,200,.26) 0%, rgba(245,169,200,0) 100%), radial-gradient(60% 42% at 8% 62%, rgba(245,200,138,.20) 0%, rgba(245,200,138,0) 100%)`;
 const EASE_PUSH = [0.32, 0.72, 0, 1] as const;
 
 function screenVariants(reduce: boolean) {
@@ -90,6 +90,8 @@ export function CommencerOnboarding({ content, initialStep, locale = "fr", curre
   const [time, setTime] = useState<TimeChoice | null>(null);
   const [email, setEmail] = useState("");
   const [earned, setEarned] = useState<Earned | null>(null);
+  // Colour of a sheet resting on the bottom edge (lesson feedback), so the phone's toolbar matches it.
+  const [bottomTint, setBottomTint] = useState<string | null>(null);
 
   const indexRef = useRef(index);
   useEffect(() => { indexRef.current = index; }, [index]);
@@ -181,10 +183,10 @@ export function CommencerOnboarding({ content, initialStep, locale = "fr", curre
     <div className="z-50 flex flex-col overflow-hidden font-sans" style={{ position: "fixed", inset: 0, background: "#fff", color: P.text }}>
       <style dangerouslySetInnerHTML={{ __html: GLOBAL_CSS }} />
       {/* Coloured screens (splash, plan loader): a layer over the white page */}
-      <div className="pointer-events-none absolute inset-0" style={{ background: P.purple, opacity: dark ? 1 : 0, transition: reduce ? "none" : "opacity .22s ease-out" }} aria-hidden />
-      <EdgeStrips top={edgeColor} bottom={dark ? P.purple : "#ffffff"} />
+      <div className="pointer-events-none absolute inset-0" style={{ background: P.purple, opacity: dark ? 1 : 0 }} aria-hidden />
+      <EdgeStrips top={edgeColor} bottom={bottomTint ?? (dark ? P.purple : "#ffffff")} />
       {/* Paywall backdrop: from the very top edge of the screen, behind the header */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[480px]" style={{ background: PAYWALL_BACKDROP, opacity: isPaywall ? 1 : 0, transition: reduce ? "none" : "opacity .4s ease-out" }} aria-hidden />
+      <div className="pointer-events-none absolute inset-x-0 h-[480px]" style={{ top: "env(safe-area-inset-top, 0px)", background: PAYWALL_BACKDROP, opacity: isPaywall ? 1 : 0, transition: reduce ? "none" : "opacity .4s ease-out" }} aria-hidden />
       <OpenInBrowserHint accent={P.purple} />
 
       <div className="relative mx-auto flex h-full w-full max-w-md flex-col pt-[env(safe-area-inset-top)]">
@@ -211,7 +213,7 @@ export function CommencerOnboarding({ content, initialStep, locale = "fr", curre
               {isPaywall ? (
                 <Paywall paywall={content.paywall} email={email} whenLabel={whenLabel} locale={locale} currency={currency} earned={earned} />
               ) : (
-                <Screen ui={ui} locale={locale} onEarned={setEarned} step={step} answers={answers} setAnswer={setAnswer} time={time} setTime={setTime} goalDateLabel={goalDateLabel} onNext={go} onEmail={onEmail} level={level} levelLabel={levelLabel} minutes={minutes} whenLabel={whenLabel} arabic={splash?.arabic ?? "قُرْآن"} />
+                <Screen ui={ui} locale={locale} onEarned={setEarned} onBottomTint={setBottomTint} step={step} answers={answers} setAnswer={setAnswer} time={time} setTime={setTime} goalDateLabel={goalDateLabel} onNext={go} onEmail={onEmail} level={level} levelLabel={levelLabel} minutes={minutes} whenLabel={whenLabel} arabic={splash?.arabic ?? "قُرْآن"} />
               )}
             </motion.div>
           </AnimatePresence>
@@ -226,15 +228,23 @@ export function CommencerOnboarding({ content, initialStep, locale = "fr", curre
 
 function EdgeStrips({ top, bottom }: { top: string; bottom: string }) {
   const [ready, setReady] = useState(false);
+  // Bumped shortly after each colour change: the strips are re-created once the screen transition
+  // is over, so the phone reads the edges again with the final picture (it reads them when the
+  // page's fixed elements change, and kept the outgoing screen's colour otherwise).
+  const [pass, setPass] = useState(0);
   useEffect(() => setReady(true), []);
+  useEffect(() => {
+    const t1 = window.setTimeout(() => setPass((n) => n + 1), 420);
+    const t2 = window.setTimeout(() => setPass((n) => n + 1), 1100);
+    return () => { window.clearTimeout(t1); window.clearTimeout(t2); };
+  }, [top, bottom]);
   if (!ready) return null;
-  // Independent fixed elements in <body>, one per edge, re-created when the colour changes so the
-  // browser reads them afresh. They sit in the safe areas (status bar, home indicator), over nothing
-  // that can be tapped.
+  // Independent fixed elements in <body>, one per edge. They sit in the safe areas and the bottom
+  // padding of the screens, over nothing that can be tapped.
   return createPortal(
     <>
-      <div key={`t-${top}`} aria-hidden style={{ position: "fixed", top: 0, left: 0, right: 0, height: "max(env(safe-area-inset-top), 6px)", background: top, zIndex: 60 }} />
-      <div key={`b-${bottom}`} aria-hidden style={{ position: "fixed", bottom: 0, left: 0, right: 0, height: "max(env(safe-area-inset-bottom), 4px)", background: bottom, zIndex: 60 }} />
+      <div key={`t-${top}-${pass}`} aria-hidden style={{ position: "fixed", top: 0, left: 0, right: 0, height: "max(env(safe-area-inset-top), 6px)", background: top, zIndex: 60 }} />
+      <div key={`b-${bottom}-${pass}`} aria-hidden style={{ position: "fixed", bottom: 0, left: 0, right: 0, height: "max(env(safe-area-inset-bottom), 20px)", background: bottom, zIndex: 60 }} />
     </>,
     document.body,
   );
@@ -243,7 +253,7 @@ function EdgeStrips({ top, bottom }: { top: string; bottom: string }) {
 /* ------------------------------------------------------------------ */
 /* Screen router                                                        */
 
-function Screen(props: { ui: CmUi; locale: CmLocale; onEarned: (e: Earned) => void; step: CmStep; answers: Answers; setAnswer: (id: string, values: string[]) => void; time: TimeChoice | null; setTime: (t: TimeChoice) => void; goalDateLabel: string | null; onNext: () => void; onEmail: (email: string) => void; level: number; levelLabel: string; minutes: number; whenLabel: string; arabic: string }) {
+function Screen(props: { ui: CmUi; locale: CmLocale; onEarned: (e: Earned) => void; onBottomTint: (c: string | null) => void; step: CmStep; answers: Answers; setAnswer: (id: string, values: string[]) => void; time: TimeChoice | null; setTime: (t: TimeChoice) => void; goalDateLabel: string | null; onNext: () => void; onEmail: (email: string) => void; level: number; levelLabel: string; minutes: number; whenLabel: string; arabic: string }) {
   const { step, onNext } = props;
   switch (step.type) {
     case "splash": return <SplashScreen step={step} onDone={onNext} />;
@@ -255,7 +265,7 @@ function Screen(props: { ui: CmUi; locale: CmLocale; onEarned: (e: Earned) => vo
     case "social": return <SocialScreen cont={props.ui.continue} step={step} onNext={onNext} />;
     case "loader": return <LoaderScreen step={step} onDone={onNext} />;
     case "plan": return <PlanScreen step={step} minutes={props.minutes} whenLabel={props.whenLabel} goalDateLabel={props.goalDateLabel} level={props.level} levelLabel={props.levelLabel} arabic={props.arabic} onNext={onNext} />;
-    case "lesson": return <LessonScreen ui={props.ui} locale={props.locale} step={step} onNext={onNext} onEarned={props.onEarned} />;
+    case "lesson": return <LessonScreen ui={props.ui} locale={props.locale} step={step} onNext={onNext} onEarned={props.onEarned} onBottomTint={props.onBottomTint} />;
     case "bell": return <BellScreen step={step} onNext={onNext} />;
     default: return null;
   }
@@ -609,7 +619,7 @@ const OK_SOFT = "#E9F9EC";
 const BAD_RED = "#D93A3A";
 const BAD_SOFT = "#FDEEEE";
 
-function LessonScreen({ ui, locale, step, onNext, onEarned }: { ui: CmUi; locale: CmLocale; step: Step<"lesson">; onNext: () => void; onEarned: (e: Earned) => void }) {
+function LessonScreen({ ui, locale, step, onNext, onEarned, onBottomTint }: { ui: CmUi; locale: CmLocale; step: Step<"lesson">; onNext: () => void; onEarned: (e: Earned) => void; onBottomTint: (c: string | null) => void }) {
   const reduce = useReducedMotion();
   const L = ui.lesson;
   const cards = step.cards;
@@ -663,6 +673,13 @@ function LessonScreen({ ui, locale, step, onNext, onEarned }: { ui: CmUi; locale
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [done]);
+
+  // While the feedback sheet is up, the bottom edge takes its colour.
+  const sheetTint = picked !== null && card ? (picked === card.fr ? OK_SOFT : BAD_SOFT) : null;
+  useEffect(() => {
+    onBottomTint(sheetTint);
+    return () => onBottomTint(null);
+  }, [sheetTint, onBottomTint]);
 
   const rise = (d: number) => ({ initial: reduce ? false as const : { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 }, transition: reduce ? { duration: 0 } : { delay: d, duration: 0.45, ease: EASE_OUT } });
 
@@ -794,7 +811,7 @@ function LessonScreen({ ui, locale, step, onNext, onEarned }: { ui: CmUi; locale
       {/* Feedback sheet: slides up once the learner has answered */}
       <AnimatePresence>
         {answered && (
-          <motion.div key={`sheet-${i}`} className="absolute inset-x-0 bottom-0 z-10 px-5 pb-[max(18px,env(safe-area-inset-bottom))] pt-4" style={{ background: ok ? OK_SOFT : BAD_SOFT, borderRadius: "24px 24px 0 0" }}
+          <motion.div key={`sheet-${i}`} className="absolute inset-x-0 bottom-0 z-10 px-5 pb-[max(26px,env(safe-area-inset-bottom))] pt-4" style={{ background: ok ? OK_SOFT : BAD_SOFT, borderRadius: "24px 24px 0 0" }}
             initial={reduce ? { opacity: 0 } : { y: "100%" }} animate={reduce ? { opacity: 1 } : { y: 0 }} exit={{ opacity: 0, transition: { duration: 0.12 } }} transition={{ type: "spring", stiffness: 420, damping: 36 }} aria-live="polite">
             <div className="flex items-baseline justify-between gap-3">
               <p className="font-heading text-[1.1875rem] font-extrabold" style={{ color: ok ? "#15803D" : "#B42323", letterSpacing: "-0.01em" }}>{ok ? L.right : L.almost}</p>
