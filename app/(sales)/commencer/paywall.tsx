@@ -108,9 +108,6 @@ export function Paywall({ paywall, email, whenLabel, locale = "fr", currency = "
         </>
       }
     >
-      {/* Soft premium backdrop behind the top of the page */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[420px]" style={{ background: "radial-gradient(70% 60% at 15% 0%, rgba(184,169,245,.38) 0%, rgba(184,169,245,0) 70%), radial-gradient(60% 55% at 95% 5%, rgba(245,169,200,.30) 0%, rgba(245,169,200,0) 70%), radial-gradient(50% 45% at 60% 30%, rgba(245,200,138,.22) 0%, rgba(245,200,138,0) 70%)" }} aria-hidden />
-
       {/* Header */}
       <motion.div className="relative text-center" {...appear(0)}>
         <h1 className="mx-auto max-w-[21rem] font-serif text-[2rem] font-semibold leading-[1.12]" style={{ color: P.text, letterSpacing: "-0.02em", textWrap: "balance" as never }}>{gradientTitle(t(paywall.title))}</h1>
@@ -119,7 +116,7 @@ export function Paywall({ paywall, email, whenLabel, locale = "fr", currency = "
 
       {/* Price card: gradient edge, badge on the rim, Koji peeking over it */}
       <motion.section className="relative mt-12" {...appear(1)}>
-        <div className="pointer-events-none absolute -top-[50px] right-6 h-[76px] w-[76px]" aria-hidden><RiveAnim src="/animations/loading.riv" crop={KOJI_CROP} /></div>
+        <div className="pointer-events-none absolute -top-[50px] right-6 h-[76px] w-[76px]" aria-hidden><RiveAnim src="/animations/okok_clear.riv" animation="breath loop" crop={KOJI_CROP} /></div>
         <div className="relative" style={{ borderRadius: 24, padding: 2, background: GRADIENT, boxShadow: "0 18px 40px -22px rgba(105,103,251,.45), 0 2px 6px -2px rgba(26,26,26,.06)" }}>
           <span className="absolute -top-3 left-5 whitespace-nowrap rounded-full px-3 py-1 text-[0.6875rem] font-bold uppercase text-white" style={{ background: P.purple, letterSpacing: "0.05em" }}>{paywall.oneTimeChip}</span>
           <div className="bg-white px-5 pb-5 pt-6" style={{ borderRadius: 22 }}>

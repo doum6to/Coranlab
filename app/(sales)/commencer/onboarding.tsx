@@ -32,6 +32,10 @@ export type Earned = { xp: number; words: number };
 const NO_BAR: CmStep["type"][] = ["splash", "welcome", "loader", "lesson", "bell"];
 const PUSHY: CmStep["type"][] = ["bell"];
 const EASE_OUT = [0.22, 1, 0.36, 1] as const;
+const noop = () => {};
+/** Soft premium gradient behind the top of the paywall, and the flat colour closest to its top edge. */
+const PAYWALL_BACKDROP = "radial-gradient(70% 60% at 15% 0%, rgba(184,169,245,.38) 0%, rgba(184,169,245,0) 70%), radial-gradient(60% 55% at 95% 5%, rgba(245,169,200,.30) 0%, rgba(245,169,200,0) 70%), radial-gradient(50% 45% at 60% 30%, rgba(245,200,138,.22) 0%, rgba(245,200,138,0) 70%), linear-gradient(180deg, #F1EDFE 0%, rgba(241,237,254,0) 55%)";
+const PAYWALL_EDGE = "#F1EDFE";
 const EASE_PUSH = [0.32, 0.72, 0, 1] as const;
 
 function screenVariants(reduce: boolean) {
@@ -159,9 +163,36 @@ export function CommencerOnboarding({ content, initialStep, locale = "fr", curre
   const dark = step?.type === "loader" || step?.type === "splash";
   const variants = useMemo(() => screenVariants(reduce), [reduce]);
 
+  // The browser paints its own bars (status bar, toolbar) from the page colour. It took the purple
+  // of the splash and kept it: the page colour and the theme colour now follow each screen.
+  const edgeColor = dark ? P.purple : isPaywall ? PAYWALL_EDGE : "#ffffff";
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+    const before = { html: html.style.backgroundColor, body: body.style.backgroundColor };
+    html.style.backgroundColor = edgeColor;
+    body.style.backgroundColor = edgeColor;
+    let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    const metaBefore = meta?.content;
+    if (!meta) { meta = document.createElement("meta"); meta.name = "theme-color"; document.head.appendChild(meta); }
+    meta.content = edgeColor;
+    return () => {
+      html.style.backgroundColor = before.html;
+      body.style.backgroundColor = before.body;
+      if (meta && metaBefore !== undefined) meta.content = metaBefore;
+    };
+  }, [edgeColor]);
+
   return (
     <div className="z-50 flex flex-col overflow-hidden font-sans" style={{ position: "fixed", inset: 0, background: dark ? P.purple : "#fff", color: P.text, transition: "background-color .22s ease-out" }}>
       <style dangerouslySetInnerHTML={{ __html: GLOBAL_CSS }} />
+      {/* iOS tints its status bar and toolbar from what touches the top and bottom edges of the page.
+          These two strips state that colour explicitly for each screen (new element per colour, so the
+          browser re-reads it instead of keeping the splash's purple). */}
+      <div key={`top-${edgeColor}`} className="pointer-events-none absolute inset-x-0 top-0 h-4" style={{ background: edgeColor }} aria-hidden />
+      <div key={`bottom-${dark ? "c" : "w"}`} className="pointer-events-none absolute inset-x-0 bottom-0 h-4" style={{ background: dark ? P.purple : "#ffffff" }} aria-hidden />
+      {/* Paywall backdrop: from the very top edge of the screen, behind the header */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[480px]" style={{ background: PAYWALL_BACKDROP, opacity: isPaywall ? 1 : 0, transition: reduce ? "none" : "opacity .4s ease-out" }} aria-hidden />
       <OpenInBrowserHint accent={P.purple} />
 
       <div className="relative mx-auto flex h-full w-full max-w-md flex-col pt-[env(safe-area-inset-top)]">
@@ -435,18 +466,13 @@ function EmailScreen({ ui, step, whenLabel, onSubmit, onSkip }: { ui: CmUi; step
 }
 
 /* ------------------------------------------------------------------ */
-/* Social proof (CTA locked by a timer)                                 */
+/* Social proof                                                        */
 
 function SocialScreen({ cont, step, onNext }: { cont: string; step: Step<"social">; onNext: () => void }) {
   const reduce = useReducedMotion();
-  const [locked, setLocked] = useState(step.lockSeconds > 0);
-  useEffect(() => {
-    const t = window.setTimeout(() => setLocked(false), Math.max(0, step.lockSeconds) * 1000);
-    return () => window.clearTimeout(t);
-  }, [step.lockSeconds]);
   const d = (s: number) => (reduce ? { duration: 0 } : { delay: s, duration: 0.4, ease: EASE_OUT });
   return (
-    <Shell footer={<PrimaryButton onClick={onNext} disabled={locked}>{step.cta ?? cont}</PrimaryButton>}>
+    <Shell footer={<PrimaryButton onClick={onNext}>{step.cta ?? cont}</PrimaryButton>}>
       <Heading align="center">{rich(step.headline)}</Heading>
       <motion.div className="mt-6 text-center" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={d(0.05)}>
         <p className="font-heading text-[3.5rem] font-extrabold leading-none" style={{ color: P.text, letterSpacing: "-0.03em", fontVariantNumeric: "tabular-nums" }}>{step.rating}</p>
@@ -501,7 +527,7 @@ function LoaderScreen({ step, onDone }: { step: Step<"loader">; onDone: () => vo
   const R = 88, C = 2 * Math.PI * R;
   return (
     <div className="flex h-full w-full flex-col items-center justify-center px-6 text-center text-white" style={{ background: P.purple }} role="status" aria-live="polite">
-      <motion.div className="h-32 w-32" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduce ? 0 : 0.5 }}><RiveAnim src="/animations/loading.riv" crop={KOJI_CROP} /></motion.div>
+      <motion.div className="h-44 w-44" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduce ? 0 : 0.5 }}><SplashEyes className="h-full w-full" onStart={noop} /></motion.div>
       <motion.h1 className="mt-2 max-w-xs font-heading text-[1.625rem] font-bold leading-tight sm:text-[1.875rem]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduce ? 0 : 0.5 }}>{rich(step.headline)}</motion.h1>
       <motion.div className="relative mt-8 h-[180px] w-[180px]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduce ? 0 : 0.5, delay: 0.1 }}>
         <svg viewBox="0 0 200 200" className="h-full w-full -rotate-90" aria-hidden>

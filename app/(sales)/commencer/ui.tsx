@@ -138,15 +138,16 @@ export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 /* ------------------------------------------------------------------ */
 /* Rive (mascot & feedback animations) — client-only, mounted-gated      */
 
-function RiveInner({ src, className }: { src: string; className?: string }) {
-  const { RiveComponent } = useRive({ src, autoplay: true, layout: new Layout({ fit: Fit.Contain, alignment: Alignment.Center }) });
+function RiveInner({ src, className, stateMachine, animation }: { src: string; className?: string; stateMachine?: string; animation?: string }) {
+  const { RiveComponent } = useRive({ src, autoplay: true, ...(stateMachine ? { stateMachines: stateMachine } : {}), ...(animation ? { animations: [animation] } : {}), layout: new Layout({ fit: Fit.Contain, alignment: Alignment.Center }) });
   return <RiveComponent className={className ?? "h-full w-full"} aria-hidden />;
 }
 /** Plays a .riv file (default animation). Server HTML = empty box → no hydration mismatch. */
-export function RiveAnim({ src, className, crop }: { src: string; className?: string; crop?: CropBox }) {
+export function RiveAnim({ src, className, crop, stateMachine, animation }: { src: string; className?: string; crop?: CropBox; stateMachine?: string; animation?: string }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  return <div className={className ?? "h-full w-full"}>{mounted && (crop ? <Crop box={crop}><RiveInner src={src} /></Crop> : <RiveInner src={src} />)}</div>;
+  const inner = <RiveInner src={src} stateMachine={stateMachine} animation={animation} />;
+  return <div className={className ?? "h-full w-full"}>{mounted && (crop ? <Crop box={crop}>{inner}</Crop> : inner)}</div>;
 }
 
 /**
