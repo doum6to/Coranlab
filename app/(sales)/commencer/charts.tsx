@@ -46,7 +46,7 @@ export function ProgressChart({
     <div className="w-full">
       <div className="mb-2 flex items-center justify-between">
         <span className="text-[15px] font-semibold" style={{ color: "#1A1A1A" }}>{chartLabel}</span>
-        <span className="rounded-[8px] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[.16em]" style={{ background: "#6967FB", color: "#FFFFFF" }}>{brandLabel}</span>
+        <span className="rounded-[8px] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[.05em]" style={{ background: "#6967FB", color: "#FFFFFF" }}>{brandLabel}</span>
       </div>
 
       <svg viewBox={`0 0 ${PW} ${PH}`} className="block w-full" role="img" aria-label={`${chartLabel} : ${brandLabel} vs ${othersLabel}`}>
@@ -71,9 +71,9 @@ export function ProgressChart({
           <path d={P_OTHERS_LINE} fill="none" stroke="#555555" strokeWidth="2" strokeDasharray="5 5" strokeLinecap="round" />
         </g>
 
-        {/* brand (solid + pink area), area revealed with a clip, line drawn via pathLength */}
+        {/* brand (solid + tinted area), area revealed with a clip, line drawn via pathLength */}
         <g clipPath={`url(#${clipId})`}>
-          <path d={P_BRAND_AREA} fill="rgba(243,182,196,.55)" />
+          <path d={P_BRAND_AREA} fill="rgba(105,103,251,.14)" />
         </g>
         <motion.path d={P_BRAND_LINE} fill="none" stroke="#6967FB" strokeWidth="3" strokeLinecap="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={tw(1.35, 0.8)} />
 
@@ -246,7 +246,7 @@ export function TimeChart({
 
         {/* S-curve + area (clip reveals on first selection; d morphs afterwards) */}
         <g clipPath={`url(#${clipId})`}>
-          <motion.path initial={false} animate={{ d: areaD }} transition={morph} fill="rgba(243,182,196,.5)" />
+          <motion.path initial={false} animate={{ d: areaD }} transition={morph} fill="rgba(105,103,251,.14)" />
           <motion.path initial={false} animate={{ d: lineD }} transition={morph} fill="none" stroke="#6967FB" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
         </g>
 

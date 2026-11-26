@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 
 import { headers } from "next/headers";
 
@@ -12,6 +12,9 @@ import { CommencerOnboarding } from "../commencer/onboarding";
 // Country detection reads request headers → rendered per request.
 export const dynamic = "force-dynamic";
 
+// The funnel is white up to the top edge: the browser bar matches it.
+export const viewport: Viewport = { themeColor: "#ffffff" };
+
 export const metadata: Metadata = {
   title: "Understand the Qur'an — Quranlab",
   robots: { index: false, follow: false },
@@ -22,7 +25,7 @@ export default function CommencerEnPage({ searchParams }: { searchParams?: { ste
   return (
     <LocaleProvider locale="en">
       <RivePreloads />
-      <CommencerOnboarding currency={currencyForCountry(headers().get("x-vercel-ip-country") || headers().get("cf-ipcountry"))} content={COMMENCER_EN} locale="en" initialStep={searchParams?.step === "paywall" ? "paywall" : undefined} />
+      <CommencerOnboarding currency={currencyForCountry(headers().get("x-vercel-ip-country") || headers().get("cf-ipcountry"))} content={COMMENCER_EN} locale="en" initialStep={searchParams?.step} />
     </LocaleProvider>
   );
 }

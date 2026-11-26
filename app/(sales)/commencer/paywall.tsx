@@ -9,10 +9,20 @@ import { track } from "@/lib/analytics/track";
 import type { CommencerContent } from "@/lib/commencer-shared";
 import { centsFromLabel, formatPaywallPrice, type PaywallCurrency } from "@/lib/geo-currency";
 
-import { CM_UI, Check, Icon, P, PrimaryButton, Shell, Star, fill, rich, type CmLocale } from "./ui";
+import { StreakFlame } from "./fx";
+import { CM_UI, Check, Icon, KOJI_CROP, P, PrimaryButton, RiveAnim, Shell, Star, fill, type CmLocale } from "./ui";
 
 const GREEN = "#16A34A";
-const GREEN_SOFT = "#ECFDF3";
+const GRADIENT = "linear-gradient(120deg, #8E8CFF 0%, #F5A9C8 55%, #F5C88A 100%)";
+
+/** `**words**` in the title become the premium gradient; the rest stays ink. */
+function gradientTitle(text: string) {
+  return text.replace(/ ?([?!:;»])/g, " $1").split(/(\*\*[^*]+\*\*)/g).filter(Boolean).map((tok, i) =>
+    tok.startsWith("**")
+      ? <span key={i} style={{ backgroundImage: "linear-gradient(100deg, #6967FB 0%, #B77BE8 50%, #F08A6C 100%)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent", whiteSpace: "nowrap" }}>{tok.slice(2, -2)}</span>
+      : <span key={i}>{tok}</span>,
+  );
+}
 
 /**
  * Lifetime paywall. Built around ONE message the price alone fails to carry:
@@ -22,13 +32,15 @@ const GREEN_SOFT = "#ECFDF3";
  * Then the value stack, social proof and guarantee; the sticky footer repeats
  * "one-time · no subscription" right under the button.
  */
-export function Paywall({ paywall, email, whenLabel, locale = "fr", currency = "EUR" }: { paywall: CommencerContent["paywall"]; email?: string; whenLabel: string; locale?: CmLocale; currency?: PaywallCurrency }) {
+export function Paywall({ paywall, email, whenLabel, locale = "fr", currency = "EUR", earned }: { paywall: CommencerContent["paywall"]; email?: string; whenLabel: string; locale?: CmLocale; currency?: PaywallCurrency; earned?: { xp: number; words: number } | null }) {
   const ui = CM_UI[locale];
   // Same number in the visitor's currency (detected from their country).
-  const priceLabel = formatPaywallPrice(paywall.amountCents, currency, locale);
-  const zeroLabel = formatPaywallPrice(0, currency, locale);
-  const yearLabel = formatPaywallPrice(paywall.amountCents * 12, currency, locale);
-  const compareLabel = paywall.compareLabel ? formatPaywallPrice(centsFromLabel(paywall.compareLabel, 4900), currency, locale) : "";
+  // Prices use non-breaking spaces so "14,99 €" never splits across two lines.
+  const nb = (x: string) => x.replace(/\s/g, String.fromCharCode(160));
+  const priceLabel = nb(formatPaywallPrice(paywall.amountCents, currency, locale));
+  const zeroLabel = nb(formatPaywallPrice(0, currency, locale));
+  const yearLabel = nb(formatPaywallPrice(paywall.amountCents * 12, currency, locale));
+  const compareLabel = paywall.compareLabel ? nb(formatPaywallPrice(centsFromLabel(paywall.compareLabel, 4900), currency, locale)) : "";
   // Admin copy may embed the euro price ("— 9,99 €" / "49 €"): swap it for the local one, then fill placeholders.
   const t = (s: string) =>
     fill(s.replace(paywall.priceLabel, priceLabel).replace(paywall.compareLabel || "\u0000", compareLabel), { price: priceLabel, year: yearLabel, when: whenLabel });
@@ -59,9 +71,9 @@ export function Paywall({ paywall, email, whenLabel, locale = "fr", currency = "
   const wave = (i: number) => (reduce ? { duration: 0 } : { delay: 0.08 + i * 0.07, duration: 0.4, ease: "easeOut" as const });
   const appear = (i: number) => ({ initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 }, transition: wave(i) });
   const timeline = [
-    { label: paywall.timelineToday, value: priceLabel, now: true },
-    { label: paywall.timelineMonth, value: zeroLabel, now: false },
-    { label: paywall.timelineYear, value: zeroLabel, now: false },
+    { label: paywall.timelineToday },
+    { label: paywall.timelineMonth },
+    { label: paywall.timelineYear },
   ];
 
   return (
@@ -85,91 +97,74 @@ export function Paywall({ paywall, email, whenLabel, locale = "fr", currency = "
         </>
       }
     >
+      {/* Soft premium backdrop behind the top of the page */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[420px]" style={{ background: "radial-gradient(70% 60% at 15% 0%, rgba(184,169,245,.38) 0%, rgba(184,169,245,0) 70%), radial-gradient(60% 55% at 95% 5%, rgba(245,169,200,.30) 0%, rgba(245,169,200,0) 70%), radial-gradient(50% 45% at 60% 30%, rgba(245,200,138,.22) 0%, rgba(245,200,138,0) 70%)" }} aria-hidden />
+
       {/* Header */}
-      <motion.div className="text-center" {...appear(0)}>
-        {paywall.badge && (
-          <span className="inline-block rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[.14em]" style={{ background: P.purpleSoft, color: P.purple }}>
-            {paywall.badge}
-          </span>
-        )}
-        <h1 className="mt-3 font-heading text-[27px] font-bold leading-[1.15] sm:text-[32px]">{rich(t(paywall.title))}</h1>
-        <p className="mt-2 text-[15px] font-semibold" style={{ color: P.text }}>{t(paywall.subtitle)}</p>
+      <motion.div className="relative text-center" {...appear(0)}>
+        <h1 className="mx-auto max-w-[21rem] font-serif text-[32px] font-semibold leading-[1.12]" style={{ color: P.text, letterSpacing: "-0.02em", textWrap: "balance" as never }}>{gradientTitle(t(paywall.title))}</h1>
+        <p className="mx-auto mt-3 max-w-[20rem] text-[16px] leading-normal" style={{ color: P.soft, textWrap: "balance" as never }}>{t(paywall.subtitle)}</p>
       </motion.div>
 
-      {/* Price card: product, one-time chip, price, "what you pay over time" */}
-      <motion.section
-        className="mt-5 overflow-hidden"
-        style={{ borderRadius: 22, border: `2px solid ${P.purple}`, background: "#fff", boxShadow: `0 4px 0 0 ${P.purpleLine}, 0 18px 40px -24px rgba(105,103,251,.55)` }}
-        {...appear(1)}
-      >
-        <div className="flex items-center justify-between gap-2 px-4 pt-4">
-          <span className="min-w-0 truncate text-[13px] font-bold" style={{ color: P.text }}>{paywall.productName}</span>
-          <span className="inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wide" style={{ background: GREEN_SOFT, color: GREEN }}>
-            <Check size={11} color={GREEN} /> {paywall.oneTimeChip}
-          </span>
-        </div>
-
-        <div className="px-4 pb-3 pt-2 text-center">
-          <div className="flex items-end justify-center gap-3">
-            {compareLabel && (
-              <span className="mb-2 text-[19px] font-semibold line-through decoration-2" style={{ color: P.muted, textDecorationColor: P.danger }}>{compareLabel}</span>
-            )}
-            <span className="font-heading text-[54px] font-extrabold leading-none tracking-tight" style={{ color: P.purple }}>{priceLabel}</span>
-          </div>
-          <p className="mt-1 text-[13px] font-bold uppercase tracking-[.12em]" style={{ color: P.purple }}>{paywall.priceNote}</p>
-          <p className="mx-auto mt-2 max-w-[300px] text-[14px] font-semibold leading-snug" style={{ color: P.text }}>{t(paywall.payOnceLine)}</p>
-        </div>
-
-        {/* Over time: today = price, then 0 forever */}
-        <div className="grid grid-cols-3 border-t" style={{ borderColor: P.border, background: "#FAFAFF" }}>
-          {timeline.map((s, i) => (
-            <div key={s.label} className="px-2 py-3 text-center" style={{ borderLeft: i ? `1px solid ${P.border}` : undefined }}>
-              <p className="text-[11px] font-semibold leading-tight" style={{ color: P.muted }}>{s.label}</p>
-              <p className="mt-1 font-heading text-[18px] font-extrabold leading-none" style={{ color: s.now ? P.purple : GREEN }}>{s.value}</p>
+      {/* Price card: gradient edge, badge on the rim, Koji peeking over it */}
+      <motion.section className="relative mt-12" {...appear(1)}>
+        <div className="pointer-events-none absolute -top-[50px] right-6 h-[76px] w-[76px]" aria-hidden><RiveAnim src="/animations/loading.riv" crop={KOJI_CROP} /></div>
+        <div className="relative" style={{ borderRadius: 24, padding: 2, background: GRADIENT, boxShadow: "0 18px 40px -22px rgba(105,103,251,.45), 0 2px 6px -2px rgba(26,26,26,.06)" }}>
+          <span className="absolute -top-3 left-5 whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-bold uppercase text-white" style={{ background: P.purple, letterSpacing: "0.05em" }}>{paywall.oneTimeChip}</span>
+          <div className="bg-white px-5 pb-5 pt-6" style={{ borderRadius: 22 }}>
+            <div className="flex items-end justify-between gap-3">
+              <div className="min-w-0">
+                <p className="font-heading text-[22px] font-extrabold leading-tight" style={{ color: P.text, letterSpacing: "-0.01em" }}>{paywall.productName}</p>
+                <p className="mt-1 text-[14px] first-letter:uppercase" style={{ color: P.soft }}>{paywall.priceNote}</p>
+              </div>
+              <div className="shrink-0 text-right" style={{ fontVariantNumeric: "tabular-nums" }}>
+                {compareLabel && <p className="text-[14px] line-through" style={{ color: P.muted }}>{compareLabel}</p>}
+                <p className="font-heading text-[30px] font-extrabold leading-none" style={{ color: P.text, letterSpacing: "-0.02em" }}>{priceLabel}</p>
+              </div>
             </div>
-          ))}
+          </div>
         </div>
-
-        {paywall.urgency && (
-          <p className="px-4 py-2.5 text-center text-[12.5px] font-semibold leading-snug" style={{ background: P.purple, color: "#fff" }}>{t(paywall.urgency)}</p>
-        )}
+        {paywall.urgency && <p className="mt-3 px-2 text-center text-[13px] leading-snug" style={{ color: P.muted, textWrap: "balance" as never }}>{t(paywall.urgency)}</p>}
       </motion.section>
 
-      {/* Same price, but once vs every month */}
-      {paywall.compareTitle && (
-        <motion.section className="mt-6" {...appear(2)}>
-          <h2 className="text-[13px] font-bold uppercase tracking-[.12em]" style={{ color: P.muted }}>{paywall.compareTitle}</h2>
-          <div className="mt-2.5 space-y-2">
-            <div className="flex items-center gap-3 rounded-2xl px-3.5 py-3" style={{ background: P.surface }}>
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[15px] font-bold" style={{ background: "#fff", color: P.danger }} aria-hidden>✕</span>
-              <div className="min-w-0">
-                <p className="text-[12.5px] font-semibold" style={{ color: P.muted }}>{paywall.compareThemLabel}</p>
-                <p className="text-[14.5px] font-bold" style={{ color: P.soft }}>{t(paywall.compareThemValue)}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 rounded-2xl px-3.5 py-3" style={{ background: GREEN_SOFT, border: `1.5px solid #BBF7D0` }}>
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full" style={{ background: GREEN }} aria-hidden><Check size={14} color="#fff" /></span>
-              <div className="min-w-0">
-                <p className="text-[12.5px] font-semibold" style={{ color: GREEN }}>{paywall.compareUsLabel}</p>
-                <p className="text-[15px] font-extrabold" style={{ color: P.text }}>{t(paywall.compareUsValue)}</p>
-              </div>
-            </div>
-          </div>
-        </motion.section>
+      {/* What the learner just earned in the first lesson: theirs to keep once unlocked */}
+      {earned && earned.words > 0 && (
+        <motion.div className="mt-5 flex items-center gap-2.5 rounded-2xl px-3.5 py-2.5" style={{ background: "#FFF6EA" }} {...appear(2)}>
+          <StreakFlame className="h-9 w-9 shrink-0" />
+          <p className="text-[14px] font-medium leading-snug" style={{ color: "#8A4B12" }}>{fill(ui.recap, { xp: earned.xp, words: earned.words })}</p>
+        </motion.div>
       )}
 
-      {/* Value stack */}
-      <motion.section className="mt-6" {...appear(3)}>
-        {paywall.perksTitle && <h2 className="text-[13px] font-bold uppercase tracking-[.12em]" style={{ color: P.muted }}>{paywall.perksTitle}</h2>}
-        <ul className="mt-3 space-y-3">
-          {paywall.perks.map((item) => (
-            <li key={item.title} className="flex gap-3">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full" style={{ background: P.purpleSoft, color: P.purple }} aria-hidden>
-                <Icon name={item.icon} size={17} />
+      {/* How it works: you pay today, then never again */}
+      <motion.section className="mt-10" {...appear(2)}>
+        <h2 className="font-heading text-[20px] font-bold" style={{ color: P.text, letterSpacing: "-0.01em" }}>{ui.pay.how}</h2>
+        <ol className="relative mt-5">
+          <span className="absolute bottom-6 left-[17px] top-6 w-[2px] rounded-full" style={{ background: "linear-gradient(180deg, #6967FB 0%, #F5A9C8 55%, #F5C88A 100%)" }} aria-hidden />
+          {timeline.map((s, k) => (
+            <li key={s.label} className={`relative flex gap-4 ${k ? "mt-6" : ""}`}>
+              <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white" style={{ background: k === 0 ? P.purple : "#fff", color: k === 0 ? "#fff" : P.purple, boxShadow: k === 0 ? "none" : "inset 0 0 0 2px #DCDBFF" }} aria-hidden>
+                <Icon name={k === 0 ? "unlock" : k === 1 ? "calendar" : "shield"} size={17} strokeWidth={2.2} />
               </span>
+              <div className="min-w-0 pt-0.5">
+                <p className="text-[16px] font-bold leading-snug" style={{ color: P.text }}>{s.label}</p>
+                <p className="mt-0.5 text-[15px] leading-normal" style={{ color: P.soft }}>{fill(k === 0 ? ui.pay.today : k === 1 ? ui.pay.month : ui.pay.year, { price: priceLabel, zero: zeroLabel })}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+        <p className="mt-6 rounded-2xl px-4 py-3 text-[14px] leading-normal" style={{ background: P.surface, color: P.soft, textWrap: "pretty" as never }}>{fill(ui.pay.versus, { price: priceLabel, year: yearLabel })}</p>
+      </motion.section>
+
+      {/* Value stack */}
+      <motion.section className="mt-10" {...appear(3)}>
+        {paywall.perksTitle && <h2 className="font-heading text-[20px] font-bold" style={{ color: P.text, letterSpacing: "-0.01em" }}>{paywall.perksTitle}</h2>}
+        <ul className="mt-5 space-y-5">
+          {paywall.perks.map((item) => (
+            <li key={item.title} className="flex gap-4">
+              <span className="flex w-9 shrink-0 justify-center pt-0.5" style={{ color: P.purple }} aria-hidden><Icon name={item.icon} size={24} strokeWidth={1.75} duo /></span>
               <div className="min-w-0">
-                <p className="text-[15px] font-semibold leading-tight" style={{ color: P.text }}>{item.title}</p>
-                {item.text && <p className="mt-0.5 text-[13px] leading-snug" style={{ color: P.muted }}>{t(item.text)}</p>}
+                <p className="text-[16px] font-semibold leading-snug" style={{ color: P.text }}>{item.title}</p>
+                {item.text && <p className="mt-0.5 text-[15px] leading-normal" style={{ color: P.soft, textWrap: "pretty" as never }}>{t(item.text)}</p>}
               </div>
             </li>
           ))}
@@ -178,26 +173,24 @@ export function Paywall({ paywall, email, whenLabel, locale = "fr", currency = "
 
       {/* Social proof */}
       {paywall.reviewText && (
-        <motion.figure className="mt-6 rounded-2xl p-4" style={{ border: `1.5px solid ${P.border}` }} {...appear(4)}>
+        <motion.figure className="mt-10 rounded-3xl px-5 py-5" style={{ background: "#F7F7FF" }} {...appear(4)}>
           <div className="flex items-center gap-2">
-            <span className="flex" style={{ color: "#F5B301" }} aria-hidden>{[0, 1, 2, 3, 4].map((i) => <Star key={i} size={14} />)}</span>
-            <span className="text-[13px] font-bold" style={{ color: P.text }}>{paywall.ratingValue}</span>
-            <span className="text-[12.5px]" style={{ color: P.muted }}>· {paywall.ratingLabel}</span>
+            <span className="flex" style={{ color: "#F5B301" }} aria-hidden>{[0, 1, 2, 3, 4].map((i) => <Star key={i} size={15} />)}</span>
+            <span className="text-[14px] font-bold" style={{ color: P.text }}>{paywall.ratingValue}</span>
+            <span className="text-[13px]" style={{ color: P.muted }}>{paywall.ratingLabel}</span>
           </div>
-          <blockquote className="mt-2 text-[14.5px] leading-snug" style={{ color: P.text }}>« {paywall.reviewText} »</blockquote>
-          <figcaption className="mt-1 text-[12.5px] font-semibold" style={{ color: P.muted }}>— {paywall.reviewName}</figcaption>
+          <blockquote className="mt-3 font-serif text-[19px] leading-[1.4]" style={{ color: P.text, textWrap: "pretty" as never }}>« {paywall.reviewText} »</blockquote>
+          <figcaption className="mt-2 text-[14px] font-semibold" style={{ color: P.soft }}>{paywall.reviewName}</figcaption>
         </motion.figure>
       )}
 
       {/* Guarantee */}
       {paywall.guaranteeTitle && (
-        <motion.div className="mt-4 flex gap-3 rounded-2xl p-4" style={{ background: P.surface }} {...appear(5)}>
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full" style={{ background: "#fff", color: P.purple }} aria-hidden>
-            <Icon name="shield" size={18} />
-          </span>
+        <motion.div className="mt-8 flex gap-4" {...appear(5)}>
+          <span className="flex w-9 shrink-0 justify-center pt-0.5" style={{ color: GREEN }} aria-hidden><Icon name="shield" size={24} strokeWidth={1.75} duo /></span>
           <div>
-            <p className="text-[14.5px] font-bold" style={{ color: P.text }}>{paywall.guaranteeTitle}</p>
-            <p className="mt-0.5 text-[13px] leading-snug" style={{ color: P.muted }}>{paywall.guaranteeText}</p>
+            <p className="text-[16px] font-semibold leading-snug" style={{ color: P.text }}>{paywall.guaranteeTitle}</p>
+            <p className="mt-0.5 text-[15px] leading-normal" style={{ color: P.soft, textWrap: "pretty" as never }}>{paywall.guaranteeText}</p>
           </div>
         </motion.div>
       )}

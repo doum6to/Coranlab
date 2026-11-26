@@ -118,7 +118,7 @@ export const COMMENCER_DEFAULTS: CommencerContent = {
   accentColor: "#6967FB",
   steps: [
     { type: "splash", arabic: "قُرْآن", brand: "QURANLAB", tagline: "COMPRENDS LE CORAN" },
-    { type: "welcome", headline: "Salam alaykoum, je suis Koji !", tagline: "Comprends le Coran.\n**Enfin.**", cta: "Continuer", signinText: "Déjà un compte ?", signinCta: "Se connecter" },
+    { type: "welcome", headline: "Salam alaykoum, je suis Koji !", tagline: "Comprends **enfin**\nce que tu récites.", cta: "Continuer", signinText: "Déjà un compte ?", signinCta: "Se connecter" },
     { type: "question", id: "why", headline: "Pourquoi veux-tu comprendre le Coran ?", sub: "Plusieurs choix possibles", multi: true, options: [
       { id: "prayer", label: "Ressentir ma prière", icon: "hands" },
       { id: "recite", label: "Comprendre ce que je récite", icon: "book-open" },
@@ -134,13 +134,13 @@ export const COMMENCER_DEFAULTS: CommencerContent = {
       { id: "far", label: "Je me sens loin de ma foi", icon: "moon" },
       { id: "talk", label: "Je n'ose pas participer aux discussions", icon: "message" },
     ] },
-    { type: "chart", headline: "Conçu pour te rapprocher du Coran", chartLabel: "Ta progression", brandLabel: "Quranlab", othersLabel: "Autres méthodes", xStart: "Mois 0", xEnd: "Mois 1", checkTitle: "Quranlab va t'aider à", checklist: [
+    { type: "chart", headline: "Tu commences par les mots les plus fréquents", chartLabel: "Ta progression", brandLabel: "Quranlab", othersLabel: "Autres méthodes", xStart: "Mois 0", xEnd: "Mois 1", checkTitle: "Quranlab va t'aider à", checklist: [
       "Comprendre ce que tu dis en salat",
-      "Reconnaître les 500 mots = 85% du Coran",
-      "Retenir grâce à des révisions intelligentes",
+      "Reconnaître les 500 mots qui font 85 % du Coran",
+      "Retenir grâce aux révisions espacées",
       "Avancer quelques minutes par jour",
     ] },
-    { type: "question", id: "gender", headline: "Pour calibrer ton plan", sub: "Cette réponse sert à personnaliser ton parcours.", multi: false, options: [ { id: "m", label: "Homme" }, { id: "f", label: "Femme" } ] },
+    { type: "question", id: "gender", headline: "Tu es…", sub: "Pour adapter ton parcours.", multi: false, options: [ { id: "m", label: "Homme" }, { id: "f", label: "Femme" } ] },
     { type: "question", id: "level", headline: "Ton niveau en arabe coranique ?", sub: "Quranlab adapte les leçons à ton niveau.", multi: false, options: [
       { id: "l1", label: "Je débute totalement", icon: "signal-0" }, { id: "l2", label: "Je connais quelques mots", icon: "signal-1" }, { id: "l3", label: "Je reconnais des mots dans les sourates", icon: "signal-2" },
       { id: "l4", label: "Je comprends des versets simples", icon: "signal-3" }, { id: "l5", label: "Je comprends la plupart des versets", icon: "signal-4" },
@@ -153,36 +153,36 @@ export const COMMENCER_DEFAULTS: CommencerContent = {
     { type: "question", id: "when", headline: "Quand veux-tu pratiquer ?", sub: "On t'enverra ton rappel au bon moment.", multi: false, options: [
       { id: "morning", label: "Le matin", icon: "sunrise" }, { id: "prayer", label: "Après une prière", icon: "moon-star" }, { id: "evening", label: "Le soir", icon: "sunset" }, { id: "any", label: "Quand j'ai un moment", icon: "coffee" },
     ] },
-    { type: "time", headline: "Combien de temps par jour ?", goalLabel: "Ton objectif", aloneLabel: "Seul(e)", xStart: "Maintenant", xEnd: "3 mois", placeholder: "Choisis une durée pour voir quand tu comprendras 85% du Coran.", sentence: "À {min} min par jour, tu comprendras 85% du Coran **en {weeks} semaines**.", options: [
+    { type: "time", headline: "Combien de temps par jour ?", goalLabel: "Ton objectif", aloneLabel: "Seul(e)", xStart: "Maintenant", xEnd: "3 mois", placeholder: "Choisis une durée pour voir quand tu comprendras 85 % du Coran.", sentence: "À {min} min par jour, tu comprendras 85 % du Coran **en {weeks} semaines**.", options: [
       { minutes: 5, label: "5 min", weeks: 10 }, { minutes: 15, label: "15 min", weeks: 8 }, { minutes: 30, label: "30 min", weeks: 6 }, { minutes: 45, label: "45 min+", weeks: 5 },
     ] },
-    { type: "social", headline: "Ils comprennent enfin leur prière", rating: "4,9", ratingSub: "Plus de 1 500 apprenants", sub: "Quranlab a été conçu pour des gens comme toi", reviews: [
+    { type: "social", headline: "Ils comprennent enfin leur prière", rating: "4,9", ratingSub: "Plus de 1 500 apprenants", sub: "Voici ce qu'ils en disent", reviews: [
       { initials: "OM", name: "Omar", text: "Je récitais sans rien comprendre depuis 15 ans. En quelques jours je reconnais des mots dans ma prière. Ça a tout changé." },
       { initials: "NA", name: "Nayah", text: "Enfin je SAIS ce que je dis quand je prie. La façon la plus simple que j'ai trouvée. Barak Allah fikoum." },
       { initials: "YA", name: "Yassine", text: "Quelques minutes par jour et Al-Fatiha a pris un tout autre sens. Je recommande à 100 %." },
     ], lockSeconds: 2.5 },
-    { type: "loader", headline: "Création de ton plan personnalisé", captions: ["Optimisation pour l'arabe coranique…", "Calibrage à ton niveau…", "Préparation de tes premières leçons…"], durationMs: 7000 },
+    { type: "loader", headline: "Création de ton plan personnalisé", captions: ["Sélection des mots les plus fréquents…", "Réglage sur ton niveau…", "Préparation de tes premières leçons…"], durationMs: 7000 },
     { type: "plan", headline: "Ton plan personnalisé est prêt", journeyTitle: "Parcours Coran", levelPill: "Niveau {level} · {levelLabel}", yourPlanLabel: "TON PLAN", minutesLabel: "par jour", dateLabel: "ton objectif", rows: [
       { icon: "target", label: "Objectif", text: "Comprendre chaque mot de ta prière" },
-      { icon: "wrench", label: "Ce qu'on corrige", text: "Des leçons de {min} min qui tiennent dans ta journée" },
+      { icon: "wrench", label: "Ton rythme", text: "Des leçons de {min} min qui tiennent dans ta journée" },
       { icon: "bell", label: "Ton rappel", text: "{when}" },
-      { icon: "layers", label: "Focus", text: "Vocabulaire · Versets · Prière" },
+      { icon: "layers", label: "Au programme", text: "Les mots de ta prière, puis les versets" },
     ], cta: "Commencer mon plan" },
     { type: "email", headline: "Reçois ton plan personnalisé par email", sub: "On t'enverra aussi ton rappel {when}, pour tenir ta routine.", placeholder: "ton@email.com", cta: "Recevoir mon plan", note: "Pas de spam · désabonnement en 1 clic", skip: "Passer" },
     { type: "lesson", headline: "Ta première leçon, maintenant", sub: "Trois mots que tu récites déjà. Trouve leur sens.", cards: [
       { arabic: "رَبِّ", translit: "Rabb", fr: "Seigneur", choices: ["Seigneur", "Lumière", "Chemin"] },
       { arabic: "ٱلرَّحِيمِ", translit: "ar-Rahîm", fr: "Le Très Miséricordieux", choices: ["Le Tout-Puissant", "Le Très Miséricordieux", "Le Créateur"] },
       { arabic: "ٱلْحَمْدُ", translit: "al-hamd", fr: "La louange", choices: ["La prière", "La louange", "Le pardon"] },
-    ], doneHeadline: "Tu viens de comprendre 3 mots du Coran", doneSub: "Il en reste 497. Continue sur ta lancée.", cta: "Continuer" },
+    ], doneHeadline: "Tu viens de comprendre 3 mots du Coran", doneSub: "Il t'en reste 497 à découvrir.", cta: "Continuer" },
   ],
   paywall: {
     badge: "Offre de lancement",
     title: "Débloque **tout Quranlab**, pour toujours",
     subtitle: "Un seul paiement de {price}. Jamais d'abonnement.",
     perks: [
-      { icon: "unlock", title: "Les 500 mots = 85 % du Coran", text: "Toutes les leçons, tous les niveaux, débloqués immédiatement." },
-      { icon: "target", title: "Ton plan personnalisé", text: "Le parcours qu'on vient de construire ensemble, prêt à démarrer." },
-      { icon: "layers", title: "Exercices illimités", text: "QCM, anagrammes, répétition espacée : tu mémorises sans effort." },
+      { icon: "unlock", title: "Les 500 mots qui font 85 % du Coran", text: "Toutes les leçons, tous les niveaux, débloqués immédiatement." },
+      { icon: "target", title: "Ton plan personnalisé", text: "Le parcours qu'on vient de construire, réglé sur ton niveau." },
+      { icon: "layers", title: "Exercices illimités", text: "QCM, anagrammes et révisions espacées pour retenir les mots." },
       { icon: "bell", title: "Ton rappel quotidien", text: "Le petit coup de pouce {when} pour tenir ta routine." },
     ],
     amountCents: 1499,
@@ -191,7 +191,7 @@ export const COMMENCER_DEFAULTS: CommencerContent = {
     priceNote: "une seule fois",
     urgency: "Prix de lancement réservé aux nouveaux apprenants. Il passera à 49 € prochainement.",
     reassurance: "Paiement sécurisé · Accès immédiat · Garantie 30 jours",
-    cta: "Débloquer l'accès à vie — 14,99 €",
+    cta: "Débloquer l'accès à vie pour 14,99 €",
     finePrint: "Paiement unique de 14,99 €, débité une seule fois. Aucun renouvellement automatique.",
     guaranteeTitle: "Garantie 30 jours",
     guaranteeText: "Si tu ne reconnais pas plus de mots dans ta prière d'ici 30 jours, un email suffit et tu es remboursé.",
@@ -212,7 +212,7 @@ export const COMMENCER_DEFAULTS: CommencerContent = {
     reviewText: "En quelques jours je reconnais des mots dans ma prière. Et je n'ai payé qu'une fois.",
     reviewName: "Omar",
     footerPoints: ["Paiement unique", "Pas d'abonnement"],
-    paymentMethods: "Carte bancaire · Apple Pay · Google Pay — paiement sécurisé par Stripe",
+    paymentMethods: "Carte bancaire, Apple Pay ou Google Pay. Paiement sécurisé par Stripe.",
   },
   merci: {
     title: "Ton accès à vie est activé, barak Allah fik !",
@@ -227,8 +227,8 @@ export const COMMENCER_DEFAULTS: CommencerContent = {
   upsell: {
     enabled: true,
     badge: "Offre unique · réservée aux nouveaux membres",
-    title: "Et si tu apprenais aussi à **lire l'arabe** en moins de 7h ?",
-    text: "Comprendre les mots, c'est la première étape. Les lire directement dans le Coran, c'est la liberté totale. 21 vidéos courtes, sans grammaire, sans devoirs.",
+    title: "Et si tu apprenais aussi à **lire l'arabe** en moins de 7 h ?",
+    text: "Tu comprends les mots. Avec ce cours, tu les lis toi-même dans le Coran : 21 vidéos courtes, sans grammaire ni devoirs.",
     bullets: ["21 cours vidéo, de l'alphabet à la lecture fluide", "Méthode sans grammaire ni cahier, 20 min par jour", "Accès à vie, dans ton espace Quranlab"],
     amountCents: 2700,
     priceLabel: "27 €",
@@ -247,6 +247,43 @@ export const COMMENCER_DEFAULTS: CommencerContent = {
     bookDoneText: "Ouvre-le depuis la Boutique de l'app dès que ton compte est créé avec la même adresse email.",
   },
 };
+
+/**
+ * Copy improvements. The admin stores the whole funnel as JSON, so editing the
+ * defaults alone would never reach a funnel that has been saved once. Each
+ * stored string that still equals a former default is swapped for its new
+ * wording when read; anything the owner rewrote no longer matches and is kept.
+ */
+const COPY_UPGRADES: Record<string, string> = {
+  "Comprends le Coran.\n**Enfin.**": "Comprends **enfin**\nce que tu récites.",
+  "Conçu pour te rapprocher du Coran": "Tu commences par les mots les plus fréquents",
+  "Reconnaître les 500 mots = 85% du Coran": "Reconnaître les 500 mots qui font 85 % du Coran",
+  "Retenir grâce à des révisions intelligentes": "Retenir grâce aux révisions espacées",
+  "Pour calibrer ton plan": "Tu es…",
+  "Cette réponse sert à personnaliser ton parcours.": "Pour adapter ton parcours.",
+  "Choisis une durée pour voir quand tu comprendras 85% du Coran.": "Choisis une durée pour voir quand tu comprendras 85 % du Coran.",
+  "À {min} min par jour, tu comprendras 85% du Coran **en {weeks} semaines**.": "À {min} min par jour, tu comprendras 85 % du Coran **en {weeks} semaines**.",
+  "Quranlab a été conçu pour des gens comme toi": "Voici ce qu'ils en disent",
+  "Optimisation pour l'arabe coranique…": "Sélection des mots les plus fréquents…",
+  "Calibrage à ton niveau…": "Réglage sur ton niveau…",
+  "Ce qu'on corrige": "Ton rythme",
+  "Vocabulaire · Versets · Prière": "Les mots de ta prière, puis les versets",
+  "Focus": "Au programme",
+  "Il en reste 497. Continue sur ta lancée.": "Il t'en reste 497 à découvrir.",
+  "Les 500 mots = 85 % du Coran": "Les 500 mots qui font 85 % du Coran",
+  "Le parcours qu'on vient de construire ensemble, prêt à démarrer.": "Le parcours qu'on vient de construire, réglé sur ton niveau.",
+  "QCM, anagrammes, répétition espacée : tu mémorises sans effort.": "QCM, anagrammes et révisions espacées pour retenir les mots.",
+  "Débloquer l'accès à vie — 14,99 €": "Débloquer l'accès à vie pour 14,99 €",
+  "Carte bancaire · Apple Pay · Google Pay — paiement sécurisé par Stripe": "Carte bancaire, Apple Pay ou Google Pay. Paiement sécurisé par Stripe.",
+  "Comprendre les mots, c'est la première étape. Les lire directement dans le Coran, c'est la liberté totale. 21 vidéos courtes, sans grammaire, sans devoirs.": "Tu comprends les mots. Avec ce cours, tu les lis toi-même dans le Coran : 21 vidéos courtes, sans grammaire ni devoirs.",
+  "Et si tu apprenais aussi à **lire l'arabe** en moins de 7h ?": "Et si tu apprenais aussi à **lire l'arabe** en moins de 7 h ?",
+};
+function upgradeCopy<T>(value: T): T {
+  if (typeof value === "string") return (COPY_UPGRADES[value] ?? value) as T;
+  if (Array.isArray(value)) return value.map(upgradeCopy) as T;
+  if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, upgradeCopy(v)])) as T;
+  return value;
+}
 
 const s = (v: unknown, fb: string) => (typeof v === "string" ? v : fb);
 const n = (v: unknown, fb: number) => (typeof v === "number" && Number.isFinite(v) ? v : fb);
@@ -281,6 +318,7 @@ function mergeStep(st: any): CmStep | null {
 export function mergeCommencerContent(stored: Partial<CommencerContent> | null): CommencerContent {
   const d = COMMENCER_DEFAULTS;
   if (!stored) return d;
+  stored = upgradeCopy(stored);
   const steps = arr<any>(stored.steps, []).map(mergeStep).filter((x): x is CmStep => x !== null);
   const pw = (stored.paywall ?? {}) as Partial<CommencerContent["paywall"]>;
   const m = (stored.merci ?? {}) as Partial<CommencerContent["merci"]>;

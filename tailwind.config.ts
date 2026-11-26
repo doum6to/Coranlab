@@ -2,6 +2,8 @@ import type { Config } from "tailwindcss"
 
 const config = {
   darkMode: ["class"],
+  // hover: styles only where a real hover exists, so nothing stays "stuck" after a tap on touch screens.
+  future: { hoverOnlyWhenSupported: true },
   content: [
     './pages/**/*.{ts,tsx}',
     './components/**/*.{ts,tsx}',

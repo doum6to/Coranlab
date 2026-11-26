@@ -21,6 +21,21 @@ a,
   touch-action: manipulation;
 }
 
+/* Long-pressing a control must not select its label or open the iOS callout
+   (content text stays selectable). */
+button,
+[role="button"] {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+html {
+  /* No font inflation when the phone is rotated. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading), sans-serif;
   letter-spacing: -0.03em;

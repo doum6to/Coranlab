@@ -10,7 +10,7 @@ export const COMMENCER_EN: CommencerContent = {
   accentColor: "#6967FB",
   steps: [
     { type: "splash", arabic: "قُرْآن", brand: "QURANLAB", tagline: "UNDERSTAND THE QUR'AN" },
-    { type: "welcome", headline: "Salam alaykum, I'm Koji!", tagline: "Understand the Qur'an.\n**Finally.**", cta: "Continue", signinText: "Already have an account?", signinCta: "Log in" },
+    { type: "welcome", headline: "Salam alaykum, I'm Koji!", tagline: "**Finally** understand\nwhat you recite.", cta: "Continue", signinText: "Already have an account?", signinCta: "Log in" },
     { type: "question", id: "why", headline: "Why do you want to understand the Qur'an?", sub: "Pick as many as you like", multi: true, options: [
       { id: "prayer", label: "Feel my prayer", icon: "hands" },
       { id: "recite", label: "Understand what I recite", icon: "book-open" },
@@ -26,13 +26,13 @@ export const COMMENCER_EN: CommencerContent = {
       { id: "far", label: "I feel far from my faith", icon: "moon" },
       { id: "talk", label: "I don't dare join discussions", icon: "message" },
     ] },
-    { type: "chart", headline: "Built to bring you closer to the Qur'an", chartLabel: "Your progress", brandLabel: "Quranlab", othersLabel: "Other methods", xStart: "Month 0", xEnd: "Month 1", checkTitle: "Quranlab will help you", checklist: [
+    { type: "chart", headline: "You start with the most frequent words", chartLabel: "Your progress", brandLabel: "Quranlab", othersLabel: "Other methods", xStart: "Month 0", xEnd: "Month 1", checkTitle: "Quranlab will help you", checklist: [
       "Understand what you say in salat",
-      "Recognise the 500 words = 85% of the Qur'an",
-      "Remember thanks to smart reviews",
+      "Recognise the 500 words that make up 85% of the Qur'an",
+      "Remember with spaced reviews",
       "Progress a few minutes a day",
     ] },
-    { type: "question", id: "gender", headline: "To calibrate your plan", sub: "This answer personalises your path.", multi: false, options: [ { id: "m", label: "Man" }, { id: "f", label: "Woman" } ] },
+    { type: "question", id: "gender", headline: "You are…", sub: "To adapt your path.", multi: false, options: [ { id: "m", label: "Man" }, { id: "f", label: "Woman" } ] },
     { type: "question", id: "level", headline: "Your level in Qur'anic Arabic?", sub: "Quranlab adapts the lessons to your level.", multi: false, options: [
       { id: "l1", label: "Complete beginner", icon: "signal-0" }, { id: "l2", label: "I know a few words", icon: "signal-1" }, { id: "l3", label: "I recognise words in surahs", icon: "signal-2" },
       { id: "l4", label: "I understand simple verses", icon: "signal-3" }, { id: "l5", label: "I understand most verses", icon: "signal-4" },
@@ -48,33 +48,33 @@ export const COMMENCER_EN: CommencerContent = {
     { type: "time", headline: "How much time per day?", goalLabel: "Your goal", aloneLabel: "On your own", xStart: "Now", xEnd: "3 months", placeholder: "Pick a duration to see when you'll understand 85% of the Qur'an.", sentence: "At {min} min a day, you'll understand 85% of the Qur'an **in {weeks} weeks**.", options: [
       { minutes: 5, label: "5 min", weeks: 10 }, { minutes: 15, label: "15 min", weeks: 8 }, { minutes: 30, label: "30 min", weeks: 6 }, { minutes: 45, label: "45 min+", weeks: 5 },
     ] },
-    { type: "social", headline: "They finally understand their prayer", rating: "4.9", ratingSub: "Over 1,500 learners", sub: "Quranlab was built for people like you", reviews: [
+    { type: "social", headline: "They finally understand their prayer", rating: "4.9", ratingSub: "Over 1,500 learners", sub: "Here is what they say", reviews: [
       { initials: "OM", name: "Omar", text: "I recited without understanding anything for 15 years. Within days I recognise words in my prayer. It changed everything." },
       { initials: "NA", name: "Nayah", text: "I finally KNOW what I'm saying when I pray. The simplest way I've found. Barak Allah fikum." },
       { initials: "YA", name: "Yassine", text: "A few minutes a day and Al-Fatiha took on a whole new meaning. 100% recommended." },
     ], lockSeconds: 2.5 },
-    { type: "loader", headline: "Building your personalised plan", captions: ["Optimising for Qur'anic Arabic…", "Calibrating to your level…", "Preparing your first lessons…"], durationMs: 7000 },
+    { type: "loader", headline: "Building your personalised plan", captions: ["Selecting the most frequent words…", "Setting it to your level…", "Preparing your first lessons…"], durationMs: 7000 },
     { type: "plan", headline: "Your personalised plan is ready", journeyTitle: "Qur'an Path", levelPill: "Level {level} · {levelLabel}", yourPlanLabel: "YOUR PLAN", minutesLabel: "per day", dateLabel: "your goal", rows: [
       { icon: "target", label: "Goal", text: "Understand every word of your prayer" },
-      { icon: "wrench", label: "What we fix", text: "{min}-minute lessons that fit in your day" },
+      { icon: "wrench", label: "Your pace", text: "{min}-minute lessons that fit in your day" },
       { icon: "bell", label: "Your reminder", text: "{when}" },
-      { icon: "layers", label: "Focus", text: "Vocabulary · Verses · Prayer" },
+      { icon: "layers", label: "On the programme", text: "The words of your prayer, then the verses" },
     ], cta: "Start my plan" },
     { type: "email", headline: "Get your personalised plan by email", sub: "We'll also send your reminder {when} to keep your routine.", placeholder: "you@email.com", cta: "Send me my plan", note: "No spam · unsubscribe in 1 click", skip: "Skip" },
     { type: "lesson", headline: "Your first lesson, right now", sub: "Three words you already recite. Find their meaning.", cards: [
       { arabic: "رَبِّ", translit: "Rabb", fr: "Lord", choices: ["Lord", "Light", "Path"] },
       { arabic: "ٱلرَّحِيمِ", translit: "ar-Rahîm", fr: "The Most Merciful", choices: ["The Almighty", "The Most Merciful", "The Creator"] },
       { arabic: "ٱلْحَمْدُ", translit: "al-hamd", fr: "Praise", choices: ["Prayer", "Praise", "Forgiveness"] },
-    ], doneHeadline: "You just understood 3 words of the Qur'an", doneSub: "497 to go. Keep the momentum.", cta: "Continue" },
+    ], doneHeadline: "You just understood 3 words of the Qur'an", doneSub: "497 more to discover.", cta: "Continue" },
   ],
   paywall: {
     badge: "Launch offer",
     title: "Unlock **all of Quranlab**, forever",
     subtitle: "One payment of {price}. Never a subscription.",
     perks: [
-      { icon: "unlock", title: "The 500 words = 85% of the Qur'an", text: "Every lesson, every level, unlocked immediately." },
-      { icon: "target", title: "Your personalised plan", text: "The path we just built together, ready to start." },
-      { icon: "layers", title: "Unlimited exercises", text: "Quizzes, anagrams, spaced repetition: you memorise without effort." },
+      { icon: "unlock", title: "The 500 words that make up 85% of the Qur'an", text: "Every lesson, every level, unlocked immediately." },
+      { icon: "target", title: "Your personalised plan", text: "The path we just built, set to your level." },
+      { icon: "layers", title: "Unlimited exercises", text: "Quizzes, anagrams and spaced reviews to make the words stick." },
       { icon: "bell", title: "Your daily reminder", text: "A little nudge {when} to keep your routine." },
     ],
     amountCents: 1499,
@@ -83,7 +83,7 @@ export const COMMENCER_EN: CommencerContent = {
     priceNote: "one time",
     urgency: "Launch price reserved for new learners. It will go up to €49 soon.",
     reassurance: "Secure payment · Instant access · 30-day guarantee",
-    cta: "Unlock lifetime access — €14.99",
+    cta: "Unlock lifetime access for €14.99",
     finePrint: "One-time payment of €14.99, charged once. No automatic renewal.",
     guaranteeTitle: "30-day guarantee",
     guaranteeText: "If you don't recognise more words in your prayer within 30 days, one email and you're refunded.",
@@ -104,7 +104,7 @@ export const COMMENCER_EN: CommencerContent = {
     reviewText: "Within days I recognise words in my prayer. And I only paid once.",
     reviewName: "Omar",
     footerPoints: ["One-time", "No subscription", "30-day guarantee"],
-    paymentMethods: "Card · Apple Pay · Google Pay — secure payment by Stripe",
+    paymentMethods: "Card, Apple Pay or Google Pay. Secure payment by Stripe.",
   },
   merci: {
     title: "Your lifetime access is active, barak Allah fik!",

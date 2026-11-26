@@ -11,9 +11,13 @@ import { track } from "@/lib/analytics/track";
 import type { CmStep, CommencerContent } from "@/lib/commencer-shared";
 import type { PaywallCurrency } from "@/lib/geo-currency";
 
+import { findInFatiha } from "@/lib/fatiha";
+import { SpeakButton } from "@/components/word-audio";
+
 import { ProgressChart, TimeChart } from "./charts";
+import { ConfettiBurst, CountUp, FxMuteButton, RewardBurst, StreakFlame, fx } from "./fx";
 import { Paywall } from "./paywall";
-import { AMIRI_CSS, AR_FONT, CM_UI, EMAIL_RE, Heading, Icon, IconBadge, OptionCard, P, PrimaryButton, RiveAnim, Shell, Stars, addDays, cascade, easeInOutCubic, fill, fmtShort, rich, useToday, type CmLocale } from "./ui";
+import { AMIRI_CSS, AR_FONT, CM_UI, Crop, EMAIL_RE, Heading, Icon, IconBadge, KOJI_CROP, KojiSays, OptionCard, P, PEDESTAL_CROP, PrimaryButton, RiveAnim, Shell, Stars, addDays, cascade, easeInOutCubic, fill, fmtShort, rich, useToday, type CmLocale, type CmUi } from "./ui";
 
 /* ------------------------------------------------------------------ */
 /* Types & transitions                                                  */
@@ -22,9 +26,10 @@ type Nav = { kind: "fade" | "push" | "dissolve"; dir: 1 | -1 };
 type Answers = Record<string, string[]>;
 type TimeChoice = { minutes: number; weeks: number };
 type Step<T extends CmStep["type"]> = Extract<CmStep, { type: T }>;
+export type Earned = { xp: number; words: number };
 
 const NO_BAR: CmStep["type"][] = ["splash", "welcome", "loader", "lesson", "bell"];
-const PUSHY: CmStep["type"][] = ["lesson", "bell"];
+const PUSHY: CmStep["type"][] = ["bell"];
 const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 const EASE_PUSH = [0.32, 0.72, 0, 1] as const;
 
@@ -45,14 +50,16 @@ const GLOBAL_CSS = `${AMIRI_CSS}
 .cm-bell{transform-origin:50% 6%;animation:cm-ring 2.2s ease-in-out infinite}
 .cm-bell-dot{transform-origin:center;transform-box:fill-box;animation:cm-pulse 2.2s ease-in-out infinite}
 .cm-shake{animation:cm-shake .45s ease-in-out}
+@keyframes cm-pop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.12);opacity:1}100%{transform:scale(1)}}
+.cm-pop{animation:cm-pop .4s cubic-bezier(.22,1,.36,1) both}
 .cm-input::placeholder{color:#999}
-@media (prefers-reduced-motion:reduce){.cm-bell,.cm-bell-dot,.cm-shake{animation:none}}
+@media (prefers-reduced-motion:reduce){.cm-bell,.cm-bell-dot,.cm-shake,.cm-pop{animation:none}}
 `;
 
 /* ------------------------------------------------------------------ */
 /* Main component                                                       */
 
-export function CommencerOnboarding({ content, initialStep, locale = "fr", currency = "EUR" }: { content: CommencerContent; initialStep?: "paywall"; locale?: CmLocale; currency?: PaywallCurrency }) {
+export function CommencerOnboarding({ content, initialStep, locale = "fr", currency = "EUR" }: { content: CommencerContent; initialStep?: string; locale?: CmLocale; currency?: PaywallCurrency }) {
   const ui = CM_UI[locale];
   // The old "trial" mockup screen is superseded by the interactive lesson.
   // The "bell" (trial reminder) screen is gone with the free trial.
@@ -61,11 +68,18 @@ export function CommencerOnboarding({ content, initialStep, locale = "fr", curre
   const reduce = useReducedMotion() ?? false;
   const today = useToday();
 
-  const [index, setIndex] = useState(initialStep === "paywall" ? steps.length : 0);
+  const [index, setIndex] = useState(() => {
+    if (!initialStep) return 0;
+    if (initialStep === "paywall") return steps.length;
+    if (/^\d+$/.test(initialStep)) return Math.min(steps.length, Number(initialStep));
+    const at = steps.findIndex((s) => s.type === initialStep || (s.type === "question" && `q_${s.id}` === initialStep));
+    return at >= 0 ? at : 0;
+  });
   const [nav, setNav] = useState<Nav>({ kind: "fade", dir: 1 });
   const [answers, setAnswers] = useState<Answers>({});
   const [time, setTime] = useState<TimeChoice | null>(null);
   const [email, setEmail] = useState("");
+  const [earned, setEarned] = useState<Earned | null>(null);
 
   const indexRef = useRef(index);
   useEffect(() => { indexRef.current = index; }, [index]);
@@ -93,6 +107,7 @@ export function CommencerOnboarding({ content, initialStep, locale = "fr", curre
     const pushy = (s: CmStep | null) => s === null || PUSHY.includes(s.type);
     const kind: Nav["kind"] = fromStep?.type === "splash" ? "dissolve" : pushy(fromStep) && pushy(toStep) ? "push" : "fade";
     setNav({ kind, dir: target > from ? 1 : -1 });
+    if (fromStep && fromStep.type !== "splash" && fromStep.type !== "loader") fx.next();
     setIndex(target);
   }, [steps, total]);
 
@@ -146,14 +161,16 @@ export function CommencerOnboarding({ content, initialStep, locale = "fr", curre
         {/* Header: back chevron + animated progress bar (outside the screen transitions so the bar tweens) */}
         <motion.div className="shrink-0 overflow-hidden" initial={false} animate={{ height: showHeader ? 52 : 0, opacity: showHeader ? 1 : 0 }} transition={{ duration: reduce ? 0 : 0.25 }} aria-hidden={!showHeader}>
           <div className="flex h-[52px] items-center gap-3 px-4">
-            <button type="button" onClick={back} aria-label="Retour" tabIndex={showHeader ? 0 : -1} className="-ml-1 flex h-9 w-9 items-center justify-center rounded-full" style={{ color: P.muted }}>
+            <button type="button" onClick={back} aria-label={ui.back} tabIndex={showHeader ? 0 : -1} className="-ml-1 flex h-9 w-9 items-center justify-center rounded-full" style={{ color: P.muted }}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M15 5l-7 7 7 7" /></svg>
             </button>
             {showBar && (
-              <div className="h-2 flex-1 overflow-hidden rounded-full bg-gray-200" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round((index / (total - 1)) * 100)}>
-                <motion.div className="h-full rounded-full" style={{ background: P.purple }} initial={false} animate={{ width: `${Math.max(2, (index / (total - 1)) * 100)}%` }} transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 170, damping: 18, mass: 0.8 }} />
+              <div className="h-2 flex-1 overflow-hidden rounded-full" style={{ background: "#EDEDED" }} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round((index / (total - 1)) * 100)}>
+                <motion.div className="h-full rounded-full" style={{ background: P.purple }} initial={false} animate={{ width: `${Math.max(4, (index / (total - 1)) * 100)}%` }} transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 170, damping: 20, mass: 0.8 }} />
               </div>
             )}
+            {!showBar && <span className="flex-1" />}
+            <FxMuteButton color="#C4C4C4" labelOn={ui.soundOn} labelOff={ui.soundOff} />
           </div>
         </motion.div>
 
@@ -162,9 +179,9 @@ export function CommencerOnboarding({ content, initialStep, locale = "fr", curre
           <AnimatePresence custom={nav} initial={false}>
             <motion.div key={index} custom={nav} variants={variants} initial="enter" animate="center" exit="exit" className="absolute inset-0 flex flex-col">
               {isPaywall ? (
-                <Paywall paywall={content.paywall} email={email} whenLabel={whenLabel} locale={locale} currency={currency} />
+                <Paywall paywall={content.paywall} email={email} whenLabel={whenLabel} locale={locale} currency={currency} earned={earned} />
               ) : (
-                <Screen ui={ui} step={step} answers={answers} setAnswer={setAnswer} time={time} setTime={setTime} goalDateLabel={goalDateLabel} onNext={go} onEmail={onEmail} level={level} levelLabel={levelLabel} minutes={minutes} whenLabel={whenLabel} arabic={splash?.arabic ?? "قُرْآن"} />
+                <Screen ui={ui} locale={locale} onEarned={setEarned} step={step} answers={answers} setAnswer={setAnswer} time={time} setTime={setTime} goalDateLabel={goalDateLabel} onNext={go} onEmail={onEmail} level={level} levelLabel={levelLabel} minutes={minutes} whenLabel={whenLabel} arabic={splash?.arabic ?? "قُرْآن"} />
               )}
             </motion.div>
           </AnimatePresence>
@@ -177,19 +194,19 @@ export function CommencerOnboarding({ content, initialStep, locale = "fr", curre
 /* ------------------------------------------------------------------ */
 /* Screen router                                                        */
 
-function Screen(props: { ui: (typeof CM_UI)[CmLocale]; step: CmStep; answers: Answers; setAnswer: (id: string, values: string[]) => void; time: TimeChoice | null; setTime: (t: TimeChoice) => void; goalDateLabel: string | null; onNext: () => void; onEmail: (email: string) => void; level: number; levelLabel: string; minutes: number; whenLabel: string; arabic: string }) {
+function Screen(props: { ui: CmUi; locale: CmLocale; onEarned: (e: Earned) => void; step: CmStep; answers: Answers; setAnswer: (id: string, values: string[]) => void; time: TimeChoice | null; setTime: (t: TimeChoice) => void; goalDateLabel: string | null; onNext: () => void; onEmail: (email: string) => void; level: number; levelLabel: string; minutes: number; whenLabel: string; arabic: string }) {
   const { step, onNext } = props;
   switch (step.type) {
     case "splash": return <SplashScreen step={step} onDone={onNext} />;
     case "welcome": return <WelcomeScreen step={step} onNext={onNext} />;
-    case "question": return <QuestionScreen cont={props.ui.continue} step={step} selected={props.answers[step.id] ?? []} onChange={(v) => props.setAnswer(step.id, v)} onNext={onNext} />;
+    case "question": return <QuestionScreen ui={props.ui} cont={props.ui.continue} step={step} selected={props.answers[step.id] ?? []} onChange={(v) => props.setAnswer(step.id, v)} onNext={onNext} />;
     case "chart": return <ChartScreen cont={props.ui.continue} step={step} onNext={onNext} />;
     case "time": return <TimeScreen cont={props.ui.continue} step={step} choice={props.time} onChoose={props.setTime} goalDateLabel={props.goalDateLabel} onNext={onNext} />;
-    case "email": return <EmailScreen step={step} whenLabel={props.whenLabel} onSubmit={props.onEmail} onSkip={onNext} />;
+    case "email": return <EmailScreen ui={props.ui} step={step} whenLabel={props.whenLabel} onSubmit={props.onEmail} onSkip={onNext} />;
     case "social": return <SocialScreen cont={props.ui.continue} step={step} onNext={onNext} />;
     case "loader": return <LoaderScreen step={step} onDone={onNext} />;
     case "plan": return <PlanScreen step={step} minutes={props.minutes} whenLabel={props.whenLabel} goalDateLabel={props.goalDateLabel} level={props.level} levelLabel={props.levelLabel} arabic={props.arabic} onNext={onNext} />;
-    case "lesson": return <LessonScreen step={step} onNext={onNext} />;
+    case "lesson": return <LessonScreen ui={props.ui} locale={props.locale} step={step} onNext={onNext} onEarned={props.onEarned} />;
     case "bell": return <BellScreen step={step} onNext={onNext} />;
     default: return null;
   }
@@ -244,7 +261,7 @@ function WelcomeScreen({ step, onNext }: { step: Step<"welcome">; onNext: () => 
       }
     >
       <motion.div className="h-52 w-52 sm:h-60 sm:w-60" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={d(0)}>
-        <OnboardingMascot phase="intro" />
+        <Crop box={KOJI_CROP}><OnboardingMascot phase="intro" /></Crop>
       </motion.div>
       <motion.p className="mt-2 font-heading text-[18px] font-bold" style={{ color: P.purple }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={d(0.2)}>
         {step.headline}
@@ -259,27 +276,36 @@ function WelcomeScreen({ step, onNext }: { step: Step<"welcome">; onNext: () => 
 /* ------------------------------------------------------------------ */
 /* Question — small Koji next to the title, "yup" on each pick          */
 
-function QuestionScreen({ cont, step, selected, onChange, onNext }: { cont: string; step: Step<"question">; selected: string[]; onChange: (v: string[]) => void; onNext: () => void }) {
+function QuestionScreen({ ui, cont, step, selected, onChange, onNext }: { ui: CmUi; cont: string; step: Step<"question">; selected: string[]; onChange: (v: string[]) => void; onNext: () => void }) {
   const reduce = useReducedMotion();
   const [replay, setReplay] = useState(0);
   const hasIcons = step.options.some((o) => o.icon);
+  // Koji's reply to the answer: specific to the question when we have one.
+  const reply = selected.length === 0 ? null
+    : ui.react[`${step.id}_${selected[0]}`] ?? ui.react[step.id] ?? ui.reactGeneric[step.headline.length % ui.reactGeneric.length];
   const pick = (id: string) => {
     setReplay((k) => k + 1);
+    fx.select();
     if (step.multi) {
       onChange(selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id]);
       return;
     }
-    // No auto-advance: the learner confirms with "Continuer" (a sudden jump
-    // to the next question was surprising).
+    // No auto-advance: the learner confirms with "Continuer".
     onChange([id]);
   };
   return (
     <Shell footer={<PrimaryButton onClick={onNext} disabled={selected.length === 0}>{step.cta ?? cont}</PrimaryButton>}>
-      <div className="flex items-center gap-2">
-        <div className="-ml-2 h-24 w-24 shrink-0 sm:h-28 sm:w-28"><OnboardingMascot phase="question" replayKey={replay} /></div>
-        <div className="min-w-0 flex-1"><Heading sub={step.sub}>{rich(step.headline)}</Heading></div>
-      </div>
-      <motion.div className={`${hasIcons ? "mt-5" : "mt-8"} flex flex-col gap-2.5`} role={step.multi ? "group" : "radiogroup"} variants={reduce ? undefined : cascade.container} initial="hidden" animate="show">
+      <KojiSays mascot={<OnboardingMascot phase="question" replayKey={replay} />}>
+        {/* Both lines stay in the flow so the bubble never changes height: the question, then Koji's reply. */}
+        <div className="grid" aria-live="polite">
+          <div className="col-start-1 row-start-1" style={{ opacity: reply ? 0 : 1, transition: reduce ? "none" : "opacity .2s ease-out" }} aria-hidden={!!reply}>
+            <h1 className="font-heading text-[18px] font-bold leading-snug" style={{ color: P.text, textWrap: "balance" as never }}>{rich(step.headline)}</h1>
+            {step.sub && <p className="mt-1 text-[13px] leading-snug" style={{ color: P.muted }}>{step.sub}</p>}
+          </div>
+          <p className="col-start-1 row-start-1 self-center font-heading text-[17px] font-bold leading-snug" style={{ color: P.text, opacity: reply ? 1 : 0, transform: reply || reduce ? "none" : "translateY(4px)", transition: reduce ? "none" : "opacity .22s ease-out .08s, transform .22s ease-out .08s", textWrap: "balance" as never }} aria-hidden={!reply}>{reply ?? ""}</p>
+        </div>
+      </KojiSays>
+      <motion.div className="mt-6 flex flex-col gap-3" role={step.multi ? "group" : "radiogroup"} aria-label={step.headline} variants={reduce ? undefined : cascade.container} initial="hidden" animate="show">
         {step.options.map((o) => <OptionCard key={o.id} label={o.label} icon={o.icon} selected={selected.includes(o.id)} onClick={() => pick(o.id)} center={!hasIcons} multi={step.multi} />)}
       </motion.div>
     </Shell>
@@ -313,7 +339,7 @@ function TimeScreen({ cont, step, choice, onChoose, goalDateLabel, onNext }: { c
         {step.options.map((o) => {
           const active = choice?.minutes === o.minutes && choice?.weeks === o.weeks;
           return (
-            <motion.button key={`${o.minutes}-${o.label}`} type="button" role="radio" aria-checked={active} variants={reduce ? undefined : cascade.item} whileTap={reduce ? undefined : { scale: 0.975 }} onClick={() => onChoose({ minutes: o.minutes, weeks: o.weeks })}
+            <motion.button key={`${o.minutes}-${o.label}`} type="button" role="radio" aria-checked={active} variants={reduce ? undefined : cascade.item} whileTap={reduce ? undefined : { scale: 0.975 }} onClick={() => { fx.select(); onChoose({ minutes: o.minutes, weeks: o.weeks }); }}
               className="flex items-center justify-center gap-2 text-[17px] font-bold" style={{ minHeight: 60, borderRadius: 18, border: `2px solid ${active ? P.purple : P.border}`, background: active ? P.purpleSoft : "#fff", color: P.text, boxShadow: active ? `0 2px 0 0 ${P.purpleLine}` : "0 2px 0 0 #EFEFEF", transition: "background-color .15s, border-color .15s" }}>
               <Icon name="timer" size={18} className={active ? "text-[#6967FB]" : "text-[#999]"} />{o.label}
             </motion.button>
@@ -327,7 +353,7 @@ function TimeScreen({ cont, step, choice, onChoose, goalDateLabel, onNext }: { c
 /* ------------------------------------------------------------------ */
 /* Email — asked AFTER the plan (to receive it), skip kept discreet     */
 
-function EmailScreen({ step, whenLabel, onSubmit, onSkip }: { step: Step<"email">; whenLabel: string; onSubmit: (email: string) => void; onSkip: () => void }) {
+function EmailScreen({ ui, step, whenLabel, onSubmit, onSkip }: { ui: CmUi; step: Step<"email">; whenLabel: string; onSubmit: (email: string) => void; onSkip: () => void }) {
   const [value, setValue] = useState("");
   const [invalid, setInvalid] = useState(false);
   const submit = (e: FormEvent) => {
@@ -355,7 +381,7 @@ function EmailScreen({ step, whenLabel, onSubmit, onSkip }: { step: Step<"email"
           <input type="email" inputMode="email" autoComplete="email" enterKeyHint="go" value={value} onChange={(e) => { setValue(e.target.value); setInvalid(false); }} placeholder={step.placeholder} aria-invalid={invalid || undefined}
             className="cm-input w-full px-4 text-[17px] outline-none" style={{ height: 56, borderRadius: 16, background: "#fff", border: `2px solid ${invalid ? P.danger : P.border}`, color: P.text }} />
         </label>
-        {invalid && <p className="mt-2 text-[13px]" style={{ color: P.danger }} role="alert">Adresse email invalide.</p>}
+        {invalid && <p className="mt-2 text-[13px]" style={{ color: P.danger }} role="alert">{ui.invalidEmail}</p>}
       </Shell>
     </form>
   );
@@ -429,10 +455,12 @@ function LoaderScreen({ step, onDone }: { step: Step<"loader">; onDone: () => vo
   }, [step.durationMs, onDone, reduce]);
   const captions = step.captions;
   const capIdx = captions.length === 0 ? -1 : Math.min(captions.length - 1, pct < 15 ? 0 : pct < 88 ? 1 : 2);
+  useEffect(() => { if (capIdx > 0) fx.tick(); }, [capIdx]);
+  useEffect(() => { if (pct === 100) fx.reward(); }, [pct]);
   const R = 88, C = 2 * Math.PI * R;
   return (
     <div className="flex h-full w-full flex-col items-center justify-center px-6 text-center text-white" style={{ background: P.purple }} role="status" aria-live="polite">
-      <motion.div className="h-32 w-32" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduce ? 0 : 0.5 }}><RiveAnim src="/animations/loading.riv" /></motion.div>
+      <motion.div className="h-32 w-32" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduce ? 0 : 0.5 }}><RiveAnim src="/animations/loading.riv" crop={KOJI_CROP} /></motion.div>
       <motion.h1 className="mt-2 max-w-xs font-heading text-[26px] font-bold leading-tight sm:text-[30px]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduce ? 0 : 0.5 }}>{rich(step.headline)}</motion.h1>
       <motion.div className="relative mt-8 h-[180px] w-[180px]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduce ? 0 : 0.5, delay: 0.1 }}>
         <svg viewBox="0 0 200 200" className="h-full w-full -rotate-90" aria-hidden>
@@ -453,8 +481,14 @@ function PlanScreen({ step, minutes, whenLabel, goalDateLabel, level, levelLabel
   const reduce = useReducedMotion();
   const w = (i: number) => (reduce ? { duration: 0 } : { delay: i * 0.25, duration: 0.5, ease: EASE_OUT });
   const vars = { min: minutes, when: whenLabel, level, levelLabel };
+  const [confetti, setConfetti] = useState(0);
+  useEffect(() => {
+    const t = window.setTimeout(() => { fx.win(); setConfetti(1); }, 250);
+    return () => window.clearTimeout(t);
+  }, []);
   return (
     <Shell footer={<PrimaryButton onClick={onNext}>{step.cta}</PrimaryButton>}>
+      <ConfettiBurst fireKey={confetti} originY="22%" />
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={w(0)}>
         <Heading align="center">{rich(step.headline)}</Heading>
         <div className="mt-6 flex flex-col items-center">
@@ -466,7 +500,7 @@ function PlanScreen({ step, minutes, whenLabel, goalDateLabel, level, levelLabel
         </div>
       </motion.div>
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={w(1)}>
-        <p className="mt-8 text-center text-[11px] font-bold uppercase tracking-[.18em]" style={{ color: P.muted }}>{step.yourPlanLabel}</p>
+        <p className="mt-8 text-center text-[11px] font-bold uppercase tracking-[.05em]" style={{ color: P.muted }}>{step.yourPlanLabel}</p>
         <div className="mt-4 grid grid-cols-2 gap-3">
           <Stat icon="timer" big={`${minutes} min`} small={step.minutesLabel} />
           <Stat icon="calendar-check" big={goalDateLabel ?? "…"} small={step.dateLabel} />
@@ -476,7 +510,7 @@ function PlanScreen({ step, minutes, whenLabel, goalDateLabel, level, levelLabel
             <div key={r.label} className="flex items-start gap-3 px-4 py-3.5" style={{ borderColor: P.border }}>
               <IconBadge name={r.icon} size={36} />
               <span className="min-w-0">
-                <span className="block text-[10px] font-bold uppercase tracking-[.16em]" style={{ color: P.muted }}>{r.label}</span>
+                <span className="block text-[10px] font-bold uppercase tracking-[.05em]" style={{ color: P.muted }}>{r.label}</span>
                 <span className="mt-1 block text-[15px] font-semibold leading-snug" style={{ color: P.text }}>{fill(r.text, vars)}</span>
               </span>
             </div>
@@ -502,15 +536,24 @@ function Stat({ icon, big, small }: { icon: string; big: string; small: string }
 /* ------------------------------------------------------------------ */
 /* Interactive lesson — the learner really does 3 cards before paying   */
 
-function LessonScreen({ step, onNext }: { step: Step<"lesson">; onNext: () => void }) {
+const OK_GREEN = "#1F9D4D";
+const OK_SOFT = "#E9F9EC";
+const BAD_RED = "#D93A3A";
+const BAD_SOFT = "#FDEEEE";
+
+function LessonScreen({ ui, locale, step, onNext, onEarned }: { ui: CmUi; locale: CmLocale; step: Step<"lesson">; onNext: () => void; onEarned: (e: Earned) => void }) {
   const reduce = useReducedMotion();
+  const L = ui.lesson;
   const cards = step.cards;
   const [i, setI] = useState(0);
   const [picked, setPicked] = useState<string | null>(null);
+  const [xp, setXp] = useState(0);
+  const [gain, setGain] = useState(10);
   const [okReplay, setOkReplay] = useState(0);
-  const [wrongKey, setWrongKey] = useState(0);
-  const timer = useRef<number | null>(null);
-  useEffect(() => () => { if (timer.current) window.clearTimeout(timer.current); }, []);
+  const [burst, setBurst] = useState(0);
+  const [confetti, setConfetti] = useState(0);
+  // After the last card: "lesson complete", then "streak started".
+  const [after, setAfter] = useState<"complete" | "streak">("complete");
   const done = i >= cards.length;
   const card = cards[i];
   const shuffled = useMemo(() => {
@@ -519,59 +562,184 @@ function LessonScreen({ step, onNext }: { step: Step<"lesson">; onNext: () => vo
     // Deterministic order per card (no Math.random → no hydration drift).
     return list.sort((a, b) => ((a.charCodeAt(0) * 31 + a.length * 7) % 97) - ((b.charCodeAt(0) * 31 + b.length * 7) % 97));
   }, [card]);
+  // Where the learner already says this word: its verse of Al-Fatiha.
+  const inFatiha = useMemo(() => (card ? findInFatiha(card.arabic) : null), [card]);
+  const allInFatiha = useMemo(() => cards.length > 0 && cards.every((c) => findInFatiha(c.arabic)), [cards]);
 
   const choose = (c: string) => {
     if (picked !== null || !card) return;
     setPicked(c);
-    const ok = c === card.fr;
-    if (ok) setOkReplay((k) => k + 1); else setWrongKey((k) => k + 1);
-    timer.current = window.setTimeout(() => { setPicked(null); setI((x) => x + 1); }, ok ? 800 : 1400);
+    if (c === card.fr) {
+      fx.correct();
+      setGain(10);
+      setXp((x) => x + 10);
+      setOkReplay((k) => k + 1);
+      setBurst((k) => k + 1);
+    } else {
+      // The word is still learned once the answer is shown: a smaller reward, never a penalty.
+      fx.wrong();
+      setGain(5);
+      setXp((x) => x + 5);
+    }
+  };
+  const next = () => {
+    fx.next();
+    setPicked(null);
+    setI((x) => x + 1);
   };
 
-  if (done || !card) {
+  useEffect(() => {
+    if (!done) return;
+    onEarned({ xp, words: cards.length });
+    const t = window.setTimeout(() => { fx.win(); setConfetti(1); }, 250);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [done]);
+
+  const rise = (d: number) => ({ initial: reduce ? false as const : { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 }, transition: reduce ? { duration: 0 } : { delay: d, duration: 0.45, ease: EASE_OUT } });
+
+  /* ---- Lesson complete: mascot on its pedestal, one number ---- */
+  if ((done || !card) && after === "complete") {
     return (
-      <Shell center align="center" footer={<PrimaryButton onClick={onNext}>{step.cta}</PrimaryButton>}>
-        <motion.div className="h-44 w-44" initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 300, damping: 20 }}>
-          <RiveAnim src="/animations/completed_lvl.riv" />
+      <Shell center align="center" footer={<PrimaryButton onClick={() => { fx.next(); setAfter("streak"); }}>{ui.continue}</PrimaryButton>}>
+        <ConfettiBurst fireKey={confetti} pieces={30} originY="34%" />
+        <motion.div className="h-56 w-56" initial={reduce ? false : { opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 260, damping: 22 }}>
+          <RiveAnim src="/animations/completed_lvl.riv" crop={PEDESTAL_CROP} />
         </motion.div>
-        <h1 className="mt-4 font-heading text-[28px] font-bold leading-tight sm:text-[32px]">{rich(step.doneHeadline)}</h1>
-        {step.doneSub && <p className="mt-3 text-[15px]" style={{ color: P.muted }}>{step.doneSub}</p>}
+        <motion.h1 className="mt-2 max-w-[22rem] font-heading text-[30px] font-extrabold leading-[1.12]" style={{ color: P.text, letterSpacing: "-0.02em", textWrap: "balance" as never }} {...rise(0.15)}>{rich(step.doneHeadline)}</motion.h1>
+        <motion.div className="mt-8" {...rise(0.35)}>
+          <p className="text-[12px] font-semibold uppercase" style={{ color: P.muted, letterSpacing: "0.05em" }}>{L.totalXp}</p>
+          <p className="mt-1 flex items-center justify-center gap-1.5 font-heading text-[56px] font-extrabold leading-none" style={{ color: P.text, letterSpacing: "-0.03em" }}>
+            <CountUp value={xp} duration={1000} />
+            <Icon name="sparkles" size={30} strokeWidth={2.25} duo className="text-[#6967FB]" />
+          </p>
+        </motion.div>
       </Shell>
     );
   }
 
-  const isRight = (c: string) => picked !== null && c === card.fr;
-  const isWrong = (c: string) => picked !== null && c === picked && c !== card.fr;
-  return (
-    <Shell>
-      <div className="flex items-center gap-2">
-        <div className="-ml-2 h-20 w-20 shrink-0"><OnboardingMascot phase="question" replayKey={okReplay} /></div>
-        <div className="min-w-0 flex-1"><Heading sub={step.sub}>{rich(step.headline)}</Heading></div>
-      </div>
-      <div className="mt-4 flex items-center justify-between text-[11px] font-bold uppercase tracking-[.16em]" style={{ color: P.muted }}>
-        <span>Mot {i + 1} / {cards.length}</span>
-        <span className="flex gap-1.5" aria-hidden>{cards.map((_, k) => <span key={k} className="h-1.5 w-6 rounded-full" style={{ background: k < i ? P.purple : k === i ? P.purpleLine : P.border }} />)}</span>
-      </div>
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.div key={i} className={`mt-4 rounded-3xl border-2 bg-white px-5 py-8 text-center ${picked && picked !== card.fr ? "cm-shake" : ""}`} style={{ borderColor: P.border, boxShadow: "0 2px 0 0 #EFEFEF" }} initial={{ opacity: 0, x: reduce ? 0 : 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: reduce ? 0 : -40 }} transition={{ duration: reduce ? 0 : 0.28, ease: EASE_OUT }} data-wrong={wrongKey}>
-          <p className="text-[11px] font-bold uppercase tracking-[.18em]" style={{ color: P.muted }}>Que veut dire</p>
-          <p lang="ar" dir="rtl" className="mt-2" style={{ fontFamily: AR_FONT, fontSize: 60, lineHeight: 2, color: P.text }}>{card.arabic}</p>
-          <p className="mt-2 text-[15px] italic" style={{ color: P.muted }}>{card.translit}</p>
+  /* ---- Streak started: the flame, the week, why it matters ---- */
+  if (done || !card) {
+    const todayIdx = (new Date().getDay() + 6) % 7; // Monday first
+    const dayLetter = (k: number) => new Intl.DateTimeFormat(locale === "en" ? "en-GB" : locale === "es" ? "es-ES" : "fr-FR", { weekday: "narrow" }).format(new Date(2024, 0, 1 + k)); // 1 Jan 2024 is a Monday
+    return (
+      <Shell center align="center" footer={<PrimaryButton onClick={onNext}>{step.cta}</PrimaryButton>}>
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-[60%]" style={{ background: "radial-gradient(60% 55% at 50% 38%, #FFF0DB 0%, rgba(255,240,219,0) 100%)" }} aria-hidden />
+        <StreakFlame className="relative h-48 w-48" />
+        <motion.p className="relative -mt-2 font-heading text-[64px] font-extrabold leading-none" style={{ color: "#F0641E", letterSpacing: "-0.03em" }} {...rise(0.35)}>1</motion.p>
+        <motion.p className="relative mt-1 text-[15px] font-semibold" style={{ color: "#C2570C" }} {...rise(0.4)}>{L.streakCount}</motion.p>
+        <motion.div className="relative mt-6 flex justify-center gap-2" {...rise(0.5)} aria-hidden>
+          {Array.from({ length: 7 }, (_, k) => (
+            <span key={k} className="flex w-9 flex-col items-center gap-1.5">
+              <span className="text-[12px] font-semibold uppercase" style={{ color: k === todayIdx ? "#C2570C" : P.muted }}>{dayLetter(k)}</span>
+              <span className="flex h-9 w-9 items-center justify-center rounded-full" style={k === todayIdx ? { background: "#FF8A1F", color: "#fff", boxShadow: "0 2px 0 0 #E0680A" } : { background: "#F3F3F3" }}>
+                {k === todayIdx && <Icon name="check" size={18} strokeWidth={3} />}
+              </span>
+            </span>
+          ))}
         </motion.div>
-      </AnimatePresence>
-      <div className="mt-4 flex flex-col gap-2.5" role="group" aria-label="Réponses">
-        {shuffled.map((c) => {
-          const right = isRight(c), wrong = isWrong(c);
-          return (
-            <button key={c} type="button" onClick={() => choose(c)} disabled={picked !== null} className="flex items-center justify-between px-4 text-left text-[16px] font-semibold"
-              style={{ minHeight: 58, borderRadius: 16, border: `2px solid ${right ? P.success : wrong ? P.danger : P.border}`, background: right ? P.successSoft : wrong ? "#FEF2F2" : "#fff", color: P.text, boxShadow: "0 2px 0 0 #EFEFEF", transition: "background-color .15s, border-color .15s" }}>
-              <span>{c}</span>
-              {right && <Icon name="check" size={20} className="text-[#22C55E]" strokeWidth={3} />}
-            </button>
-          );
-        })}
+        <motion.h1 className="relative mt-8 font-heading text-[26px] font-bold leading-[1.2]" style={{ color: P.text, letterSpacing: "-0.02em" }} {...rise(0.6)}>{L.streakTitle}</motion.h1>
+        <motion.p className="relative mt-2 max-w-[20rem] text-[16px] leading-normal" style={{ color: P.soft, textWrap: "pretty" as never }} {...rise(0.68)}>{allInFatiha ? rich(L.fact) : step.doneSub}</motion.p>
+      </Shell>
+    );
+  }
+
+  /* ---- A word to understand ---- */
+  const answered = picked !== null;
+  const ok = answered && picked === card.fr;
+  return (
+    <div className="relative flex h-full min-h-0 w-full flex-col">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-5 pb-44 pt-4">
+        {/* Progress: one segment per word, XP on the trailing edge */}
+        <div className="flex items-center gap-4">
+          <div className="flex flex-1 gap-1.5" role="progressbar" aria-valuemin={0} aria-valuemax={cards.length} aria-valuenow={i + (answered ? 1 : 0)}>
+            {cards.map((_, k) => <span key={k} className="h-2 flex-1 rounded-full" style={{ background: k < i || (k === i && answered) ? P.purple : "#EDEDED", transition: "background-color .25s ease-out" }} />)}
+          </div>
+          <span className="flex items-center gap-1 text-[15px] font-bold" style={{ color: P.text }}>
+            <Icon name="sparkles" size={17} strokeWidth={2.4} duo className="text-[#6967FB]" /><CountUp value={xp} duration={450} />
+          </span>
+        </div>
+
+        <div className="mt-6">
+          <KojiSays size={64} mascot={<OnboardingMascot phase="question" replayKey={okReplay} />}>
+            {i === 0 ? (
+              <>
+                <h1 className="font-heading text-[18px] font-bold leading-snug" style={{ color: P.text, textWrap: "balance" as never }}>{rich(step.headline)}</h1>
+                {step.sub && <p className="mt-1 text-[13px] leading-snug" style={{ color: P.muted }}>{step.sub}</p>}
+              </>
+            ) : (
+              <h1 className="font-heading text-[18px] font-bold leading-snug" style={{ color: P.text }}>{L.askNext}</h1>
+            )}
+          </KojiSays>
+        </div>
+
+        {/* The word. After the answer, its verse of Al-Fatiha unfolds underneath. */}
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div key={i} className={`relative mt-5 text-center ${answered && !ok ? "cm-shake" : ""}`} style={{ borderRadius: 24, background: "#F7F7FF" }} initial={{ opacity: 0, x: reduce ? 0 : 32 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: reduce ? 0 : -32 }} transition={{ duration: reduce ? 0 : 0.26, ease: EASE_OUT }}>
+            <div className="relative px-5 pb-5 pt-6">
+              <p lang="ar" dir="rtl" style={{ fontFamily: AR_FONT, fontSize: 60, lineHeight: 1.75, color: P.text }}>{card.arabic}</p>
+              <p className="text-[16px] italic" style={{ color: P.muted }}>{card.translit}</p>
+              <SpeakButton arabic={card.arabic} size="sm" className="absolute right-3 top-3 bg-white" />
+              <RewardBurst fireKey={burst} className="absolute -right-7 -top-9 h-28 w-28" />
+            </div>
+            <AnimatePresence initial={false}>
+              {answered && inFatiha && (
+                <motion.div className="overflow-hidden" initial={reduce ? false : { height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} transition={{ duration: reduce ? 0 : 0.32, ease: EASE_OUT, delay: reduce ? 0 : 0.15 }}>
+                  <div className="mx-5 border-t px-1 pb-5 pt-4" style={{ borderColor: "#E3E2FF" }}>
+                    <p lang="ar" dir="rtl" style={{ fontFamily: AR_FONT, fontSize: inFatiha.words.length > 5 ? 21 : 26, lineHeight: 1.9, color: "#6B6B7B" }}>
+                      {inFatiha.words.map((w, k) => (
+                        <span key={k}>{k > 0 ? " " : ""}<span style={k === inFatiha.index ? { color: P.purple, fontWeight: 700 } : undefined}>{w}</span></span>
+                      ))}
+                    </p>
+                    <p className="mt-1 text-[13px] leading-snug" style={{ color: P.muted, textWrap: "pretty" as never }}>
+                      <span className="font-semibold" style={{ color: P.soft }}>{fill(L.inFatiha, { n: inFatiha.verse.n })}</span> · {inFatiha.verse[locale]}
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        </AnimatePresence>
+
+        <div className="mt-5 flex flex-col gap-3" role="group" aria-label={L.answers}>
+          {shuffled.map((c) => {
+            const right = answered && c === card.fr;
+            const wrong = answered && c === picked && c !== card.fr;
+            return (
+              <motion.button key={`${i}-${c}`} type="button" disabled={answered} whileTap={reduce || answered ? undefined : { scale: 0.98 }} onClick={() => choose(c)} className="flex select-none items-center gap-3 px-4 text-left text-[16px]"
+                style={{
+                  minHeight: 60, borderRadius: 16, color: P.text, fontWeight: right ? 600 : 500,
+                  background: right ? "#F1FBF3" : wrong ? "#FEF5F5" : "#fff",
+                  boxShadow: right ? `inset 0 0 0 2px ${OK_GREEN}` : wrong ? `inset 0 0 0 2px ${BAD_RED}` : `inset 0 0 0 1.5px ${P.border}, 0 2px 0 0 #F0F0F0`,
+                  opacity: answered && !right && !wrong ? 0.45 : 1,
+                  transition: "background-color .16s ease-out, box-shadow .16s ease-out, opacity .2s ease-out",
+                }}>
+                <span className="flex-1 py-3 leading-snug">{c}</span>
+                {right && <span className="cm-pop flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full text-white" style={{ background: OK_GREEN }}><Icon name="check" size={13} strokeWidth={3.2} /></span>}
+              </motion.button>
+            );
+          })}
+        </div>
       </div>
-    </Shell>
+
+      {/* Feedback sheet: slides up once the learner has answered */}
+      <AnimatePresence>
+        {answered && (
+          <motion.div key={`sheet-${i}`} className="absolute inset-x-0 bottom-0 z-10 px-5 pb-[max(18px,env(safe-area-inset-bottom))] pt-4" style={{ background: ok ? OK_SOFT : BAD_SOFT, borderRadius: "24px 24px 0 0" }}
+            initial={reduce ? { opacity: 0 } : { y: "100%" }} animate={reduce ? { opacity: 1 } : { y: 0 }} exit={{ opacity: 0, transition: { duration: 0.12 } }} transition={{ type: "spring", stiffness: 420, damping: 36 }} aria-live="polite">
+            <div className="flex items-baseline justify-between gap-3">
+              <p className="font-heading text-[19px] font-extrabold" style={{ color: ok ? "#15803D" : "#B42323", letterSpacing: "-0.01em" }}>{ok ? L.right : L.almost}</p>
+              <p className="flex items-center gap-1 text-[14px] font-bold" style={{ color: ok ? "#15803D" : "#B42323" }}><Icon name="sparkles" size={15} strokeWidth={2.4} duo />+{gain} {L.xp}</p>
+            </div>
+            {!ok && <p className="mt-0.5 text-[15px] leading-snug" style={{ color: P.text }}><span style={{ color: P.soft }}>{L.answerWas}</span> <span className="font-semibold">{card.fr}</span></p>}
+            <button type="button" onClick={next} className="mt-3.5 w-full select-none text-[16px] font-bold text-white transition-[transform,box-shadow] duration-100 active:translate-y-[4px] active:!shadow-none"
+              style={{ height: 54, borderRadius: 16, background: ok ? "#22B455" : "#1E1E1E", boxShadow: `0 4px 0 0 ${ok ? "#16873E" : "#000"}` }}>
+              {ui.continue}
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 

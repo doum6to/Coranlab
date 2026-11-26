@@ -49,10 +49,11 @@ const ICONS: Record<IconKey, LucideIcon> = {
   bell: Bell, "credit-card": CreditCard, instagram: Instagram, youtube: Youtube, music: Music2, ghost: Ghost, shield: ShieldCheck,
 };
 
-export function Icon({ name, size = 20, className, strokeWidth = 2 }: { name?: string; size?: number; className?: string; strokeWidth?: number }) {
+export function Icon({ name, size = 20, className, strokeWidth = 2, duo }: { name?: string; size?: number; className?: string; strokeWidth?: number; duo?: boolean }) {
   const C = name && name in ICONS ? ICONS[name as IconKey] : null;
   if (!C) return null;
-  return <C size={size} strokeWidth={strokeWidth} className={className} aria-hidden />;
+  // Duotone: the same glyph, softly filled. Reads as an illustration rather than a UI glyph.
+  return <C size={size} strokeWidth={strokeWidth} className={className} aria-hidden {...(duo ? { fill: "currentColor", fillOpacity: 0.14 } : {})} />;
 }
 
 /** Round icon badge used in option cards, plan rows and the timeline. */
@@ -90,7 +91,7 @@ function withBreaks(text: string, keyBase: string): ReactNode[] {
 
 /** French typography: narrow no-break space before ? ! : ; » (and after «). */
 function nbsp(text: string): string {
-  return text.replace(/ ?([?!:;»])/g, " $1").replace(/(«) ?/g, "$1 ");
+  return text.replace(/ ?([?!:;»%])/g, " $1").replace(/(«) ?/g, "$1 ").replace(/(\d) (€|h|min)\b/g, "$1 $2");
 }
 
 /** `**mot**` → purple emphasis · `__mot__` → soft purple chip · Arabic → Amiri · `\n` → <br/>. */
@@ -120,7 +121,7 @@ const INTL: Record<string, string> = { fr: "fr-FR", en: "en-GB", es: "es-ES" };
 export const fmtShort = (d: Date, locale = "fr") => new Intl.DateTimeFormat(INTL[locale] ?? "fr-FR", { day: "numeric", month: "short" }).format(d);
 export const fmtLong = (d: Date, locale = "fr") => new Intl.DateTimeFormat(INTL[locale] ?? "fr-FR", { day: "numeric", month: "short", year: "numeric" }).format(d);
 
-export { CM_UI, type CmLocale } from "@/lib/commencer-ui";
+export { CM_UI, type CmLocale, type CmUi } from "@/lib/commencer-ui";
 
 /** `null` during SSR + first client render, then the client's "now". Hydration-safe. */
 export function useToday(): Date | null {
@@ -142,10 +143,30 @@ function RiveInner({ src, className }: { src: string; className?: string }) {
   return <RiveComponent className={className ?? "h-full w-full"} aria-hidden />;
 }
 /** Plays a .riv file (default animation). Server HTML = empty box → no hydration mismatch. */
-export function RiveAnim({ src, className }: { src: string; className?: string }) {
+export function RiveAnim({ src, className, crop }: { src: string; className?: string; crop?: CropBox }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  return <div className={className ?? "h-full w-full"}>{mounted && <RiveInner src={src} />}</div>;
+  return <div className={className ?? "h-full w-full"}>{mounted && (crop ? <Crop box={crop}><RiveInner src={src} /></Crop> : <RiveInner src={src} />)}</div>;
+}
+
+/**
+ * The mascot files are drawn on a frame far larger than the character (Koji
+ * fills about 40 % of it), so fitting the whole frame makes Koji look tiny.
+ * `Crop` zooms into the part of the frame that matters: `k` is the zoom,
+ * `cx`/`cy` the centre of the character in the frame (0–1).
+ */
+export type CropBox = { k: number; cx?: number; cy?: number };
+export const KOJI_CROP: CropBox = { k: 1.8, cx: 0.5, cy: 0.52 };
+export const PEDESTAL_CROP: CropBox = { k: 1.35, cx: 0.5, cy: 0.565 };
+export const FLAME_CROP: CropBox = { k: 1.45, cx: 0.5, cy: 0.55 };
+
+export function Crop({ box, children }: { box: CropBox; children: ReactNode }) {
+  const { k, cx = 0.5, cy = 0.5 } = box;
+  return (
+    <div className="relative h-full w-full overflow-hidden">
+      <div className="absolute" style={{ width: `${k * 100}%`, height: `${k * 100}%`, left: `${(0.5 - cx * k) * 100}%`, top: `${(0.5 - cy * k) * 100}%` }}>{children}</div>
+    </div>
+  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -189,36 +210,58 @@ export const cascade = {
 
 export function OptionCard({ label, icon, selected, onClick, center, multi }: { label: string; icon?: string; selected: boolean; onClick: () => void; center?: boolean; multi?: boolean }) {
   const reduce = useReducedMotion();
-  const [sweep, setSweep] = useState(0);
   return (
     <motion.button
       type="button"
       variants={reduce ? undefined : cascade.item}
-      whileTap={reduce ? undefined : { scale: 0.975 }}
-      onClick={() => { setSweep((k) => k + 1); onClick(); }}
+      whileTap={reduce ? undefined : { scale: 0.98 }}
+      onClick={onClick}
       role={multi ? "checkbox" : "radio"}
       aria-checked={selected}
-      className={`relative flex w-full items-center gap-3.5 overflow-hidden px-4 text-left ${center ? "justify-center" : ""}`}
+      className={`relative flex w-full select-none items-center gap-3.5 px-4 text-left ${center ? "justify-center" : ""}`}
       style={{
-        minHeight: 66, borderRadius: 18,
-        border: `2px solid ${selected ? P.purple : P.border}`,
-        background: selected ? P.purpleSoft : "#fff",
+        minHeight: 62, borderRadius: 16,
+        background: selected ? "#F5F5FF" : "#fff",
         color: P.text,
-        boxShadow: selected ? `0 2px 0 0 ${P.purpleLine}` : "0 2px 0 0 #EFEFEF",
-        transition: "background-color .15s, border-color .15s, box-shadow .15s",
+        // Ring drawn with shadows so selecting never shifts the layout.
+        boxShadow: selected ? `inset 0 0 0 2px ${P.purple}, 0 2px 0 0 ${P.purpleLine}` : `inset 0 0 0 1.5px ${P.border}, 0 2px 0 0 #F0F0F0`,
+        transition: "background-color .16s ease-out, box-shadow .16s ease-out",
       }}
     >
-      {icon && <IconBadge name={icon} active={selected} />}
-      <span className={`relative z-10 flex-1 py-3 text-[16px] font-semibold leading-snug ${center ? "text-center" : ""}`}>{label}</span>
+      {icon && <span className="flex w-7 shrink-0 justify-center" style={{ color: selected ? P.purple : "#7A79E8" }}><Icon name={icon} size={24} strokeWidth={1.75} duo /></span>}
+      <span className={`flex-1 py-3 text-[16px] leading-snug ${selected ? "font-semibold" : "font-medium"} ${center ? "text-center" : ""}`}>{label}</span>
       {multi && (
-        <span className="relative z-10 flex h-6 w-6 shrink-0 items-center justify-center rounded-full" style={{ border: `2px solid ${selected ? P.purple : P.border}`, background: selected ? P.purple : "#fff", color: "#fff", transition: "background-color .15s" }} aria-hidden>
-          {selected && <CheckIcon size={14} strokeWidth={3} />}
+        <span className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full" style={{ boxShadow: selected ? "none" : `inset 0 0 0 1.5px #D4D4D4`, background: selected ? P.purple : "#fff", color: "#fff", transition: "background-color .16s ease-out" }} aria-hidden>
+          {selected && <CheckIcon size={13} strokeWidth={3.2} />}
         </span>
       )}
-      {selected && !reduce && (
-        <span key={sweep} aria-hidden className="pointer-events-none absolute inset-0 z-[1] animate-shiny-sweep-once" style={{ background: "linear-gradient(115deg, rgba(255,255,255,0) 35%, rgba(255,255,255,.7) 50%, rgba(255,255,255,0) 65%)" }} />
-      )}
     </motion.button>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Koji speaks: the mascot with a speech bubble (question, then reply)   */
+
+export function Bubble({ children, tail = "left", className }: { children: ReactNode; tail?: "left" | "bottom" | "none"; className?: string }) {
+  return (
+    <div className={`relative ${className ?? ""}`} style={{ background: "#F7F7FF", borderRadius: 18, boxShadow: "inset 0 0 0 1.5px #DCDBFF" }}>
+      {tail !== "none" && (
+        <svg width="14" height="16" viewBox="0 0 14 16" className={`absolute ${tail === "left" ? "-left-[11px] top-1/2 -translate-y-1/2" : "-bottom-[11px] left-1/2 -translate-x-1/2 -rotate-90"}`} aria-hidden>
+          <path d="M13 1.5 2.6 7.1a1 1 0 0 0 0 1.8L13 14.5" fill="#F7F7FF" stroke="#DCDBFF" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+        </svg>
+      )}
+      <div className="relative px-4 py-3.5">{children}</div>
+    </div>
+  );
+}
+
+/** Mascot on the left, bubble on the right. `mascot` is the Rive element. */
+export function KojiSays({ mascot, children, size = 76 }: { mascot: ReactNode; children: ReactNode; size?: number }) {
+  return (
+    <div className="flex items-center gap-3.5">
+      <div className="shrink-0" style={{ width: size, height: size }}><Crop box={KOJI_CROP}>{mascot}</Crop></div>
+      <Bubble className="min-w-0 flex-1">{children}</Bubble>
+    </div>
   );
 }
 
