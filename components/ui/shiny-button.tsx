@@ -8,6 +8,12 @@ type ShinyButtonProps = {
   onClick?: () => void;
   type?: "button" | "submit" | "reset";
   variant?: "green" | "gray" | "outline-green" | "yellow" | "dark";
+  /**
+   * "span" draws the same button without being one: for a label that sits inside a link or
+   * another button, which already carries the action (a button nested in a button or a link
+   * is invalid HTML and breaks React's hydration).
+   */
+  as?: "button" | "span";
 };
 
 export const ShinyButton = ({
@@ -17,16 +23,18 @@ export const ShinyButton = ({
   onClick,
   type = "button",
   variant = "green",
+  as = "button",
 }: ShinyButtonProps) => {
   const uid = useId();
 
+  const Tag = as;
+  const own = as === "button" ? { type, onClick, disabled } : {};
+
   return (
-    <button
-      type={type}
-      onClick={onClick}
-      disabled={disabled}
+    <Tag
+      {...own}
       className={cn(
-        "relative w-full font-bold text-sm overflow-hidden rounded-2xl transition-[transform,box-shadow] duration-100 will-change-transform",
+        "relative block w-full text-center font-bold text-sm overflow-hidden rounded-2xl transition-[transform,box-shadow] duration-100 will-change-transform",
         !disabled && "active:translate-y-[4px] active:!shadow-none",
         variant === "green" &&
           "bg-[#6967fb] text-white shadow-[0_4px_0_0_#4a48d4]",
@@ -43,14 +51,14 @@ export const ShinyButton = ({
       )}
     >
       {/* Text layer */}
-      <div className="px-5 py-3">
+      <span className="block px-5 py-3">
         <span className="relative z-10">{children}</span>
-      </div>
+      </span>
 
       {/* Animated shiny diagonal streaks — original Brilliant shape */}
       {variant !== "gray" && (
-        <div
-          className="absolute inset-0 z-[1] pointer-events-none animate-shiny-sweep"
+        <span
+          className="absolute inset-0 z-[1] block pointer-events-none animate-shiny-sweep"
         >
           <svg
             viewBox="0 0 150 56"
@@ -92,8 +100,8 @@ export const ShinyButton = ({
               />
             </g>
           </svg>
-        </div>
+        </span>
       )}
-    </button>
+    </Tag>
   );
 };

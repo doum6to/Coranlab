@@ -1,5 +1,6 @@
 import { Sidebar } from "@/components/sidebar";
 import { MobileHeader } from "@/components/mobile-header";
+import { BottomNav } from "@/components/bottom-nav";
 import { RivePreloads } from "@/components/rive-preloads";
 import { PageReveal } from "@/components/ui/page-reveal";
 import { getUserProgress, getUserSubscription, getStreakData } from "@/db/queries";
@@ -35,11 +36,7 @@ const MainLayout = async ({
   return (
     <LocaleProvider locale={locale}>
       <RivePreloads />
-      <MobileHeader
-        streak={userProgress?.streak}
-        isPro={isPro}
-        hasArabicCourse={hasArabicCourse}
-      />
+      <MobileHeader streak={userProgress?.streak} isPro={isPro} />
       <Sidebar
         className="hidden lg:flex"
         streak={userProgress?.streak}
@@ -48,11 +45,14 @@ const MainLayout = async ({
         streakData={streakData}
         hasArabicCourse={hasArabicCourse}
       />
+      {/* On phones the page ends above the floating tab bar */}
       <main className="lg:pl-[256px] h-full pt-[50px] lg:pt-0 bg-white">
         <div className="max-w-[1056px] mx-auto pt-4 sm:pt-6 h-full">
           <PageReveal>{children}</PageReveal>
+          <div className="h-[calc(88px+env(safe-area-inset-bottom))] lg:hidden" aria-hidden />
         </div>
       </main>
+      <BottomNav />
     </LocaleProvider>
   );
 };

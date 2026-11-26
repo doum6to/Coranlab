@@ -122,7 +122,9 @@ export const ListCard = ({
       </div>
 
       {/* CTA Button — shiny style */}
+      {/* Drawn as a button, but the whole card is the link (or the button) */}
       <ShinyButton
+        as="span"
         variant={isPremiumLocked ? "dark" : locked ? "gray" : completed ? "outline-green" : "green"}
         disabled={locked && !isPremiumLocked}
       >

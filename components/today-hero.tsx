@@ -18,6 +18,8 @@ export type NextLesson = {
   listTitle: string;
   unitTitle: string;
   started: boolean;
+  /** The list is reserved to Premium and the learner is not: the card leads to the offer. */
+  locked?: boolean;
 };
 
 type Props = { streakData: StreakData; next: NextLesson | null };
@@ -56,9 +58,9 @@ export function TodayHero({ streakData, next }: Props) {
               </div>
               <span className="shrink-0 text-[0.8125rem] font-semibold text-brilliant-text" style={{ fontVariantNumeric: "tabular-nums" }}>{tpl(t.home.levelCount, { n: next.level, total: next.levels })}</span>
             </div>
-            <Link href={`/lesson/${next.lessonId}`} className="mt-5 block" prefetch>
-              <ShinyButton variant="green" className="text-base">
-                <span className="block py-1">{doneToday ? t.home.another : next.started ? t.home.continue : t.home.start}</span>
+            <Link href={next.locked ? "/premium" : `/lesson/${next.lessonId}`} className="mt-5 block" prefetch>
+              <ShinyButton as="span" variant="green" className="text-base">
+                <span className="block py-1">{next.locked ? t.home.linkPremium : doneToday ? t.home.another : next.started ? t.home.continue : t.home.start}</span>
               </ShinyButton>
             </Link>
           </>

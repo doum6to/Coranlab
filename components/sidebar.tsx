@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 
-import { GraduationCap } from "lucide-react";
+import { Flame, GraduationCap } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n/use-t";
@@ -44,9 +44,9 @@ export const Sidebar = ({ className, streak, isPro, hasActiveSubscription, strea
       {/* Streak */}
       {streak !== undefined && (
         <div className="flex items-center justify-center px-2 py-3 mb-2 rounded-xl bg-gray-50">
-          <div className="flex items-center gap-x-1.5 text-brilliant-orange">
-            <Image src="/points.svg" height={22} width={22} alt="Streak" />
-            <span className="text-sm font-bold">{streak}</span>
+          <div className="flex items-center gap-x-1.5">
+            <Flame className="h-[22px] w-[22px]" style={{ color: streak > 0 ? "#FF7A1A" : "#B9B9C3" }} strokeWidth={2.4} fill="currentColor" fillOpacity={0.18} aria-hidden />
+            <span className="text-sm font-bold text-brilliant-text" style={{ fontVariantNumeric: "tabular-nums" }}>{streak}</span>
           </div>
         </div>
       )}
