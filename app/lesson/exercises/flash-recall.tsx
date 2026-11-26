@@ -4,8 +4,7 @@ import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { challengeOptions, challenges } from "@/db/schema";
 import { useT } from "@/lib/i18n/use-t";
-import { Translit } from "@/components/translit";
-import { useAutoPlayWord } from "@/components/word-audio";
+import { AFTER_ANSWER_MS, useAutoPlayWord } from "@/components/word-audio";
 
 type Props = {
   challenge: typeof challenges.$inferSelect;
@@ -25,8 +24,8 @@ export const FlashRecall = ({
   disabled,
 }: Props) => {
   const t = useT();
-  // Heard once while it is on screen: the ear helps the memory.
-  useAutoPlayWord(challenge.arabicWord);
+  // Read out once the answer is given (before, the sound would give it away).
+  useAutoPlayWord(challenge.arabicWord, status !== "none", false, AFTER_ANSWER_MS);
   const [phase, setPhase] = useState<"show" | "fade" | "answer">("show");
 
   useEffect(() => {
@@ -44,7 +43,7 @@ export const FlashRecall = ({
       {/* Arabic word — visible briefly then fades */}
       <div
         className={cn(
-          "flex flex-col items-center justify-center p-4 sm:p-6 bg-white rounded-2xl border-2 border-[#E0E0E0] w-full max-w-[280px] transition-all duration-500",
+          "flex items-center justify-center p-4 sm:p-6 bg-white rounded-2xl border-2 border-[#E0E0E0] w-full max-w-[280px] transition-all duration-500",
           phase === "show" && "opacity-100 scale-100",
           phase === "fade" && "opacity-0 scale-95",
           phase === "answer" && "opacity-0 scale-95 h-0 p-0 border-0 overflow-hidden"
@@ -54,7 +53,6 @@ export const FlashRecall = ({
         <span className="font-arabic text-3xl sm:text-5xl text-brilliant-text" dir="rtl">
           {challenge.arabicWord}
         </span>
-        <Translit arabic={challenge.arabicWord} className="mt-1 text-sm" />
       </div>
 
       {/* Timer / prompt */}

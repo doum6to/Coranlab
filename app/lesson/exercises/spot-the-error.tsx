@@ -4,7 +4,6 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { challengeOptions, challenges } from "@/db/schema";
 import { useT } from "@/lib/i18n/use-t";
-import { playWord } from "@/components/word-audio";
 import { Translit } from "@/components/translit";
 
 type Props = {
@@ -34,7 +33,6 @@ export const SpotTheError = ({
   const handleSelect = (optionId: number) => {
     if (disabled || status !== "none") return;
     setSelectedId(optionId);
-    void playWord(options.find((o) => o.id === optionId)?.arabicText);
   };
 
   const handleVerify = () => {
@@ -106,7 +104,7 @@ export const SpotTheError = ({
               <span className="font-arabic text-lg sm:text-xl text-brilliant-text" dir="rtl">
                 {option.arabicText}
               </span>
-              <Translit arabic={option.arabicText} className="text-[10px] sm:text-xs" />
+              <Translit arabic={option.arabicText} className="text-[10px] sm:text-xs" reveal={status !== "none"} />
             </span>
             <span className="text-xs sm:text-sm text-gray-500 mx-2">=</span>
             <span className="text-xs sm:text-sm font-semibold text-brilliant-text text-right flex-1">

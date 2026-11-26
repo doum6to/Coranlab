@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import { challengeOptions, challenges } from "@/db/schema";
 import { Translit } from "@/components/translit";
-import { SpeakButton, useAutoPlayWord } from "@/components/word-audio";
+import { AFTER_ANSWER_MS, SpeakButton, useAutoPlayWord } from "@/components/word-audio";
 import { useT } from "@/lib/i18n/use-t";
 
 type Props = {
@@ -24,7 +24,9 @@ export const Opposite = ({
   disabled,
 }: Props) => {
   const t = useT();
-  useAutoPlayWord(challenge.arabicWord);
+  // The reading aids (phonetics, voice) come once the answer is given: before, they would give it away.
+  const answered = status !== "none";
+  useAutoPlayWord(challenge.arabicWord, answered, false, AFTER_ANSWER_MS);
   return (
     <div className="flex flex-col items-center gap-3 sm:gap-6">
       {/* Arabic word */}
@@ -35,8 +37,8 @@ export const Opposite = ({
         <span className="font-arabic text-3xl sm:text-4xl text-brilliant-text" dir="rtl">
           {challenge.arabicWord}
         </span>
-        <Translit arabic={challenge.arabicWord} className="mt-1 text-sm" />
-        <SpeakButton arabic={challenge.arabicWord} size="sm" className="absolute left-2 top-2" />
+        <Translit arabic={challenge.arabicWord} className="mt-1 text-sm" reveal={answered} />
+        {answered && <SpeakButton arabic={challenge.arabicWord} size="sm" className="absolute left-2 top-2" />}
       </div>
 
       {/* Instruction */}

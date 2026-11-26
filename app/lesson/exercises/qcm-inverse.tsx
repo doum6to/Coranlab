@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { challengeOptions, challenges } from "@/db/schema";
-import { SpeakButton, playWord, useAutoPlayWord } from "@/components/word-audio";
+import { AFTER_ANSWER_MS, SpeakButton, useAutoPlayWord } from "@/components/word-audio";
 import { listenWord } from "@/lib/word-audio";
 import { useT } from "@/lib/i18n/use-t";
 import { Translit } from "@/components/translit";
@@ -28,9 +28,11 @@ export const QCMInverse = ({
   listen = false,
 }: Props) => {
   const t = useT();
-  const heard = listen ? listenWord({ ...challenge, challengeOptions: options }) : null;
-  useAutoPlayWord(heard, listen, true);
-  const hidden = listen && status === "none";
+  const answered = status !== "none";
+  // The word of the right answer: the question itself in the listening variant, read out after the answer otherwise.
+  const heard = listenWord({ ...challenge, challengeOptions: options });
+  useAutoPlayWord(heard, listen || answered, listen, listen ? 250 : AFTER_ANSWER_MS);
+  const hidden = listen && !answered;
   return (
     <div className="flex flex-col items-center gap-3 sm:gap-6">
       {/* French translation display */}
@@ -57,11 +59,7 @@ export const QCMInverse = ({
         {options.map((option, i) => (
           <button
             key={option.id}
-            onClick={() => {
-              // Hearing an option would give the answer away in the listening variant.
-              if (!listen && status === "none") void playWord(option.arabicText || option.text);
-              onSelect(option.id);
-            }}
+            onClick={() => onSelect(option.id)}
             disabled={disabled}
             className={cn(
               "h-12 sm:h-16 px-4 rounded-2xl border-2 transition flex items-center gap-3",
@@ -96,7 +94,7 @@ export const QCMInverse = ({
               <span className="font-arabic text-xl sm:text-2xl text-brilliant-text" dir="rtl">
                 {option.arabicText || option.text}
               </span>
-              <Translit arabic={option.arabicText || option.text} className="text-[10px] sm:text-xs" />
+              <Translit arabic={option.arabicText || option.text} className="text-[10px] sm:text-xs" reveal={answered} />
             </span>
           </button>
         ))}

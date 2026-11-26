@@ -61,16 +61,36 @@ function polish(file: string) {
   renameSync(tmp, file);
 }
 
+const HEADERS = { "xi-api-key": API_KEY || "injected-by-proxy", "content-type": "application/json" };
+// Some models refuse an explicit language: dropped on the first refusal.
+let sendLanguage = true;
+
+/** Stops early, with the list of valid ids, when the model name is not one the account can use. */
+async function checkModel() {
+  const res = await fetch("https://api.elevenlabs.io/v1/models", { headers: HEADERS });
+  if (res.status === 401) throw new Error("ElevenLabs refuse la clé (401). Vérifie ELEVENLABS_API_KEY.");
+  if (!res.ok) return; // the list is a convenience: let the first synthesis report any real problem
+  const models = (await res.json()) as { model_id: string; can_do_text_to_speech?: boolean }[];
+  const ids = models.filter((m) => m.can_do_text_to_speech !== false).map((m) => m.model_id);
+  if (ids.length && !ids.includes(MODEL)) {
+    throw new Error(`Le modèle "${MODEL}" n'existe pas sur ce compte. Modèles disponibles : ${ids.join(", ")}. Relance avec ELEVENLABS_MODEL=<id>.`);
+  }
+}
+
 async function synthesize(text: string): Promise<Buffer> {
   const url = `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}?output_format=mp3_44100_128`;
   for (let attempt = 1; ; attempt++) {
     const res = await fetch(url, {
       method: "POST",
-      headers: { "xi-api-key": API_KEY || "injected-by-proxy", "content-type": "application/json", accept: "audio/mpeg" },
-      body: JSON.stringify({ text, model_id: MODEL, language_code: "ar" }),
+      headers: { ...HEADERS, accept: "audio/mpeg" },
+      body: JSON.stringify({ text, model_id: MODEL, ...(sendLanguage ? { language_code: "ar" } : {}) }),
     });
     if (res.ok) return Buffer.from(await res.arrayBuffer());
     const body = (await res.text()).slice(0, 300);
+    if (sendLanguage && (res.status === 400 || res.status === 422) && /language/i.test(body)) {
+      sendLanguage = false;
+      continue;
+    }
     // Rate limit or a busy server: wait and retry. Anything else is a real error.
     if ((res.status === 429 || res.status >= 500) && attempt < 5) {
       await new Promise((r) => setTimeout(r, 2000 * attempt));
@@ -82,6 +102,7 @@ async function synthesize(text: string): Promise<Buffer> {
 
 async function main() {
   if (!DRY_RUN && !VOICE_ID) throw new Error("ELEVENLABS_VOICE_ID is required.");
+  if (!DRY_RUN) await checkModel();
   mkdirSync(OUT_DIR, { recursive: true });
 
   const manifest: Record<string, string> = existsSync(MANIFEST) ? JSON.parse(readFileSync(MANIFEST, "utf8")) : {};

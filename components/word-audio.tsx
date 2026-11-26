@@ -119,14 +119,17 @@ function useIsPlaying(arabic: string | null | undefined) {
  * the learner switched the sound off. `force` ignores that preference: used by
  * listening exercises, which only exist while the sound is on anyway.
  */
-export function useAutoPlayWord(arabic: string | null | undefined, enabled = true, force = false) {
+export function useAutoPlayWord(arabic: string | null | undefined, enabled = true, force = false, delayMs = 250) {
   const soundOn = useWordSoundOn();
   useEffect(() => {
     if (!enabled || !arabic || (!soundOn && !force)) return;
-    const id = window.setTimeout(() => { void playWord(arabic); }, 250);
+    const id = window.setTimeout(() => { void playWord(arabic); }, delayMs);
     return () => window.clearTimeout(id);
-  }, [arabic, enabled, soundOn, force]);
+  }, [arabic, enabled, soundOn, force, delayMs]);
 }
+
+/** Delay for a word read aloud right after an answer: lets the right/wrong sound finish first. */
+export const AFTER_ANSWER_MS = 650;
 
 /* ───────────────────────────── Buttons ────────────────────────────── */
 
