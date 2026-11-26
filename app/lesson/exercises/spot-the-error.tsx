@@ -4,6 +4,8 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { challengeOptions, challenges } from "@/db/schema";
 import { useT } from "@/lib/i18n/use-t";
+import { playWord } from "@/components/word-audio";
+import { Translit } from "@/components/translit";
 
 type Props = {
   challenge: typeof challenges.$inferSelect;
@@ -32,6 +34,7 @@ export const SpotTheError = ({
   const handleSelect = (optionId: number) => {
     if (disabled || status !== "none") return;
     setSelectedId(optionId);
+    void playWord(options.find((o) => o.id === optionId)?.arabicText);
   };
 
   const handleVerify = () => {
@@ -99,8 +102,11 @@ export const SpotTheError = ({
                 : "0 4px 0 0 #D4D4D4",
             }}
           >
-            <span className="font-arabic text-lg sm:text-xl text-brilliant-text" dir="rtl">
-              {option.arabicText}
+            <span className="flex flex-col items-center leading-none">
+              <span className="font-arabic text-lg sm:text-xl text-brilliant-text" dir="rtl">
+                {option.arabicText}
+              </span>
+              <Translit arabic={option.arabicText} className="text-[10px] sm:text-xs" />
             </span>
             <span className="text-xs sm:text-sm text-gray-500 mx-2">=</span>
             <span className="text-xs sm:text-sm font-semibold text-brilliant-text text-right flex-1">

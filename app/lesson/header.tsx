@@ -2,6 +2,9 @@ import { X } from "lucide-react";
 
 import { Progress } from "@/components/ui/progress";
 import { useExitModal } from "@/store/use-exit-modal";
+import { WordSoundToggle } from "@/components/word-audio";
+import { TranslitToggle } from "@/components/translit";
+import { hasAnyWordAudio } from "@/lib/word-audio";
 
 type Props = {
   hearts: number;
@@ -23,6 +26,10 @@ export const Header = ({
         className="text-brilliant-muted hover:opacity-75 transition cursor-pointer shrink-0"
       />
       <Progress value={percentage} />
+      <div className="-ml-2 flex shrink-0 items-center sm:-ml-4">
+        <TranslitToggle />
+        {hasAnyWordAudio && <WordSoundToggle />}
+      </div>
     </header>
   );
 };

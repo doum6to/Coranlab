@@ -6,6 +6,8 @@ import { challengeOptions } from "@/db/schema";
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { useT } from "@/lib/i18n/use-t";
 import { tpl } from "@/lib/i18n/locales";
+import { SpeakButton, playWord } from "@/components/word-audio";
+import { Translit } from "@/components/translit";
 
 type Props = {
   options: typeof challengeOptions.$inferSelect[];
@@ -126,17 +128,19 @@ export const Flashcard = ({ options, onComplete, disabled }: Props) => {
                 "card-flip aspect-[4/3] cursor-pointer",
                 currentChunk.length === 1 && "w-1/2"
               )}
-              onClick={() => toggleFlip(idx)}
+              onClick={() => { void playWord(pair.arabicText); toggleFlip(idx); }}
             >
               <div className={cn(
                 "card-flip-inner w-full h-full relative",
                 flippedCards.has(idx) && "flipped"
               )}>
                 <div
-                  className="card-flip-front absolute inset-0 flex items-center justify-center bg-white border-2 border-[#E0E0E0] rounded-2xl p-3"
+                  className="card-flip-front absolute inset-0 flex flex-col items-center justify-center bg-white border-2 border-[#E0E0E0] rounded-2xl p-3"
                   style={{ boxShadow: "0 4px 0 0 #D4D4D4" }}
                 >
                   <span className="arabic-text text-brilliant-text">{pair.arabicText}</span>
+                  <Translit arabic={pair.arabicText} className="mt-1" />
+                  <SpeakButton arabic={pair.arabicText} size="sm" className="absolute left-2 top-2" />
                 </div>
                 <div
                   className="card-flip-back absolute inset-0 flex items-center justify-center bg-[#f0f0ff] border-2 border-[#6967FB]/30 rounded-2xl p-3"
@@ -169,7 +173,7 @@ export const Flashcard = ({ options, onComplete, disabled }: Props) => {
           {currentChunk.map((pair) => (
             <button
               key={`ar-${pair.id}`}
-              onClick={() => handleArabicClick(pair.pairIndex!)}
+              onClick={() => { void playWord(pair.arabicText); handleArabicClick(pair.pairIndex!); }}
               disabled={matchedPairs.has(pair.pairIndex!)}
               className={cn(
                 "h-11 sm:h-16 flex items-center justify-center rounded-2xl border-2 transition",
@@ -184,8 +188,11 @@ export const Flashcard = ({ options, onComplete, disabled }: Props) => {
                   selectedArabic === pair.pairIndex ? "none" : "0 4px 0 0 #D4D4D4"
               }}
             >
-              <span className="font-arabic text-xl sm:text-2xl text-brilliant-text" dir="rtl">
-                {pair.arabicText}
+              <span className="flex flex-col items-center leading-none">
+                <span className="font-arabic text-xl sm:text-2xl text-brilliant-text" dir="rtl">
+                  {pair.arabicText}
+                </span>
+                <Translit arabic={pair.arabicText} className="text-[10px] sm:text-xs" />
               </span>
             </button>
           ))}

@@ -4,6 +4,8 @@ import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { challengeOptions } from "@/db/schema";
 import { useT } from "@/lib/i18n/use-t";
+import { playWord } from "@/components/word-audio";
+import { Translit } from "@/components/translit";
 
 type Props = {
   options: typeof challengeOptions.$inferSelect[];
@@ -62,7 +64,7 @@ export const Matching = ({ options, onComplete, disabled }: Props) => {
           {pairs.map((pair) => (
             <button
               key={`ar-${pair.id}`}
-              onClick={() => handleArabicClick(pair.pairIndex!)}
+              onClick={() => { void playWord(pair.arabicText); handleArabicClick(pair.pairIndex!); }}
               disabled={matchedPairs.has(pair.pairIndex!) || disabled}
               className={cn(
                 "h-11 sm:h-16 flex items-center justify-center rounded-2xl border-2 transition",
@@ -77,8 +79,11 @@ export const Matching = ({ options, onComplete, disabled }: Props) => {
                   selectedArabic === pair.pairIndex ? "none" : "0 4px 0 0 #D4D4D4"
               }}
             >
-              <span className="font-arabic text-xl sm:text-2xl text-brilliant-text" dir="rtl">
-                {pair.arabicText}
+              <span className="flex flex-col items-center leading-none">
+                <span className="font-arabic text-xl sm:text-2xl text-brilliant-text" dir="rtl">
+                  {pair.arabicText}
+                </span>
+                <Translit arabic={pair.arabicText} className="text-[10px] sm:text-xs" />
               </span>
             </button>
           ))}

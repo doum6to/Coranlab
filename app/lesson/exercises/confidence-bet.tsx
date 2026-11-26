@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { challengeOptions, challenges } from "@/db/schema";
+import { Translit } from "@/components/translit";
+import { SpeakButton, useAutoPlayWord } from "@/components/word-audio";
 import { useT } from "@/lib/i18n/use-t";
 
 type BetLevel = "sure" | "hesitant" | "fifty";
@@ -30,6 +32,7 @@ export const ConfidenceBet = ({
   disabled,
 }: Props) => {
   const t = useT();
+  useAutoPlayWord(challenge.arabicWord);
   const BET_CONFIG: Record<
     BetLevel,
     { label: string; description: string; borderColor: string; bgColor: string }
@@ -50,12 +53,14 @@ export const ConfidenceBet = ({
     <div className="flex flex-col items-center gap-3 sm:gap-6">
       {/* Arabic word always visible */}
       <div
-        className="flex items-center justify-center p-3 sm:p-6 bg-white rounded-2xl border-2 border-[#E0E0E0] w-full max-w-[280px]"
+        className="relative flex flex-col items-center justify-center p-3 sm:p-6 bg-white rounded-2xl border-2 border-[#E0E0E0] w-full max-w-[280px]"
         style={{ boxShadow: "0 4px 0 0 #D4D4D4" }}
       >
         <span className="font-arabic text-3xl sm:text-4xl text-brilliant-text" dir="rtl">
           {challenge.arabicWord}
         </span>
+        <Translit arabic={challenge.arabicWord} className="mt-1 text-sm" />
+        <SpeakButton arabic={challenge.arabicWord} size="sm" className="absolute left-2 top-2" />
       </div>
 
       {phase === "bet" && (

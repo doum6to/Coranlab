@@ -2,6 +2,10 @@
 
 import { cn } from "@/lib/utils";
 import { challengeOptions, challenges } from "@/db/schema";
+import { SpeakButton, playWord, useAutoPlayWord } from "@/components/word-audio";
+import { listenWord } from "@/lib/word-audio";
+import { useT } from "@/lib/i18n/use-t";
+import { Translit } from "@/components/translit";
 
 type Props = {
   challenge: typeof challenges.$inferSelect;
@@ -10,6 +14,8 @@ type Props = {
   selectedOption?: number;
   status: "correct" | "wrong" | "none";
   disabled?: boolean;
+  /** Listening variant: the word is heard and the learner picks how it is written. */
+  listen?: boolean;
 };
 
 export const QCMInverse = ({
@@ -19,18 +25,31 @@ export const QCMInverse = ({
   selectedOption,
   status,
   disabled,
+  listen = false,
 }: Props) => {
+  const t = useT();
+  const heard = listen ? listenWord({ ...challenge, challengeOptions: options }) : null;
+  useAutoPlayWord(heard, listen, true);
+  const hidden = listen && status === "none";
   return (
     <div className="flex flex-col items-center gap-3 sm:gap-6">
       {/* French translation display */}
+      {hidden ? (
+        <div className="flex flex-col items-center gap-2 py-1">
+          <SpeakButton arabic={heard} size="lg" />
+          <span className="text-xs font-semibold text-brilliant-muted">{t.audio.tapToListen}</span>
+        </div>
+      ) : (
       <div
-        className="flex items-center justify-center p-3 sm:p-6 bg-[#f0f0ff] rounded-2xl border-2 border-[#6967FB]/30 w-full max-w-[280px]"
+        className="flex items-center justify-center gap-3 p-3 sm:p-6 bg-[#f0f0ff] rounded-2xl border-2 border-[#6967FB]/30 w-full max-w-[280px]"
         style={{ boxShadow: "0 4px 0 0 #c8c7f0" }}
       >
+        {listen && <SpeakButton arabic={heard} size="sm" className="bg-white" />}
         <span className="text-xl sm:text-2xl font-bold text-[#6967FB] text-center">
           {challenge.frenchTranslation}
         </span>
       </div>
+      )}
 
 
       {/* Arabic options */}
@@ -38,7 +57,11 @@ export const QCMInverse = ({
         {options.map((option, i) => (
           <button
             key={option.id}
-            onClick={() => onSelect(option.id)}
+            onClick={() => {
+              // Hearing an option would give the answer away in the listening variant.
+              if (!listen && status === "none") void playWord(option.arabicText || option.text);
+              onSelect(option.id);
+            }}
             disabled={disabled}
             className={cn(
               "h-12 sm:h-16 px-4 rounded-2xl border-2 transition flex items-center gap-3",
@@ -69,8 +92,11 @@ export const QCMInverse = ({
             )}>
               {i + 1}
             </span>
-            <span className="font-arabic text-xl sm:text-2xl text-brilliant-text" dir="rtl">
-              {option.arabicText || option.text}
+            <span className="flex flex-col items-start leading-none">
+              <span className="font-arabic text-xl sm:text-2xl text-brilliant-text" dir="rtl">
+                {option.arabicText || option.text}
+              </span>
+              <Translit arabic={option.arabicText || option.text} className="text-[10px] sm:text-xs" />
             </span>
           </button>
         ))}

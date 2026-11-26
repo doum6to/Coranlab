@@ -34,6 +34,8 @@ import {
 } from "./exercises";
 import { useT } from "@/lib/i18n/use-t";
 import { tpl } from "@/lib/i18n/locales";
+import { listenMode } from "@/lib/word-audio";
+import { useUnlockWordAudio, useWordSoundOn } from "@/components/word-audio";
 
 const TEST_MODE_LIMIT = 5;
 
@@ -88,6 +90,8 @@ export const Quiz = ({
   const [incorrectAudio, _i, incorrectControls] = useAudio({ src: "/incorrect.wav" });
   const [pending, startTransition] = useTransition();
   const tq = useT();
+  useUnlockWordAudio();
+  const soundOn = useWordSoundOn();
   // VRAI/FAUX option values are stored untranslated (the exercise matches on
   // them), so the footer label is localized here.
   const localizeAnswer = (v: string | undefined) =>
@@ -266,13 +270,17 @@ export const Quiz = ({
 
   const isSelfManaged = ["FLASHCARD", "MATCHING", "ANAGRAM", "SPOT_THE_ERROR"].includes(challenge.type);
 
+  // Listening variant of a multiple-choice challenge (only with a clip, and
+  // only while the learner keeps the sound on).
+  const listen = soundOn ? listenMode(challenge) : null;
+
   const renderExercise = () => {
     const k = challenge.id;
     switch (challenge.type) {
       case "FLASHCARD":
         return <Flashcard key={k} options={options} onComplete={handleSelfComplete} disabled={pending} />;
       case "QCM":
-        return <QCM key={k} challenge={challenge} options={options} onSelect={onSelect} selectedOption={selectedOption} status={status} disabled={pending} />;
+        return <QCM key={k} challenge={challenge} options={options} onSelect={onSelect} selectedOption={selectedOption} status={status} disabled={pending} listen={listen === "meaning"} />;
       case "VRAI_FAUX":
         return <VraiFaux key={k} challenge={challenge} options={options} onSelect={onSelect} selectedOption={selectedOption} status={status} disabled={pending} />;
       case "MATCHING":
@@ -280,7 +288,7 @@ export const Quiz = ({
       case "ANAGRAM":
         return <Anagram key={k} challenge={challenge} options={options} onCorrect={handleSelfComplete} onWrong={handleSelfWrong} onSkip={handleSelfSkip} disabled={pending} />;
       case "QCM_INVERSE":
-        return <QCMInverse key={k} challenge={challenge} options={options} onSelect={onSelect} selectedOption={selectedOption} status={status} disabled={pending} />;
+        return <QCMInverse key={k} challenge={challenge} options={options} onSelect={onSelect} selectedOption={selectedOption} status={status} disabled={pending} listen={listen === "written"} />;
       case "DRAG_DROP":
         return <DragDrop key={k} challenge={challenge} options={options} onSelect={onSelect} selectedOption={selectedOption} status={status} disabled={pending} />;
       case "FLASH_RECALL":
@@ -309,7 +317,7 @@ export const Quiz = ({
         <div className="min-h-full flex items-center justify-center py-2 sm:py-6">
           <div className="lg:min-h-[350px] w-full max-w-lg px-4 sm:px-6 lg:px-0 flex flex-col gap-y-3 sm:gap-y-6 lg:gap-y-8">
             <h1 className="text-sm sm:text-lg lg:text-2xl text-center font-bold text-brilliant-text">
-              {challenge.question}
+              {listen === "meaning" ? tq.audio.qMeaning : listen === "written" ? tq.audio.qWritten : challenge.question}
             </h1>
             <div>
               {renderExercise()}
