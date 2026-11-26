@@ -678,8 +678,9 @@ function LessonScreen({ ui, locale, step, onNext, onEarned }: { ui: CmUi; locale
           <motion.div key={i} className={`relative mt-5 text-center ${answered && !ok ? "cm-shake" : ""}`} style={{ borderRadius: 24, background: "#F7F7FF" }} initial={{ opacity: 0, x: reduce ? 0 : 32 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: reduce ? 0 : -32 }} transition={{ duration: reduce ? 0 : 0.26, ease: EASE_OUT }}>
             <div className="relative px-5 pb-5 pt-6">
               <p lang="ar" dir="rtl" style={{ fontFamily: AR_FONT, fontSize: 60, lineHeight: 1.75, color: P.text }}>{card.arabic}</p>
-              <p className="text-[16px] italic" style={{ color: P.muted }}>{card.translit}</p>
-              <SpeakButton arabic={card.arabic} size="sm" className="absolute right-3 top-3 bg-white" />
+              {/* Phonetics and voice come with the answer: shown before, they give it away. The line keeps its place. */}
+              <p className="text-[16px] italic" style={{ color: P.muted, opacity: answered ? 1 : 0, transition: reduce ? "none" : "opacity .25s ease-out" }} aria-hidden={!answered}>{card.translit}</p>
+              {answered && <SpeakButton arabic={card.arabic} size="sm" className="absolute right-3 top-3 bg-white" />}
               <RewardBurst fireKey={burst} className="absolute -right-7 -top-9 h-28 w-28" />
             </div>
             <AnimatePresence initial={false}>
