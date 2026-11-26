@@ -7,6 +7,7 @@ import { captureFunnelLead } from "@/actions/funnel-lead";
 import { OnboardingMascot } from "@/components/onboarding/onboarding-mascot";
 import { OpenInBrowserHint } from "@/components/open-in-browser-hint";
 import { ttqTrack } from "@/lib/analytics/tiktok";
+import { track } from "@/lib/analytics/track";
 import type { CmStep, CommencerContent } from "@/lib/commencer-shared";
 import type { PaywallCurrency } from "@/lib/geo-currency";
 
@@ -72,6 +73,16 @@ export function CommencerOnboarding({ content, initialStep, locale = "fr", curre
 
   const step: CmStep | null = index < steps.length ? steps[index] : null;
   const isPaywall = step === null;
+
+  // Funnel analytics: record each step the first time it is reached in this
+  // visit ("03|q_pain", "17|paywall"), so the admin can see where people quit.
+  const seenSteps = useRef<Set<number>>(new Set());
+  useEffect(() => {
+    if (seenSteps.current.has(index)) return;
+    seenSteps.current.add(index);
+    const key = step === null ? "paywall" : step.type === "question" ? `q_${step.id}` : step.type;
+    track("cm_step", `${String(index).padStart(2, "0")}|${key}`);
+  }, [index, step]);
 
   const move = useCallback((to: number) => {
     const from = indexRef.current;

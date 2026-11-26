@@ -40,9 +40,19 @@ export async function recordPurchaseEvent(session: Stripe.Checkout.Session) {
     if (existing.length > 0) return;
 
     const variant = (session.metadata?.variant as string) || "v3";
+    // Newer funnels identify themselves with `offer` rather than `variant`.
+    const offer = session.metadata?.offer as string | undefined;
+    const path =
+      offer === "commencer"
+        ? session.metadata?.locale === "en" ? "/start" : "/commencer"
+        : offer === "pack_coran"
+          ? "/pack-coran"
+          : offer === "coran_ebook30"
+            ? "/coran-30-jours"
+            : pathForVariant(variant);
     await db.insert(analyticsEvent).values({
       event: "purchase",
-      path: pathForVariant(variant),
+      path,
       locale: (session.metadata?.locale as string) || null,
       sessionId: session.id,
       meta: JSON.stringify({

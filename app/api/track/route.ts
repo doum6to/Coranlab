@@ -30,6 +30,13 @@ const ALLOWED = new Set([
   "funnel_checkout_start",
 ]);
 
+/**
+ * Event families of the newer funnels (/commencer + /start steps, post-purchase
+ * upsells, boutique, /pack-coran). A strict pattern instead of one entry per
+ * event, so a new step or product never gets silently dropped again.
+ */
+const ALLOWED_PATTERN = /^(cm|commencer|upsell|shop|pack)_[a-z0-9_]{1,34}$/;
+
 const str = (v: unknown, max = 120) =>
   typeof v === "string" ? v.slice(0, max) : null;
 
@@ -42,7 +49,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const event = str(body?.event, 40);
-    if (!event || !ALLOWED.has(event)) {
+    if (!event || !(ALLOWED.has(event) || ALLOWED_PATTERN.test(event))) {
       return NextResponse.json({ ok: true });
     }
     await db.insert(analyticsEvent).values({

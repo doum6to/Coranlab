@@ -5,6 +5,7 @@ import { motion, useReducedMotion } from "framer-motion";
 
 import { createCommencerCheckout } from "@/actions/commencer-checkout";
 import { ttqTrack } from "@/lib/analytics/tiktok";
+import { track } from "@/lib/analytics/track";
 import type { CommencerContent } from "@/lib/commencer-shared";
 import { centsFromLabel, formatPaywallPrice, type PaywallCurrency } from "@/lib/geo-currency";
 
@@ -40,6 +41,7 @@ export function Paywall({ paywall, email, whenLabel, locale = "fr", currency = "
     if (busy) return;
     setBusy(true);
     setErr(null);
+    track("cm_checkout_start", currency);
     ttqTrack("InitiateCheckout", { content_category: "commencer", content_id: "commencer_lifetime", currency, value: paywall.amountCents / 100 });
     try {
       const res = await createCommencerCheckout(email || undefined, locale, currency);

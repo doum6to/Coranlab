@@ -49,6 +49,7 @@ import { DuasOrdersForm } from "./duas-orders-form";
 import { VideosForm } from "./videos-form";
 import { VipForm } from "./vip-form";
 import { AnalyticsPanel } from "./analytics-panel";
+import { CommencerFunnelPanel } from "./commencer-funnel-panel";
 import { AdminTabs } from "./admin-tabs";
 
 export const dynamic = "force-dynamic";
@@ -357,6 +358,11 @@ const AdminPremiumPage = async () => {
               key: "ebook30",
               label: "Ebook /coran-30-jours",
               node: <Ebook30Form initial={ebook30Content} />,
+            },
+            {
+              key: "cm-funnel",
+              label: "Tunnel /commencer (étapes)",
+              node: <CommencerFunnelPanel />,
             },
             {
               key: "pending",
