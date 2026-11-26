@@ -6,6 +6,8 @@ html,
 body,
 :root {
   @apply h-full;
+  /* Safety net under the web fonts: never the browser's default serif. */
+  font-family: var(--font-inter, system-ui), system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   letter-spacing: -0.02em;
   -webkit-tap-highlight-color: transparent;
 }
@@ -37,7 +39,7 @@ html {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading), sans-serif;
+  font-family: var(--font-heading, system-ui), system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   letter-spacing: -0.03em;
   font-weight: 700;
 }

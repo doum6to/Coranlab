@@ -20,11 +20,13 @@ const config = {
       },
     },
     fontFamily: {
-      sans: ["var(--font-inter)", "system-ui", "sans-serif"],
-      heading: ["var(--font-heading)", "sans-serif"],
-      serif: ["var(--font-serif)", "Georgia", "serif"],
-      arabic: ["var(--font-arabic)", "sans-serif"],
-      display: ["var(--font-display)", "var(--font-heading)", "sans-serif"],
+      // var(--x, fallback): an undefined variable must never void the whole
+      // declaration (the browser would then fall back to its default serif).
+      sans: ["var(--font-inter, system-ui)", "system-ui", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
+      heading: ["var(--font-heading, system-ui)", "system-ui", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
+      serif: ["var(--font-serif, Georgia)", "Georgia", "serif"],
+      arabic: ["var(--font-arabic, Tahoma)", "Geeza Pro", "Noto Sans Arabic", "Tahoma", "sans-serif"],
+      display: ["var(--font-display, system-ui)", "var(--font-heading, system-ui)", "system-ui", "sans-serif"],
     },
     extend: {
       colors: {

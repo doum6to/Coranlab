@@ -4,6 +4,8 @@ const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
 });
 
+// Build note: the font declarations in app/layout.tsx changed on purpose, so the
+// font stylesheet is compiled afresh and matches the classes in the pages.
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Enables instrumentation.ts (runs the DB security lockdown at server start).

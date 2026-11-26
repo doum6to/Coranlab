@@ -83,7 +83,9 @@ async function synthesize(text: string): Promise<Buffer> {
     const res = await fetch(url, {
       method: "POST",
       headers: { ...HEADERS, accept: "audio/mpeg" },
-      body: JSON.stringify({ text, model_id: MODEL, ...(sendLanguage ? { language_code: "ar" } : {}) }),
+      // Stability at its maximum: the same calm, neutral tone on every word (the default is more
+      // "acted" and reads question words as questions). The full stop asks for a statement.
+      body: JSON.stringify({ text: `${text}.`, model_id: MODEL, voice_settings: { stability: 1.0 }, ...(sendLanguage ? { language_code: "ar" } : {}) }),
     });
     if (res.ok) return Buffer.from(await res.arrayBuffer());
     const body = (await res.text()).slice(0, 300);

@@ -8,20 +8,27 @@ import { WebOnly } from "@/components/web-only";
 
 import "./globals.css";
 
+// Each font names its own fallback. If a stylesheet ever fails to define a font
+// (it happened: a release shipped a stale cached stylesheet), the page falls back
+// to a system sans-serif instead of the browser's default serif.
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
+  display: "swap",
+  fallback: ["system-ui", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
 });
 const manrope = Manrope({
   subsets: ["latin"],
   variable: "--font-heading",
   display: "swap",
+  fallback: ["system-ui", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
 });
 const ibmPlexArabic = IBM_Plex_Sans_Arabic({
   weight: ["400", "500", "600", "700"],
   subsets: ["arabic"],
   variable: "--font-arabic",
   display: "swap",
+  fallback: ["Geeza Pro", "Noto Sans Arabic", "Tahoma", "sans-serif"],
   // Loaded on demand: not used on the ad landings' first paint.
   preload: false,
 });
@@ -32,6 +39,7 @@ const fraunces = Fraunces({
   weight: ["400", "500", "600", "700"],
   variable: "--font-serif",
   display: "swap",
+  fallback: ["Georgia", "Times New Roman", "serif"],
   // Loaded on demand: not used on the ad landings' first paint.
   preload: false,
 });
@@ -41,6 +49,7 @@ const fredoka = Fredoka({
   weight: ["400", "500", "600", "700"],
   variable: "--font-display",
   display: "swap",
+  fallback: ["system-ui", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
 });
 
 export const metadata: Metadata = {
