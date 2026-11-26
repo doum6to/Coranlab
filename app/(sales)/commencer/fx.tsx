@@ -116,7 +116,7 @@ export function FxMuteButton({ color, labelOn, labelOff }: { color: string; labe
   const muted = useFxMuted();
   return (
     <button type="button" onClick={() => { setFxMuted(!muted); if (muted) window.setTimeout(() => fx.select(), 30); }} aria-pressed={!muted} aria-label={muted ? labelOn : labelOff} title={muted ? labelOn : labelOff}
-      className="-mr-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full" style={{ color }}>
+      className="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-opacity active:opacity-50" style={{ color }}>
       {muted ? <VolumeX size={19} /> : <Volume2 size={19} />}
     </button>
   );

@@ -194,7 +194,7 @@ export function Shell({ children, footer, center, align = "left" }: { children: 
 export function PrimaryButton({ children, onClick, disabled, type = "button", busy }: { children: ReactNode; onClick?: () => void; disabled?: boolean; type?: "button" | "submit"; busy?: boolean }) {
   const off = disabled || busy;
   return (
-    <ShinyButton type={type} onClick={onClick} disabled={off} variant={disabled ? "gray" : "green"} className="text-[16px]">
+    <ShinyButton type={type} onClick={onClick} disabled={off} variant={disabled ? "gray" : "green"} className="text-[1rem]">
       <span className="block py-1">{children}</span>
     </ShinyButton>
   );
@@ -229,7 +229,7 @@ export function OptionCard({ label, icon, selected, onClick, center, multi }: { 
       }}
     >
       {icon && <span className="flex w-7 shrink-0 justify-center" style={{ color: selected ? P.purple : "#7A79E8" }}><Icon name={icon} size={24} strokeWidth={1.75} duo /></span>}
-      <span className={`flex-1 py-3 text-[16px] leading-snug ${selected ? "font-semibold" : "font-medium"} ${center ? "text-center" : ""}`}>{label}</span>
+      <span className={`flex-1 py-3 text-[1rem] leading-snug ${selected ? "font-semibold" : "font-medium"} ${center ? "text-center" : ""}`}>{label}</span>
       {multi && (
         <span className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full" style={{ boxShadow: selected ? "none" : `inset 0 0 0 1.5px #D4D4D4`, background: selected ? P.purple : "#fff", color: "#fff", transition: "background-color .16s ease-out" }} aria-hidden>
           {selected && <CheckIcon size={13} strokeWidth={3.2} />}
@@ -286,8 +286,8 @@ export function Check({ size = 12, color = "currentColor" }: { size?: number; co
 export function Heading({ children, sub, size = "md", align = "left" }: { children: ReactNode; sub?: string; size?: "md" | "lg"; align?: "left" | "center" }) {
   return (
     <div className={`shrink-0 ${align === "center" ? "text-center" : ""}`}>
-      <h1 className={`font-heading font-bold leading-tight ${size === "lg" ? "text-[30px] sm:text-[34px]" : "text-[25px] sm:text-[28px]"}`} style={{ color: P.text, textWrap: "balance" as never }}>{children}</h1>
-      {sub && <p className="mt-2 text-[15px] leading-snug" style={{ color: P.muted }}>{sub}</p>}
+      <h1 className={`font-heading font-bold leading-[1.2] ${size === "lg" ? "text-[1.875rem] sm:text-[2.125rem]" : "text-[1.625rem] sm:text-[1.75rem]"}`} style={{ color: P.text, letterSpacing: "-0.02em", textWrap: "balance" as never }}>{children}</h1>
+      {sub && <p className="mt-2 text-[1rem] leading-normal" style={{ color: P.soft }}>{sub}</p>}
     </div>
   );
 }

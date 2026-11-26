@@ -17,7 +17,7 @@ import { SpeakButton } from "@/components/word-audio";
 import { ProgressChart, TimeChart } from "./charts";
 import { ConfettiBurst, CountUp, FxMuteButton, RewardBurst, StreakFlame, fx } from "./fx";
 import { Paywall } from "./paywall";
-import { AMIRI_CSS, AR_FONT, CM_UI, Crop, EMAIL_RE, Heading, Icon, IconBadge, KOJI_CROP, KojiSays, OptionCard, P, PEDESTAL_CROP, PrimaryButton, RiveAnim, Shell, Stars, addDays, cascade, easeInOutCubic, fill, fmtShort, rich, useToday, type CmLocale, type CmUi } from "./ui";
+import { AMIRI_CSS, AR_FONT, Bubble, CM_UI, Crop, EMAIL_RE, Heading, Icon, KOJI_CROP, KojiSays, OptionCard, P, PEDESTAL_CROP, PrimaryButton, RiveAnim, Shell, Stars, addDays, cascade, easeInOutCubic, fill, fmtShort, rich, useToday, type CmLocale, type CmUi } from "./ui";
 
 /* ------------------------------------------------------------------ */
 /* Types & transitions                                                  */
@@ -160,8 +160,8 @@ export function CommencerOnboarding({ content, initialStep, locale = "fr", curre
       <div className="relative mx-auto flex h-full w-full max-w-md flex-col pt-[env(safe-area-inset-top)]">
         {/* Header: back chevron + animated progress bar (outside the screen transitions so the bar tweens) */}
         <motion.div className="shrink-0 overflow-hidden" initial={false} animate={{ height: showHeader ? 52 : 0, opacity: showHeader ? 1 : 0 }} transition={{ duration: reduce ? 0 : 0.25 }} aria-hidden={!showHeader}>
-          <div className="flex h-[52px] items-center gap-3 px-4">
-            <button type="button" onClick={back} aria-label={ui.back} tabIndex={showHeader ? 0 : -1} className="-ml-1 flex h-9 w-9 items-center justify-center rounded-full" style={{ color: P.muted }}>
+          <div className="flex h-[52px] items-center gap-2 px-4">
+            <button type="button" onClick={back} aria-label={ui.back} tabIndex={showHeader ? 0 : -1} className="-ml-2 flex h-11 w-11 items-center justify-center rounded-full transition-opacity active:opacity-50" style={{ color: P.soft }}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M15 5l-7 7 7 7" /></svg>
             </button>
             {showBar && (
@@ -227,12 +227,12 @@ function SplashScreen({ step, onDone }: { step: Step<"splash">; onDone: () => vo
       <motion.span className="block" lang="ar" dir="rtl" style={{ fontFamily: AR_FONT, fontSize: 96, color: P.purple, lineHeight: 1.6 }} initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} transition={d(0.1)}>
         {step.arabic}
       </motion.span>
-      <span className="mt-5 flex items-center justify-center font-heading text-[22px] font-extrabold" style={{ letterSpacing: ".34em", paddingLeft: ".34em", color: P.text }} aria-hidden>
+      <span className="mt-5 flex items-center justify-center font-heading text-[1.375rem] font-extrabold" style={{ letterSpacing: ".34em", paddingLeft: ".34em", color: P.text }} aria-hidden>
         {step.brand.split("").map((ch, i) => (
           <motion.span key={`${ch}-${i}`} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={reduce ? { duration: 0 } : { delay: 0.5 + i * 0.07, duration: 0.18 }}>{ch === " " ? " " : ch}</motion.span>
         ))}
       </span>
-      <motion.span className="mt-2 block text-[11px] font-semibold uppercase tracking-[.28em]" style={{ color: P.muted }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={d(0.5 + step.brand.length * 0.07 + 0.2)} aria-hidden>
+      <motion.span className="mt-2 block text-[0.6875rem] font-semibold uppercase tracking-[.28em]" style={{ color: P.muted }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={d(0.5 + step.brand.length * 0.07 + 0.2)} aria-hidden>
         {step.tagline}
       </motion.span>
     </button>
@@ -253,20 +253,20 @@ function WelcomeScreen({ step, onNext }: { step: Step<"welcome">; onNext: () => 
         <>
           <PrimaryButton onClick={onNext}>{step.cta}</PrimaryButton>
           {(step.signinText || step.signinCta) && (
-            <p className="text-center text-[13px]" style={{ color: P.muted }}>
-              {step.signinText} <a href="/auth/login" className="font-bold" style={{ color: P.purple }}>{step.signinCta}</a>
+            <p className="text-center text-[0.875rem]" style={{ color: P.soft }}>
+              {step.signinText} <a href="/auth/login" className="font-semibold underline-offset-2" style={{ color: P.purple }}>{step.signinCta}</a>
             </p>
           )}
         </>
       }
     >
-      <motion.div className="h-52 w-52 sm:h-60 sm:w-60" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={d(0)}>
+      <motion.div initial={{ opacity: 0, y: 8, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={d(0.35)}>
+        <Bubble tail="bottom"><p className="font-heading text-[1.0625rem] font-bold leading-snug" style={{ color: P.text }}>{step.headline}</p></Bubble>
+      </motion.div>
+      <motion.div className="mt-5 h-48 w-48 sm:h-56 sm:w-56" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={d(0)}>
         <Crop box={KOJI_CROP}><OnboardingMascot phase="intro" /></Crop>
       </motion.div>
-      <motion.p className="mt-2 font-heading text-[18px] font-bold" style={{ color: P.purple }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={d(0.2)}>
-        {step.headline}
-      </motion.p>
-      <motion.h1 className="mt-3 max-w-[22rem] font-heading text-[34px] font-bold leading-[1.1] sm:text-[40px]" style={{ color: P.text }} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={d(0.35)}>
+      <motion.h1 className="mt-7 max-w-[21rem] font-heading text-[2.125rem] font-extrabold leading-[1.1] sm:text-[2.5rem]" style={{ color: P.text, letterSpacing: "-0.02em", textWrap: "balance" as never }} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={d(0.5)}>
         {rich(step.tagline)}
       </motion.h1>
     </Shell>
@@ -299,10 +299,10 @@ function QuestionScreen({ ui, cont, step, selected, onChange, onNext }: { ui: Cm
         {/* Both lines stay in the flow so the bubble never changes height: the question, then Koji's reply. */}
         <div className="grid" aria-live="polite">
           <div className="col-start-1 row-start-1" style={{ opacity: reply ? 0 : 1, transition: reduce ? "none" : "opacity .2s ease-out" }} aria-hidden={!!reply}>
-            <h1 className="font-heading text-[18px] font-bold leading-snug" style={{ color: P.text, textWrap: "balance" as never }}>{rich(step.headline)}</h1>
-            {step.sub && <p className="mt-1 text-[13px] leading-snug" style={{ color: P.muted }}>{step.sub}</p>}
+            <h1 className="font-heading text-[1.125rem] font-bold leading-snug" style={{ color: P.text, textWrap: "balance" as never }}>{rich(step.headline)}</h1>
+            {step.sub && <p className="mt-1 text-[0.8125rem] leading-snug" style={{ color: P.muted }}>{step.sub}</p>}
           </div>
-          <p className="col-start-1 row-start-1 self-center font-heading text-[17px] font-bold leading-snug" style={{ color: P.text, opacity: reply ? 1 : 0, transform: reply || reduce ? "none" : "translateY(4px)", transition: reduce ? "none" : "opacity .22s ease-out .08s, transform .22s ease-out .08s", textWrap: "balance" as never }} aria-hidden={!reply}>{reply ?? ""}</p>
+          <p className="col-start-1 row-start-1 self-center font-heading text-[1.0625rem] font-bold leading-snug" style={{ color: P.text, opacity: reply ? 1 : 0, transform: reply || reduce ? "none" : "translateY(4px)", transition: reduce ? "none" : "opacity .22s ease-out .08s, transform .22s ease-out .08s", textWrap: "balance" as never }} aria-hidden={!reply}>{reply ?? ""}</p>
         </div>
       </KojiSays>
       <motion.div className="mt-6 flex flex-col gap-3" role={step.multi ? "group" : "radiogroup"} aria-label={step.headline} variants={reduce ? undefined : cascade.container} initial="hidden" animate="show">
@@ -334,14 +334,14 @@ function TimeScreen({ cont, step, choice, onChoose, goalDateLabel, onNext }: { c
     <Shell footer={<PrimaryButton onClick={onNext} disabled={!choice}>{step.cta ?? cont}</PrimaryButton>}>
       <Heading>{rich(step.headline)}</Heading>
       <div className="mt-5"><TimeChart goalLabel={step.goalLabel} aloneLabel={step.aloneLabel} xStart={step.xStart} xEnd={step.xEnd} weeks={choice?.weeks ?? null} dateLabel={goalDateLabel} /></div>
-      <p className="mt-3 min-h-[44px] text-[15px] leading-snug" style={{ color: sentence ? P.text : P.muted }} aria-live="polite">{sentence ? rich(sentence) : step.placeholder}</p>
-      <motion.div className="mt-4 grid grid-cols-2 gap-2.5" role="radiogroup" variants={reduce ? undefined : cascade.container} initial="hidden" animate="show">
+      <p className="mt-4 min-h-[3rem] text-[1rem] leading-normal" style={{ color: sentence ? P.text : P.muted, textWrap: "pretty" as never }} aria-live="polite">{sentence ? rich(sentence) : step.placeholder}</p>
+      <motion.div className="mt-5 grid grid-cols-2 gap-3" role="radiogroup" variants={reduce ? undefined : cascade.container} initial="hidden" animate="show">
         {step.options.map((o) => {
           const active = choice?.minutes === o.minutes && choice?.weeks === o.weeks;
           return (
             <motion.button key={`${o.minutes}-${o.label}`} type="button" role="radio" aria-checked={active} variants={reduce ? undefined : cascade.item} whileTap={reduce ? undefined : { scale: 0.975 }} onClick={() => { fx.select(); onChoose({ minutes: o.minutes, weeks: o.weeks }); }}
-              className="flex items-center justify-center gap-2 text-[17px] font-bold" style={{ minHeight: 60, borderRadius: 18, border: `2px solid ${active ? P.purple : P.border}`, background: active ? P.purpleSoft : "#fff", color: P.text, boxShadow: active ? `0 2px 0 0 ${P.purpleLine}` : "0 2px 0 0 #EFEFEF", transition: "background-color .15s, border-color .15s" }}>
-              <Icon name="timer" size={18} className={active ? "text-[#6967FB]" : "text-[#999]"} />{o.label}
+              className="flex select-none items-center justify-center gap-2 text-[1.0625rem]" style={{ minHeight: 60, borderRadius: 16, fontWeight: active ? 700 : 600, fontVariantNumeric: "tabular-nums", background: active ? "#F5F5FF" : "#fff", color: P.text, boxShadow: active ? `inset 0 0 0 2px ${P.purple}, 0 2px 0 0 ${P.purpleLine}` : `inset 0 0 0 1.5px ${P.border}, 0 2px 0 0 #F0F0F0`, transition: "background-color .16s ease-out, box-shadow .16s ease-out" }}>
+              <Icon name="timer" size={19} strokeWidth={2.25} duo className={active ? "text-[#6967FB]" : "text-[#9A99EE]"} />{o.label}
             </motion.button>
           );
         })}
@@ -363,25 +363,24 @@ function EmailScreen({ ui, step, whenLabel, onSubmit, onSkip }: { ui: CmUi; step
     onSubmit(v);
   };
   return (
-    <form onSubmit={submit} className="flex h-full min-h-0 flex-col">
-      <Shell center footer={
+    <form onSubmit={submit} className="flex h-full min-h-0 flex-col" noValidate>
+      <Shell footer={
         <>
           <PrimaryButton type="submit" disabled={value.trim().length === 0}>{step.cta}</PrimaryButton>
-          {step.note && <p className="text-center text-[12px]" style={{ color: P.muted }}>{step.note}</p>}
-          {step.skip && <button type="button" onClick={onSkip} className="mx-auto py-1 text-[12px]" style={{ color: P.muted }}>{step.skip}</button>}
+          {step.skip && <button type="button" onClick={onSkip} className="mx-auto min-h-[2.75rem] px-4 text-[0.875rem] font-semibold active:opacity-60" style={{ color: P.soft }}>{step.skip}</button>}
         </>
       }>
-        <div className="text-center">
-          <div className="mx-auto w-fit"><IconBadge name="mail" size={64} /></div>
-          <h1 className="mt-6 font-heading text-[26px] font-bold leading-tight sm:text-[30px]">{rich(step.headline)}</h1>
-          <p className="mt-3 text-[15px] leading-snug" style={{ color: P.muted }}>{fill(step.sub, { when: whenLabel })}</p>
-        </div>
+        <KojiSays mascot={<OnboardingMascot phase="question" />}>
+          <h1 className="font-heading text-[1.125rem] font-bold leading-snug" style={{ color: P.text, textWrap: "balance" as never }}>{rich(step.headline)}</h1>
+          <p className="mt-1 text-[0.8125rem] leading-snug" style={{ color: P.muted }}>{fill(step.sub, { when: whenLabel })}</p>
+        </KojiSays>
         <label className="mt-8 block">
           <span className="sr-only">Email</span>
-          <input type="email" inputMode="email" autoComplete="email" enterKeyHint="go" value={value} onChange={(e) => { setValue(e.target.value); setInvalid(false); }} placeholder={step.placeholder} aria-invalid={invalid || undefined}
-            className="cm-input w-full px-4 text-[17px] outline-none" style={{ height: 56, borderRadius: 16, background: "#fff", border: `2px solid ${invalid ? P.danger : P.border}`, color: P.text }} />
+          <input type="email" inputMode="email" autoComplete="email" autoCapitalize="none" autoCorrect="off" enterKeyHint="send" value={value} onChange={(e) => { setValue(e.target.value); setInvalid(false); }} placeholder={step.placeholder} aria-invalid={invalid || undefined}
+            className="cm-input w-full px-4 text-[1.0625rem] outline-none" style={{ height: 56, borderRadius: 16, background: "#fff", boxShadow: `inset 0 0 0 ${invalid ? 2 : 1.5}px ${invalid ? P.danger : "#D4D4D4"}`, color: P.text }} />
         </label>
-        {invalid && <p className="mt-2 text-[13px]" style={{ color: P.danger }} role="alert">{ui.invalidEmail}</p>}
+        {invalid && <p className="mt-2 text-[0.8125rem]" style={{ color: P.danger }} role="alert">{ui.invalidEmail}</p>}
+        {step.note && <p className="mt-3 text-[0.8125rem]" style={{ color: P.muted }}>{step.note}</p>}
       </Shell>
     </form>
   );
@@ -398,30 +397,24 @@ function SocialScreen({ cont, step, onNext }: { cont: string; step: Step<"social
     return () => window.clearTimeout(t);
   }, [step.lockSeconds]);
   const d = (s: number) => (reduce ? { duration: 0 } : { delay: s, duration: 0.4, ease: EASE_OUT });
-  const card = "rounded-2xl border-2 bg-white";
   return (
     <Shell footer={<PrimaryButton onClick={onNext} disabled={locked}>{step.cta ?? cont}</PrimaryButton>}>
       <Heading align="center">{rich(step.headline)}</Heading>
-      <motion.div className={`${card} mt-6 px-5 py-5 text-center`} style={{ borderColor: P.border }} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={d(0.05)}>
-        <div className="flex items-center justify-center gap-3">
-          <Icon name="sparkles" size={22} className="text-[#6967FB]" />
-          <span className="font-heading text-[44px] font-extrabold leading-none" style={{ color: P.text }}>{step.rating}</span>
-          <Icon name="sparkles" size={22} className="text-[#6967FB]" />
-        </div>
-        <div className="mt-2 flex justify-center"><Stars size={18} /></div>
-        <p className="mt-2 text-[15px] font-semibold" style={{ color: P.text }}>{step.ratingSub}</p>
+      <motion.div className="mt-6 text-center" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={d(0.05)}>
+        <p className="font-heading text-[3.5rem] font-extrabold leading-none" style={{ color: P.text, letterSpacing: "-0.03em", fontVariantNumeric: "tabular-nums" }}>{step.rating}</p>
+        <div className="mt-2 flex justify-center"><Stars size={20} /></div>
+        <p className="mt-2 text-[0.9375rem]" style={{ color: P.soft }}>{step.ratingSub}</p>
       </motion.div>
-      {step.sub && <motion.p className="mt-5 text-center text-[15px]" style={{ color: P.soft }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={d(0.2)}>{step.sub}</motion.p>}
-      <div className="mt-4 space-y-3">
+      <div className="mt-8 space-y-3">
         {step.reviews.map((r, i) => (
-          <motion.article key={`${r.name}-${i}`} className={`${card} px-4 py-4`} style={{ borderColor: P.border }} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={d(0.3 + i * 0.12)}>
-            <div className="flex items-center gap-3">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[13px] font-bold tracking-wide text-white" style={{ background: P.purple }} aria-hidden>{r.initials}</span>
-              <span className="flex-1 text-[15px] font-bold" style={{ color: P.text }}>{r.name}</span>
+          <motion.figure key={`${r.name}-${i}`} className="px-5 py-4" style={{ borderRadius: 20, background: "#F7F7FF" }} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={d(0.25 + i * 0.12)}>
+            <blockquote className="text-[0.9375rem] leading-normal" style={{ color: P.text, textWrap: "pretty" as never }}>{r.text}</blockquote>
+            <figcaption className="mt-3 flex items-center gap-2.5">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[0.75rem] font-bold text-white" style={{ background: P.purple }} aria-hidden>{r.initials}</span>
+              <span className="flex-1 text-[0.875rem] font-semibold" style={{ color: P.text }}>{r.name}</span>
               <Stars size={12} />
-            </div>
-            <p className="mt-3 text-[14px] leading-relaxed" style={{ color: P.soft }}>{r.text}</p>
-          </motion.article>
+            </figcaption>
+          </motion.figure>
         ))}
       </div>
     </Shell>
@@ -461,15 +454,15 @@ function LoaderScreen({ step, onDone }: { step: Step<"loader">; onDone: () => vo
   return (
     <div className="flex h-full w-full flex-col items-center justify-center px-6 text-center text-white" style={{ background: P.purple }} role="status" aria-live="polite">
       <motion.div className="h-32 w-32" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduce ? 0 : 0.5 }}><RiveAnim src="/animations/loading.riv" crop={KOJI_CROP} /></motion.div>
-      <motion.h1 className="mt-2 max-w-xs font-heading text-[26px] font-bold leading-tight sm:text-[30px]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduce ? 0 : 0.5 }}>{rich(step.headline)}</motion.h1>
+      <motion.h1 className="mt-2 max-w-xs font-heading text-[1.625rem] font-bold leading-tight sm:text-[1.875rem]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduce ? 0 : 0.5 }}>{rich(step.headline)}</motion.h1>
       <motion.div className="relative mt-8 h-[180px] w-[180px]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduce ? 0 : 0.5, delay: 0.1 }}>
         <svg viewBox="0 0 200 200" className="h-full w-full -rotate-90" aria-hidden>
           <circle cx="100" cy="100" r={R} fill="none" stroke="#fff" strokeOpacity="0.25" strokeWidth="8" />
           <circle cx="100" cy="100" r={R} fill="none" stroke="#fff" strokeWidth="8" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={C * (1 - pct / 100)} />
         </svg>
-        <div className="absolute inset-0 flex items-center justify-center font-heading text-[46px] font-extrabold leading-none" style={{ fontVariantNumeric: "tabular-nums" }}>{pct}%</div>
+        <div className="absolute inset-0 flex items-center justify-center font-heading text-[2.875rem] font-extrabold leading-none" style={{ fontVariantNumeric: "tabular-nums" }}>{pct}%</div>
       </motion.div>
-      <div className="mt-7 h-6 text-[16px] text-white/85">{capIdx >= 0 && <span key={capIdx}>{captions[capIdx]}</span>}</div>
+      <div className="mt-7 h-6 text-[1rem] text-white/85">{capIdx >= 0 && <span key={capIdx}>{captions[capIdx]}</span>}</div>
     </div>
   );
 }
@@ -477,59 +470,49 @@ function LoaderScreen({ step, onDone }: { step: Step<"loader">; onDone: () => vo
 /* ------------------------------------------------------------------ */
 /* Plan ready                                                           */
 
-function PlanScreen({ step, minutes, whenLabel, goalDateLabel, level, levelLabel, arabic, onNext }: { step: Step<"plan">; minutes: number; whenLabel: string; goalDateLabel: string | null; level: number; levelLabel: string; arabic: string; onNext: () => void }) {
+function PlanScreen({ step, minutes, whenLabel, goalDateLabel, level, levelLabel, onNext }: { step: Step<"plan">; minutes: number; whenLabel: string; goalDateLabel: string | null; level: number; levelLabel: string; arabic: string; onNext: () => void }) {
   const reduce = useReducedMotion();
-  const w = (i: number) => (reduce ? { duration: 0 } : { delay: i * 0.25, duration: 0.5, ease: EASE_OUT });
+  const w = (i: number) => (reduce ? { duration: 0 } : { delay: 0.15 + i * 0.18, duration: 0.45, ease: EASE_OUT });
   const vars = { min: minutes, when: whenLabel, level, levelLabel };
   const [confetti, setConfetti] = useState(0);
   useEffect(() => {
     const t = window.setTimeout(() => { fx.win(); setConfetti(1); }, 250);
     return () => window.clearTimeout(t);
   }, []);
+  const rise = (i: number) => ({ initial: reduce ? false as const : { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 }, transition: w(i) });
   return (
     <Shell footer={<PrimaryButton onClick={onNext}>{step.cta}</PrimaryButton>}>
-      <ConfettiBurst fireKey={confetti} originY="22%" />
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={w(0)}>
-        <Heading align="center">{rich(step.headline)}</Heading>
-        <div className="mt-6 flex flex-col items-center">
-          <div className="flex h-[150px] w-[150px] items-center justify-center rounded-full" style={{ background: P.purpleSoft }} aria-hidden>
-            <span lang="ar" dir="rtl" style={{ fontFamily: AR_FONT, fontSize: 64, color: P.purple, lineHeight: 1.6 }}>{arabic}</span>
+      <ConfettiBurst fireKey={confetti} pieces={30} originY="16%" />
+      <KojiSays mascot={<OnboardingMascot phase="question" />}>
+        <h1 className="font-heading text-[1.125rem] font-bold leading-snug" style={{ color: P.text, textWrap: "balance" as never }}>{rich(step.headline)}</h1>
+        <p className="mt-1 text-[0.8125rem] font-semibold leading-snug" style={{ color: P.purple }}>{step.journeyTitle} · {fill(step.levelPill, vars)}</p>
+      </KojiSays>
+
+      {/* The two figures of the plan */}
+      <motion.div className="mt-8 grid grid-cols-2 gap-3" {...rise(0)}>
+        {[{ big: `${minutes} min`, small: step.minutesLabel }, { big: goalDateLabel ?? "…", small: step.dateLabel }].map((s) => (
+          <div key={s.small} className="px-4 py-4" style={{ borderRadius: 20, background: "#F7F7FF" }}>
+            <p className="font-heading text-[1.75rem] font-extrabold leading-none" style={{ color: P.text, letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums" }}>{s.big}</p>
+            <p className="mt-1.5 text-[0.8125rem]" style={{ color: P.soft }}>{s.small}</p>
           </div>
-          <p className="mt-5 font-heading text-[24px] font-bold">{step.journeyTitle}</p>
-          <span className="mt-2 rounded-full px-3.5 py-1.5 text-[13px] font-bold" style={{ background: P.purpleSoft, color: P.purple }}>{fill(step.levelPill, vars)}</span>
-        </div>
+        ))}
       </motion.div>
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={w(1)}>
-        <p className="mt-8 text-center text-[11px] font-bold uppercase tracking-[.05em]" style={{ color: P.muted }}>{step.yourPlanLabel}</p>
-        <div className="mt-4 grid grid-cols-2 gap-3">
-          <Stat icon="timer" big={`${minutes} min`} small={step.minutesLabel} />
-          <Stat icon="calendar-check" big={goalDateLabel ?? "…"} small={step.dateLabel} />
-        </div>
-        <div className="mt-4 divide-y rounded-2xl border-2 bg-white" style={{ borderColor: P.border }}>
+
+      <motion.div className="mt-8" {...rise(1)}>
+        <h2 className="text-[0.75rem] font-semibold uppercase" style={{ color: P.muted, letterSpacing: "0.05em" }}>{step.yourPlanLabel}</h2>
+        <ul className="mt-4 space-y-5">
           {step.rows.map((r) => (
-            <div key={r.label} className="flex items-start gap-3 px-4 py-3.5" style={{ borderColor: P.border }}>
-              <IconBadge name={r.icon} size={36} />
+            <li key={r.label} className="flex gap-4">
+              <span className="flex w-7 shrink-0 justify-center pt-0.5" style={{ color: P.purple }} aria-hidden><Icon name={r.icon} size={24} strokeWidth={1.75} duo /></span>
               <span className="min-w-0">
-                <span className="block text-[10px] font-bold uppercase tracking-[.05em]" style={{ color: P.muted }}>{r.label}</span>
-                <span className="mt-1 block text-[15px] font-semibold leading-snug" style={{ color: P.text }}>{fill(r.text, vars)}</span>
+                <span className="block text-[0.8125rem]" style={{ color: P.muted }}>{r.label}</span>
+                <span className="mt-0.5 block text-[1rem] font-semibold leading-snug first-letter:uppercase" style={{ color: P.text }}>{fill(r.text, vars)}</span>
               </span>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       </motion.div>
     </Shell>
-  );
-}
-
-function Stat({ icon, big, small }: { icon: string; big: string; small: string }) {
-  return (
-    <div className="flex items-center gap-3 rounded-2xl border-2 bg-white px-3.5 py-3" style={{ borderColor: P.border }}>
-      <IconBadge name={icon} size={40} />
-      <span className="min-w-0">
-        <span className="block truncate font-heading text-[20px] font-bold">{big}</span>
-        <span className="block text-[12px]" style={{ color: P.muted }}>{small}</span>
-      </span>
-    </div>
   );
 }
 
@@ -606,10 +589,10 @@ function LessonScreen({ ui, locale, step, onNext, onEarned }: { ui: CmUi; locale
         <motion.div className="h-56 w-56" initial={reduce ? false : { opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 260, damping: 22 }}>
           <RiveAnim src="/animations/completed_lvl.riv" crop={PEDESTAL_CROP} />
         </motion.div>
-        <motion.h1 className="mt-2 max-w-[22rem] font-heading text-[30px] font-extrabold leading-[1.12]" style={{ color: P.text, letterSpacing: "-0.02em", textWrap: "balance" as never }} {...rise(0.15)}>{rich(step.doneHeadline)}</motion.h1>
+        <motion.h1 className="mt-2 max-w-[22rem] font-heading text-[1.875rem] font-extrabold leading-[1.12]" style={{ color: P.text, letterSpacing: "-0.02em", textWrap: "balance" as never }} {...rise(0.15)}>{rich(step.doneHeadline)}</motion.h1>
         <motion.div className="mt-8" {...rise(0.35)}>
-          <p className="text-[12px] font-semibold uppercase" style={{ color: P.muted, letterSpacing: "0.05em" }}>{L.totalXp}</p>
-          <p className="mt-1 flex items-center justify-center gap-1.5 font-heading text-[56px] font-extrabold leading-none" style={{ color: P.text, letterSpacing: "-0.03em" }}>
+          <p className="text-[0.75rem] font-semibold uppercase" style={{ color: P.muted, letterSpacing: "0.05em" }}>{L.totalXp}</p>
+          <p className="mt-1 flex items-center justify-center gap-1.5 font-heading text-[3.5rem] font-extrabold leading-none" style={{ color: P.text, letterSpacing: "-0.03em" }}>
             <CountUp value={xp} duration={1000} />
             <Icon name="sparkles" size={30} strokeWidth={2.25} duo className="text-[#6967FB]" />
           </p>
@@ -626,20 +609,20 @@ function LessonScreen({ ui, locale, step, onNext, onEarned }: { ui: CmUi; locale
       <Shell center align="center" footer={<PrimaryButton onClick={onNext}>{step.cta}</PrimaryButton>}>
         <div className="pointer-events-none absolute inset-x-0 top-0 h-[60%]" style={{ background: "radial-gradient(60% 55% at 50% 38%, #FFF0DB 0%, rgba(255,240,219,0) 100%)" }} aria-hidden />
         <StreakFlame className="relative h-48 w-48" />
-        <motion.p className="relative -mt-2 font-heading text-[64px] font-extrabold leading-none" style={{ color: "#F0641E", letterSpacing: "-0.03em" }} {...rise(0.35)}>1</motion.p>
-        <motion.p className="relative mt-1 text-[15px] font-semibold" style={{ color: "#C2570C" }} {...rise(0.4)}>{L.streakCount}</motion.p>
+        <motion.p className="relative -mt-2 font-heading text-[4rem] font-extrabold leading-none" style={{ color: "#F0641E", letterSpacing: "-0.03em" }} {...rise(0.35)}>1</motion.p>
+        <motion.p className="relative mt-1 text-[0.9375rem] font-semibold" style={{ color: "#C2570C" }} {...rise(0.4)}>{L.streakCount}</motion.p>
         <motion.div className="relative mt-6 flex justify-center gap-2" {...rise(0.5)} aria-hidden>
           {Array.from({ length: 7 }, (_, k) => (
             <span key={k} className="flex w-9 flex-col items-center gap-1.5">
-              <span className="text-[12px] font-semibold uppercase" style={{ color: k === todayIdx ? "#C2570C" : P.muted }}>{dayLetter(k)}</span>
+              <span className="text-[0.75rem] font-semibold uppercase" style={{ color: k === todayIdx ? "#C2570C" : P.muted }}>{dayLetter(k)}</span>
               <span className="flex h-9 w-9 items-center justify-center rounded-full" style={k === todayIdx ? { background: "#FF8A1F", color: "#fff", boxShadow: "0 2px 0 0 #E0680A" } : { background: "#F3F3F3" }}>
                 {k === todayIdx && <Icon name="check" size={18} strokeWidth={3} />}
               </span>
             </span>
           ))}
         </motion.div>
-        <motion.h1 className="relative mt-8 font-heading text-[26px] font-bold leading-[1.2]" style={{ color: P.text, letterSpacing: "-0.02em" }} {...rise(0.6)}>{L.streakTitle}</motion.h1>
-        <motion.p className="relative mt-2 max-w-[20rem] text-[16px] leading-normal" style={{ color: P.soft, textWrap: "pretty" as never }} {...rise(0.68)}>{allInFatiha ? rich(L.fact) : step.doneSub}</motion.p>
+        <motion.h1 className="relative mt-8 font-heading text-[1.625rem] font-bold leading-[1.2]" style={{ color: P.text, letterSpacing: "-0.02em" }} {...rise(0.6)}>{L.streakTitle}</motion.h1>
+        <motion.p className="relative mt-2 max-w-[20rem] text-[1rem] leading-normal" style={{ color: P.soft, textWrap: "pretty" as never }} {...rise(0.68)}>{allInFatiha ? rich(L.fact) : step.doneSub}</motion.p>
       </Shell>
     );
   }
@@ -655,7 +638,7 @@ function LessonScreen({ ui, locale, step, onNext, onEarned }: { ui: CmUi; locale
           <div className="flex flex-1 gap-1.5" role="progressbar" aria-valuemin={0} aria-valuemax={cards.length} aria-valuenow={i + (answered ? 1 : 0)}>
             {cards.map((_, k) => <span key={k} className="h-2 flex-1 rounded-full" style={{ background: k < i || (k === i && answered) ? P.purple : "#EDEDED", transition: "background-color .25s ease-out" }} />)}
           </div>
-          <span className="flex items-center gap-1 text-[15px] font-bold" style={{ color: P.text }}>
+          <span className="flex items-center gap-1 text-[0.9375rem] font-bold" style={{ color: P.text }}>
             <Icon name="sparkles" size={17} strokeWidth={2.4} duo className="text-[#6967FB]" /><CountUp value={xp} duration={450} />
           </span>
         </div>
@@ -664,11 +647,11 @@ function LessonScreen({ ui, locale, step, onNext, onEarned }: { ui: CmUi; locale
           <KojiSays size={64} mascot={<OnboardingMascot phase="question" replayKey={okReplay} />}>
             {i === 0 ? (
               <>
-                <h1 className="font-heading text-[18px] font-bold leading-snug" style={{ color: P.text, textWrap: "balance" as never }}>{rich(step.headline)}</h1>
-                {step.sub && <p className="mt-1 text-[13px] leading-snug" style={{ color: P.muted }}>{step.sub}</p>}
+                <h1 className="font-heading text-[1.125rem] font-bold leading-snug" style={{ color: P.text, textWrap: "balance" as never }}>{rich(step.headline)}</h1>
+                {step.sub && <p className="mt-1 text-[0.8125rem] leading-snug" style={{ color: P.muted }}>{step.sub}</p>}
               </>
             ) : (
-              <h1 className="font-heading text-[18px] font-bold leading-snug" style={{ color: P.text }}>{L.askNext}</h1>
+              <h1 className="font-heading text-[1.125rem] font-bold leading-snug" style={{ color: P.text }}>{L.askNext}</h1>
             )}
           </KojiSays>
         </div>
@@ -679,7 +662,7 @@ function LessonScreen({ ui, locale, step, onNext, onEarned }: { ui: CmUi; locale
             <div className="relative px-5 pb-5 pt-6">
               <p lang="ar" dir="rtl" style={{ fontFamily: AR_FONT, fontSize: 60, lineHeight: 1.75, color: P.text }}>{card.arabic}</p>
               {/* Phonetics and voice come with the answer: shown before, they give it away. The line keeps its place. */}
-              <p className="text-[16px] italic" style={{ color: P.muted, opacity: answered ? 1 : 0, transition: reduce ? "none" : "opacity .25s ease-out" }} aria-hidden={!answered}>{card.translit}</p>
+              <p className="text-[1rem] italic" style={{ color: P.muted, opacity: answered ? 1 : 0, transition: reduce ? "none" : "opacity .25s ease-out" }} aria-hidden={!answered}>{card.translit}</p>
               {answered && <SpeakButton arabic={card.arabic} size="sm" className="absolute right-3 top-3 bg-white" />}
               <RewardBurst fireKey={burst} className="absolute -right-7 -top-9 h-28 w-28" />
             </div>
@@ -693,7 +676,7 @@ function LessonScreen({ ui, locale, step, onNext, onEarned }: { ui: CmUi; locale
                       ))}
                     </p>
                     {/* No translation of the verse: it would hand over the meaning of the words still to come. */}
-                    <p className="mt-1 text-[13px] font-semibold leading-snug" style={{ color: P.soft }}>{fill(L.inFatiha, { n: inFatiha.verse.n })}</p>
+                    <p className="mt-1 text-[0.8125rem] font-semibold leading-snug" style={{ color: P.soft }}>{fill(L.inFatiha, { n: inFatiha.verse.n })}</p>
                   </div>
                 </motion.div>
               )}
@@ -706,7 +689,7 @@ function LessonScreen({ ui, locale, step, onNext, onEarned }: { ui: CmUi; locale
             const right = answered && c === card.fr;
             const wrong = answered && c === picked && c !== card.fr;
             return (
-              <motion.button key={`${i}-${c}`} type="button" disabled={answered} whileTap={reduce || answered ? undefined : { scale: 0.98 }} onClick={() => choose(c)} className="flex select-none items-center gap-3 px-4 text-left text-[16px]"
+              <motion.button key={`${i}-${c}`} type="button" disabled={answered} whileTap={reduce || answered ? undefined : { scale: 0.98 }} onClick={() => choose(c)} className="flex select-none items-center gap-3 px-4 text-left text-[1rem]"
                 style={{
                   minHeight: 60, borderRadius: 16, color: P.text, fontWeight: right ? 600 : 500,
                   background: right ? "#F1FBF3" : wrong ? "#FEF5F5" : "#fff",
@@ -728,11 +711,11 @@ function LessonScreen({ ui, locale, step, onNext, onEarned }: { ui: CmUi; locale
           <motion.div key={`sheet-${i}`} className="absolute inset-x-0 bottom-0 z-10 px-5 pb-[max(18px,env(safe-area-inset-bottom))] pt-4" style={{ background: ok ? OK_SOFT : BAD_SOFT, borderRadius: "24px 24px 0 0" }}
             initial={reduce ? { opacity: 0 } : { y: "100%" }} animate={reduce ? { opacity: 1 } : { y: 0 }} exit={{ opacity: 0, transition: { duration: 0.12 } }} transition={{ type: "spring", stiffness: 420, damping: 36 }} aria-live="polite">
             <div className="flex items-baseline justify-between gap-3">
-              <p className="font-heading text-[19px] font-extrabold" style={{ color: ok ? "#15803D" : "#B42323", letterSpacing: "-0.01em" }}>{ok ? L.right : L.almost}</p>
-              <p className="flex items-center gap-1 text-[14px] font-bold" style={{ color: ok ? "#15803D" : "#B42323" }}><Icon name="sparkles" size={15} strokeWidth={2.4} duo />+{gain} {L.xp}</p>
+              <p className="font-heading text-[1.1875rem] font-extrabold" style={{ color: ok ? "#15803D" : "#B42323", letterSpacing: "-0.01em" }}>{ok ? L.right : L.almost}</p>
+              <p className="flex items-center gap-1 text-[0.875rem] font-bold" style={{ color: ok ? "#15803D" : "#B42323" }}><Icon name="sparkles" size={15} strokeWidth={2.4} duo />+{gain} {L.xp}</p>
             </div>
-            {!ok && <p className="mt-0.5 text-[15px] leading-snug" style={{ color: P.text }}><span style={{ color: P.soft }}>{L.answerWas}</span> <span className="font-semibold">{card.fr}</span></p>}
-            <button type="button" onClick={next} className="mt-3.5 w-full select-none text-[16px] font-bold text-white transition-[transform,box-shadow] duration-100 active:translate-y-[4px] active:!shadow-none"
+            {!ok && <p className="mt-0.5 text-[0.9375rem] leading-snug" style={{ color: P.text }}><span style={{ color: P.soft }}>{L.answerWas}</span> <span className="font-semibold">{card.fr}</span></p>}
+            <button type="button" onClick={next} className="mt-3.5 w-full select-none text-[1rem] font-bold text-white transition-[transform,box-shadow] duration-100 active:translate-y-[4px] active:!shadow-none"
               style={{ height: 54, borderRadius: 16, background: ok ? "#22B455" : "#1E1E1E", boxShadow: `0 4px 0 0 ${ok ? "#16873E" : "#000"}` }}>
               {ui.continue}
             </button>
@@ -760,7 +743,7 @@ function BellScreen({ step, onNext }: { step: Step<"bell">; onNext: () => void }
           <circle className="cm-bell-dot" cx="98" cy="22" r="11" fill={P.danger} stroke="#fff" strokeWidth="3" />
         </svg>
       </motion.div>
-      <motion.h1 className="mt-8 max-w-[20rem] font-heading text-[26px] font-bold leading-tight sm:text-[30px]" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={reduce ? { duration: 0 } : { delay: 0.1, duration: 0.45, ease: EASE_OUT }}>
+      <motion.h1 className="mt-8 max-w-[20rem] font-heading text-[1.625rem] font-bold leading-tight sm:text-[1.875rem]" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={reduce ? { duration: 0 } : { delay: 0.1, duration: 0.45, ease: EASE_OUT }}>
         {rich(step.headline)}
       </motion.h1>
     </Shell>

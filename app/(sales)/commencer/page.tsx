@@ -12,7 +12,7 @@ import { CommencerOnboarding } from "./onboarding";
 export const dynamic = "force-dynamic";
 
 // The funnel is white up to the top edge: the browser bar matches it.
-export const viewport: Viewport = { themeColor: "#ffffff" };
+export const viewport: Viewport = { themeColor: "#ffffff", viewportFit: "cover" };
 
 export const metadata: Metadata = {
   title: "Comprends le Coran — Quranlab",

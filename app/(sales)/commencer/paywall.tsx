@@ -80,16 +80,16 @@ export function Paywall({ paywall, email, whenLabel, locale = "fr", currency = "
     <Shell
       footer={
         <>
-          {err && <p className="text-center text-[13px]" style={{ color: P.danger }} role="alert">{err}</p>}
+          {err && <p className="text-center text-[0.8125rem]" style={{ color: P.danger }} role="alert">{err}</p>}
           <PrimaryButton onClick={checkout} busy={busy}>{busy ? ui.redirect : t(paywall.cta)}</PrimaryButton>
           {paywall.footerPoints.length > 0 && (
-            <p className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-[12px] font-semibold" style={{ color: P.text }}>
+            <p className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-[0.75rem] font-semibold" style={{ color: P.text }}>
               {paywall.footerPoints.map((pt) => (
                 <span key={pt} className="inline-flex items-center gap-1 whitespace-nowrap"><Check size={12} color={GREEN} />{pt}</span>
               ))}
             </p>
           )}
-          <p className="flex items-center justify-center gap-2 text-[11px]" style={{ color: P.muted }}>
+          <p className="flex items-center justify-center gap-2 text-[0.6875rem]" style={{ color: P.muted }}>
             <a href="/conditions" className="underline underline-offset-2">{ui.terms}</a>
             <span aria-hidden>·</span>
             <a href="/confidentialite" className="underline underline-offset-2">{ui.privacy}</a>
@@ -102,42 +102,42 @@ export function Paywall({ paywall, email, whenLabel, locale = "fr", currency = "
 
       {/* Header */}
       <motion.div className="relative text-center" {...appear(0)}>
-        <h1 className="mx-auto max-w-[21rem] font-serif text-[32px] font-semibold leading-[1.12]" style={{ color: P.text, letterSpacing: "-0.02em", textWrap: "balance" as never }}>{gradientTitle(t(paywall.title))}</h1>
-        <p className="mx-auto mt-3 max-w-[20rem] text-[16px] leading-normal" style={{ color: P.soft, textWrap: "balance" as never }}>{t(paywall.subtitle)}</p>
+        <h1 className="mx-auto max-w-[21rem] font-serif text-[2rem] font-semibold leading-[1.12]" style={{ color: P.text, letterSpacing: "-0.02em", textWrap: "balance" as never }}>{gradientTitle(t(paywall.title))}</h1>
+        <p className="mx-auto mt-3 max-w-[20rem] text-[1rem] leading-normal" style={{ color: P.soft, textWrap: "balance" as never }}>{t(paywall.subtitle)}</p>
       </motion.div>
 
       {/* Price card: gradient edge, badge on the rim, Koji peeking over it */}
       <motion.section className="relative mt-12" {...appear(1)}>
         <div className="pointer-events-none absolute -top-[50px] right-6 h-[76px] w-[76px]" aria-hidden><RiveAnim src="/animations/loading.riv" crop={KOJI_CROP} /></div>
         <div className="relative" style={{ borderRadius: 24, padding: 2, background: GRADIENT, boxShadow: "0 18px 40px -22px rgba(105,103,251,.45), 0 2px 6px -2px rgba(26,26,26,.06)" }}>
-          <span className="absolute -top-3 left-5 whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-bold uppercase text-white" style={{ background: P.purple, letterSpacing: "0.05em" }}>{paywall.oneTimeChip}</span>
+          <span className="absolute -top-3 left-5 whitespace-nowrap rounded-full px-3 py-1 text-[0.6875rem] font-bold uppercase text-white" style={{ background: P.purple, letterSpacing: "0.05em" }}>{paywall.oneTimeChip}</span>
           <div className="bg-white px-5 pb-5 pt-6" style={{ borderRadius: 22 }}>
             <div className="flex items-end justify-between gap-3">
               <div className="min-w-0">
-                <p className="font-heading text-[22px] font-extrabold leading-tight" style={{ color: P.text, letterSpacing: "-0.01em" }}>{paywall.productName}</p>
-                <p className="mt-1 text-[14px] first-letter:uppercase" style={{ color: P.soft }}>{paywall.priceNote}</p>
+                <p className="font-heading text-[1.375rem] font-extrabold leading-tight" style={{ color: P.text, letterSpacing: "-0.01em" }}>{paywall.productName}</p>
+                <p className="mt-1 text-[0.875rem] first-letter:uppercase" style={{ color: P.soft }}>{paywall.priceNote}</p>
               </div>
               <div className="shrink-0 text-right" style={{ fontVariantNumeric: "tabular-nums" }}>
-                {compareLabel && <p className="text-[14px] line-through" style={{ color: P.muted }}>{compareLabel}</p>}
-                <p className="font-heading text-[30px] font-extrabold leading-none" style={{ color: P.text, letterSpacing: "-0.02em" }}>{priceLabel}</p>
+                {compareLabel && <p className="text-[0.875rem] line-through" style={{ color: P.muted }}>{compareLabel}</p>}
+                <p className="font-heading text-[1.875rem] font-extrabold leading-none" style={{ color: P.text, letterSpacing: "-0.02em" }}>{priceLabel}</p>
               </div>
             </div>
           </div>
         </div>
-        {paywall.urgency && <p className="mt-3 px-2 text-center text-[13px] leading-snug" style={{ color: P.muted, textWrap: "balance" as never }}>{t(paywall.urgency)}</p>}
+        {paywall.urgency && <p className="mt-3 px-2 text-center text-[0.8125rem] leading-snug" style={{ color: P.muted, textWrap: "balance" as never }}>{t(paywall.urgency)}</p>}
       </motion.section>
 
       {/* What the learner just earned in the first lesson: theirs to keep once unlocked */}
       {earned && earned.words > 0 && (
         <motion.div className="mt-5 flex items-center gap-2.5 rounded-2xl px-3.5 py-2.5" style={{ background: "#FFF6EA" }} {...appear(2)}>
           <StreakFlame className="h-9 w-9 shrink-0" />
-          <p className="text-[14px] font-medium leading-snug" style={{ color: "#8A4B12" }}>{fill(ui.recap, { xp: earned.xp, words: earned.words })}</p>
+          <p className="text-[0.875rem] font-medium leading-snug" style={{ color: "#8A4B12" }}>{fill(ui.recap, { xp: earned.xp, words: earned.words })}</p>
         </motion.div>
       )}
 
       {/* How it works: you pay today, then never again */}
       <motion.section className="mt-10" {...appear(2)}>
-        <h2 className="font-heading text-[20px] font-bold" style={{ color: P.text, letterSpacing: "-0.01em" }}>{ui.pay.how}</h2>
+        <h2 className="font-heading text-[1.25rem] font-bold" style={{ color: P.text, letterSpacing: "-0.01em" }}>{ui.pay.how}</h2>
         <ol className="relative mt-5">
           <span className="absolute bottom-6 left-[17px] top-6 w-[2px] rounded-full" style={{ background: "linear-gradient(180deg, #6967FB 0%, #F5A9C8 55%, #F5C88A 100%)" }} aria-hidden />
           {timeline.map((s, k) => (
@@ -146,25 +146,25 @@ export function Paywall({ paywall, email, whenLabel, locale = "fr", currency = "
                 <Icon name={k === 0 ? "unlock" : k === 1 ? "calendar" : "shield"} size={17} strokeWidth={2.2} />
               </span>
               <div className="min-w-0 pt-0.5">
-                <p className="text-[16px] font-bold leading-snug" style={{ color: P.text }}>{s.label}</p>
-                <p className="mt-0.5 text-[15px] leading-normal" style={{ color: P.soft }}>{fill(k === 0 ? ui.pay.today : k === 1 ? ui.pay.month : ui.pay.year, { price: priceLabel, zero: zeroLabel })}</p>
+                <p className="text-[1rem] font-bold leading-snug" style={{ color: P.text }}>{s.label}</p>
+                <p className="mt-0.5 text-[0.9375rem] leading-normal" style={{ color: P.soft }}>{fill(k === 0 ? ui.pay.today : k === 1 ? ui.pay.month : ui.pay.year, { price: priceLabel, zero: zeroLabel })}</p>
               </div>
             </li>
           ))}
         </ol>
-        <p className="mt-6 rounded-2xl px-4 py-3 text-[14px] leading-normal" style={{ background: P.surface, color: P.soft, textWrap: "pretty" as never }}>{fill(ui.pay.versus, { price: priceLabel, year: yearLabel })}</p>
+        <p className="mt-6 rounded-2xl px-4 py-3 text-[0.875rem] leading-normal" style={{ background: P.surface, color: P.soft, textWrap: "pretty" as never }}>{fill(ui.pay.versus, { price: priceLabel, year: yearLabel })}</p>
       </motion.section>
 
       {/* Value stack */}
       <motion.section className="mt-10" {...appear(3)}>
-        {paywall.perksTitle && <h2 className="font-heading text-[20px] font-bold" style={{ color: P.text, letterSpacing: "-0.01em" }}>{paywall.perksTitle}</h2>}
+        {paywall.perksTitle && <h2 className="font-heading text-[1.25rem] font-bold" style={{ color: P.text, letterSpacing: "-0.01em" }}>{paywall.perksTitle}</h2>}
         <ul className="mt-5 space-y-5">
           {paywall.perks.map((item) => (
             <li key={item.title} className="flex gap-4">
               <span className="flex w-9 shrink-0 justify-center pt-0.5" style={{ color: P.purple }} aria-hidden><Icon name={item.icon} size={24} strokeWidth={1.75} duo /></span>
               <div className="min-w-0">
-                <p className="text-[16px] font-semibold leading-snug" style={{ color: P.text }}>{item.title}</p>
-                {item.text && <p className="mt-0.5 text-[15px] leading-normal" style={{ color: P.soft, textWrap: "pretty" as never }}>{t(item.text)}</p>}
+                <p className="text-[1rem] font-semibold leading-snug" style={{ color: P.text }}>{item.title}</p>
+                {item.text && <p className="mt-0.5 text-[0.9375rem] leading-normal" style={{ color: P.soft, textWrap: "pretty" as never }}>{t(item.text)}</p>}
               </div>
             </li>
           ))}
@@ -176,11 +176,11 @@ export function Paywall({ paywall, email, whenLabel, locale = "fr", currency = "
         <motion.figure className="mt-10 rounded-3xl px-5 py-5" style={{ background: "#F7F7FF" }} {...appear(4)}>
           <div className="flex items-center gap-2">
             <span className="flex" style={{ color: "#F5B301" }} aria-hidden>{[0, 1, 2, 3, 4].map((i) => <Star key={i} size={15} />)}</span>
-            <span className="text-[14px] font-bold" style={{ color: P.text }}>{paywall.ratingValue}</span>
-            <span className="text-[13px]" style={{ color: P.muted }}>{paywall.ratingLabel}</span>
+            <span className="text-[0.875rem] font-bold" style={{ color: P.text }}>{paywall.ratingValue}</span>
+            <span className="text-[0.8125rem]" style={{ color: P.muted }}>{paywall.ratingLabel}</span>
           </div>
-          <blockquote className="mt-3 font-serif text-[19px] leading-[1.4]" style={{ color: P.text, textWrap: "pretty" as never }}>« {paywall.reviewText} »</blockquote>
-          <figcaption className="mt-2 text-[14px] font-semibold" style={{ color: P.soft }}>{paywall.reviewName}</figcaption>
+          <blockquote className="mt-3 font-serif text-[1.1875rem] leading-[1.4]" style={{ color: P.text, textWrap: "pretty" as never }}>« {paywall.reviewText} »</blockquote>
+          <figcaption className="mt-2 text-[0.875rem] font-semibold" style={{ color: P.soft }}>{paywall.reviewName}</figcaption>
         </motion.figure>
       )}
 
@@ -189,16 +189,16 @@ export function Paywall({ paywall, email, whenLabel, locale = "fr", currency = "
         <motion.div className="mt-8 flex gap-4" {...appear(5)}>
           <span className="flex w-9 shrink-0 justify-center pt-0.5" style={{ color: GREEN }} aria-hidden><Icon name="shield" size={24} strokeWidth={1.75} duo /></span>
           <div>
-            <p className="text-[16px] font-semibold leading-snug" style={{ color: P.text }}>{paywall.guaranteeTitle}</p>
-            <p className="mt-0.5 text-[15px] leading-normal" style={{ color: P.soft, textWrap: "pretty" as never }}>{paywall.guaranteeText}</p>
+            <p className="text-[1rem] font-semibold leading-snug" style={{ color: P.text }}>{paywall.guaranteeTitle}</p>
+            <p className="mt-0.5 text-[0.9375rem] leading-normal" style={{ color: P.soft, textWrap: "pretty" as never }}>{paywall.guaranteeText}</p>
           </div>
         </motion.div>
       )}
 
       {/* Fine print + payment methods (in the page, not the footer, to keep the button area light) */}
       <div className="mt-5 space-y-1.5 pb-2 text-center">
-        <p className="text-[12px] leading-snug" style={{ color: P.muted }}>{t(paywall.finePrint)}</p>
-        {paywall.paymentMethods && <p className="text-[11.5px]" style={{ color: P.muted }}>{paywall.paymentMethods}</p>}
+        <p className="text-[0.75rem] leading-snug" style={{ color: P.muted }}>{t(paywall.finePrint)}</p>
+        {paywall.paymentMethods && <p className="text-[0.7188rem]" style={{ color: P.muted }}>{paywall.paymentMethods}</p>}
       </div>
 
       {busy && (

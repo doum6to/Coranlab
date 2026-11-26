@@ -44,9 +44,11 @@ export function ProgressChart({
 
   return (
     <div className="w-full">
-      <div className="mb-2 flex items-center justify-between">
-        <span className="text-[15px] font-semibold" style={{ color: "#1A1A1A" }}>{chartLabel}</span>
-        <span className="rounded-[8px] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[.05em]" style={{ background: "#6967FB", color: "#FFFFFF" }}>{brandLabel}</span>
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <span className="text-[0.9375rem] font-semibold" style={{ color: "#1A1A1A" }}>{chartLabel}</span>
+        <span className="flex items-center gap-1.5 text-[0.8125rem] font-semibold" style={{ color: "#6967FB" }}>
+          <span className="h-[3px] w-4 rounded-full" style={{ background: "#6967FB" }} aria-hidden />{brandLabel}
+        </span>
       </div>
 
       <svg viewBox={`0 0 ${PW} ${PH}`} className="block w-full" role="img" aria-label={`${chartLabel} : ${brandLabel} vs ${othersLabel}`}>
@@ -90,27 +92,14 @@ export function ProgressChart({
       </svg>
 
       {/* checklist */}
-      <motion.p className="mt-4 flex items-center gap-2 text-[16px] font-semibold" style={{ color: "#1A1A1A" }} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={fade(0.7)}>
-        <span style={{ color: "#6967FB" }} aria-hidden>✦</span>
-        {checkTitle}
-      </motion.p>
-      <ul className="mt-2.5 space-y-2.5">
+      <motion.h2 className="mt-8 text-[1.0625rem] font-bold" style={{ color: "#1A1A1A" }} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={fade(0.7)}>{checkTitle}</motion.h2>
+      <ul className="mt-4 space-y-3.5">
         {checklist.map((item, i) => {
           const d = 0.85 + i * 0.18;
           return (
-            <motion.li key={item} className="flex items-center gap-3 text-[15px] leading-snug" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={fade(d)}>
-              <span className="relative flex h-6 w-6 shrink-0 items-center justify-center rounded-full" style={{ border: "1.5px solid #E8E8E8" }} aria-hidden>
-                <motion.span
-                  className="absolute inset-0 flex items-center justify-center rounded-full"
-                  style={{ background: "#6967FB", color: "#FFFFFF" }}
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={reduce ? { duration: 0 } : { delay: d + 0.15, type: "spring", stiffness: 500, damping: 22 }}
-                >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
-                </motion.span>
-              </span>
-              <span style={{ color: "#1A1A1A" }}>{item}</span>
+            <motion.li key={item} className="flex items-start gap-3 text-[1rem] leading-snug" initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} transition={fade(d)}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6967FB" strokeWidth="2.75" strokeLinecap="round" strokeLinejoin="round" className="mt-[1px] shrink-0" aria-hidden><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+              <span style={{ color: "#1A1A1A", textWrap: "pretty" as never }}>{item}</span>
             </motion.li>
           );
         })}
@@ -281,11 +270,10 @@ export function TimeChart({
             initial={reduce ? false : { opacity: 0, scale: 0.8, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={reduce ? { duration: 0 } : { delay: 0.5, type: "spring", stiffness: 420, damping: 24 }}
-            className="relative flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-[13px] font-bold"
-            style={{ background: "#6967FB", color: "#FFFFFF", boxShadow: "0 8px 20px -10px rgba(58,40,31,.6)" }}
+            className="relative flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-[0.8125rem] font-bold"
+            style={{ background: "#6967FB", color: "#FFFFFF", boxShadow: "0 8px 18px -10px rgba(74,72,212,.7)" }}
           >
-            <span style={{ color: "#E6E5FF" }} aria-hidden>✦</span>
-            <span>{dateLabel}</span>
+            <span style={{ fontVariantNumeric: "tabular-nums" }}>{dateLabel}</span>
             <span className="absolute left-1/2 top-full h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rotate-45" style={{ background: "#6967FB" }} aria-hidden />
           </motion.div>
         </motion.div>
