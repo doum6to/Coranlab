@@ -55,7 +55,7 @@ export const QCMInverse = ({
           <Choice key={option.id} className="min-h-[68px]" index={i + 1} selected={selectedOption === option.id} status={status} correct={option.correct} disabled={disabled} onClick={() => onSelect(option.id)}>
             <span className="flex flex-col items-start">
               <span className="font-arabic text-[1.625rem] leading-[1.35] text-brilliant-text" dir="rtl" lang="ar">{option.arabicText || option.text}</span>
-              {answered && <Translit arabic={option.arabicText || option.text} className="-mt-0.5 text-xs" />}
+              <Translit arabic={option.arabicText || option.text} className="-mt-0.5 text-[0.8125rem]" />
             </span>
           </Choice>
         ))}

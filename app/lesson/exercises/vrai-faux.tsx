@@ -23,7 +23,7 @@ export const VraiFaux = ({
   disabled,
 }: Props) => {
   const t = useT();
-  // The reading aids (phonetics, voice) come once the answer is given: before, they would give it away.
+  // The voice comes once the answer is given; the phonetic reading is there from the start.
   const answered = status !== "none";
   useAutoPlayWord(challenge.arabicWord, answered, false, AFTER_ANSWER_MS);
   // Options keep their canonical "VRAI"/"FAUX" value (not translated), so this

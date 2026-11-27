@@ -87,8 +87,9 @@ export function Choices({ children, label }: { children: ReactNode; label?: stri
 }
 
 /**
- * The Arabic word an exercise is about. Its reading aids (phonetics, voice) appear once the
- * answer is given: shown before, they would give it away.
+ * The Arabic word an exercise is about. Its phonetic reading sits under it from the start, so
+ * a learner who cannot read the script yet still knows how the word sounds (the "abc" switch
+ * of the header turns it off). The voice comes once the answer is given (`revealAids`).
  */
 export function WordPrompt({ arabic, revealAids, size = "md", className, children, concealed, translitAlways }: { arabic: string | null | undefined; revealAids: boolean; size?: "md" | "lg"; className?: string; children?: ReactNode; /** Shown in place of the word, which keeps its room (a word to recall from memory). */ concealed?: ReactNode; /** Phonetics shown from the start, whatever the learner's setting (the site's demonstration). */ translitAlways?: boolean }) {
   return (
@@ -97,7 +98,7 @@ export function WordPrompt({ arabic, revealAids, size = "md", className, childre
       {translitAlways ? (
         <span dir="ltr" lang="ar-Latn" className="mt-1 block text-center text-base font-medium italic leading-tight text-[#6B6B76]">{transliterate(arabic)}</span>
       ) : (
-        <Translit arabic={arabic} className="mt-1 text-sm" reveal={revealAids} />
+        <Translit arabic={arabic} className="mt-1 text-[0.9375rem]" reveal={!concealed} />
       )}
       {/* Comes in once the word has faded out, never over it */}
       {concealed && <span className="absolute inset-0 flex items-center justify-center px-4 text-center text-[0.9375rem] font-semibold text-brilliant-muted duration-300 animate-in fade-in fill-mode-both delay-300">{concealed}</span>}
@@ -217,7 +218,7 @@ export function MatchBoard({ pairs, onDone, disabled, label }: { pairs: Pair[]; 
             <PairTile state={stateOf("ar", keyOf(pair))} disabled={disabled} onClick={() => tap("ar", keyOf(pair))}>
               <span className="flex flex-col items-center">
                 <span className="font-arabic text-[1.625rem] leading-[1.35]" dir="rtl" lang="ar">{pair.arabicText}</span>
-                {matched.has(keyOf(pair)) && <Translit arabic={pair.arabicText} className="-mt-0.5 text-[0.75rem]" />}
+                <Translit arabic={pair.arabicText} className="-mt-0.5 text-[0.8125rem]" />
               </span>
             </PairTile>
             <div className={cn(!meanings && "invisible")}>

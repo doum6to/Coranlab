@@ -26,7 +26,7 @@ export const QCM = ({
   listen = false,
 }: Props) => {
   const t = useT();
-  // The reading aids (phonetics, voice) come once the answer is given: before, they would give it away.
+  // The voice comes once the answer is given; the phonetic reading is there from the start.
   const answered = status !== "none";
   // Listening variant: the word is the question, so it is heard at once. Otherwise it is read out after the answer.
   useAutoPlayWord(challenge.arabicWord, listen || answered, listen, listen ? 250 : AFTER_ANSWER_MS);
