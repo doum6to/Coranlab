@@ -1,3 +1,5 @@
+import { ADDED_LISTS } from "./vocabulary-additions";
+
 export type VocabWord = {
   french: string;
   arabic: string;
@@ -18,7 +20,7 @@ export const vocabularyData: VocabUnit[] = [
   // PARTIE I : Les Fondements (0% à 50% du Coran)
   {
     title: "Partie I : Les Fondements",
-    description: "0% à 50% du Coran",
+    description: "0% à 41% du Coran",
     lists: [
       {
         title: "Pronoms Démonstratifs",
@@ -137,7 +139,7 @@ export const vocabularyData: VocabUnit[] = [
   // PARTIE II : Noms et Adjectifs (50% à 65% du Coran)
   {
     title: "Partie II : Noms et Adjectifs",
-    description: "50% à 65% du Coran",
+    description: "41% à 60% du Coran",
     lists: [
       {
         title: "Noms & Attributs d'Allah",
@@ -373,7 +375,7 @@ export const vocabularyData: VocabUnit[] = [
   // PARTIE III : Les Formes Verbales (65% à 85% du Coran)
   {
     title: "Partie III : Les Formes Verbales",
-    description: "65% à 85% du Coran",
+    description: "60% à 85% du Coran",
     lists: [
       {
         title: "Forme II",
@@ -553,3 +555,8 @@ export const vocabularyData: VocabUnit[] = [
     ],
   },
 ];
+
+// Lists added later (see vocabulary-additions.ts), appended to their part of the course.
+for (const added of ADDED_LISTS) {
+  vocabularyData[added.unit].lists.push({ title: added.title, words: added.words });
+}

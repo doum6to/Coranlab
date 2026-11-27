@@ -1,4 +1,5 @@
 import type { Locale } from "./locales";
+import { ADDED_TITLES, ADDED_WORDS } from "./content-i18n-additions";
 
 /**
  * Runtime translation of the *course content* that lives in the database in
@@ -500,7 +501,8 @@ const WORDS: Record<string, Tr> = {
   Oublier: { en: "To forget", es: "Olvidar" },
 };
 
-const CONTENT_TR: Record<string, Tr> = { ...TITLES, ...QUESTIONS, ...WORDS };
+// The original strings win over the added ones when a French label exists in both.
+const CONTENT_TR: Record<string, Tr> = { ...ADDED_TITLES, ...ADDED_WORDS, ...TITLES, ...QUESTIONS, ...WORDS };
 
 // Whitespace-normalized index so DB content that differs only by surrounding
 // or collapsed spaces still resolves to a translation.

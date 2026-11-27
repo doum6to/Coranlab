@@ -4,12 +4,13 @@ import type { UnitWithLists } from "@/db/queries";
 export const COVERAGE_GOAL = 85;
 
 /**
- * Whether the figure is shown to learners. Off since 27 November 2026: checked against the
- * source booklet, the course holds 345 of its 644 words, and the ranges written on each part
- * (0-50, 50-65, 65-85 %) do not match the booklet's own (41.1, 60.1, 85.2 %), so the figure
- * overstates. To be switched back on once the missing words are in and the ranges corrected.
+ * The figure is only shown once the course in the database is the complete one: its parts
+ * then carry the corrected ranges (0-41, 41-60, 60-85 %). With the earlier, shorter course
+ * the ranges read 0-50, 50-65, 65-85 % and the figure overstated, so it stays hidden.
  */
-export const COVERAGE_VISIBLE = false;
+export function coverageIsReliable(units: UnitWithLists[]): boolean {
+  return units.length > 0 && /(\d+)\s*%\D+41\s*%/.test(units[0].description || "");
+}
 
 /**
  * Roughly how much of the Qur'an's words a learner understands so far, in percent.

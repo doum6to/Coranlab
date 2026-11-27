@@ -51,6 +51,7 @@ import { VipForm } from "./vip-form";
 import { AnalyticsPanel } from "./analytics-panel";
 import { CommencerFunnelPanel } from "./commencer-funnel-panel";
 import { AdminTabs } from "./admin-tabs";
+import { CourseAdditionsPanel } from "./course-additions-panel";
 
 export const dynamic = "force-dynamic";
 
@@ -307,6 +308,11 @@ const AdminPremiumPage = async () => {
                   }}
                 />
               ),
+            },
+            {
+              key: "course",
+              label: "Contenu du cours",
+              node: <CourseAdditionsPanel />,
             },
             {
               key: "analytics",

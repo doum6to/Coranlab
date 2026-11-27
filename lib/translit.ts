@@ -137,11 +137,19 @@ function translitWord(raw: string): string {
 
 const cache = new Map<string, string>();
 
+/** Pieces of words the rules cannot read on their own: the attached "my" and the article. */
+const FIXED: Record<string, string> = {
+  ["\u0640\u0650\u064A"]: "\u00EE", // -i (my)
+  ["\u0671\u0644\u06E1"]: "al", // al- (the)
+};
+
 /** "ٱلرَّحِيم" → "ar-rahîm". Returns "" when there is nothing to read. */
 export function transliterate(arabic: string | null | undefined): string {
   if (!arabic) return "";
   const hit = cache.get(arabic);
   if (hit !== undefined) return hit;
+  const fixed = FIXED[arabic.normalize("NFC").trim()];
+  if (fixed) return fixed;
   const out = prepare(arabic)
     .split(/\s+/)
     .map((w) => (/^[.…،]+$/.test(w) ? "…" : translitWord(w)))
