@@ -63,12 +63,12 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
   },
   icons: {
-    apple: "/quranlab-logo.png",
+    apple: "/apple-icon.png",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#6967FB",
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({

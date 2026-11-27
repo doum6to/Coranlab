@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Check, ChevronRight, GraduationCap, Settings, ShoppingBag, Sparkles, Trophy } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Check, ChevronRight, GraduationCap, Settings, ShoppingBag, Smartphone, Sparkles, Trophy } from "lucide-react";
 
 import type { StreakData } from "@/db/queries";
 import { CountUp, StreakFlame } from "@/components/fx";
+import { InstallSheet, canShowInstallHelp } from "@/components/add-to-home-tutorial";
 import { useT } from "@/lib/i18n/use-t";
 
 type Props = {
@@ -22,6 +24,10 @@ export function ProfileView({ name, streakData, points, doneLevels, totalLevels,
   const t = useT();
   const { streak, days } = streakData;
   const initial = (name.trim()[0] || "Q").toUpperCase();
+  // "Install on my phone": offered on phones where the site is not installed yet.
+  const [canInstall, setCanInstall] = useState(false);
+  const [installOpen, setInstallOpen] = useState(false);
+  useEffect(() => setCanInstall(canShowInstallHelp()), []);
   const links = [
     { href: "/boutique", label: t.home.linkShop, icon: <ShoppingBag className="h-5 w-5" strokeWidth={2} /> },
     ...(hasArabicCourse ? [{ href: "/ma-formation", label: t.home.linkCourse, icon: <GraduationCap className="h-5 w-5" strokeWidth={2} /> }] : []),
@@ -70,8 +76,17 @@ export function ProfileView({ name, streakData, points, doneLevels, totalLevels,
 
       {/* The learner's places */}
       <ul className="mt-6">
+        {canInstall && (
+          <li>
+            <button type="button" onClick={() => setInstallOpen(true)} className="flex min-h-[56px] w-full items-center gap-3.5 px-1 text-left text-brilliant-text transition-opacity active:opacity-60">
+              <span className="text-[#6967FB]"><Smartphone className="h-5 w-5" strokeWidth={2} /></span>
+              <span className="flex-1 text-[1rem] font-medium">{t.addToHome.row}</span>
+              <ChevronRight className="h-5 w-5 text-[#B9B9C3]" strokeWidth={2.2} aria-hidden />
+            </button>
+          </li>
+        )}
         {links.map((l, i) => (
-          <li key={l.href} className={i ? "border-t border-[#EFEFF3]" : ""}>
+          <li key={l.href} className={i || canInstall ? "border-t border-[#EFEFF3]" : ""}>
             <Link href={l.href} className="flex min-h-[56px] items-center gap-3.5 px-1 text-brilliant-text transition-opacity active:opacity-60">
               <span className="text-[#6967FB]">{l.icon}</span>
               <span className="flex-1 text-[1rem] font-medium">{l.label}</span>
@@ -80,6 +95,7 @@ export function ProfileView({ name, streakData, points, doneLevels, totalLevels,
           </li>
         ))}
       </ul>
+      {installOpen && <InstallSheet onClose={() => setInstallOpen(false)} />}
     </div>
   );
 }
