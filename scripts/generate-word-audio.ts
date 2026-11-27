@@ -35,6 +35,9 @@ const MODEL = process.env.ELEVENLABS_MODEL || "eleven_v4";
 const LIMIT = Number(process.env.LIMIT || 0);
 const FORCE = process.env.FORCE === "1";
 const DRY_RUN = process.env.DRY_RUN === "1";
+// ONLY_FILE: a JSON array of Arabic words to record again (a second take of doubtful clips);
+// every other word is left as it is.
+const ONLY_FILE = process.env.ONLY_FILE || "";
 
 // Must match wordAudioKey() in lib/word-audio.ts.
 const keyOf = (arabic: string) => arabic.normalize("NFC").trim().replace(/\s+/g, " ");
@@ -115,13 +118,15 @@ async function main() {
     new Set([...vocabularyData.flatMap((u) => u.lists.flatMap((l) => l.words.map((w) => keyOf(w.arabic)))), ...funnel, keyOf(HOME_DEMO.arabic)]),
   );
 
+  const only = ONLY_FILE ? new Set((JSON.parse(readFileSync(ONLY_FILE, "utf8")) as string[]).map(keyOf)) : null;
   let done = 0;
   let skipped = 0;
   const failed: string[] = [];
   for (const key of words) {
     const file = fileOf(key);
     const target = path.join(OUT_DIR, file);
-    if (!FORCE && existsSync(target)) {
+    if (only ? !only.has(key) : !FORCE && existsSync(target)) {
+      if (!existsSync(target)) continue;
       manifest[key] = file;
       skipped++;
       continue;
