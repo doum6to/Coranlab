@@ -7,6 +7,9 @@ import {
   isListPremiumLocked,
 } from "@/db/queries";
 
+import { auth } from "@/lib/supabase/server";
+import { getBoostUntil } from "@/lib/xp-boost";
+
 import { Quiz } from "../quiz";
 
 type Props = {
@@ -28,14 +31,17 @@ const LessonIdPage = async ({
   const userProgressData = getUserProgress();
   const userSubscriptionData = getUserSubscription();
 
+  const { userId } = await auth();
   const [
     lesson,
     userProgress,
     userSubscription,
+    boostUntil,
   ] = await Promise.all([
     lessonData,
     userProgressData,
     userSubscriptionData,
+    userId ? getBoostUntil(userId) : null,
   ]);
 
   if (!lesson || !userProgress) {
@@ -54,6 +60,8 @@ const LessonIdPage = async ({
 
   return (
     <Quiz
+      key={lesson.id}
+      boostUntil={boostUntil}
       initialLessonId={lesson.id}
       initialLessonChallenges={lesson.challenges}
       initialHearts={userProgress.hearts}

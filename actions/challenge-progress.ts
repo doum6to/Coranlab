@@ -10,13 +10,29 @@ import { coverageIsReliable, quranCoverage } from "@/lib/quran-coverage";
 import { challengeProgress, challenges, userProgress, weeklyXp, streakActivity } from "@/db/schema";
 import { getCurrentWeekStart } from "@/lib/league-utils";
 import { maybeJoinLeague } from "@/actions/league";
-import { MAX_STREAK_CHARGES, daysBetween, learnerToday } from "@/lib/streak-utils";
+import { MAX_STREAK_CHARGES, addDays, daysBetween, learnerToday } from "@/lib/streak-utils";
+import { BOOST_FACTOR, getBoostUntil, startBoost } from "@/lib/xp-boost";
+import { countDueOn } from "@/lib/review";
 
 /** XP for an exercise done for the first time, and for one replayed as revision. */
 const XP_NEW = 10;
 const XP_REVISION = 2;
 
-export type LessonResult = { xp: number; streak: number; streakExtended: boolean; /** Share of the Qur'an's words understood after this lesson (estimate), when it could be computed. */ coverage?: number };
+/** The level that comes next on the learner's path. */
+export type NextStep = { lessonId: number; level: number; listTitle: string };
+export type LessonEnd = {
+  streak: number;
+  streakExtended: boolean;
+  /** Share of the Qur'an's words understood after this lesson (estimate), when it could be computed. */
+  coverage?: number;
+  /** The next level, when there is one the learner can open. */
+  next?: NextStep;
+  /** Words that will be due for review tomorrow. */
+  reviewTomorrow?: number;
+  /** Double XP runs until this moment (ms since epoch): started by the first lesson of the day. */
+  boostUntil?: number;
+};
+export type LessonResult = LessonEnd & { xp: number };
 
 /**
  * Saves exercises as they are answered right, so a lesson left halfway resumes where it
@@ -45,7 +61,9 @@ export const saveLessonProgress = async (challengeIds: number[]): Promise<{ xp: 
     await db.insert(challengeProgress).values(newIds.map((challengeId) => ({ challengeId, userId, completed: true })));
   }
 
-  const xp = newIds.length * XP_NEW + (ids.length - newIds.length) * XP_REVISION;
+  // Doubled while the learner's bonus runs (see lib/xp-boost.ts).
+  const boosted = (await getBoostUntil(userId)) !== null;
+  const xp = (newIds.length * XP_NEW + (ids.length - newIds.length) * XP_REVISION) * (boosted ? BOOST_FACTOR : 1);
   if (xp > 0) {
     const weekStart = getCurrentWeekStart();
     await db.update(userProgress).set({ points: sql`${userProgress.points} + ${xp}` }).where(eq(userProgress.userId, userId));
@@ -66,7 +84,7 @@ export const saveLessonProgress = async (challengeIds: number[]): Promise<{ xp: 
  * Closes a finished lesson: today counts for the streak (a missed day is covered by a charge
  * when one is left), a charge is earned, and the league is joined once the weekly XP allows it.
  */
-export const finishLesson = async (clientDate?: string): Promise<{ streak: number; streakExtended: boolean; coverage?: number } | undefined> => {
+export const finishLesson = async (clientDate?: string): Promise<LessonEnd | undefined> => {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
@@ -107,16 +125,26 @@ export const finishLesson = async (clientDate?: string): Promise<{ streak: numbe
   revalidatePath("/leaderboard");
   revalidateTag("leaderboard");
 
-  // The figure the lesson moved: shown on the end screen. Never worth failing the save for.
+  // The figure the lesson moved and where the path goes next: shown on the end screens.
+  // Never worth failing the save for.
   let coverage: number | undefined;
+  let next: NextStep | undefined;
   try {
     const course = await getListsWithLevels();
     if (coverageIsReliable(course)) coverage = quranCoverage(course);
+    const list = course.flatMap((u) => u.lists).find((l) => l.activeLevel);
+    if (list?.activeLevel && !list.isPremiumLocked) next = { lessonId: list.activeLevel.id, level: list.completedLevels + 1, listTitle: list.listTitle };
   } catch (e) {
     console.error("[lesson] coverage not computed", e);
   }
 
-  return { streak: newStreak, streakExtended: !alreadyActiveToday, coverage };
+  // First lesson of the day: double XP for a while, and tomorrow's review announced.
+  const [boostUntil, reviewTomorrow] = await Promise.all([
+    alreadyActiveToday ? getBoostUntil(userId) : startBoost(userId),
+    alreadyActiveToday ? Promise.resolve(undefined) : countDueOn(userId, addDays(today, 1)),
+  ]);
+
+  return { streak: newStreak, streakExtended: !alreadyActiveToday, coverage, next, reviewTomorrow, boostUntil: boostUntil ?? undefined };
 };
 
 /** A whole lesson saved in one call (kept for callers that do not save as they go). */

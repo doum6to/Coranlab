@@ -4,6 +4,7 @@ import { getUserProgress, getUserSubscription, isListPremiumLocked } from "@/db/
 import { getRequestLocale } from "@/lib/i18n/request-locale";
 import { buildReviewSession } from "@/lib/review";
 import { auth } from "@/lib/supabase/server";
+import { getBoostUntil } from "@/lib/xp-boost";
 
 import { Quiz } from "../quiz";
 
@@ -15,16 +16,18 @@ const ReviewPage = async () => {
   const { userId } = await auth();
   if (!userId) redirect("/auth/login");
 
-  const [userProgress, userSubscription, session] = await Promise.all([
+  const [userProgress, userSubscription, session, boostUntil] = await Promise.all([
     getUserProgress(),
     getUserSubscription(),
     buildReviewSession(userId, getRequestLocale(), isListPremiumLocked),
+    getBoostUntil(userId),
   ]);
   if (!userProgress || !session) redirect("/lecons");
 
   return (
     <Quiz
       review
+      boostUntil={boostUntil}
       initialLessonId={0}
       initialLessonChallenges={session.challenges}
       initialHearts={userProgress.hearts}

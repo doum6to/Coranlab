@@ -49,6 +49,7 @@ import { DuasOrdersForm } from "./duas-orders-form";
 import { VideosForm } from "./videos-form";
 import { VipForm } from "./vip-form";
 import { AnalyticsPanel } from "./analytics-panel";
+import { RetentionPanel } from "./retention-panel";
 import { CommencerFunnelPanel } from "./commencer-funnel-panel";
 import { AdminTabs } from "./admin-tabs";
 import { CourseAdditionsPanel } from "./course-additions-panel";
@@ -313,6 +314,11 @@ const AdminPremiumPage = async () => {
               key: "course",
               label: "Contenu du cours",
               node: <CourseAdditionsPanel />,
+            },
+            {
+              key: "retention",
+              label: "Rétention",
+              node: <RetentionPanel />,
             },
             {
               key: "analytics",

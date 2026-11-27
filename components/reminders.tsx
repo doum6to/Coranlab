@@ -233,3 +233,34 @@ export function ReminderSheet({ onClose, preview }: { onClose: () => void; previ
     </div>
   );
 }
+
+/**
+ * End of the first lesson of the day: the moment a reminder for tomorrow makes sense. Shown
+ * only where this browser can be notified and is not yet; one tap, then a confirmation.
+ */
+export function TomorrowReminder({ preview }: { preview?: ReminderPreview }) {
+  const t = useT();
+  const { state, support, here, busy, problem, turnOn } = useReminders(preview);
+  const [asked, setAsked] = useState(false);
+  if (support !== "ok" || !state?.pushKey || problem === "denied") return null;
+  if (here) {
+    return asked ? (
+      <p className="mt-3 flex items-center justify-center gap-1.5 text-[0.9375rem] font-semibold text-[#1F9D4D] animate-in fade-in"><Check className="h-[18px] w-[18px]" strokeWidth={3} aria-hidden />{t.reward.reminderOn}</p>
+    ) : null;
+  }
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => { setAsked(true); void turnOn(); }}
+        disabled={busy}
+        className="mt-3 flex min-h-[48px] w-full select-none items-center justify-center gap-2 rounded-2xl text-[0.9375rem] font-bold text-[#5452E0] transition-[transform,background-color] duration-150 active:scale-[0.98] active:bg-[#F0F0FF] disabled:opacity-60"
+        style={{ boxShadow: "inset 0 0 0 2px #C8C7F0" }}
+      >
+        <BellRing className="h-[18px] w-[18px]" strokeWidth={2.4} aria-hidden />
+        {t.reward.remindMe}
+      </button>
+      {problem === "failed" && <p className="mt-2 text-center text-[0.8125rem] text-[#B42323]" role="alert">{t.reminders.failed}</p>}
+    </>
+  );
+}

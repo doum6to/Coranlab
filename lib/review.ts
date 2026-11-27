@@ -156,6 +156,20 @@ export async function getReviewOverview(userId: string, locale: Locale, isLocked
   return { words, practised: words.filter((w) => w.practised).length, due, known: words.filter((w) => w.strength === 3).length, next };
 }
 
+/** How many words will be due on `day` (words never reviewed count: they are due at once). Fails soft. */
+export async function countDueOn(userId: string, day: string): Promise<number> {
+  try {
+    const [reviewable, state] = await Promise.all([reviewableChallenges(userId), loadState(userId)]);
+    const words = new Set(reviewable.map((r) => r.word));
+    let due = 0;
+    words.forEach((w) => { const st = state.get(w); if (!st || st.due <= day) due++; });
+    return due;
+  } catch (e) {
+    console.error("[review] due count unavailable", (e as Error)?.message || e);
+    return 0;
+  }
+}
+
 function shuffle<T>(list: T[]): T[] {
   const out = [...list];
   for (let i = out.length - 1; i > 0; i--) {

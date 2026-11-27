@@ -21,6 +21,8 @@ type Props = {
   demo?: boolean;
   /** Where leaving the session leads (the home page by default). */
   exitTo?: string;
+  /** Double XP is running. */
+  boost?: boolean;
 };
 
 export const Header = ({
@@ -29,6 +31,7 @@ export const Header = ({
   combo = 0,
   demo = false,
   exitTo,
+  boost = false,
 }: Props) => {
   const { open } = useExitModal();
   const t = useT();
@@ -44,6 +47,7 @@ export const Header = ({
           <span className="flex shrink-0 items-center gap-1 text-[0.9375rem] font-bold text-brilliant-text" aria-label={`${xp} ${t.reward.xp}`}>
             <Sparkles className="h-[17px] w-[17px] text-[#6967FB]" strokeWidth={2.4} fill="currentColor" fillOpacity={0.14} aria-hidden />
             <CountUp value={xp} duration={450} />
+            {boost && <span className="ml-0.5 rounded-full bg-[#6967FB] px-1.5 py-0.5 text-[0.6875rem] font-bold leading-none text-white">×2</span>}
           </span>
         )}
         <div className="-ml-1 flex shrink-0 items-center">

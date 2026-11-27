@@ -12,7 +12,7 @@ const Confetti = dynamic(() => import("react-confetti"), { ssr: false });
 
 import { challengeOptions, challenges, userSubscription } from "@/db/schema";
 import { usePremiumModal } from "@/store/use-premium-modal";
-import { finishLesson, saveLessonProgress, type LessonResult } from "@/actions/challenge-progress";
+import { finishLesson, saveLessonProgress, type LessonResult, type NextStep } from "@/actions/challenge-progress";
 import { saveReviewAnswers } from "@/actions/review";
 
 import { ShinyButton } from "@/components/ui/shiny-button";
@@ -38,6 +38,7 @@ import { useT } from "@/lib/i18n/use-t";
 import { tpl } from "@/lib/i18n/locales";
 import { listenMode } from "@/lib/word-audio";
 import { useUnlockWordAudio, useWordSoundOn } from "@/components/word-audio";
+import { TomorrowReminder, type ReminderPreview } from "@/components/reminders";
 import { ConfettiBurst, CountUp, StreakFlame } from "@/components/fx";
 import { useLocale } from "@/components/i18n/locale-provider";
 import { formatCoverage } from "@/lib/quran-coverage";
@@ -83,6 +84,8 @@ type Props = {
   testMode?: boolean;
   /** A review session: words already learned, drawn from several lessons (see lib/review.ts). */
   review?: boolean;
+  /** Double XP runs until this moment (ms since epoch), when a bonus is under way. */
+  boostUntil?: number | null;
 };
 
 export const Quiz = ({
@@ -94,6 +97,7 @@ export const Quiz = ({
   levelOrder,
   testMode = false,
   review = false,
+  boostUntil = null,
 }: Props) => {
 
   const router = useRouter();
@@ -160,7 +164,11 @@ export const Quiz = ({
   // Live rewards of the session: XP collected so far and right answers in a row.
   const [sessionXp, setSessionXp] = useState(0);
   const [combo, setCombo] = useState(0);
-  const [showStreak, setShowStreak] = useState(false);
+  // End of the session, one screen after the other: the result, the streak, then the bonus.
+  const [endStep, setEndStep] = useState<"result" | "streak" | "boost">("result");
+  // Double XP: already running when the lesson opened, or started by this lesson.
+  const [boostEnd, setBoostEnd] = useState<number | null>(boostUntil);
+  const boosted = () => !testMode && boostEnd !== null && Date.now() < boostEnd;
   const [selfAction, setSelfAction] = useState<ExerciseAction | null>(null);
 
   const isFinished = pos >= queue.length;
@@ -209,7 +217,7 @@ export const Quiz = ({
       saveSoon()
         .then(() => (unsavedRef.current.length || reviewRef.current.length ? saveSoon() : undefined))
         .then(() => finishLesson(localDay()))
-        .then((r) => { if (r) setResult({ xp: 0, ...r }); })
+        .then((r) => { if (r) { setResult({ xp: 0, ...r }); if (r.boostUntil) setBoostEnd(r.boostUntil); } })
         .catch(() => console.error("Failed to save progress"))
         .finally(() => setSaving(false));
     }
@@ -225,7 +233,7 @@ export const Quiz = ({
   };
 
   // An exercise already done on a previous visit is revision: it is worth less.
-  const gainOf = (c: (typeof challengesList)[number] | undefined) => (c?.completed ? XP_REVISION : XP_NEW);
+  const gainOf = (c: (typeof challengesList)[number] | undefined) => (c?.completed ? XP_REVISION : XP_NEW) * (boosted() ? 2 : 1);
   const rewardRight = () => {
     setSessionXp((x) => x + gainOf(challenge));
     setCombo((n) => n + 1);
@@ -305,10 +313,21 @@ export const Quiz = ({
     router.push(review ? "/lecons" : "/learn");
   };
 
-  // Streak screen: shown after the finished screen when this lesson extended the streak today
-  if (isFinished && showStreak && result) {
-    return <StreakScreen streak={result.streak} onContinue={handleFinishContinue} />;
+  // The next level of the path, offered at the end so a second lesson is one tap away.
+  const next = !testMode ? result?.next : undefined;
+  const goNext = () => { if (next) router.push(`/lesson/${next.lessonId}`); };
+
+  // Bonus screen: double XP has just started, and there is a lesson to spend it on.
+  if (isFinished && endStep === "boost" && next && boostEnd) {
+    return <BoostScreen until={boostEnd} onNext={goNext} onHome={handleFinishContinue} />;
   }
+
+  // Streak screen: shown after the finished screen when this lesson extended the streak today
+  if (isFinished && endStep === "streak" && result) {
+    return <StreakScreen streak={result.streak} next={next} reviewTomorrow={result.reviewTomorrow} askReminder onContinue={next && boosted() ? () => setEndStep("boost") : handleFinishContinue} />;
+  }
+
+  const firstToday = !testMode && !!result?.streakExtended;
 
   // Finished screen
   if (isFinished) {
@@ -324,7 +343,9 @@ export const Quiz = ({
         isPro={!!userSubscription?.isActive}
         coverage={review ? undefined : result?.coverage}
         review={review ? { words: firstPass, missed: missed.size } : undefined}
-        onContinue={!testMode && result?.streakExtended ? () => setShowStreak(true) : handleFinishContinue}
+        onContinue={firstToday ? () => setEndStep("streak") : handleFinishContinue}
+        onNext={!firstToday && next ? goNext : undefined}
+        boostUntil={!firstToday && next && boosted() ? boostEnd : null}
       />
     );
   }
@@ -389,6 +410,7 @@ export const Quiz = ({
         combo={combo}
         demo={testMode}
         exitTo={review ? "/lecons" : undefined}
+        boost={boosted()}
       />
       <div className="flex-1 overflow-y-auto">
         <div className="min-h-full flex items-center justify-center py-2 sm:py-6">
@@ -600,9 +622,13 @@ type FinishedScreenProps = {
   /** A review session: how many words it covered and how many were missed at the first try. */
   review?: { words: number; missed: number };
   onContinue: () => void;
+  /** Opens the next level: when given, it becomes the main button and going home the second. */
+  onNext?: () => void;
+  /** Double XP still running (ms since epoch), shown above the buttons. */
+  boostUntil?: number | null;
 };
 
-function FinishedScreen({
+export function FinishedScreen({
   passed,
   scorePercentage,
   totalXP,
@@ -614,6 +640,8 @@ function FinishedScreen({
   coverage,
   review,
   onContinue,
+  onNext,
+  boostUntil,
 }: FinishedScreenProps) {
   const t = useT();
   const locale = useLocale();
@@ -762,6 +790,17 @@ function FinishedScreen({
           >
             {t.lesson.unlockAll}
           </button>
+        ) : saving ? (
+          // The buttons come once the lesson is saved: what they offer depends on it, and nothing must move under the thumb.
+          <span className="block h-[58px] w-full" aria-hidden />
+        ) : onNext ? (
+          <div className="flex w-full flex-col items-center">
+            {boostUntil && <BoostLeft until={boostUntil} />}
+            <ShinyButton variant="green" onClick={onNext} className="text-base">
+              <span className="block py-1">{t.reward.nextLesson}</span>
+            </ShinyButton>
+            <button type="button" onClick={onContinue} className="mt-2 min-h-[48px] w-full select-none rounded-2xl text-[0.9375rem] font-semibold text-[#6B6B76] transition-colors active:bg-[#F3F3F7]">{t.reward.backHome}</button>
+          </div>
         ) : (
           <ShinyButton variant="green" onClick={onContinue} className="text-base">
             <span className="block py-1">{t.lesson.continue}</span>
@@ -786,7 +825,46 @@ function FinishedScreen({
 /* ─────────────────────── Streak screen ──────────────────────── */
 
 /** After a passed level that extended the streak today: the flame, the count, the week. */
-export function StreakScreen({ streak, onContinue }: { streak: number; onContinue: () => void }) {
+/** Time left as m:ss, refreshed every second; null once it is over. */
+function useTimeLeft(until: number): string | null {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+  const s = Math.max(0, Math.ceil((until - now) / 1000));
+  return s > 0 ? `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}` : null;
+}
+
+/** "XP ×2 for 9:41 more", above the button that spends it. */
+function BoostLeft({ until }: { until: number }) {
+  const t = useT();
+  const left = useTimeLeft(until);
+  if (!left) return null;
+  return <p className="mb-2.5 rounded-full bg-[#F0F0FF] px-3 py-1 text-[0.8125rem] font-bold text-[#5452E0]" style={{ fontVariantNumeric: "tabular-nums" }}>{tpl(t.reward.boostLeft, { time: left })}</p>;
+}
+
+/** After the first lesson of the day: double XP has started, and the next level is one tap away. */
+export function BoostScreen({ until, onNext, onHome }: { until: number; onNext: () => void; onHome: () => void }) {
+  const t = useT();
+  const left = useTimeLeft(until);
+  const [minutes] = useState(() => Math.max(1, Math.round((until - Date.now()) / 60_000)));
+  return (
+    <div className="relative flex h-[100dvh] flex-col items-center justify-center overflow-hidden px-6 text-center">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[60%]" style={{ background: "radial-gradient(60% 55% at 50% 40%, #EEEEFF 0%, rgba(238,238,255,0) 100%)" }} aria-hidden />
+      <p className="animate-xp-pop relative font-heading text-[5rem] font-extrabold leading-none text-[#6967FB]" style={{ letterSpacing: "-0.04em" }} aria-hidden>×2</p>
+      <h1 className="relative mt-5 max-w-[18rem] text-[1.625rem] font-bold leading-tight text-brilliant-text" style={{ textWrap: "balance" as never }}>{minutes === 1 ? t.reward.boostTitleOne : tpl(t.reward.boostTitle, { n: minutes })}</h1>
+      <p className="relative mt-2 max-w-xs text-base leading-normal text-[#555]" style={{ textWrap: "pretty" as never }}>{t.reward.boostBody}</p>
+      <p className="relative mt-5 h-8 font-heading text-[1.5rem] font-extrabold text-brilliant-text" style={{ fontVariantNumeric: "tabular-nums" }} aria-live="off">{left ?? "0:00"}</p>
+      <div className="relative mt-6 w-full max-w-md">
+        <ShinyButton variant="green" onClick={onNext} className="text-base"><span className="block py-1">{t.reward.nextLesson}</span></ShinyButton>
+        <button type="button" onClick={onHome} className="mt-2 min-h-[48px] w-full select-none rounded-2xl text-[0.9375rem] font-semibold text-[#6B6B76] transition-colors active:bg-[#F3F3F7]">{t.reward.backHome}</button>
+      </div>
+    </div>
+  );
+}
+
+export function StreakScreen({ streak, onContinue, next, reviewTomorrow, askReminder = false, reminderPreview }: { streak: number; onContinue: () => void; /** What waits tomorrow: the next level and the words due for review. */ next?: NextStep; reviewTomorrow?: number; /** Offer a reminder for tomorrow (signed-in learners only). */ askReminder?: boolean; /** Fixed reminder state, to look at the screen without an account. */ reminderPreview?: ReminderPreview }) {
   const t = useT();
   const [confetti, setConfetti] = useState(0);
   useEffect(() => {
@@ -799,10 +877,12 @@ export function StreakScreen({ streak, onContinue }: { streak: number; onContinu
   // Days of this week covered by the current streak, today included.
   const lit = (k: number) => k <= todayIdx && k > todayIdx - streak;
   return (
-    <div className="relative flex h-[100dvh] flex-col items-center justify-center overflow-hidden px-6 text-center">
+    // Scrolls when the screen is too short for everything (small phones), instead of cutting the flame or the button.
+    <div className="relative h-[100dvh] overflow-y-auto overflow-x-hidden" style={{ overscrollBehavior: "contain" }}>
+    <div className="relative flex min-h-full flex-col items-center justify-center px-6 py-6 text-center">
       <ConfettiBurst fireKey={confetti} pieces={30} originY="30%" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[60%]" style={{ background: "radial-gradient(60% 55% at 50% 40%, #FFF0DB 0%, rgba(255,240,219,0) 100%)" }} aria-hidden />
-      <StreakFlame className="relative h-48 w-48" />
+      <StreakFlame className="relative h-32 w-32 [@media(min-height:700px)]:h-48 [@media(min-height:700px)]:w-48" />
       <p className="relative -mt-2 font-heading text-[4rem] font-extrabold leading-none text-[#F0641E]" style={{ letterSpacing: "-0.03em" }}>
         <CountUp value={streak} duration={700} />
       </p>
@@ -821,9 +901,24 @@ export function StreakScreen({ streak, onContinue }: { streak: number; onContinu
       </div>
       <h1 className="relative mt-8 text-[1.625rem] font-bold leading-tight text-brilliant-text">{streak > 1 ? t.reward.streakKept : t.reward.streakStart}</h1>
       <p className="relative mt-2 max-w-xs text-base text-[#555]">{t.reward.streakHint}</p>
-      <div className="relative mt-8 w-full max-w-md">
+      {/* Tomorrow's appointment: what waits, and a reminder offered while the win is fresh */}
+      {(next || (reviewTomorrow ?? 0) > 0 || askReminder) && (
+        <div className="relative mt-6 w-full max-w-md">
+          {(next || (reviewTomorrow ?? 0) > 0) && (
+            <div className="px-4 py-3.5 text-left" style={{ borderRadius: 20, background: "#FFF7EC" }}>
+              <p className="text-[0.8125rem] font-semibold text-[#C2570C]">{t.reward.tomorrow}</p>
+              {next && <p className="mt-0.5 text-[0.9375rem] font-bold leading-snug text-brilliant-text">{tpl(t.reward.tomorrowNext, { n: next.level, list: next.listTitle })}</p>}
+              {(reviewTomorrow ?? 0) > 0 && <p className="mt-0.5 text-[0.9375rem] font-medium leading-snug text-[#555]" style={{ fontVariantNumeric: "tabular-nums" }}>{reviewTomorrow === 1 ? t.reward.tomorrowReviewOne : tpl(t.reward.tomorrowReview, { n: reviewTomorrow! })}</p>}
+            </div>
+          )}
+          {askReminder && <TomorrowReminder preview={reminderPreview} />}
+        </div>
+      )}
+      {/* Stays in reach on a short screen, where the rest scrolls behind it */}
+      <div className="sticky bottom-0 z-10 mt-3 w-full max-w-md bg-white pb-1 pt-3">
         <ShinyButton variant="green" onClick={onContinue}>{t.lesson.continue}</ShinyButton>
       </div>
+    </div>
     </div>
   );
 }

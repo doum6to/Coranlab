@@ -382,3 +382,9 @@ export const wordReview = pgTable("word_review", {
 }, (t) => ({
   pk: primaryKey({ columns: [t.userId, t.word] }),
 }));
+
+/** Double XP after the first lesson of the day, until `until`. Created at runtime by lib/xp-boost.ts. */
+export const xpBoost = pgTable("xp_boost", {
+  userId: text("user_id").primaryKey(),
+  until: timestamp("until", { withTimezone: true }).notNull(),
+});
