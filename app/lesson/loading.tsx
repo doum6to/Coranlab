@@ -1,8 +1,5 @@
-import { RiveLoading } from "@/components/ui/rive-loading";
+import { LessonSkeleton } from "@/components/ui/skeletons";
 
-const Loading = () => {
-  return <RiveLoading />;
-};
-
-export default Loading;
-
+export default function Loading() {
+  return <LessonSkeleton />;
+}

@@ -1,7 +1,5 @@
-import { RiveLoading } from "@/components/ui/rive-loading";
+import { RowsSkeleton } from "@/components/ui/skeletons";
 
-const Loading = () => {
-  return <RiveLoading />;
-};
-
-export default Loading;
+export default function Loading() {
+  return <RowsSkeleton />;
+}

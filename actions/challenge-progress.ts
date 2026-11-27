@@ -1,7 +1,7 @@
 "use server";
 
 import { auth } from "@/lib/supabase/server";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { revalidatePath, revalidateTag } from "next/cache";
 
 import db from "@/db/drizzle";
@@ -28,46 +28,58 @@ function learnerToday(clientDate: string | undefined): string {
   return Math.abs(daysBetween(server, clientDate)) <= 1 ? clientDate : server;
 }
 
-// Batch complete all challenges at end of lesson
-export const completeLessonChallenges = async (challengeIds: number[], clientDate?: string): Promise<LessonResult | undefined> => {
+/**
+ * Saves exercises as they are answered right, so a lesson left halfway resumes where it
+ * stopped. Credits their XP at once: full for an exercise done for the first time, a small
+ * reward for one replayed as revision. The streak is not touched here: it belongs to a
+ * finished lesson (see `finishLesson`).
+ */
+export const saveLessonProgress = async (challengeIds: number[]): Promise<{ xp: number } | undefined> => {
   const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
 
-  if (!userId) {
-    throw new Error("Unauthorized");
-  }
-
-  if (!challengeIds.length) return;
+  const ids = Array.from(new Set(challengeIds)).filter((id) => Number.isInteger(id));
+  if (!ids.length) return;
 
   const [currentUserProgress, existingProgress] = await Promise.all([
     getUserProgress(),
     db.query.challengeProgress.findMany({
-      where: and(
-        eq(challengeProgress.userId, userId),
-        inArray(challengeProgress.challengeId, challengeIds),
-      ),
+      where: and(eq(challengeProgress.userId, userId), inArray(challengeProgress.challengeId, ids)),
     }),
   ]);
+  if (!currentUserProgress) throw new Error("User progress not found");
 
-  if (!currentUserProgress) {
-    throw new Error("User progress not found");
-  }
-
-  // Filter out already completed challenges
   const existingIds = new Set(existingProgress.map((p) => p.challengeId));
-  const newChallengeIds = challengeIds.filter((id) => !existingIds.has(id));
-
-  // Insert new progress entries in batch
-  if (newChallengeIds.length > 0) {
-    await db.insert(challengeProgress).values(
-      newChallengeIds.map((challengeId) => ({
-        challengeId,
-        userId,
-        completed: true,
-      }))
-    );
+  const newIds = ids.filter((id) => !existingIds.has(id));
+  if (newIds.length > 0) {
+    await db.insert(challengeProgress).values(newIds.map((challengeId) => ({ challengeId, userId, completed: true })));
   }
 
-  // Calculate streak + charges
+  const xp = newIds.length * XP_NEW + (ids.length - newIds.length) * XP_REVISION;
+  if (xp > 0) {
+    const weekStart = getCurrentWeekStart();
+    await Promise.all([
+      db.update(userProgress).set({ points: sql`${userProgress.points} + ${xp}` }).where(eq(userProgress.userId, userId)),
+      db
+        .insert(weeklyXp)
+        .values({ userId, weekStart, xp })
+        .onConflictDoUpdate({ target: [weeklyXp.userId, weeklyXp.weekStart], set: { xp: sql`${weeklyXp.xp} + ${xp}` } }),
+    ]);
+  }
+  return { xp };
+};
+
+/**
+ * Closes a finished lesson: today counts for the streak (a missed day is covered by a charge
+ * when one is left), a charge is earned, and the league is joined once the weekly XP allows it.
+ */
+export const finishLesson = async (clientDate?: string): Promise<{ streak: number; streakExtended: boolean } | undefined> => {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const currentUserProgress = await db.query.userProgress.findFirst({ where: eq(userProgress.userId, userId) });
+  if (!currentUserProgress) throw new Error("User progress not found");
+
   const today = learnerToday(clientDate);
   const lastStreakDate = currentUserProgress.lastStreakDate;
   let newStreak = currentUserProgress.streak;
@@ -76,79 +88,42 @@ export const completeLessonChallenges = async (challengeIds: number[], clientDat
 
   if (!alreadyActiveToday) {
     if (!lastStreakDate) {
-      // First ever lesson
-      newStreak = 1;
+      newStreak = 1; // first lesson ever
     } else {
       const missed = daysBetween(lastStreakDate, today) - 1;
       if (missed <= 0) {
-        // Consecutive day
-        newStreak = newStreak + 1;
+        newStreak = newStreak + 1; // the day after
       } else {
-        // Try to cover missed days with charges
+        // Missed days are covered by charges when there are enough of them.
         const cover = Math.min(missed, newCharges);
         newCharges -= cover;
-        if (missed - cover > 0) {
-          // Streak broken
-          newStreak = 1;
-        } else {
-          // Charges covered the gap, extend streak by 1 for today
-          newStreak = newStreak + 1;
-        }
+        newStreak = missed - cover > 0 ? 1 : newStreak + 1;
       }
     }
   }
-
-  // Earn a charge for completing a lesson (capped at MAX)
+  // A finished lesson earns a charge (capped).
   newCharges = Math.min(newCharges + 1, MAX_STREAK_CHARGES);
 
-  // Record activity for today (idempotent)
-  await db
-    .insert(streakActivity)
-    .values({ userId, date: today })
-    .onConflictDoNothing();
-
-  // Full XP for exercises done for the first time, a small reward for revising the others.
-  const pointsEarned = newChallengeIds.length * XP_NEW + (challengeIds.length - newChallengeIds.length) * XP_REVISION;
-
-  // Update points + streak + charges in one query
-  await db.update(userProgress).set({
-    points: currentUserProgress.points + pointsEarned,
-    streak: newStreak,
-    lastStreakDate: today,
-    streakCharges: newCharges,
-  }).where(eq(userProgress.userId, userId));
-
-  // Track weekly XP (only for new challenges)
-  if (pointsEarned > 0) {
-    const weekStart = getCurrentWeekStart();
-    const existing = await db.query.weeklyXp.findFirst({
-      where: and(
-        eq(weeklyXp.userId, userId),
-        eq(weeklyXp.weekStart, weekStart),
-      ),
-    });
-
-    if (existing) {
-      await db.update(weeklyXp).set({
-        xp: existing.xp + pointsEarned,
-      }).where(eq(weeklyXp.id, existing.id));
-    } else {
-      await db.insert(weeklyXp).values({
-        userId,
-        weekStart,
-        xp: pointsEarned,
-      });
-    }
-
-    // Auto-join league if threshold met
-    await maybeJoinLeague(userId, weekStart);
-  }
+  await Promise.all([
+    db.insert(streakActivity).values({ userId, date: today }).onConflictDoNothing(),
+    db.update(userProgress).set({ streak: newStreak, lastStreakDate: today, streakCharges: newCharges }).where(eq(userProgress.userId, userId)),
+  ]);
+  await maybeJoinLeague(userId, getCurrentWeekStart());
 
   revalidatePath("/learn");
   revalidatePath("/leaderboard");
   revalidateTag("leaderboard");
 
-  return { xp: pointsEarned, streak: newStreak, streakExtended: !alreadyActiveToday };
+  return { streak: newStreak, streakExtended: !alreadyActiveToday };
+};
+
+/** A whole lesson saved in one call (kept for callers that do not save as they go). */
+export const completeLessonChallenges = async (challengeIds: number[], clientDate?: string): Promise<LessonResult | undefined> => {
+  if (!challengeIds.length) return;
+  const saved = await saveLessonProgress(challengeIds);
+  const done = await finishLesson(clientDate);
+  if (!done) return;
+  return { xp: saved?.xp ?? 0, ...done };
 };
 
 // Keep single challenge progress for backward compat (unused now)

@@ -12,7 +12,7 @@ const Confetti = dynamic(() => import("react-confetti"), { ssr: false });
 
 import { challengeOptions, challenges, userSubscription } from "@/db/schema";
 import { usePremiumModal } from "@/store/use-premium-modal";
-import { completeLessonChallenges, type LessonResult } from "@/actions/challenge-progress";
+import { finishLesson, saveLessonProgress, type LessonResult } from "@/actions/challenge-progress";
 
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { Header } from "./header";
@@ -85,7 +85,6 @@ export const Quiz = ({
   initialLessonId,
   initialLessonChallenges,
   userSubscription,
-  listId,
   levelOrder,
   testMode = false,
 }: Props) => {
@@ -100,9 +99,8 @@ export const Quiz = ({
       router.prefetch("/premium");
       return;
     }
-    const target = listId ? `/learn/list/${listId}` : "/learn";
-    router.prefetch(target);
-  }, [router, listId, testMode]);
+    router.prefetch("/learn");
+  }, [router, testMode]);
 
   const [correctAudio, _c, correctControls] = useAudio({ src: "/correct.wav" });
   const [incorrectAudio, _i, incorrectControls] = useAudio({ src: "/incorrect.wav" });
@@ -128,21 +126,25 @@ export const Quiz = ({
     }
     return initialLessonChallenges;
   });
-  const [activeIndex, setActiveIndex] = useState(() => {
-    if (testMode) return 0;
-    const uncompletedIndex = challengesList.findIndex((c) => !c.completed);
-    return uncompletedIndex === -1 ? 0 : uncompletedIndex;
+  // The order of play: the exercises still to do (all of them when the level is replayed as
+  // revision), then, appended as they happen, the ones answered wrong: they come back at the
+  // end until they are right, so a lesson always ends on a success.
+  const [queue, setQueue] = useState<number[]>(() => {
+    const all = challengesList.map((_, i) => i);
+    if (testMode) return all;
+    const todo = all.filter((i) => !challengesList[i].completed);
+    return todo.length > 0 ? todo : all;
   });
+  const [firstPass] = useState(queue.length);
+  const [pos, setPos] = useState(0);
+  // Exercises answered wrong at least once in this session.
+  const [missed, setMissed] = useState<Set<number>>(new Set());
   const [selectedOption, setSelectedOption] = useState<number>();
   const [status, setStatus] = useState<"correct" | "wrong" | "none">("none");
 
-  // Track every attempt: each correct or wrong click counts.
-  // scorePercentage = totalCorrect / totalAttempts × 100
-  const [totalCorrect, setTotalCorrect] = useState(0);
-  const [totalAttempts, setTotalAttempts] = useState(0);
-
-  // Track completed challenge IDs locally — only saved if level is passed
-  const completedIdsRef = useRef<number[]>([]);
+  // Exercises answered right are saved as the lesson goes (see `saveSoon`).
+  const unsavedRef = useRef<number[]>([]);
+  const saveChain = useRef<Promise<void>>(Promise.resolve());
   const [saving, setSaving] = useState(false);
   // What the server really credited (XP, streak) once the level is saved.
   const [result, setResult] = useState<LessonResult | null>(null);
@@ -152,47 +154,56 @@ export const Quiz = ({
   const [showStreak, setShowStreak] = useState(false);
   const [selfAction, setSelfAction] = useState<ExerciseAction | null>(null);
 
-  const isFinished = activeIndex >= challengesList.length;
-  const challenge = challengesList[activeIndex];
+  const isFinished = pos >= queue.length;
+  const challenge = challengesList[queue[pos]];
+  // Back for a second try after a wrong answer.
+  const isRetry = !isFinished && pos >= firstPass;
   // Exercises that judge themselves and only tell the footer what its button does.
   const isSelfManaged = !!challenge && ["FLASHCARD", "MATCHING", "ANAGRAM"].includes(challenge.type);
   const options = challenge?.challengeOptions ?? [];
 
-  const scorePercentage = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 100;
-  const passed = scorePercentage >= 90;
+  // Accuracy: the share of exercises answered right at the first try.
+  const scorePercentage = firstPass > 0 ? Math.round(((firstPass - missed.size) / firstPass) * 100) : 100;
 
-  // Save progress IMMEDIATELY when the level is finished AND passed.
-  // This ensures progress is saved even if the user closes the tab
-  // before clicking "Continuer". Skipped in test mode (pure demo).
-  const savedRef = useRef(false);
+  // Sends what is not saved yet, one request at a time. A failed request leaves its exercises
+  // in the list: they leave with the next one.
+  const saveSoon = () => {
+    saveChain.current = saveChain.current.then(async () => {
+      const ids = unsavedRef.current.splice(0);
+      if (!ids.length) return;
+      try {
+        await saveLessonProgress(ids);
+      } catch {
+        unsavedRef.current.unshift(...ids);
+      }
+    });
+    return saveChain.current;
+  };
+
+  // Once every exercise is right: last save, then the day counts for the streak.
+  // Skipped in test mode (pure demo).
+  const closedRef = useRef(false);
   useEffect(() => {
-    if (
-      !testMode &&
-      isFinished &&
-      passed &&
-      !savedRef.current &&
-      completedIdsRef.current.length > 0
-    ) {
-      savedRef.current = true;
+    if (!isFinished) return;
+    if (!testMode && !closedRef.current) {
+      closedRef.current = true;
       setSaving(true);
-      completeLessonChallenges(completedIdsRef.current, localDay())
-        .then((r) => { if (r) setResult(r); })
+      saveSoon()
+        .then(() => (unsavedRef.current.length ? saveSoon() : undefined))
+        .then(() => finishLesson(localDay()))
+        .then((r) => { if (r) setResult({ xp: 0, ...r }); })
         .catch(() => console.error("Failed to save progress"))
         .finally(() => setSaving(false));
     }
-    if (isFinished) {
-      try {
-        // In test mode, always play the celebration sound.
-        const shouldCelebrate = testMode || passed;
-        const audio = new Audio(shouldCelebrate ? "/finish.mp3" : "/incorrect.wav");
-        audio.play().catch(() => {});
-      } catch {}
-    }
+    try {
+      const audio = new Audio("/finish.mp3");
+      audio.play().catch(() => {});
+    } catch {}
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFinished]);
 
   const onNext = () => {
-    setActiveIndex((current) => current + 1);
+    setPos((current) => current + 1);
   };
 
   // An exercise already done on a previous visit is revision: it is worth less.
@@ -215,27 +226,28 @@ export const Quiz = ({
   const step = 100 / challengesList.length;
 
   const judgeRight = () => {
-    completedIdsRef.current.push(challenge.id);
+    if (!testMode) {
+      unsavedRef.current.push(challenge.id);
+      void saveSoon();
+    }
     correctControls.play();
     rewardRight();
     setStatus("correct");
     setPercentage((prev) => prev + step);
-    setTotalCorrect((prev) => prev + 1);
-    setTotalAttempts((prev) => prev + 1);
   };
 
   const judgeWrong = () => {
+    setMissed((m) => new Set(m).add(queue[pos]));
     incorrectControls.play();
     noteWrong();
     setStatus("wrong");
-    setTotalAttempts((prev) => prev + 1);
   };
 
   // The footer button. Every exercise goes through it: check, then move on.
   const onContinue = () => {
     if (status !== "none") {
-      // No retry: the bar follows the learner's place in the lesson, right answer or not.
-      if (status === "wrong") setPercentage((prev) => prev + step);
+      // A wrong answer comes back at the end of the lesson; the bar only moves on right ones.
+      if (status === "wrong") setQueue((q) => [...q, q[pos]]);
       onNext();
       setStatus("none");
       setSelectedOption(undefined);
@@ -263,17 +275,8 @@ export const Quiz = ({
       router.push("/premium");
       return;
     }
-    const target = listId ? `/learn/list/${listId}` : "/learn";
-    router.push(target);
-  };
-
-  const handlePracticeAgain = () => {
-    if (testMode) {
-      // No retry in demo mode — go straight to premium.
-      router.push("/premium");
-      return;
-    }
-    window.location.href = `/lesson/${lessonId}`;
+    // Back to the home page: it shows the next step and today's goal.
+    router.push("/learn");
   };
 
   // Streak screen: shown after the finished screen when this lesson extended the streak today
@@ -283,24 +286,20 @@ export const Quiz = ({
 
   // Finished screen
   if (isFinished) {
-    // XP shown = what was really credited: nothing while the level is not passed, the server's
-    // figure once saved (the session's own count stands in until it answers, and in the demo).
-    const earnedXP = !testMode && !passed ? 0 : result ? result.xp : sessionXp;
     return (
       <FinishedScreen
-        passed={passed}
+        passed
         scorePercentage={scorePercentage}
-        totalXP={earnedXP}
+        totalXP={sessionXp}
         levelOrder={levelOrder}
         lessonId={lessonId}
         saving={saving}
         testMode={testMode}
         isPro={!!userSubscription?.isActive}
-        onContinue={testMode ? handleFinishContinue : !passed ? handlePracticeAgain : result?.streakExtended ? () => setShowStreak(true) : handleFinishContinue}
+        onContinue={!testMode && result?.streakExtended ? () => setShowStreak(true) : handleFinishContinue}
       />
     );
   }
-
 
   // Listening variant of a multiple-choice challenge (only with a clip, and
   // only while the learner keeps the sound on).
@@ -320,7 +319,8 @@ export const Quiz = ({
   };
 
   const renderExercise = () => {
-    const k = challenge.id;
+    // One key per turn: an exercise that comes back starts afresh.
+    const k = pos;
     switch (challenge.type) {
       case "FLASHCARD":
         return <Flashcard key={k} options={options} onComplete={judgeRight} onAction={setSelfAction} disabled={pending || status !== "none"} />;
@@ -359,10 +359,14 @@ export const Quiz = ({
         hasActiveSubscription={!!userSubscription?.isActive}
         xp={sessionXp}
         combo={combo}
+        demo={testMode}
       />
       <div className="flex-1 overflow-y-auto">
         <div className="min-h-full flex items-center justify-center py-2 sm:py-6">
           <div className="lg:min-h-[350px] w-full max-w-lg px-4 sm:px-6 lg:px-0 flex flex-col gap-y-5 sm:gap-y-6 lg:gap-y-8">
+            {isRetry && (
+              <p className="mx-auto -mb-2 rounded-full bg-[#F0F0FF] px-3 py-1 text-[0.8125rem] font-semibold text-[#5452E0] animate-in fade-in" key={pos}>{tq.reward.secondChance}</p>
+            )}
             <h1 className="text-center text-[1.125rem] font-bold leading-snug text-brilliant-text sm:text-xl lg:text-2xl" style={{ textWrap: "balance" as never }}>
               {listen === "meaning" ? tq.audio.qMeaning : listen === "written" ? tq.audio.qWritten : challenge.question}
             </h1>
@@ -707,20 +711,9 @@ function FinishedScreen({
             {t.lesson.unlockAll}
           </button>
         ) : (
-          <>
-            <ShinyButton
-              variant="outline-green"
-              onClick={() => window.location.href = `/lesson/${lessonId}`}
-            >
-              {t.lesson.practiceAgain}
-            </ShinyButton>
-            <ShinyButton
-              variant="green"
-              onClick={onContinue}
-            >
-              {t.lesson.continue}
-            </ShinyButton>
-          </>
+          <ShinyButton variant="green" onClick={onContinue} className="text-base">
+            <span className="block py-1">{t.lesson.continue}</span>
+          </ShinyButton>
         )}
       </div>
 

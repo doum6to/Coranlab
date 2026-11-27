@@ -16,7 +16,7 @@ import { useT } from "@/lib/i18n/use-t";
 
 export const ExitModal = () => {
   const [isClient, setIsClient] = useState(false);
-  const { isOpen, close } = useExitModal();
+  const { isOpen, saved, close } = useExitModal();
   const t = useT();
 
   useEffect(() => setIsClient(true), []);
@@ -36,7 +36,7 @@ export const ExitModal = () => {
             {t.exitModal.title}
           </DialogTitle>
           <DialogDescription className="text-center text-sm sm:text-base text-brilliant-muted mt-1">
-            {t.exitModal.description}
+            {saved ? t.exitModal.description : t.exitModal.descriptionDemo}
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-y-3 w-full mt-4">
