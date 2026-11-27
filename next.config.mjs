@@ -80,6 +80,17 @@ const nextConfig = {
           },
         ],
       },
+      // Word clips: kept a day by the browser, then refreshed in the background. Not "immutable":
+      // a clip recorded again keeps its file name.
+      {
+        source: "/audio/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=86400, stale-while-revalidate=604800",
+          },
+        ],
+      },
       // Cache Rive animations
       {
         source: "/animations/:path*",

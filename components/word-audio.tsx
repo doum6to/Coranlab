@@ -84,6 +84,43 @@ export function useUnlockWordAudio() {
   }, []);
 }
 
+/**
+ * Clips already downloaded, kept in memory: playing one then starts at once, with no request
+ * to the server between the tap and the sound.
+ */
+const ready = new Map<string, string>();
+const fetching = new Set<string>();
+
+async function fetchClip(src: string) {
+  if (ready.has(src) || fetching.has(src)) return;
+  fetching.add(src);
+  try {
+    const res = await fetch(src);
+    if (res.ok) ready.set(src, URL.createObjectURL(new Blob([await res.arrayBuffer()], { type: "audio/mpeg" })));
+  } catch { /* offline or blocked: the clip is simply loaded when it is played */ }
+  fetching.delete(src);
+}
+
+/** Downloads the clips of these words ahead of time, in the order given, three at a time. */
+export function preloadWords(words: (string | null | undefined)[]) {
+  if (typeof window === "undefined") return;
+  const queue = Array.from(new Set(words.map(wordAudioSrc).filter((s): s is string => !!s && !ready.has(s))));
+  const next = async (): Promise<void> => {
+    const src = queue.shift();
+    if (!src) return;
+    await fetchClip(src);
+    return next();
+  };
+  for (let i = 0; i < 3; i++) void next();
+}
+
+/** Cuts the voice short: the learner has moved on, the word of the exercise before must not follow them. */
+export function stopWord() {
+  if (!player || player.paused) return;
+  player.pause();
+  notify(null);
+}
+
 /** Plays the clip of an Arabic word. Resolves false when there is none or the browser blocks it. */
 export async function playWord(arabic: string | null | undefined): Promise<boolean> {
   const src = wordAudioSrc(arabic);
@@ -91,7 +128,7 @@ export async function playWord(arabic: string | null | undefined): Promise<boole
   try {
     const p = getPlayer();
     p.pause();
-    p.src = src;
+    p.src = ready.get(src) ?? src;
     p.currentTime = 0;
     await p.play();
     notify(src);
@@ -128,8 +165,11 @@ export function useAutoPlayWord(arabic: string | null | undefined, enabled = tru
   }, [arabic, enabled, soundOn, force, delayMs]);
 }
 
-/** Delay for a word read aloud right after an answer: lets the right/wrong sound finish first. */
-export const AFTER_ANSWER_MS = 650;
+/**
+ * Delay for a word read aloud right after an answer: the right/wrong sound lasts about 0.3 s,
+ * the word follows it without a gap (it used to wait twice as long).
+ */
+export const AFTER_ANSWER_MS = 340;
 
 /* ───────────────────────────── Buttons ────────────────────────────── */
 

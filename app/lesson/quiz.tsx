@@ -37,7 +37,7 @@ import type { ExerciseAction } from "./exercises/choice";
 import { useT } from "@/lib/i18n/use-t";
 import { tpl } from "@/lib/i18n/locales";
 import { listenMode } from "@/lib/word-audio";
-import { useUnlockWordAudio, useWordSoundOn } from "@/components/word-audio";
+import { preloadWords, stopWord, useUnlockWordAudio, useWordSoundOn } from "@/components/word-audio";
 import { TomorrowReminder, type ReminderPreview } from "@/components/reminders";
 import { ConfettiBurst, CountUp, StreakFlame } from "@/components/fx";
 import { useLocale } from "@/components/i18n/locale-provider";
@@ -119,6 +119,11 @@ export const Quiz = ({
   const tq = useT();
   useUnlockWordAudio();
   const soundOn = useWordSoundOn();
+  // The voices of the lesson are downloaded as it opens, in the order they will be heard.
+  useEffect(() => {
+    preloadWords(initialLessonChallenges.flatMap((c) => [c.arabicWord, ...c.challengeOptions.map((o) => o.arabicText)]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   // VRAI/FAUX option values are stored untranslated (the exercise matches on
   // them), so the footer label is localized here.
   const localizeAnswer = (v: string | undefined) =>
@@ -278,6 +283,8 @@ export const Quiz = ({
   // The footer button. Every exercise goes through it: check, then move on.
   const onContinue = () => {
     if (status !== "none") {
+      // Moving on: the word of this exercise stops there.
+      stopWord();
       // A wrong answer comes back at the end of the lesson; the bar only moves on right ones.
       if (status === "wrong") setQueue((q) => [...q, q[pos]]);
       onNext();
