@@ -82,7 +82,8 @@ function TryCard() {
       <p className="text-[0.8125rem] font-semibold uppercase text-[#6967FB]" style={{ letterSpacing: "0.05em" }}>Essaie</p>
       <h2 className="mt-1 font-heading text-[1.375rem] font-extrabold leading-tight text-brilliant-text" style={{ letterSpacing: "-0.01em" }}>Que veut dire ce mot&nbsp;?</h2>
 
-      <WordPrompt arabic={HOME_DEMO.arabic} revealAids={judged} size="lg" className="mx-auto mt-5 !max-w-none" />
+      {/* Phonetics from the start: visitors who cannot read Arabic see that the app covers them too */}
+      <WordPrompt arabic={HOME_DEMO.arabic} revealAids={judged} translitAlways size="lg" className="mx-auto mt-5 !max-w-none" />
 
       <div className="mt-4 flex flex-col gap-2.5" role="group" aria-label="Réponses">
         {HOME_DEMO.choices.map((choice) => (
