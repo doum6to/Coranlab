@@ -5,7 +5,8 @@ import { and, eq, inArray, sql } from "drizzle-orm";
 import { revalidatePath, revalidateTag } from "next/cache";
 
 import db from "@/db/drizzle";
-import { getUserProgress } from "@/db/queries";
+import { getListsWithLevels, getUserProgress } from "@/db/queries";
+import { quranCoverage } from "@/lib/quran-coverage";
 import { challengeProgress, challenges, userProgress, weeklyXp, streakActivity } from "@/db/schema";
 import { getCurrentWeekStart } from "@/lib/league-utils";
 import { maybeJoinLeague } from "@/actions/league";
@@ -15,7 +16,7 @@ import { MAX_STREAK_CHARGES, getToday, daysBetween } from "@/lib/streak-utils";
 const XP_NEW = 10;
 const XP_REVISION = 2;
 
-export type LessonResult = { xp: number; streak: number; streakExtended: boolean };
+export type LessonResult = { xp: number; streak: number; streakExtended: boolean; /** Share of the Qur'an's words understood after this lesson (estimate), when it could be computed. */ coverage?: number };
 
 /**
  * The learner's calendar day ("YYYY-MM-DD" from their device), accepted only within a day of the
@@ -76,7 +77,7 @@ export const saveLessonProgress = async (challengeIds: number[]): Promise<{ xp: 
  * Closes a finished lesson: today counts for the streak (a missed day is covered by a charge
  * when one is left), a charge is earned, and the league is joined once the weekly XP allows it.
  */
-export const finishLesson = async (clientDate?: string): Promise<{ streak: number; streakExtended: boolean } | undefined> => {
+export const finishLesson = async (clientDate?: string): Promise<{ streak: number; streakExtended: boolean; coverage?: number } | undefined> => {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
@@ -117,7 +118,15 @@ export const finishLesson = async (clientDate?: string): Promise<{ streak: numbe
   revalidatePath("/leaderboard");
   revalidateTag("leaderboard");
 
-  return { streak: newStreak, streakExtended: !alreadyActiveToday };
+  // The figure the lesson moved: shown on the end screen. Never worth failing the save for.
+  let coverage: number | undefined;
+  try {
+    coverage = quranCoverage(await getListsWithLevels());
+  } catch (e) {
+    console.error("[lesson] coverage not computed", e);
+  }
+
+  return { streak: newStreak, streakExtended: !alreadyActiveToday, coverage };
 };
 
 /** A whole lesson saved in one call (kept for callers that do not save as they go). */

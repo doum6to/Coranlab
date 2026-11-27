@@ -9,6 +9,8 @@ import { ShinyButton } from "@/components/ui/shiny-button";
 import { Bubble, KOJI_CROP, RiveAnim } from "@/app/(sales)/commencer/ui";
 import { useT } from "@/lib/i18n/use-t";
 import { tpl } from "@/lib/i18n/locales";
+import { useLocale } from "@/components/i18n/locale-provider";
+import { COVERAGE_GOAL, formatCoverage } from "@/lib/quran-coverage";
 
 export type NextLesson = {
   lessonId: number;
@@ -22,15 +24,16 @@ export type NextLesson = {
   locked?: boolean;
 };
 
-type Props = { streakData: StreakData; next: NextLesson | null };
+type Props = { streakData: StreakData; next: NextLesson | null; /** Share of the Qur'an's words understood so far, in percent (an estimate). */ coverage?: number };
 
 /**
  * Top of the home page: one thing to do today. Koji says where the learner stands, a single
  * card resumes the path exactly where they stopped, and the daily goal lights its flame once
  * today's lesson is done. Figures to be proud of (XP, levels) live in the profile.
  */
-export function TodayHero({ streakData, next }: Props) {
+export function TodayHero({ streakData, next, coverage }: Props) {
   const t = useT();
+  const locale = useLocale();
   const { streak, days } = streakData;
   const doneToday = days.some((d) => d.isToday && d.active);
   const hello = doneToday ? t.home.helloDone : streak > 1 ? tpl(t.home.helloStreak, { n: streak }) : streak === 1 ? t.home.helloStreakOne : t.home.helloNew;
@@ -68,6 +71,25 @@ export function TodayHero({ streakData, next }: Props) {
           <p className="text-center text-[0.9375rem] text-brilliant-muted">{t.home.allDone}</p>
         )}
       </div>
+
+      {/* The promise of the course as a living figure: how much of the Qur'an is understood so far */}
+      {coverage !== undefined && coverage > 0 && (
+        <div className="mt-4 px-4 py-4" style={{ borderRadius: 24, boxShadow: "inset 0 0 0 1.5px #ECECF2" }}>
+          <div className="flex items-end justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[0.8125rem] font-medium text-brilliant-muted">{t.home.coverage}</p>
+              <p className="mt-0.5 font-heading font-extrabold leading-none text-brilliant-text" style={{ letterSpacing: "-0.02em" }}>
+                <span className="mr-1.5 text-[0.9375rem] font-semibold text-brilliant-muted" style={{ letterSpacing: 0 }}>{t.home.coverageAbout}</span>
+                <span className="text-[1.75rem] text-[#6967FB]" style={{ fontVariantNumeric: "tabular-nums" }}>{formatCoverage(coverage, locale)}&nbsp;%</span>
+              </p>
+            </div>
+            <p className="shrink-0 pb-0.5 text-[0.8125rem] font-medium text-brilliant-muted">{tpl(t.home.coverageGoal, { goal: COVERAGE_GOAL })}</p>
+          </div>
+          <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#EDEDF3]" role="img" aria-label={`${formatCoverage(coverage, locale)} % / ${COVERAGE_GOAL} %`}>
+            <div className="h-full rounded-full bg-[#6967FB]" style={{ width: `${Math.max(3, (coverage / COVERAGE_GOAL) * 100)}%` }} />
+          </div>
+        </div>
+      )}
 
       {/* Daily goal, then the last days on their own row (five circles need the full width) */}
       <div className="mt-4 px-4 py-4" style={{ borderRadius: 24, background: "#F7F7FF" }}>

@@ -38,6 +38,8 @@ import { tpl } from "@/lib/i18n/locales";
 import { listenMode } from "@/lib/word-audio";
 import { useUnlockWordAudio, useWordSoundOn } from "@/components/word-audio";
 import { ConfettiBurst, CountUp, StreakFlame } from "@/components/fx";
+import { useLocale } from "@/components/i18n/locale-provider";
+import { formatCoverage } from "@/lib/quran-coverage";
 
 const TEST_MODE_LIMIT = 5;
 /** Same values as the server: full XP for a first time, a small reward for revising. */
@@ -296,6 +298,7 @@ export const Quiz = ({
         saving={saving}
         testMode={testMode}
         isPro={!!userSubscription?.isActive}
+        coverage={result?.coverage}
         onContinue={!testMode && result?.streakExtended ? () => setShowStreak(true) : handleFinishContinue}
       />
     );
@@ -566,6 +569,8 @@ type FinishedScreenProps = {
   saving: boolean;
   testMode?: boolean;
   isPro?: boolean;
+  /** Share of the Qur'an's words understood after this lesson (estimate). */
+  coverage?: number;
   onContinue: () => void;
 };
 
@@ -578,9 +583,11 @@ function FinishedScreen({
   saving,
   testMode = false,
   isPro = false,
+  coverage,
   onContinue,
 }: FinishedScreenProps) {
   const t = useT();
+  const locale = useLocale();
   // In test mode we always celebrate — no failed screen for the demo.
   const celebrate = testMode || passed;
   const { width, height } = useWindowSize();
@@ -689,6 +696,13 @@ function FinishedScreen({
       {saving && (
         <p className="mt-3 text-sm text-gray-400 animate-pulse">
           {t.lesson.saving}
+        </p>
+      )}
+
+      {/* What the lesson moved: the share of the Qur'an now understood */}
+      {!saving && coverage !== undefined && coverage > 0 && (
+        <p className="mt-4 max-w-[19rem] text-center text-[0.9375rem] font-medium leading-snug text-[#555] duration-500 animate-in fade-in" style={{ textWrap: "balance" as never }}>
+          {tpl(t.home.coverageNow, { pct: formatCoverage(coverage, locale) })}
         </p>
       )}
 

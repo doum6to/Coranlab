@@ -284,6 +284,10 @@ export const EXT_FR = {
     statStreak: "Série",
     statLevels: "Niveaux",
     allDone: "Tu as terminé toutes les listes disponibles.",
+    coverage: "Mots du Coran compris",
+    coverageAbout: "environ",
+    coverageGoal: "Objectif : {goal} %",
+    coverageNow: "Tu comprends maintenant environ {pct} % des mots du Coran.",
   },
   reward: {
     right: "Exact !",
@@ -617,6 +621,10 @@ export const EXT_EN: AppStringsExt = {
     statStreak: "Streak",
     statLevels: "Levels",
     allDone: "You have finished every available list.",
+    coverage: "Words of the Qur'an understood",
+    coverageAbout: "about",
+    coverageGoal: "Goal: {goal}%",
+    coverageNow: "You now understand about {pct}% of the words of the Qur'an.",
   },
   reward: {
     right: "Correct!",
@@ -948,6 +956,10 @@ export const EXT_ES: AppStringsExt = {
     statStreak: "Racha",
     statLevels: "Niveles",
     allDone: "Has terminado todas las listas disponibles.",
+    coverage: "Palabras del Corán que entiendes",
+    coverageAbout: "cerca del",
+    coverageGoal: "Objetivo: {goal} %",
+    coverageNow: "Ya entiendes cerca del {pct} % de las palabras del Corán.",
   },
   reward: {
     right: "¡Correcto!",
