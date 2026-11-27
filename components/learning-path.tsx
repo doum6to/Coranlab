@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Check, ChevronDown, ChevronRight, Lock } from "lucide-react";
 
@@ -9,6 +9,10 @@ import { LevelNode, type LevelNodeState } from "@/components/level-node";
 import { usePremiumModal } from "@/store/use-premium-modal";
 import { useT } from "@/lib/i18n/use-t";
 import { tpl } from "@/lib/i18n/locales";
+import { takeJustFinished } from "@/lib/just-finished";
+
+// Before the first paint in the browser, so the path never flashes in its final state.
+const useBeforePaint = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 /**
  * The course as one path, top to bottom. Each list is a stage; the stage the learner is on
@@ -33,7 +37,7 @@ function tops(count: number, nextIndex: number): number[] {
 }
 
 /** The trail drawn behind the levels: one smooth line through the centres of their discs. */
-function Trail({ ys, nextIndex }: { ys: number[]; nextIndex: number }) {
+function Trail({ ys, nextIndex, drawn }: { ys: number[]; nextIndex: number; /** After a lesson: the stretch just walked, held back ("wait") then drawn ("play"). */ drawn?: { index: number; phase: "wait" | "play" } }) {
   const doneUntil = nextIndex < 0 ? ys.length : nextIndex;
   const cx = (i: number) => 180 + SWAY[i % SWAY.length];
   const cy = (i: number) => ys[i] + centreOf(i === nextIndex);
@@ -43,22 +47,41 @@ function Trail({ ys, nextIndex }: { ys: number[]; nextIndex: number }) {
   };
   return (
     <svg className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2" width={360} height={ys[ys.length - 1] + 140} aria-hidden>
-      {ys.slice(0, -1).map((_, i) => (
-        <path key={i} d={seg(i)} fill="none" stroke={i < doneUntil ? "#C8C7F0" : "#E2E2EA"} strokeWidth={9} strokeLinecap="round" strokeDasharray={i < doneUntil ? undefined : "1 17"} />
-      ))}
+      {ys.slice(0, -1).map((_, i) =>
+        drawn?.index === i ? (
+          <g key={i}>
+            <path d={seg(i)} fill="none" stroke="#E2E2EA" strokeWidth={9} strokeLinecap="round" strokeDasharray="1 17" />
+            <path d={seg(i)} fill="none" stroke="#C8C7F0" strokeWidth={9} strokeLinecap="round" pathLength={1} strokeDasharray={1} className={drawn.phase === "wait" ? "ql-await-draw" : "ql-draw"} />
+          </g>
+        ) : (
+          <path key={i} d={seg(i)} fill="none" stroke={i < doneUntil ? "#C8C7F0" : "#E2E2EA"} strokeWidth={9} strokeLinecap="round" strokeDasharray={i < doneUntil ? undefined : "1 17"} />
+        ),
+      )}
     </svg>
   );
 }
 
 /** The stage in progress: its levels along a winding trail, drawn with the app's level discs. */
-function OpenStage({ list }: { list: VocabList }) {
+function OpenStage({ list, justId }: { list: VocabList; /** The level finished a moment ago, when the learner is back from a lesson. */ justId?: number }) {
   const t = useT();
   const levels = list.levels;
   const nextIndex = levels.findIndex((l) => !l.completed);
   const ys = tops(levels.length, nextIndex);
+  // The progress is played when the stage comes on screen, not while it is still below the fold.
+  const ref = useRef<HTMLDivElement>(null);
+  const [seen, setSeen] = useState(false);
+  useEffect(() => {
+    if (justId === undefined || !ref.current) return;
+    const io = new IntersectionObserver((entries) => { if (entries.some((e) => e.isIntersecting)) { setSeen(true); io.disconnect(); } }, { threshold: 0.35 });
+    io.observe(ref.current);
+    return () => io.disconnect();
+  }, [justId]);
+  const phase = justId === undefined ? undefined : seen ? "play" : "wait";
+  // The level just finished in this stage (when it was the last of the stage before, Koji simply lands on the first level here).
+  const justIndex = justId === undefined ? -1 : levels.findIndex((l) => l.id === justId && l.completed);
   return (
-    <div className="relative mx-auto" style={{ width: 360, maxWidth: "100%", height: ys[ys.length - 1] + heightOf(false) + 16 }}>
-      <Trail ys={ys} nextIndex={nextIndex} />
+    <div ref={ref} className="relative mx-auto" style={{ width: 360, maxWidth: "100%", height: ys[ys.length - 1] + heightOf(false) + 16 }}>
+      <Trail ys={ys} nextIndex={nextIndex} drawn={phase && justIndex >= 0 && justIndex === nextIndex - 1 ? { index: justIndex, phase } : undefined} />
       {levels.map((level, i) => {
         const state: LevelNodeState = level.completed ? "completed" : i === nextIndex ? "active" : "locked";
         const active = state === "active";
@@ -77,7 +100,9 @@ function OpenStage({ list }: { list: VocabList }) {
         const body = (
           <>
             <span className="absolute left-0 top-0 block" style={{ transform: `scale(${SCALE})`, transformOrigin: "top left" }}>
-              <LevelNode state={state} isLast={i === levels.length - 1} fixed />
+              <span className={`block ${phase === "play" && i === justIndex ? "ql-bump" : ""}`}>
+                <LevelNode state={state} isLast={i === levels.length - 1} fixed koji={active && phase ? (phase === "play" ? "arrive" : "wait") : undefined} />
+              </span>
             </span>
             {label}
           </>
@@ -95,12 +120,12 @@ function OpenStage({ list }: { list: VocabList }) {
 }
 
 /** A stage folded into one line: finished (reopens to revise), or still ahead. */
-function StageRow({ list, state }: { list: VocabList; state: "done" | "ahead" | "premium" }) {
+function StageRow({ list, state, just }: { list: VocabList; state: "done" | "ahead" | "premium"; /** This stage was finished a moment ago: its tick pops in. */ just?: boolean }) {
   const t = useT();
   const openPremium = usePremiumModal((s) => s.open);
   const inner = (
     <>
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full" style={{ background: state === "done" ? "#6967FB" : "#EFEFF4", color: state === "done" ? "#fff" : "#A9A9B8" }}>
+      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${just ? "ql-pop" : ""}`} style={{ background: state === "done" ? "#6967FB" : "#EFEFF4", color: state === "done" ? "#fff" : "#A9A9B8" }}>
         {state === "done" ? <Check className="h-5 w-5" strokeWidth={3.2} aria-hidden /> : <Lock className="h-[18px] w-[18px]" strokeWidth={2.6} aria-hidden />}
       </span>
       <span className="min-w-0 flex-1">
@@ -126,6 +151,9 @@ export function LearningPath({ units }: { units: UnitWithLists[] }) {
   // Only the part in progress starts unfolded; the others open on a tap.
   const [open, setOpen] = useState<Record<number, boolean>>({});
   const isOpen = (u: UnitWithLists) => open[u.id] ?? u.id === currentUnit?.id;
+  // Back from a lesson: the level it finished (see lib/just-finished.ts).
+  const [justId, setJustId] = useState<number | undefined>(undefined);
+  useBeforePaint(() => setJustId(takeJustFinished()?.lessonId), []);
 
   return (
     <div className="mx-auto w-full max-w-md px-4 sm:px-0">
@@ -159,11 +187,11 @@ export function LearningPath({ units }: { units: UnitWithLists[] }) {
                     return (
                       <div key={list.listId} className="my-3 rounded-[28px] bg-[#F7F7FF] px-2 pb-6 pt-5">
                         <h3 className="text-center font-heading text-[1.1875rem] font-extrabold leading-tight text-brilliant-text" style={{ textWrap: "balance" as never }}>{list.listTitle}</h3>
-                        <div className="mt-6"><OpenStage list={list} /></div>
+                        <div className="mt-6"><OpenStage list={list} justId={justId} /></div>
                       </div>
                     );
                   }
-                  return <StageRow key={list.listId} list={list} state={listDone ? "done" : list.isPremiumLocked ? "premium" : "ahead"} />;
+                  return <StageRow key={list.listId} list={list} state={listDone ? "done" : list.isPremiumLocked ? "premium" : "ahead"} just={listDone && justId !== undefined && list.levels.some((l) => l.id === justId)} />;
                 })}
               </div>
             )}

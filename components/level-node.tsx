@@ -214,14 +214,14 @@ const NodeSVG = ({ state, isLast }: { state: LevelNodeState; isLast: boolean }) 
 };
 
 /** A level node at its natural size, with Koji floating above when it is the level in progress. */
-export function LevelNode({ state, isLast = false, fixed = false }: { state: LevelNodeState; isLast?: boolean; /** Same size on every screen (the path places and scales it itself). */ fixed?: boolean }) {
+export function LevelNode({ state, isLast = false, fixed = false, koji }: { state: LevelNodeState; isLast?: boolean; /** Same size on every screen (the path places and scales it itself). */ fixed?: boolean; /** After a lesson: Koji is held back ("wait"), then lands on this level ("arrive"). */ koji?: "wait" | "arrive" }) {
   const active = state === "active";
   return (
     <div className={cn("relative w-[100px]", !fixed && "sm:w-[120px]", active ? "h-[105px]" : "h-[75px]", !fixed && (active ? "sm:h-[120px]" : "sm:h-[88px]"))} style={{ overflow: "visible" }}>
       <NodeSVG state={state} isLast={isLast} />
 
       {active && (
-        <>
+        <div className={cn("absolute inset-0", koji === "wait" && "ql-await", koji === "arrive" && "ql-arrive")}>
           {/* Koji: his frame is tall but he sits in its upper part, so it is pulled down until he
               rests just above the disc. */}
           <div
@@ -246,7 +246,7 @@ export function LevelNode({ state, isLast = false, fixed = false }: { state: Lev
               animation: "glowPulse 2.5s ease-in-out infinite",
             }}
           />
-        </>
+        </div>
       )}
     </div>
   );

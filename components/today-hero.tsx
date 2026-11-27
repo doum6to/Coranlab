@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { Check, Flame } from "lucide-react";
 
 import type { StreakData } from "@/db/queries";
@@ -11,6 +12,10 @@ import { useT } from "@/lib/i18n/use-t";
 import { tpl } from "@/lib/i18n/locales";
 import { useLocale } from "@/components/i18n/locale-provider";
 import { COVERAGE_GOAL, formatCoverage } from "@/lib/quran-coverage";
+import { takeJustFinished, type JustFinished } from "@/lib/just-finished";
+
+// Before the first paint in the browser, so the progress never flashes in its final state.
+const useBeforePaint = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 export type NextLesson = {
   lessonId: number;
@@ -39,6 +44,9 @@ export function TodayHero({ streakData, next, coverage }: Props) {
   const hello = doneToday ? t.home.helloDone : streak > 1 ? tpl(t.home.helloStreak, { n: streak }) : streak === 1 ? t.home.helloStreakOne : t.home.helloNew;
   const R = 20;
   const C = 2 * Math.PI * R;
+  // Back from a lesson: what it moved is played once (see lib/just-finished.ts).
+  const [just, setJust] = useState<JustFinished | null>(null);
+  useBeforePaint(() => setJust(takeJustFinished()), []);
 
   return (
     <section className="px-4 pt-2 sm:px-0">
@@ -56,7 +64,10 @@ export function TodayHero({ streakData, next, coverage }: Props) {
             <div className="mt-3 flex items-center gap-3">
               <div className="flex flex-1 gap-1.5" aria-hidden>
                 {Array.from({ length: next.levels }, (_, k) => (
-                  <span key={k} className="h-2 flex-1 rounded-full" style={{ background: k < next.level - 1 ? "#6967FB" : k === next.level - 1 ? "#C8C7F0" : "#EDEDED" }} />
+                  <span key={k} className="h-2 flex-1 overflow-hidden rounded-full" style={{ background: k < next.level - 1 ? (just && k === next.level - 2 ? "#C8C7F0" : "#6967FB") : k === next.level - 1 ? "#C8C7F0" : "#EDEDED" }}>
+                    {/* The level just finished fills in */}
+                    {just && k === next.level - 2 && <span className="ql-grow block h-full rounded-full bg-[#6967FB]" />}
+                  </span>
                 ))}
               </div>
               <span className="shrink-0 text-[0.8125rem] font-semibold text-brilliant-text" style={{ fontVariantNumeric: "tabular-nums" }}>{tpl(t.home.levelCount, { n: next.level, total: next.levels })}</span>
@@ -97,10 +108,10 @@ export function TodayHero({ streakData, next, coverage }: Props) {
           <div className="relative h-12 w-12 shrink-0">
             <svg viewBox="0 0 48 48" className="h-full w-full -rotate-90" aria-hidden>
               <circle cx="24" cy="24" r={R} fill="none" stroke="#E3E2FF" strokeWidth="4" />
-              {doneToday && <circle cx="24" cy="24" r={R} fill="none" stroke="#FF8A1F" strokeWidth="4" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={0} />}
+              {doneToday && <circle cx="24" cy="24" r={R} fill="none" stroke="#FF8A1F" strokeWidth="4" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={0} className={just?.firstToday ? "ql-ring-draw" : undefined} style={{ "--ring": C } as React.CSSProperties} />}
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
-              {doneToday ? <StreakFlame className="h-7 w-7" /> : <Flame className="h-[22px] w-[22px] text-[#C3C2E6]" strokeWidth={2.2} aria-hidden />}
+              {doneToday ? <span className={just?.firstToday ? "ql-flame-in" : undefined}><StreakFlame className="h-7 w-7" /></span> : <Flame className="h-[22px] w-[22px] text-[#C3C2E6]" strokeWidth={2.2} aria-hidden />}
             </div>
           </div>
           <div className="min-w-0 flex-1">

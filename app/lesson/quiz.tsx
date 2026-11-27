@@ -41,6 +41,7 @@ import { useUnlockWordAudio, useWordSoundOn } from "@/components/word-audio";
 import { ConfettiBurst, CountUp, StreakFlame } from "@/components/fx";
 import { useLocale } from "@/components/i18n/locale-provider";
 import { formatCoverage } from "@/lib/quran-coverage";
+import { markJustFinished } from "@/lib/just-finished";
 
 const TEST_MODE_LIMIT = 5;
 /** Same values as the server: full XP for a first time, a small reward for revising. */
@@ -298,6 +299,8 @@ export const Quiz = ({
       router.push("/premium");
       return;
     }
+    // A level finished for the first time: the home page plays the progress it made.
+    if (!review && initialPercentage < 100) markJustFinished({ lessonId, firstToday: !!result?.streakExtended });
     // Back to the home page: it shows the next step and today's goal. A review returns to its tab.
     router.push(review ? "/lecons" : "/learn");
   };
