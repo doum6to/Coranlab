@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     title: "Apprends à comprendre le Coran — Quranlab",
     description: "En 5 minutes par jour, comprends le Coran en arabe, mot à mot.",
     url: "https://www.quranlab.app/apprendre-coran",
-    images: ["https://www.quranlab.app/hero.png"],
+    images: ["https://www.quranlab.app/og.png"],
   },
 };
 

@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { ArrowLeft, Clock } from "lucide-react";
@@ -8,6 +7,7 @@ import { getAllArticles, getArticleBySlug } from "@/lib/blog/articles";
 import { absoluteUrl } from "@/lib/utils";
 import { JsonLd } from "@/components/blog/json-ld";
 import { BlogCTA } from "@/components/blog/blog-cta";
+import { KOJI_CROP, RiveAnim } from "@/app/(sales)/commencer/ui";
 
 export const dynamic = "force-static";
 export const revalidate = 86400; // 24 h
@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       publishedTime: article.publishedAt,
       images: [
         {
-          url: absoluteUrl("/hero.png"),
+          url: absoluteUrl("/og.png"),
           width: 1200,
           height: 630,
           alt: article.title,
@@ -49,7 +49,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       card: "summary_large_image",
       title: article.title,
       description: article.description,
-      images: [absoluteUrl("/hero.png")],
+      images: [absoluteUrl("/og.png")],
     },
     alternates: { canonical: url },
   };
@@ -109,16 +109,9 @@ export default function BlogArticlePage({ params }: Props) {
             </span>
           </div>
 
-          {/* Hero image */}
-          <div className="mt-8 sm:mt-10 relative w-[180px] h-[180px] sm:w-[220px] sm:h-[220px] mx-auto">
-            <Image
-              src="/hero.png"
-              fill
-              alt={article.title}
-              className="object-contain"
-              style={{ mixBlendMode: "multiply" }}
-              sizes="220px"
-            />
+          {/* Koji */}
+          <div className="mx-auto mt-8 h-[120px] w-[120px] sm:mt-10 sm:h-[140px] sm:w-[140px]">
+            <RiveAnim src="/animations/okok_clear.riv" animation="breath loop" crop={KOJI_CROP} />
           </div>
 
           {/* Mini CTA */}

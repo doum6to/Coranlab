@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "https://www.quranlab.app/hero.png",
+        url: "https://www.quranlab.app/og-plain.png",
         width: 1200,
         height: 630,
         alt: "Quranlab — Acceso de por vida",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Quranlab — Acceso de por vida",
     description: "Un solo pago. Toda la aplicación, para siempre.",
-    images: ["https://www.quranlab.app/hero.png"],
+    images: ["https://www.quranlab.app/og-plain.png"],
   },
   alternates: {
     canonical: "https://www.quranlab.app/es/offre-a-vie",

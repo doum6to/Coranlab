@@ -23,6 +23,7 @@ import path from "node:path";
 import { vocabularyData } from "./vocabulary-data";
 import { toSpeechArabic } from "../lib/arabic-speech";
 import { COMMENCER_DEFAULTS } from "../lib/commencer-shared";
+import { HOME_DEMO } from "../lib/home-demo";
 
 const OUT_DIR = path.join(process.cwd(), "public", "audio", "words");
 const MANIFEST = path.join(process.cwd(), "lib", "word-audio-manifest.json");
@@ -111,7 +112,7 @@ async function main() {
   // The words of the onboarding mini-lesson (written with their case endings) get a clip too.
   const funnel = COMMENCER_DEFAULTS.steps.flatMap((s) => (s.type === "lesson" ? s.cards.map((c) => keyOf(c.arabic)) : []));
   const words = Array.from(
-    new Set([...vocabularyData.flatMap((u) => u.lists.flatMap((l) => l.words.map((w) => keyOf(w.arabic)))), ...funnel]),
+    new Set([...vocabularyData.flatMap((u) => u.lists.flatMap((l) => l.words.map((w) => keyOf(w.arabic)))), ...funnel, keyOf(HOME_DEMO.arabic)]),
   );
 
   let done = 0;

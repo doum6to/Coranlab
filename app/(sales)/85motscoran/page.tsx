@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "https://www.quranlab.app/hero.png",
+        url: "https://www.quranlab.app/og.png",
         width: 1200,
         height: 630,
         alt: "Quranlab — 85% des mots du Coran",
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Quranlab — Comprends 85% du Coran",
     description: "Essai 7 jours gratuit.",
-    images: ["https://www.quranlab.app/hero.png"],
+    images: ["https://www.quranlab.app/og.png"],
   },
   alternates: { canonical: "https://www.quranlab.app/85motscoran" },
 };

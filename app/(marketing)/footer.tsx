@@ -2,10 +2,10 @@ import Link from "next/link";
 
 export const Footer = () => {
   return (
-    <footer className="hidden lg:block h-20 w-full border-t-2 border-slate-200 p-2">
-      <div className="max-w-screen-lg mx-auto flex items-center justify-center gap-4 h-full text-sm text-brilliant-muted">
+    <footer className="w-full border-t border-brilliant-border px-5 py-5">
+      <div className="mx-auto flex max-w-screen-lg flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[0.8125rem] text-brilliant-muted">
         <p>© {new Date().getFullYear()} Quranlab. Tous droits réservés.</p>
-        <span aria-hidden>·</span>
+        <span aria-hidden className="hidden sm:inline">·</span>
         <Link href="/conditions" className="hover:underline">
           Conditions
         </Link>

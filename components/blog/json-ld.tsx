@@ -27,7 +27,7 @@ export function JsonLd(props: JsonLdProps) {
       "@type": "Article",
       headline: props.title,
       description: props.description,
-      image: absoluteUrl("/hero.png"),
+      image: absoluteUrl("/og.png"),
       datePublished: props.publishedAt,
       dateModified: props.updatedAt || props.publishedAt,
       author: {
