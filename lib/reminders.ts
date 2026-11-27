@@ -58,26 +58,73 @@ export async function ensureReminderTables() {
 /* ------------------------------------------------------------------ */
 /* Notifications on the phone (Web Push)                                */
 
-export const pushPublicKey = () => process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
-/** Notifications need a key pair in the environment; without it the feature stays hidden. */
-export const pushConfigured = () => !!(pushPublicKey() && process.env.VAPID_PRIVATE_KEY);
+type Vapid = { publicKey: string; privateKey: string };
+const validVapid = (v: unknown): v is Vapid =>
+  !!v && typeof (v as Vapid).publicKey === "string" && typeof (v as Vapid).privateKey === "string" && (v as Vapid).publicKey.length > 60 && (v as Vapid).privateKey.length > 30;
 
-let vapidSet = false;
-function setVapid() {
-  if (vapidSet) return;
-  webpush.setVapidDetails(process.env.VAPID_SUBJECT || "mailto:contact@quranlab.app", pushPublicKey(), process.env.VAPID_PRIVATE_KEY!);
-  vapidSet = true;
+/**
+ * The table is created with the Supabase API already shut out of it (row level security on, no
+ * policy, no grant), in the same statement batch, so the key is never readable from outside.
+ */
+const SECRET_TABLE_SQL = `
+CREATE TABLE IF NOT EXISTS public.app_secret (
+  "name" text PRIMARY KEY,
+  "value" text NOT NULL,
+  "created_at" timestamp NOT NULL DEFAULT now()
+);
+ALTER TABLE public.app_secret ENABLE ROW LEVEL SECURITY;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+    EXECUTE 'REVOKE ALL ON public.app_secret FROM anon';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
+    EXECUTE 'REVOKE ALL ON public.app_secret FROM authenticated';
+  END IF;
+END $$;
+`;
+
+let vapid: Promise<Vapid | null> | null = null;
+/**
+ * The key pair that signs notifications. Taken from the environment when it is set there
+ * (NEXT_PUBLIC_VAPID_PUBLIC_KEY + VAPID_PRIVATE_KEY); otherwise the app creates one the first
+ * time it is needed and keeps it in the database, so nothing has to be configured by hand.
+ * The pair must never change afterwards: browsers that subscribed with it would stop receiving.
+ */
+export function getVapid(): Promise<Vapid | null> {
+  if (!vapid) {
+    vapid = loadVapid().catch((e) => {
+      console.error("[reminders] notification keys unavailable", e?.message || e);
+      vapid = null; // try again on the next call
+      return null;
+    });
+  }
+  return vapid;
+}
+
+async function loadVapid(): Promise<Vapid | null> {
+  const env = { publicKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "", privateKey: process.env.VAPID_PRIVATE_KEY || "" };
+  if (validVapid(env)) return env;
+
+  await db.execute(sql.raw(SECRET_TABLE_SQL));
+  // Two servers starting together: the first row written wins, both read the same one back.
+  const fresh = webpush.generateVAPIDKeys();
+  await db.execute(sql`INSERT INTO public.app_secret ("name", "value") VALUES ('vapid', ${JSON.stringify({ publicKey: fresh.publicKey, privateKey: fresh.privateKey })}) ON CONFLICT ("name") DO NOTHING`);
+  const res = (await db.execute(sql`SELECT "value" FROM public.app_secret WHERE "name" = 'vapid'`)) as unknown as { rows?: { value: string }[] };
+  const stored = JSON.parse(res.rows?.[0]?.value ?? "null");
+  return validVapid(stored) ? stored : null;
 }
 
 /** Sends one notification to every browser of a learner. Dead subscriptions are removed. */
 export async function pushToUser(userId: string, payload: { title: string; body: string; url?: string }): Promise<number> {
-  if (!pushConfigured()) return 0;
-  setVapid();
+  const keys = await getVapid();
+  if (!keys) return 0;
+  const vapidDetails = { subject: process.env.VAPID_SUBJECT || "mailto:contact@quranlab.app", publicKey: keys.publicKey, privateKey: keys.privateKey };
   const subs = await db.query.pushSubscription.findMany({ where: eq(pushSubscription.userId, userId) });
   let sent = 0;
   for (const s of subs) {
     try {
-      await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, JSON.stringify(payload), { TTL: 60 * 60 * 6 });
+      await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, JSON.stringify(payload), { TTL: 60 * 60 * 6, vapidDetails });
       sent++;
     } catch (e) {
       const status = (e as { statusCode?: number }).statusCode;

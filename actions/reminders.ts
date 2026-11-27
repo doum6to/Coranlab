@@ -4,11 +4,11 @@ import { and, eq } from "drizzle-orm";
 
 import db from "@/db/drizzle";
 import { pushSubscription, reminderPref } from "@/db/schema";
-import { ensureReminderTables, pushConfigured, pushPublicKey, setEmailReminders } from "@/lib/reminders";
+import { ensureReminderTables, getVapid, setEmailReminders } from "@/lib/reminders";
 import { auth } from "@/lib/supabase/server";
 
 export type ReminderState = {
-  /** Public key the browser subscribes with; empty when notifications are not set up on the server. */
+  /** Public key the browser subscribes with; empty when the server could not provide one. */
   pushKey: string;
   emailOn: boolean;
   /** Number of browsers of this learner that accepted notifications. */
@@ -23,11 +23,12 @@ export async function getReminderState(locale?: string): Promise<ReminderState |
     await ensureReminderTables();
     const lang = locale === "en" || locale === "es" ? locale : "fr";
     await db.insert(reminderPref).values({ userId, locale: lang }).onConflictDoUpdate({ target: reminderPref.userId, set: { locale: lang } });
-    const [pref, subs] = await Promise.all([
+    const [pref, subs, keys] = await Promise.all([
       db.query.reminderPref.findFirst({ where: eq(reminderPref.userId, userId) }),
       db.query.pushSubscription.findMany({ where: eq(pushSubscription.userId, userId), columns: { id: true } }),
+      getVapid(),
     ]);
-    return { pushKey: pushConfigured() ? pushPublicKey() : "", emailOn: pref?.emailOn ?? true, devices: subs.length };
+    return { pushKey: keys?.publicKey ?? "", emailOn: pref?.emailOn ?? true, devices: subs.length };
   } catch (e) {
     console.error("[reminders] state unavailable", e);
     return null;

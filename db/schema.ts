@@ -345,3 +345,13 @@ export const pushSubscription = pgTable("push_subscription", {
   auth: text("auth").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+/**
+ * Values the server creates for itself and must keep (today: the key pair that signs phone
+ * notifications). Created at runtime by lib/reminders.ts, closed to the Supabase API.
+ */
+export const appSecret = pgTable("app_secret", {
+  name: text("name").primaryKey(),
+  value: text("value").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
