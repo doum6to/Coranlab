@@ -1,103 +1,86 @@
 "use client";
 
 import Link from "next/link";
-import { Check, ChevronRight, Lock, Play } from "lucide-react";
+import { Check, ChevronRight, Lock } from "lucide-react";
 
 import type { UnitWithLists, VocabList } from "@/db/queries";
-import { KOJI_CROP, RiveAnim } from "@/app/(sales)/commencer/ui";
+import { LevelNode, type LevelNodeState } from "@/components/level-node";
 import { usePremiumModal } from "@/store/use-premium-modal";
 import { useT } from "@/lib/i18n/use-t";
 import { tpl } from "@/lib/i18n/locales";
 
 /**
  * The course as one path, top to bottom. Each list is a stage; the stage the learner is on
- * opens into its levels, laid out as stepping stones with Koji standing on the next one.
+ * opens into its levels, the same discs as on the page of a list, with Koji floating over the
+ * next one.
  * Finished stages fold into a line that can be reopened to revise, the ones ahead wait in grey.
  */
 
-const STEP = 96; // vertical distance between two stones
-const SWAY = [0, 56, 84, 56, 0, -56, -84, -56]; // the winding of the trail, in px from the centre
-const STONE_W = 76;
-const STONE_H = 64;
+const STEP = 104; // vertical distance between two levels
+const SWAY = [0, 52, 78, 52, 0, -52, -78, -52]; // the winding of the trail, in px from the centre
+/** Room left above the level Koji floats over, so he never covers the level before it. */
+const KOJI_ROOM = 58;
+/** Where the centre of a disc sits below the top of its box (the box is taller when active). */
+const centreOf = (active: boolean) => (active ? 74 : 53);
 
-type StoneState = "done" | "next" | "ahead";
-
-function Stone({ state }: { state: StoneState }) {
-  const face = state === "ahead" ? "#E9E9EF" : "#6967FB";
-  const edge = state === "ahead" ? "#D2D2DC" : "#4A48D4";
-  return (
-    <span className="relative block" style={{ width: STONE_W, height: STONE_H + 8 }}>
-      <span className="absolute inset-x-0 top-[8px] rounded-[50%]" style={{ height: STONE_H, background: edge }} />
-      <span className="absolute inset-x-0 top-0 flex items-center justify-center rounded-[50%] text-white" style={{ height: STONE_H, background: face, boxShadow: state === "next" ? "0 0 0 7px rgba(105,103,251,.18)" : undefined }}>
-        {state === "done" && <Check className="h-7 w-7" strokeWidth={3.2} aria-hidden />}
-        {state === "next" && <Play className="h-6 w-6 translate-x-[1px]" strokeWidth={0} fill="currentColor" aria-hidden />}
-        {state === "ahead" && <Lock className="h-5 w-5 text-[#A9A9B8]" strokeWidth={2.6} aria-hidden />}
-      </span>
-    </span>
-  );
-}
-
-/** Room left above the stone Koji stands on, so he never covers the stone before it. */
-const KOJI_ROOM = 50;
-
-/** Top of each stone: evenly spaced, with extra room before the one Koji stands on. */
+/** Top of each level: evenly spaced, with extra room before the one in progress. */
 function tops(count: number, nextIndex: number): number[] {
   return Array.from({ length: count }, (_, i) => i * STEP + (nextIndex >= 0 && i >= nextIndex ? KOJI_ROOM : 0));
 }
 
-/** The trail drawn behind the stones: one smooth line through their centres. */
-function Trail({ ys, doneUntil }: { ys: number[]; doneUntil: number }) {
+/** The trail drawn behind the levels: one smooth line through the centres of their discs. */
+function Trail({ ys, nextIndex }: { ys: number[]; nextIndex: number }) {
+  const doneUntil = nextIndex < 0 ? ys.length : nextIndex;
   const cx = (i: number) => 180 + SWAY[i % SWAY.length];
-  const cy = (i: number) => ys[i] + STONE_H / 2 + 4;
+  const cy = (i: number) => ys[i] + centreOf(i === nextIndex);
   const seg = (i: number) => {
     const mid = (cy(i + 1) - cy(i)) / 2;
     return `M ${cx(i)} ${cy(i)} C ${cx(i)} ${cy(i) + mid}, ${cx(i + 1)} ${cy(i + 1) - mid}, ${cx(i + 1)} ${cy(i + 1)}`;
   };
   return (
-    <svg className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2" width={360} height={ys[ys.length - 1] + STONE_H + 8} aria-hidden>
+    <svg className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2" width={360} height={ys[ys.length - 1] + 110} aria-hidden>
       {ys.slice(0, -1).map((_, i) => (
-        <path key={i} d={seg(i)} fill="none" stroke={i < doneUntil ? "#C8C7F0" : "#E6E6EE"} strokeWidth={10} strokeLinecap="round" strokeDasharray={i < doneUntil ? undefined : "2 18"} />
+        <path key={i} d={seg(i)} fill="none" stroke={i < doneUntil ? "#C8C7F0" : "#E2E2EA"} strokeWidth={8} strokeLinecap="round" strokeDasharray={i < doneUntil ? undefined : "1 16"} />
       ))}
     </svg>
   );
 }
 
-/** The stage in progress: its levels as stepping stones. */
+/** The stage in progress: its levels along a winding trail, drawn with the app's level discs. */
 function OpenStage({ list }: { list: VocabList }) {
   const t = useT();
   const levels = list.levels;
   const nextIndex = levels.findIndex((l) => !l.completed);
   const ys = tops(levels.length, nextIndex);
   return (
-    <div className="relative mx-auto" style={{ width: 360, maxWidth: "100%", height: ys[ys.length - 1] + STONE_H + 8 + 12 }}>
-      <Trail ys={ys} doneUntil={nextIndex < 0 ? levels.length : nextIndex} />
+    <div className="relative mx-auto" style={{ width: 360, maxWidth: "100%", height: ys[ys.length - 1] + 104 }}>
+      <Trail ys={ys} nextIndex={nextIndex} />
       {levels.map((level, i) => {
-        const state: StoneState = level.completed ? "done" : i === nextIndex ? "next" : "ahead";
-        const left = `calc(50% + ${SWAY[i % SWAY.length]}px - ${STONE_W / 2}px)`;
-        const labelSide = SWAY[i % SWAY.length] >= 0 ? "right-full mr-3 text-right" : "left-full ml-3 text-left";
+        const state: LevelNodeState = level.completed ? "completed" : i === nextIndex ? "active" : "locked";
+        const sway = SWAY[i % SWAY.length];
+        const isLast = i === levels.length - 1;
+        // The ring of the level in progress reaches past its box: its label stands further off.
+        const gap = state === "active" ? (sway >= 0 ? "mr-4" : "ml-4") : sway >= 0 ? "mr-1" : "ml-1";
+        const labelSide = `${sway >= 0 ? "right-full text-right" : "left-full text-left"} ${gap}`;
         const label = (
-          <span className={`pointer-events-none absolute top-1/2 w-[120px] -translate-y-1/2 ${labelSide}`}>
-            <span className={`block text-[0.9375rem] font-bold leading-tight ${state === "ahead" ? "text-[#A9A9B8]" : "text-brilliant-text"}`}>{tpl(t.common.levelN, { n: level.levelOrder })}</span>
-            {state === "next" && level.completedChallengeCount > 0 && (
+          <span className={`pointer-events-none absolute w-[112px] -translate-y-1/2 ${labelSide}`} style={{ top: centreOf(state === "active") }}>
+            <span className={`block text-[0.9375rem] font-bold leading-tight ${state === "locked" ? "text-[#A9A9B8]" : "text-brilliant-text"}`}>{tpl(t.common.levelN, { n: level.levelOrder })}</span>
+            {state === "active" && level.completedChallengeCount > 0 && (
               <span className="mt-0.5 block text-[0.8125rem] font-medium tabular-nums text-brilliant-muted">{level.completedChallengeCount}/{level.challengeCount}</span>
             )}
           </span>
         );
+        const style = { left: `calc(50% + ${sway}px)`, top: ys[i], transform: "translateX(-50%)" } as const;
         const body = (
           <>
-            {state === "next" && (
-              <span className="pointer-events-none absolute -top-[60px] left-1/2 block h-[72px] w-[72px] -translate-x-1/2" aria-hidden>
-                <RiveAnim src="/animations/okok_clear.riv" animation="breath loop" crop={KOJI_CROP} />
-              </span>
-            )}
-            <Stone state={state} />
+            <LevelNode state={state} isLast={isLast} />
             {label}
           </>
         );
-        return state === "ahead" ? (
-          <span key={level.id} className="absolute" style={{ left, top: ys[i] }} aria-label={`${tpl(t.common.levelN, { n: level.levelOrder })}`}>{body}</span>
+        return state === "locked" ? (
+          <span key={level.id} className="absolute block" style={style} aria-label={tpl(t.common.levelN, { n: level.levelOrder })}>{body}</span>
         ) : (
-          <Link key={level.id} href={`/lesson/${level.id}`} prefetch={state === "next"} className="absolute select-none transition-transform duration-100 active:translate-y-[4px]" style={{ left, top: ys[i] }} aria-current={state === "next" ? "step" : undefined}>
+          <Link key={level.id} href={`/lesson/${level.id}`} prefetch={state === "active"} className="absolute block select-none" style={style} aria-current={state === "active" ? "step" : undefined}>
             {body}
           </Link>
         );
