@@ -4,13 +4,16 @@ type ExitModalState = {
   isOpen: boolean;
   /** Whether what was done so far is kept (false in the welcome demo). */
   saved: boolean;
-  open: (saved?: boolean) => void;
+  /** Where "end the session" leads. */
+  returnTo: string;
+  open: (saved?: boolean, returnTo?: string) => void;
   close: () => void;
 };
 
 export const useExitModal = create<ExitModalState>((set) => ({
   isOpen: false,
   saved: true,
-  open: (saved = true) => set({ isOpen: true, saved }),
+  returnTo: "/learn",
+  open: (saved = true, returnTo = "/learn") => set({ isOpen: true, saved, returnTo }),
   close: () => set({ isOpen: false }),
 }));

@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { boolean, integer, pgEnum, pgTable, serial, text, timestamp, uniqueIndex, index, type PgTableExtraConfig } from "drizzle-orm/pg-core";
+import { boolean, integer, pgEnum, pgTable, primaryKey, serial, text, timestamp, uniqueIndex, index, type PgTableExtraConfig } from "drizzle-orm/pg-core";
 
 export const courses = pgTable("courses", {
   id: serial("id").primaryKey(),
@@ -355,3 +355,20 @@ export const appSecret = pgTable("app_secret", {
   value: text("value").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+/**
+ * Where each word stands in the learner's review: the higher the box, the longer before it
+ * comes back. Created at runtime by lib/review.ts.
+ */
+export const wordReview = pgTable("word_review", {
+  userId: text("user_id").notNull(),
+  word: text("word").notNull(),
+  box: integer("box").notNull().default(0),
+  /** Day the word is due again ("YYYY-MM-DD"). */
+  due: text("due").notNull(),
+  seen: integer("seen").notNull().default(0),
+  wrong: integer("wrong").notNull().default(0),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.userId, t.word] }),
+}));

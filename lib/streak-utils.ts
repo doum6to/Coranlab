@@ -35,3 +35,21 @@ export function getDayLabel(date: string): string {
   const d = new Date(date + "T00:00:00Z");
   return DAY_LABELS_FR[d.getUTCDay()];
 }
+
+/**
+ * The learner's calendar day ("YYYY-MM-DD" from their device), accepted only within a day of the
+ * server's date: a streak follows the learner's own midnight, not UTC's, without letting a
+ * tampered clock claim arbitrary days.
+ */
+export function learnerToday(clientDate: string | undefined): string {
+  const server = getToday();
+  if (!clientDate || !/^\d{4}-\d{2}-\d{2}$/.test(clientDate)) return server;
+  return Math.abs(daysBetween(server, clientDate)) <= 1 ? clientDate : server;
+}
+
+/** The day `n` days after `date` ("YYYY-MM-DD"). */
+export function addDays(date: string, n: number): string {
+  const d = new Date(date + "T00:00:00Z");
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().split("T")[0];
+}

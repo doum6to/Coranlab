@@ -21,7 +21,7 @@ import { getLast5Days, getToday, daysBetween } from "@/lib/streak-utils";
 import { getRequestLocale } from "@/lib/i18n/request-locale";
 import { translateContent } from "@/lib/i18n/content-i18n";
 import { getListImage } from "@/lib/list-images";
-import { repairChallenge } from "@/lib/challenge-repair";
+import { normalizeChallenge } from "@/lib/challenge-normalize";
 
 export const getUserProgress = cache(async () => {
   const { userId } = await auth();
@@ -469,32 +469,7 @@ export const getLesson = cache(async (id?: number) => {
     return null;
   }
 
-  const normalizedChallenges = data.challenges.map((raw) => {
-    const completed = raw.challengeProgress
-      && raw.challengeProgress.length > 0
-      && raw.challengeProgress.every((progress) => progress.completed)
-
-    // Repairs unfair generated exercises (ambiguous distractors, random
-    // "opposites", wrong truth values…) — see lib/challenge-repair.ts.
-    const repaired = repairChallenge(raw, raw.challengeOptions ?? []);
-    const challenge = { ...repaired.challenge, challengeOptions: repaired.options };
-
-    return {
-      ...challenge,
-      question: translateContent(challenge.question, locale),
-      frenchTranslation: challenge.frenchTranslation
-        ? translateContent(challenge.frenchTranslation, locale)
-        : challenge.frenchTranslation,
-      challengeOptions: challenge.challengeOptions?.map((opt) => ({
-        ...opt,
-        text: translateContent(opt.text, locale),
-        frenchText: opt.frenchText
-          ? translateContent(opt.frenchText, locale)
-          : opt.frenchText,
-      })),
-      completed,
-    };
-  });
+  const normalizedChallenges = data.challenges.map((raw) => normalizeChallenge(raw, locale));
 
   return { ...data, challenges: normalizedChallenges }
 });

@@ -10,24 +10,13 @@ import { coverageIsReliable, quranCoverage } from "@/lib/quran-coverage";
 import { challengeProgress, challenges, userProgress, weeklyXp, streakActivity } from "@/db/schema";
 import { getCurrentWeekStart } from "@/lib/league-utils";
 import { maybeJoinLeague } from "@/actions/league";
-import { MAX_STREAK_CHARGES, getToday, daysBetween } from "@/lib/streak-utils";
+import { MAX_STREAK_CHARGES, daysBetween, learnerToday } from "@/lib/streak-utils";
 
 /** XP for an exercise done for the first time, and for one replayed as revision. */
 const XP_NEW = 10;
 const XP_REVISION = 2;
 
 export type LessonResult = { xp: number; streak: number; streakExtended: boolean; /** Share of the Qur'an's words understood after this lesson (estimate), when it could be computed. */ coverage?: number };
-
-/**
- * The learner's calendar day ("YYYY-MM-DD" from their device), accepted only within a day of the
- * server's date: a streak follows the learner's own midnight, not UTC's, without letting a
- * tampered clock claim arbitrary days.
- */
-function learnerToday(clientDate: string | undefined): string {
-  const server = getToday();
-  if (!clientDate || !/^\d{4}-\d{2}-\d{2}$/.test(clientDate)) return server;
-  return Math.abs(daysBetween(server, clientDate)) <= 1 ? clientDate : server;
-}
 
 /**
  * Saves exercises as they are answered right, so a lesson left halfway resumes where it

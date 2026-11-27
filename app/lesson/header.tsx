@@ -19,6 +19,8 @@ type Props = {
   combo?: number;
   /** The welcome demo: nothing is saved, and the leave dialog says so. */
   demo?: boolean;
+  /** Where leaving the session leads (the home page by default). */
+  exitTo?: string;
 };
 
 export const Header = ({
@@ -26,6 +28,7 @@ export const Header = ({
   xp,
   combo = 0,
   demo = false,
+  exitTo,
 }: Props) => {
   const { open } = useExitModal();
   const t = useT();
@@ -33,7 +36,7 @@ export const Header = ({
   return (
     <header className="lg:pt-[50px] pt-[12px] pb-[8px] shrink-0 px-4 sm:px-10 max-w-[1140px] mx-auto w-full">
       <div className="flex gap-x-3 sm:gap-x-5 items-center justify-between">
-        <button type="button" onClick={() => open(!demo)} aria-label={t.ui.close} className="-ml-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-brilliant-muted transition-colors hover:bg-neutral-100">
+        <button type="button" onClick={() => open(!demo, exitTo)} aria-label={t.ui.close} className="-ml-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-brilliant-muted transition-colors hover:bg-neutral-100">
           <X aria-hidden />
         </button>
         <Progress value={percentage} />

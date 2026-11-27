@@ -16,7 +16,7 @@ import { useT } from "@/lib/i18n/use-t";
 
 export const ExitModal = () => {
   const [isClient, setIsClient] = useState(false);
-  const { isOpen, saved, close } = useExitModal();
+  const { isOpen, saved, returnTo, close } = useExitModal();
   const t = useT();
 
   useEffect(() => setIsClient(true), []);
@@ -50,7 +50,7 @@ export const ExitModal = () => {
             variant="outline-green"
             onClick={() => {
               close();
-              window.location.href = "/learn";
+              window.location.href = returnTo;
             }}
           >
             {t.exitModal.endSession}

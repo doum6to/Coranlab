@@ -1,5 +1,5 @@
-import { UnitsSkeleton } from "@/components/ui/skeletons";
+import { ReviewSkeleton } from "@/components/ui/skeletons";
 
 export default function Loading() {
-  return <UnitsSkeleton />;
+  return <ReviewSkeleton />;
 }

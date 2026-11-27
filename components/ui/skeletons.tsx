@@ -46,12 +46,17 @@ export function HomeSkeleton() {
   );
 }
 
-/** Review tab: units and their lists. */
-export function UnitsSkeleton() {
+/** Review tab: the session card, then the learner's words. */
+export function ReviewSkeleton() {
   return (
-    <Frame className="px-0 pt-2 sm:px-6">
-      <UnitBlock />
-      <UnitBlock />
+    <Frame className="max-w-md px-4 pb-8 pt-2">
+      <Sk className="h-7 w-28" />
+      <Sk className="mt-4 h-[188px]" style={{ borderRadius: 28 }} />
+      <Sk className="mt-8 h-6 w-32" />
+      <Sk className="mt-3 h-2 rounded-full" />
+      <div className="mt-6 flex flex-col gap-3">
+        {[0, 1, 2, 3, 4].map((i) => <Sk key={i} className="h-[52px]" />)}
+      </div>
     </Frame>
   );
 }

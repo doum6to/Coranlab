@@ -13,6 +13,7 @@ const Confetti = dynamic(() => import("react-confetti"), { ssr: false });
 import { challengeOptions, challenges, userSubscription } from "@/db/schema";
 import { usePremiumModal } from "@/store/use-premium-modal";
 import { finishLesson, saveLessonProgress, type LessonResult } from "@/actions/challenge-progress";
+import { saveReviewAnswers } from "@/actions/review";
 
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { Header } from "./header";
@@ -79,6 +80,8 @@ type Props = {
   listId?: number;
   levelOrder?: number;
   testMode?: boolean;
+  /** A review session: words already learned, drawn from several lessons (see lib/review.ts). */
+  review?: boolean;
 };
 
 export const Quiz = ({
@@ -89,6 +92,7 @@ export const Quiz = ({
   userSubscription,
   levelOrder,
   testMode = false,
+  review = false,
 }: Props) => {
 
   const router = useRouter();
@@ -101,8 +105,8 @@ export const Quiz = ({
       router.prefetch("/premium");
       return;
     }
-    router.prefetch("/learn");
-  }, [router, testMode]);
+    router.prefetch(review ? "/lecons" : "/learn");
+  }, [router, testMode, review]);
 
   const [correctAudio, _c, correctControls] = useAudio({ src: "/correct.wav" });
   const [incorrectAudio, _i, incorrectControls] = useAudio({ src: "/incorrect.wav" });
@@ -146,6 +150,8 @@ export const Quiz = ({
 
   // Exercises answered right are saved as the lesson goes (see `saveSoon`).
   const unsavedRef = useRef<number[]>([]);
+  // In a review, how each word was answered at the first try: it decides when it comes back.
+  const reviewRef = useRef<{ id: number; right: boolean }[]>([]);
   const saveChain = useRef<Promise<void>>(Promise.resolve());
   const [saving, setSaving] = useState(false);
   // What the server really credited (XP, streak) once the level is saved.
@@ -172,11 +178,20 @@ export const Quiz = ({
   const saveSoon = () => {
     saveChain.current = saveChain.current.then(async () => {
       const ids = unsavedRef.current.splice(0);
-      if (!ids.length) return;
-      try {
-        await saveLessonProgress(ids);
-      } catch {
-        unsavedRef.current.unshift(...ids);
+      if (ids.length) {
+        try {
+          await saveLessonProgress(ids);
+        } catch {
+          unsavedRef.current.unshift(...ids);
+        }
+      }
+      const answers = reviewRef.current.splice(0);
+      if (answers.length) {
+        try {
+          await saveReviewAnswers(answers, localDay());
+        } catch {
+          reviewRef.current.unshift(...answers);
+        }
       }
     });
     return saveChain.current;
@@ -191,7 +206,7 @@ export const Quiz = ({
       closedRef.current = true;
       setSaving(true);
       saveSoon()
-        .then(() => (unsavedRef.current.length ? saveSoon() : undefined))
+        .then(() => (unsavedRef.current.length || reviewRef.current.length ? saveSoon() : undefined))
         .then(() => finishLesson(localDay()))
         .then((r) => { if (r) setResult({ xp: 0, ...r }); })
         .catch(() => console.error("Failed to save progress"))
@@ -230,6 +245,8 @@ export const Quiz = ({
   const judgeRight = () => {
     if (!testMode) {
       unsavedRef.current.push(challenge.id);
+      // Right at the first try only: a word found on its second chance was still missed.
+      if (review && pos < firstPass) reviewRef.current.push({ id: challenge.id, right: true });
       void saveSoon();
     }
     correctControls.play();
@@ -240,6 +257,10 @@ export const Quiz = ({
 
   const judgeWrong = () => {
     setMissed((m) => new Set(m).add(queue[pos]));
+    if (review && !testMode && pos < firstPass) {
+      reviewRef.current.push({ id: challenge.id, right: false });
+      void saveSoon();
+    }
     incorrectControls.play();
     noteWrong();
     setStatus("wrong");
@@ -277,8 +298,8 @@ export const Quiz = ({
       router.push("/premium");
       return;
     }
-    // Back to the home page: it shows the next step and today's goal.
-    router.push("/learn");
+    // Back to the home page: it shows the next step and today's goal. A review returns to its tab.
+    router.push(review ? "/lecons" : "/learn");
   };
 
   // Streak screen: shown after the finished screen when this lesson extended the streak today
@@ -298,7 +319,8 @@ export const Quiz = ({
         saving={saving}
         testMode={testMode}
         isPro={!!userSubscription?.isActive}
-        coverage={result?.coverage}
+        coverage={review ? undefined : result?.coverage}
+        review={review ? { words: firstPass, missed: missed.size } : undefined}
         onContinue={!testMode && result?.streakExtended ? () => setShowStreak(true) : handleFinishContinue}
       />
     );
@@ -363,6 +385,7 @@ export const Quiz = ({
         xp={sessionXp}
         combo={combo}
         demo={testMode}
+        exitTo={review ? "/lecons" : undefined}
       />
       <div className="flex-1 overflow-y-auto">
         <div className="min-h-full flex items-center justify-center py-2 sm:py-6">
@@ -571,6 +594,8 @@ type FinishedScreenProps = {
   isPro?: boolean;
   /** Share of the Qur'an's words understood after this lesson (estimate). */
   coverage?: number;
+  /** A review session: how many words it covered and how many were missed at the first try. */
+  review?: { words: number; missed: number };
   onContinue: () => void;
 };
 
@@ -584,6 +609,7 @@ function FinishedScreen({
   testMode = false,
   isPro = false,
   coverage,
+  review,
   onContinue,
 }: FinishedScreenProps) {
   const t = useT();
@@ -630,7 +656,9 @@ function FinishedScreen({
       >
         {testMode
           ? multiline(t.lesson.finishedDemoTitle)
-          : passed
+          : review
+            ? t.review.doneTitle
+            : passed
             ? multiline(
                 levelOrder
                   ? tpl(t.lesson.finishedLevelTitle, { n: levelOrder })
@@ -703,6 +731,13 @@ function FinishedScreen({
       {!saving && coverage !== undefined && coverage > 0 && (
         <p className="mt-4 max-w-[19rem] text-center text-[0.9375rem] font-medium leading-snug text-[#555] duration-500 animate-in fade-in" style={{ textWrap: "balance" as never }}>
           {tpl(t.home.coverageNow, { pct: formatCoverage(coverage, locale) })}
+        </p>
+      )}
+
+      {/* After a review: when its words come back */}
+      {!saving && review && (
+        <p className="mt-4 max-w-[19rem] text-center text-[0.9375rem] font-medium leading-snug text-[#555] duration-500 animate-in fade-in" style={{ textWrap: "balance" as never }}>
+          {review.missed === 0 ? t.review.doneAllRight : tpl(review.missed === 1 ? t.review.doneMissedOne : t.review.doneMissed, { n: review.missed })}
         </p>
       )}
 
