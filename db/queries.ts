@@ -22,6 +22,7 @@ import { getRequestLocale } from "@/lib/i18n/request-locale";
 import { translateContent } from "@/lib/i18n/content-i18n";
 import { getListImage } from "@/lib/list-images";
 import { normalizeChallenge } from "@/lib/challenge-normalize";
+import { loadCourseLevels } from "@/lib/course-levels";
 
 export const getUserProgress = cache(async () => {
   const { userId } = await auth();
@@ -79,39 +80,20 @@ export const getListsWithLevels = cache(async (): Promise<UnitWithLists[]> => {
   }
   const locale = getRequestLocale();
 
-  const [subscription, data] = await Promise.all([
+  const [subscription, rows] = await Promise.all([
     getUserSubscription(),
-    db.query.units.findMany({
-      orderBy: (units, { asc }) => [asc(units.order)],
-      where: eq(units.courseId, userProgressData.activeCourseId),
-      // Only columns we actually read downstream
-      columns: { id: true, title: true, description: true, order: true },
-      with: {
-        lessons: {
-          orderBy: (lessons, { asc }) => [asc(lessons.order)],
-          columns: {
-            id: true,
-            title: true,
-            listId: true,
-            listTitle: true,
-            levelOrder: true,
-          },
-          with: {
-            challenges: {
-              orderBy: (challenges, { asc }) => [asc(challenges.order)],
-              columns: { id: true },
-              with: {
-                challengeProgress: {
-                  where: eq(challengeProgress.userId, userId),
-                  columns: { completed: true },
-                },
-              },
-            },
-          },
-        },
-      },
-    }),
+    loadCourseLevels(userId, userProgressData.activeCourseId),
   ]);
+  // One entry per unit, in course order, with its levels.
+  const data: { id: number; title: string; description: string; order: number; lessons: { id: number; title: string; listId: number; listTitle: string | null; levelOrder: number; challengeCount: number; completedChallengeCount: number }[] }[] = [];
+  for (const r of rows) {
+    let unit = data[data.length - 1];
+    if (!unit || unit.id !== r.unitId) {
+      unit = { id: r.unitId, title: r.unitTitle, description: r.unitDescription, order: r.unitOrder, lessons: [] };
+      data.push(unit);
+    }
+    if (r.lessonId !== null) unit.lessons.push({ id: r.lessonId, title: r.title, listId: r.listId, listTitle: r.listTitle, levelOrder: r.levelOrder, challengeCount: r.challengeCount, completedChallengeCount: r.completedChallengeCount });
+  }
   const isPro = !!subscription?.isActive;
 
   return data.map((unit) => {
@@ -127,11 +109,7 @@ export const getListsWithLevels = cache(async (): Promise<UnitWithLists[]> => {
     for (const [listId, listLessons] of Array.from(listMap.entries())) {
       const sortedLessons = listLessons.sort((a, b) => a.levelOrder - b.levelOrder);
       const levels: ListLevel[] = sortedLessons.map((lesson) => {
-        const challengeCount = lesson.challenges.length;
-        const completedChallengeCount = lesson.challenges.filter((ch) =>
-          ch.challengeProgress?.length > 0 &&
-          ch.challengeProgress.every((p) => p.completed)
-        ).length;
+        const { challengeCount, completedChallengeCount } = lesson;
         const completed = challengeCount > 0 && completedChallengeCount === challengeCount;
 
         return {
@@ -795,32 +773,16 @@ export const getStreakData = cache(async (): Promise<StreakData> => {
     return { streak: 0, charges: 0, days: [] };
   }
 
-  let up = await db.query.userProgress.findFirst({
-    where: eq(userProgress.userId, userId),
-  });
+  // Already loaded for the page header: no second read.
+  let up = await getUserProgress();
 
   if (!up) {
     return { streak: 0, charges: 0, days: [] };
   }
 
   const today = getToday();
-
-  // Backfill streak_activity for historical streak (idempotent via unique index)
-  if (up.lastStreakDate && up.streak > 0) {
-    const backfillDates: string[] = [];
-    const end = new Date(up.lastStreakDate + "T00:00:00Z");
-    for (let i = 0; i < up.streak; i++) {
-      const d = new Date(end);
-      d.setUTCDate(end.getUTCDate() - i);
-      backfillDates.push(d.toISOString().split("T")[0]);
-    }
-    if (backfillDates.length > 0) {
-      await db
-        .insert(streakActivity)
-        .values(backfillDates.map((date) => ({ userId, date })))
-        .onConflictDoNothing();
-    }
-  }
+  // As recorded before a missed day may reset it below: those days were really done.
+  const recorded = { last: up.lastStreakDate, streak: up.streak };
 
   // Lazy charge-apply: if user missed days since last activity, consume charges
   if (up.lastStreakDate && up.streak > 0) {
@@ -851,6 +813,22 @@ export const getStreakData = cache(async (): Promise<StreakData> => {
       inArray(streakActivity.date, last5),
     ));
   const activeDates = new Set(activityRows.map((r) => r.date));
+
+  // Days the streak covers but that were never recorded (streaks older than the activity
+  // table). Written only when one is actually missing, not on every page.
+  if (recorded.last && recorded.streak > 0) {
+    const covered: string[] = [];
+    const end = new Date(recorded.last + "T00:00:00Z");
+    for (let i = 0; i < recorded.streak; i++) {
+      const d = new Date(end);
+      d.setUTCDate(end.getUTCDate() - i);
+      covered.push(d.toISOString().split("T")[0]);
+    }
+    if (covered.some((date) => last5.includes(date) && !activeDates.has(date))) {
+      await db.insert(streakActivity).values(covered.map((date) => ({ userId, date }))).onConflictDoNothing();
+      for (const date of covered) activeDates.add(date);
+    }
+  }
 
   const days = last5.map((date) => {
     const d = new Date(date + "T00:00:00Z");

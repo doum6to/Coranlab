@@ -36,7 +36,10 @@ export const lessons = pgTable("lessons", {
   listId: integer("list_id").notNull().default(0),
   listTitle: text("list_title"),
   levelOrder: integer("level_order").notNull().default(1),
-});
+}, (t) => ({
+  unitIdx: index("lessons_unit").on(t.unitId),
+  listIdx: index("lessons_list").on(t.listId),
+}));
 
 export const lessonsRelations = relations(lessons, ({ one, many }) => ({
   unit: one(units, {
@@ -68,7 +71,9 @@ export const challenges = pgTable("challenges", {
   order: integer("order").notNull(),
   arabicWord: text("arabic_word"),
   frenchTranslation: text("french_translation"),
-});
+}, (t) => ({
+  lessonIdx: index("challenges_lesson").on(t.lessonId),
+}));
 
 export const challengesRelations = relations(challenges, ({ one, many }) => ({
   lesson: one(lessons, {
@@ -89,7 +94,9 @@ export const challengeOptions = pgTable("challenge_options", {
   arabicText: text("arabic_text"),
   frenchText: text("french_text"),
   pairIndex: integer("pair_index"),
-});
+}, (t) => ({
+  challengeIdx: index("challenge_options_challenge").on(t.challengeId),
+}));
 
 export const challengeOptionsRelations = relations(challengeOptions, ({ one }) => ({
   challenge: one(challenges, {
@@ -103,7 +110,10 @@ export const challengeProgress = pgTable("challenge_progress", {
   userId: text("user_id").notNull(),
   challengeId: integer("challenge_id").references(() => challenges.id, { onDelete: "cascade" }).notNull(),
   completed: boolean("completed").notNull().default(false),
-});
+}, (t) => ({
+  userChallengeIdx: index("challenge_progress_user_challenge").on(t.userId, t.challengeId),
+  challengeIdx: index("challenge_progress_challenge").on(t.challengeId),
+}));
 
 export const challengeProgressRelations = relations(challengeProgress, ({ one }) => ({
   challenge: one(challenges, {

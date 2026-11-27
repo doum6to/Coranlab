@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
@@ -27,9 +28,19 @@ export function createClient() {
   );
 }
 
-export async function auth() {
+/**
+ * The signed-in user, asked to Supabase once per page render. Every query of a page starts by
+ * asking who the learner is: without this, each one made its own network call to Supabase.
+ * (`cache` is scoped to one render; in a server action each call still goes through.)
+ */
+const getUser = cache(async () => {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  return user;
+});
+
+export async function auth() {
+  const user = await getUser();
 
   return {
     userId: user?.id ?? null,
@@ -37,8 +48,7 @@ export async function auth() {
 }
 
 export async function currentUser() {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getUser();
 
   if (!user) return null;
 
