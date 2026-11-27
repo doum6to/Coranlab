@@ -58,13 +58,16 @@ export const saveLessonProgress = async (challengeIds: number[]): Promise<{ xp: 
   const xp = newIds.length * XP_NEW + (ids.length - newIds.length) * XP_REVISION;
   if (xp > 0) {
     const weekStart = getCurrentWeekStart();
-    await Promise.all([
-      db.update(userProgress).set({ points: sql`${userProgress.points} + ${xp}` }).where(eq(userProgress.userId, userId)),
-      db
-        .insert(weeklyXp)
-        .values({ userId, weekStart, xp })
-        .onConflictDoUpdate({ target: [weeklyXp.userId, weeklyXp.weekStart], set: { xp: sql`${weeklyXp.xp} + ${xp}` } }),
-    ]);
+    await db.update(userProgress).set({ points: sql`${userProgress.points} + ${xp}` }).where(eq(userProgress.userId, userId));
+    // Weekly XP (leagues). Read then write, as before: it does not depend on the table's unique
+    // index being present in the database, and a failure here must never undo a saved exercise.
+    try {
+      const week = await db.query.weeklyXp.findFirst({ where: and(eq(weeklyXp.userId, userId), eq(weeklyXp.weekStart, weekStart)) });
+      if (week) await db.update(weeklyXp).set({ xp: week.xp + xp }).where(eq(weeklyXp.id, week.id));
+      else await db.insert(weeklyXp).values({ userId, weekStart, xp });
+    } catch (e) {
+      console.error("[lesson] weekly XP not recorded", e);
+    }
   }
   return { xp };
 };
