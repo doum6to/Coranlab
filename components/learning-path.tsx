@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { Check, ChevronRight, Lock } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, Lock } from "lucide-react";
 
 import type { UnitWithLists, VocabList } from "@/db/queries";
 import { LevelNode, type LevelNodeState } from "@/components/level-node";
@@ -12,16 +13,19 @@ import { tpl } from "@/lib/i18n/locales";
 /**
  * The course as one path, top to bottom. Each list is a stage; the stage the learner is on
  * opens into its levels, the same discs as on the page of a list, with Koji floating over the
- * next one.
- * Finished stages fold into a line that can be reopened to revise, the ones ahead wait in grey.
+ * next one. Finished stages fold into a line that can be reopened to revise, the ones ahead
+ * wait in grey. Only the part in progress is unfolded, so the home page stays short.
  */
 
-const STEP = 104; // vertical distance between two levels
+const SCALE = 1.3; // the discs are drawn a third larger than on the page of a list
+const NODE = 100 * SCALE; // width of a level node on the path
+const heightOf = (active: boolean) => (active ? 105 : 75) * SCALE;
+/** Where the centre of a disc sits below the top of its box (the box is taller when active). */
+const centreOf = (active: boolean) => (active ? 74 : 53) * SCALE;
+const STEP = 128; // vertical distance between two levels
 const SWAY = [0, 52, 78, 52, 0, -52, -78, -52]; // the winding of the trail, in px from the centre
 /** Room left above the level Koji floats over, so he never covers the level before it. */
-const KOJI_ROOM = 58;
-/** Where the centre of a disc sits below the top of its box (the box is taller when active). */
-const centreOf = (active: boolean) => (active ? 74 : 53);
+const KOJI_ROOM = 50;
 
 /** Top of each level: evenly spaced, with extra room before the one in progress. */
 function tops(count: number, nextIndex: number): number[] {
@@ -38,9 +42,9 @@ function Trail({ ys, nextIndex }: { ys: number[]; nextIndex: number }) {
     return `M ${cx(i)} ${cy(i)} C ${cx(i)} ${cy(i) + mid}, ${cx(i + 1)} ${cy(i + 1) - mid}, ${cx(i + 1)} ${cy(i + 1)}`;
   };
   return (
-    <svg className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2" width={360} height={ys[ys.length - 1] + 110} aria-hidden>
+    <svg className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2" width={360} height={ys[ys.length - 1] + 140} aria-hidden>
       {ys.slice(0, -1).map((_, i) => (
-        <path key={i} d={seg(i)} fill="none" stroke={i < doneUntil ? "#C8C7F0" : "#E2E2EA"} strokeWidth={8} strokeLinecap="round" strokeDasharray={i < doneUntil ? undefined : "1 16"} />
+        <path key={i} d={seg(i)} fill="none" stroke={i < doneUntil ? "#C8C7F0" : "#E2E2EA"} strokeWidth={9} strokeLinecap="round" strokeDasharray={i < doneUntil ? undefined : "1 17"} />
       ))}
     </svg>
   );
@@ -53,34 +57,35 @@ function OpenStage({ list }: { list: VocabList }) {
   const nextIndex = levels.findIndex((l) => !l.completed);
   const ys = tops(levels.length, nextIndex);
   return (
-    <div className="relative mx-auto" style={{ width: 360, maxWidth: "100%", height: ys[ys.length - 1] + 104 }}>
+    <div className="relative mx-auto" style={{ width: 360, maxWidth: "100%", height: ys[ys.length - 1] + heightOf(false) + 16 }}>
       <Trail ys={ys} nextIndex={nextIndex} />
       {levels.map((level, i) => {
         const state: LevelNodeState = level.completed ? "completed" : i === nextIndex ? "active" : "locked";
+        const active = state === "active";
         const sway = SWAY[i % SWAY.length];
-        const isLast = i === levels.length - 1;
         // The ring of the level in progress reaches past its box: its label stands further off.
-        const gap = state === "active" ? (sway >= 0 ? "mr-4" : "ml-4") : sway >= 0 ? "mr-1" : "ml-1";
-        const labelSide = `${sway >= 0 ? "right-full text-right" : "left-full text-left"} ${gap}`;
+        const gap = active ? (sway >= 0 ? "mr-5" : "ml-5") : sway >= 0 ? "mr-1.5" : "ml-1.5";
         const label = (
-          <span className={`pointer-events-none absolute w-[112px] -translate-y-1/2 ${labelSide}`} style={{ top: centreOf(state === "active") }}>
+          <span className={`pointer-events-none absolute w-[104px] -translate-y-1/2 ${sway >= 0 ? "right-full text-right" : "left-full text-left"} ${gap}`} style={{ top: centreOf(active) }}>
             <span className={`block text-[0.9375rem] font-bold leading-tight ${state === "locked" ? "text-[#A9A9B8]" : "text-brilliant-text"}`}>{tpl(t.common.levelN, { n: level.levelOrder })}</span>
-            {state === "active" && level.completedChallengeCount > 0 && (
+            {active && level.completedChallengeCount > 0 && (
               <span className="mt-0.5 block text-[0.8125rem] font-medium tabular-nums text-brilliant-muted">{level.completedChallengeCount}/{level.challengeCount}</span>
             )}
           </span>
         );
-        const style = { left: `calc(50% + ${sway}px)`, top: ys[i], transform: "translateX(-50%)" } as const;
+        const style = { left: `calc(50% + ${sway}px)`, top: ys[i], width: NODE, height: heightOf(active), transform: "translateX(-50%)" } as const;
         const body = (
           <>
-            <LevelNode state={state} isLast={isLast} />
+            <span className="absolute left-0 top-0 block" style={{ transform: `scale(${SCALE})`, transformOrigin: "top left" }}>
+              <LevelNode state={state} isLast={i === levels.length - 1} fixed />
+            </span>
             {label}
           </>
         );
         return state === "locked" ? (
           <span key={level.id} className="absolute block" style={style} aria-label={tpl(t.common.levelN, { n: level.levelOrder })}>{body}</span>
         ) : (
-          <Link key={level.id} href={`/lesson/${level.id}`} prefetch={state === "active"} className="absolute block select-none" style={style} aria-current={state === "active" ? "step" : undefined}>
+          <Link key={level.id} href={`/lesson/${level.id}`} prefetch={active} className="absolute block select-none" style={style} aria-current={active ? "step" : undefined}>
             {body}
           </Link>
         );
@@ -114,34 +119,57 @@ function StageRow({ list, state }: { list: VocabList; state: "done" | "ahead" | 
 }
 
 export function LearningPath({ units }: { units: UnitWithLists[] }) {
+  const t = useT();
   // The stage in progress: the first list, in course order, with a level left to do.
   const current = units.flatMap((u) => u.lists).find((l) => l.completedLevels < l.totalLevels);
+  const currentUnit = units.find((u) => u.lists.some((l) => l === current)) ?? units[0];
+  // Only the part in progress starts unfolded; the others open on a tap.
+  const [open, setOpen] = useState<Record<number, boolean>>({});
+  const isOpen = (u: UnitWithLists) => open[u.id] ?? u.id === currentUnit?.id;
 
   return (
     <div className="mx-auto w-full max-w-md px-4 sm:px-0">
-      {units.map((unit) => (
-        <section key={unit.id} className="mb-10">
-          <header className="rounded-3xl px-5 py-4" style={{ boxShadow: "inset 0 0 0 2px #6967FB" }}>
-            <h2 className="font-heading text-[1.25rem] font-extrabold leading-tight text-brilliant-text" style={{ letterSpacing: "-0.01em" }}>{unit.title}</h2>
-            <p className="mt-0.5 text-[0.875rem] font-medium text-[#6967FB]">{unit.description}</p>
-          </header>
+      {units.map((unit) => {
+        const done = unit.lists.filter((l) => l.completedLevels >= l.totalLevels).length;
+        const unfolded = isOpen(unit);
+        return (
+          <section key={unit.id} className="mb-5">
+            <h2>
+              <button
+                type="button"
+                onClick={() => setOpen((o) => ({ ...o, [unit.id]: !unfolded }))}
+                aria-expanded={unfolded}
+                className="flex w-full select-none items-center gap-3 rounded-3xl px-5 py-4 text-left transition-colors active:bg-[#F7F7FF]"
+                style={{ boxShadow: "inset 0 0 0 2px #6967FB" }}
+              >
+                <span className="min-w-0 flex-1">
+                  <span className="block font-heading text-[1.25rem] font-extrabold leading-tight text-brilliant-text" style={{ letterSpacing: "-0.01em" }}>{unit.title}</span>
+                  <span className="mt-0.5 block text-[0.875rem] font-medium text-[#6967FB]">{unit.description}</span>
+                  <span className="mt-0.5 block text-[0.8125rem] font-medium tabular-nums text-brilliant-muted">{tpl(t.home.pathLists, { done, total: unit.lists.length })}</span>
+                </span>
+                <ChevronDown className={`h-5 w-5 shrink-0 text-[#6967FB] transition-transform duration-200 ${unfolded ? "rotate-180" : ""}`} strokeWidth={2.4} aria-hidden />
+              </button>
+            </h2>
 
-          <div className="mt-3 flex flex-col">
-            {unit.lists.map((list) => {
-              const done = list.completedLevels >= list.totalLevels;
-              if (list === current && !list.isPremiumLocked) {
-                return (
-                  <div key={list.listId} className="my-3 rounded-[28px] bg-[#F7F7FF] px-2 pb-6 pt-5">
-                    <h3 className="text-center font-heading text-[1.1875rem] font-extrabold leading-tight text-brilliant-text" style={{ textWrap: "balance" as never }}>{list.listTitle}</h3>
-                    <div className="mt-5"><OpenStage list={list} /></div>
-                  </div>
-                );
-              }
-              return <StageRow key={list.listId} list={list} state={done ? "done" : list.isPremiumLocked ? "premium" : "ahead"} />;
-            })}
-          </div>
-        </section>
-      ))}
+            {unfolded && (
+              <div className="mt-3 flex flex-col">
+                {unit.lists.map((list) => {
+                  const listDone = list.completedLevels >= list.totalLevels;
+                  if (list === current && !list.isPremiumLocked) {
+                    return (
+                      <div key={list.listId} className="my-3 rounded-[28px] bg-[#F7F7FF] px-2 pb-6 pt-5">
+                        <h3 className="text-center font-heading text-[1.1875rem] font-extrabold leading-tight text-brilliant-text" style={{ textWrap: "balance" as never }}>{list.listTitle}</h3>
+                        <div className="mt-6"><OpenStage list={list} /></div>
+                      </div>
+                    );
+                  }
+                  return <StageRow key={list.listId} list={list} state={listDone ? "done" : list.isPremiumLocked ? "premium" : "ahead"} />;
+                })}
+              </div>
+            )}
+          </section>
+        );
+      })}
     </div>
   );
 }

@@ -214,10 +214,10 @@ const NodeSVG = ({ state, isLast }: { state: LevelNodeState; isLast: boolean }) 
 };
 
 /** A level node at its natural size, with Koji floating above when it is the level in progress. */
-export function LevelNode({ state, isLast = false }: { state: LevelNodeState; isLast?: boolean }) {
+export function LevelNode({ state, isLast = false, fixed = false }: { state: LevelNodeState; isLast?: boolean; /** Same size on every screen (the path places and scales it itself). */ fixed?: boolean }) {
   const active = state === "active";
   return (
-    <div className={cn("relative w-[100px] sm:w-[120px]", active ? "h-[105px] sm:h-[120px]" : "h-[75px] sm:h-[88px]")} style={{ overflow: "visible" }}>
+    <div className={cn("relative w-[100px]", !fixed && "sm:w-[120px]", active ? "h-[105px]" : "h-[75px]", !fixed && (active ? "sm:h-[120px]" : "sm:h-[88px]"))} style={{ overflow: "visible" }}>
       <NodeSVG state={state} isLast={isLast} />
 
       {active && (
@@ -225,7 +225,7 @@ export function LevelNode({ state, isLast = false }: { state: LevelNodeState; is
           {/* Koji: his frame is tall but he sits in its upper part, so it is pulled down until he
               rests just above the disc. */}
           <div
-            className={cn("absolute z-10 pointer-events-none", isLast ? "w-[9rem] h-[7.5rem] sm:w-[10.5rem] sm:h-[9rem]" : "w-[10.5rem] h-[9rem] sm:w-[12rem] sm:h-[10.5rem]")}
+            className={cn("absolute z-10 pointer-events-none", isLast ? "w-[9rem] h-[7.5rem]" : "w-[10.5rem] h-[9rem]", !fixed && (isLast ? "sm:w-[10.5rem] sm:h-[9rem]" : "sm:w-[12rem] sm:h-[10.5rem]"))}
             style={{ top: "-55px", left: "50%", animation: "mascotFloat 2.5s ease-in-out infinite" }}
           >
             <RiveMascot src="/animations/mascot_breath.riv" animationName="breath loop" />

@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 
-import { FeedWrapper } from "@/components/feed-wrapper";
 import {
   getListsWithLevels,
   getUserProgress,
@@ -11,7 +10,7 @@ import {
 import { upsertUserProgress } from "@/actions/user-progress";
 import { auth } from "@/lib/supabase/server";
 
-import { UnitWithListsView } from "./unit-with-lists";
+import { LearningPath } from "@/components/learning-path";
 import { WelcomeTutorial } from "@/components/welcome-tutorial";
 import { AddToHomeTutorial } from "@/components/add-to-home-tutorial";
 import { PremiumNudgeBanner } from "@/components/premium-nudge-banner";
@@ -96,19 +95,8 @@ const LearnPage = async () => {
           </div>
         )}
       </div>
-      <FeedWrapper>
-        {listsData.map((unit) => (
-          <div key={unit.id} className="mb-10">
-            <UnitWithListsView
-              id={unit.id}
-              order={unit.order}
-              title={unit.title}
-              description={unit.description}
-              lists={unit.lists}
-            />
-          </div>
-        ))}
-      </FeedWrapper>
+      {/* The whole course as one path; the part in progress is unfolded */}
+      <LearningPath units={listsData} />
     </div>
   );
 };
