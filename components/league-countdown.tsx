@@ -35,10 +35,10 @@ export const LeagueCountdown = () => {
   }, [t]);
 
   return (
-    <div className="flex items-center gap-1.5 text-xs sm:text-sm text-brilliant-muted">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-        <circle cx="7" cy="7" r="6" stroke="#999" strokeWidth="1.5" />
-        <path d="M7 4V7L9 9" stroke="#999" strokeWidth="1.5" strokeLinecap="round" />
+    <div className="flex items-center gap-1.5 text-[0.8125rem] font-medium text-[#6B6B76]">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+        <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.5" />
+        <path d="M7 4V7L9 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
       </svg>
       <span>{tpl(t.league.countdownEndsIn, { time: timeLeft })}</span>
     </div>

@@ -5,9 +5,11 @@ import { TIER_COLORS, TIER_LABELS, type LeagueTier } from "@/lib/league-utils";
 type Props = {
   tier: LeagueTier;
   size?: "sm" | "md" | "lg";
+  /** The shield alone, without its name under it (the name is written beside it). */
+  bare?: boolean;
 };
 
-export const LeagueTierBadge = ({ tier, size = "md" }: Props) => {
+export const LeagueTierBadge = ({ tier, size = "md", bare = false }: Props) => {
   const color = TIER_COLORS[tier];
   const label = TIER_LABELS[tier];
 
@@ -26,6 +28,9 @@ export const LeagueTierBadge = ({ tier, size = "md" }: Props) => {
         height={s.shield * 1.15}
         viewBox="0 0 44 50"
         fill="none"
+        aria-hidden={!bare}
+        role={bare ? "img" : undefined}
+        aria-label={bare ? label : undefined}
       >
         <path
           d="M22 2L4 10V22C4 34 22 48 22 48C22 48 40 34 40 22V10L22 2Z"
@@ -50,9 +55,11 @@ export const LeagueTierBadge = ({ tier, size = "md" }: Props) => {
           {TIER_LABELS[tier].charAt(0)}
         </text>
       </svg>
-      <span className={`font-semibold ${s.font}`} style={{ color }}>
-        {label}
-      </span>
+      {!bare && (
+        <span className={`font-semibold ${s.font}`} style={{ color }}>
+          {label}
+        </span>
+      )}
     </div>
   );
 };

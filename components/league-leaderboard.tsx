@@ -1,5 +1,7 @@
 "use client";
 
+import { Fragment } from "react";
+
 import { cn } from "@/lib/utils";
 import { LeagueTierBadge } from "./league-tier-badge";
 import { LeagueCountdown } from "./league-countdown";
@@ -7,7 +9,6 @@ import {
   PROMOTE_COUNT,
   DEMOTE_COUNT,
   TIER_LABELS,
-  TIER_COLORS,
   type LeagueTier,
 } from "@/lib/league-utils";
 import type { LeagueMember } from "@/db/queries";
@@ -22,7 +23,6 @@ const RANK_COLORS: Record<number, { bg: string; shadow: string; text: string }> 
 
 // Hexagon points for a 30x34 viewBox, centered at (15, 17)
 const HEX_PATH = "M15 1L27.5 8.5V23.5L15 31L2.5 23.5V8.5L15 1Z";
-const HEX_CLIP = "hex-clip";
 
 const RankBadge = ({ rank }: { rank: number }) => {
   const c = RANK_COLORS[rank];
@@ -89,110 +89,78 @@ type Props = {
   isBottomTier: boolean;
 };
 
+const CARD = { borderRadius: 28, boxShadow: "0 0 0 1px #EDEDF3, 0 14px 34px -18px rgba(74,72,212,.35)" } as const;
+
+const UP = "#1F9D4D";
+const DOWN = "#D93A3A";
+const Arrow = ({ up }: { up: boolean }) => (
+  <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden><path d={up ? "M5 1L9 7H1L5 1Z" : "M5 9L1 3H9L5 9Z"} /></svg>
+);
+
+/**
+ * The line between two zones of the ranking: who goes up above it, who goes down below it.
+ * When the two zones touch (a group split in two halves), one line carries both labels.
+ */
+function ZoneLine({ up, down }: { up?: string; down?: string }) {
+  const label = "flex items-center gap-1.5 text-[0.8125rem] font-semibold";
+  return (
+    <li className="flex items-center gap-3 px-3 py-2">
+      {up ? <span className={label} style={{ color: UP }}><Arrow up />{up}</span> : <span className="h-px flex-1 bg-[#F3C4C4]" aria-hidden />}
+      {up && <span className="h-px flex-1" style={{ background: down ? "#E6E6EE" : "#BFE8C9" }} aria-hidden />}
+      {down && <span className={label} style={{ color: DOWN }}><Arrow up={false} />{down}</span>}
+      {down && !up && <span className="h-px flex-1 bg-[#F3C4C4]" aria-hidden />}
+    </li>
+  );
+}
+
 export const LeagueLeaderboard = ({ tier, members, isTopTier, isBottomTier }: Props) => {
   const t = useT();
-  const totalMembers = members.length;
-  const color = TIER_COLORS[tier];
+  const total = members.length;
+  // Rank after which the promotion zone ends, and rank at which relegation starts (0: no such zone).
+  const promoEnd = !isTopTier && total > PROMOTE_COUNT ? PROMOTE_COUNT : 0;
+  const demoteStart = !isBottomTier && total > DEMOTE_COUNT ? total - DEMOTE_COUNT + 1 : 0;
+  const touching = promoEnd > 0 && demoteStart === promoEnd + 1;
+  const upLabel = tpl(t.league.topPromoted, { n: PROMOTE_COUNT });
+  const downLabel = tpl(t.league.lastDemoted, { n: DEMOTE_COUNT });
 
   return (
-    <div className="w-full flex flex-col gap-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <LeagueTierBadge tier={tier} size="md" />
-          <div>
-            <h2 className="text-lg sm:text-xl font-bold text-brilliant-text">
-              {tpl(t.league.leagueTitle, { tier: TIER_LABELS[tier] })}
-            </h2>
-            <LeagueCountdown />
+    <div className="flex w-full flex-col">
+      {/* The league and how the week ends */}
+      <div className="bg-white p-5" style={CARD}>
+        <div className="flex items-center gap-4">
+          <LeagueTierBadge tier={tier} size="md" bare />
+          <div className="min-w-0">
+            <h2 className="font-heading text-[1.25rem] font-extrabold leading-tight text-brilliant-text" style={{ letterSpacing: "-0.01em" }}>{tpl(t.league.leagueTitle, { tier: TIER_LABELS[tier] })}</h2>
+            <div className="mt-1"><LeagueCountdown /></div>
           </div>
         </div>
+        {!isTopTier && <p className="mt-3 text-[0.9375rem] leading-normal text-[#555]">{tpl(t.league.promoBanner, { n: PROMOTE_COUNT })}</p>}
       </div>
 
-      {/* Promotion info banner */}
-      {!isTopTier && (
-        <div className="rounded-xl bg-[#E8F8E8] border border-[#3CC922]/30 px-3 py-2 text-xs sm:text-sm text-[#1F7A1F] font-medium flex items-center gap-2">
-          <svg width="14" height="14" viewBox="0 0 10 10" fill="#3CC922">
-            <path d="M5 1L9 7H1L5 1Z" />
-          </svg>
-          <span>{tpl(t.league.promoBanner, { n: PROMOTE_COUNT })}</span>
-        </div>
-      )}
-
-      {/* Zone labels */}
-      <div className="flex items-center gap-4 text-xs text-brilliant-muted px-2">
-        {!isTopTier && (
-          <div className="flex items-center gap-1">
-            <span className="inline-block w-2 h-2 rounded-full bg-[#3CC922]" />
-            <span>{tpl(t.league.topPromoted, { n: PROMOTE_COUNT })}</span>
-          </div>
-        )}
-        {!isBottomTier && (
-          <div className="flex items-center gap-1">
-            <span className="inline-block w-2 h-2 rounded-full bg-[#F43F5E]" />
-            <span>{tpl(t.league.lastDemoted, { n: DEMOTE_COUNT })}</span>
-          </div>
-        )}
-      </div>
-
-      {/* Member list */}
-      <div className="flex flex-col">
+      <ol className="mt-4 flex flex-col">
         {members.map((member) => {
-          const isPromoted = !isTopTier && member.rank <= PROMOTE_COUNT;
-          const isDemoted = !isBottomTier && member.rank > totalMembers - DEMOTE_COUNT;
-
+          const you = member.isCurrentUser;
           return (
-            <div
-              key={member.userId}
-              className={cn(
-                "flex items-center w-full py-2.5 px-3 rounded-xl transition-colors hover:bg-gray-50",
-              )}
-            >
-              {/* Rank */}
-              <div className="w-8 flex-shrink-0 flex items-center justify-center">
-                {member.rank <= 3 ? (
-                  <RankBadge rank={member.rank} />
-                ) : (
-                  <span className="text-sm font-bold text-brilliant-muted">
-                    {member.rank}
-                  </span>
-                )}
-              </div>
-
-              {/* Zone indicator */}
-              <div className="w-3 flex-shrink-0 mr-2">
-                {isPromoted && (
-                  <svg width="10" height="10" viewBox="0 0 10 10" fill="#3CC922">
-                    <path d="M5 1L9 7H1L5 1Z" />
-                  </svg>
-                )}
-                {isDemoted && (
-                  <svg width="10" height="10" viewBox="0 0 10 10" fill="#F43F5E">
-                    <path d="M5 9L1 3H9L5 9Z" />
-                  </svg>
-                )}
-              </div>
-
-              {/* Name */}
-              <p className={cn(
-                "flex-1 text-sm truncate",
-                member.isCurrentUser ? "font-bold text-[#6967FB]" : "font-medium text-brilliant-text",
-              )}>
-                {member.name}
-                {member.isCurrentUser && ` ${t.league.you}`}
-              </p>
-
-              {/* XP */}
-              <p className={cn(
-                "text-sm font-semibold flex-shrink-0",
-                member.isCurrentUser ? "text-[#6967FB]" : "text-brilliant-muted",
-              )}>
-                {member.weeklyXp} XP
-              </p>
-            </div>
+            <Fragment key={member.userId}>
+              {!touching && member.rank === demoteStart && <ZoneLine down={downLabel} />}
+              <li className="flex min-h-[56px] items-center gap-3 rounded-2xl px-3 py-1.5" style={you ? { background: "#F0F0FF" } : undefined} aria-current={you ? "true" : undefined}>
+                <span className="flex w-8 shrink-0 items-center justify-center">
+                  {member.rank <= 3 ? <RankBadge rank={member.rank} /> : <span className="text-[0.9375rem] font-bold text-brilliant-muted" style={{ fontVariantNumeric: "tabular-nums" }}>{member.rank}</span>}
+                </span>
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[0.9375rem] font-bold" style={you ? { background: "#6967FB", color: "#fff" } : { background: "#F1F1F6", color: "#6B6B76" }} aria-hidden>
+                  {(member.name.trim()[0] || "?").toUpperCase()}
+                </span>
+                <span className={cn("min-w-0 flex-1 truncate text-[0.9375rem]", you ? "font-bold text-[#5452E0]" : "font-semibold text-brilliant-text")}>
+                  <bdi>{member.name}</bdi>
+                  {you && ` ${t.league.you}`}
+                </span>
+                <span className={cn("shrink-0 text-[0.9375rem] font-semibold", you ? "text-[#5452E0]" : "text-[#6B6B76]")} style={{ fontVariantNumeric: "tabular-nums" }}>{member.weeklyXp} XP</span>
+              </li>
+              {member.rank === promoEnd && <ZoneLine up={upLabel} down={touching ? downLabel : undefined} />}
+            </Fragment>
           );
         })}
-      </div>
+      </ol>
     </div>
   );
 };

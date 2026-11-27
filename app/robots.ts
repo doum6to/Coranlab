@@ -15,7 +15,6 @@ export default function robots(): MetadataRoute.Robots {
           "/courses",
           "/lesson",
           "/settings",
-          "/quests",
           "/leaderboard",
           "/premium",
           "/admin",

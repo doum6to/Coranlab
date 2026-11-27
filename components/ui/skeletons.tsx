@@ -79,11 +79,11 @@ export function ListSkeleton() {
 /** Ranking: a title, the league card, then the rows. */
 export function RankingSkeleton() {
   return (
-    <Frame className="max-w-md px-6">
-      <Sk className="mx-auto my-6 h-7 w-40" />
-      <Sk className="h-[120px] rounded-2xl" />
-      <div className="mt-5 flex flex-col gap-2.5">
-        {[0, 1, 2, 3, 4, 5].map((i) => <Sk key={i} className="h-[56px] rounded-2xl" />)}
+    <Frame className="max-w-md px-4 pb-8 pt-2">
+      <Sk className="h-7 w-36" />
+      <Sk className="mt-4 h-[132px]" style={{ borderRadius: 28 }} />
+      <div className="mt-4 flex flex-col gap-2">
+        {[0, 1, 2, 3, 4, 5].map((i) => <Sk key={i} className="h-[52px] rounded-2xl" />)}
       </div>
     </Frame>
   );

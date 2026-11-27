@@ -38,37 +38,37 @@ export const LevelCard = ({
         <LevelNode state={state} isLast={isLast} />
       </div>
 
-      <div className="min-w-0 max-w-[14rem]">
+      <div className="w-[11.5rem] min-w-0">
         <p className={cn(
-          "text-base sm:text-lg font-bold leading-tight",
+          "text-[1.0625rem] font-bold leading-tight",
           completed && "text-brilliant-text",
           active && "text-brilliant-text",
-          locked && "text-brilliant-muted"
+          locked && "text-[#8A8A93]"
         )}>
           {levelName}
         </p>
         <p className={cn(
-          "text-xs sm:text-sm mt-0.5 leading-snug",
+          "mt-0.5 text-[0.8125rem] font-medium leading-snug tabular-nums",
           completed && "text-brilliant-muted",
           active && "text-brilliant-muted",
-          locked && "text-brilliant-muted/60"
+          locked && "text-[#A9A9B8]"
         )}>
           {levelDescription}
         </p>
 
         {active && percentage > 0 && (
           <div className="mt-2 flex items-center gap-2">
-            <div className="w-20 h-[5px] bg-brilliant-border rounded-full overflow-hidden">
+            <div className="h-1.5 w-20 overflow-hidden rounded-full bg-[#EDEDF3]">
               <div
                 className="h-full bg-brilliant-green rounded-full transition-all"
                 style={{ width: `${percentage}%` }}
               />
             </div>
-            <span className="text-xs font-medium text-brilliant-green">{percentage}%</span>
+            <span className="text-[0.8125rem] font-semibold tabular-nums text-[#5452E0]">{percentage}&nbsp;%</span>
           </div>
         )}
         {completed && (
-          <p className="text-xs font-semibold text-brilliant-green mt-1">{t.common.levelCompleted}</p>
+          <p className="mt-1 text-[0.8125rem] font-semibold text-[#5452E0]">{t.common.levelCompleted}</p>
         )}
       </div>
     </div>
@@ -79,7 +79,7 @@ export const LevelCard = ({
   }
 
   return (
-    <Link href={href} className="w-full hover:opacity-90 transition py-2 sm:py-3 block">
+    <Link href={href} className="block w-full select-none rounded-3xl py-2 transition-colors active:bg-[#F7F7FF] sm:py-3">
       {content}
     </Link>
   );

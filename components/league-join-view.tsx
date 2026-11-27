@@ -1,6 +1,6 @@
 "use client";
 
-import { LEAGUE_TIERS, TIER_COLORS, TIER_LABELS, MIN_XP_TO_JOIN } from "@/lib/league-utils";
+import { LEAGUE_TIERS, TIER_LABELS, MIN_XP_TO_JOIN } from "@/lib/league-utils";
 import { LeagueTierBadge } from "./league-tier-badge";
 import type { LeagueTier } from "@/lib/league-utils";
 import { useT } from "@/lib/i18n/use-t";
@@ -12,86 +12,49 @@ type Props = {
   pendingTier?: LeagueTier;
 };
 
+const CARD = { borderRadius: 28, boxShadow: "0 0 0 1px #EDEDF3, 0 14px 34px -18px rgba(74,72,212,.35)" } as const;
+
 export const LeagueJoinView = ({ weeklyXp, isPending, pendingTier }: Props) => {
   const t = useT();
-  // Returning player with PENDING status — just needs to earn any XP
+  // Back in a league already: any XP this week puts the learner in a group.
   if (isPending) {
+    const tier = pendingTier ?? "NIYYA";
     return (
-      <div className="w-full flex flex-col items-center gap-6 py-4">
-        <LeagueTierBadge tier={pendingTier ?? "NIYYA"} size="lg" />
-
-        <div className="text-center">
-          <h2 className="text-xl sm:text-2xl font-bold text-brilliant-text mb-2">
-            {tpl(t.league.leagueTitle, { tier: TIER_LABELS[pendingTier ?? "NIYYA"] })}
-          </h2>
-          <p className="text-sm sm:text-base text-brilliant-muted max-w-sm">
-            {t.league.pendingInstruction}
-          </p>
+      <div className="bg-white p-5" style={CARD}>
+        <div className="flex items-center gap-4">
+          <LeagueTierBadge tier={tier} size="md" bare />
+          <h2 className="min-w-0 font-heading text-[1.25rem] font-extrabold leading-tight text-brilliant-text" style={{ letterSpacing: "-0.01em" }}>{tpl(t.league.leagueTitle, { tier: TIER_LABELS[tier] })}</h2>
         </div>
-
-        <div className="text-center">
-          <p className="text-sm text-brilliant-muted">{t.league.xpThisWeek}</p>
-          <p className="text-2xl font-bold text-brilliant-text">{weeklyXp} XP</p>
-        </div>
+        <p className="mt-3 text-[0.9375rem] leading-normal text-[#555]">{t.league.pendingInstruction}</p>
+        <p className="mt-4 text-[0.8125rem] font-medium text-brilliant-muted">{t.league.xpThisWeek}</p>
+        <p className="font-heading text-[1.75rem] font-extrabold leading-none text-brilliant-text" style={{ fontVariantNumeric: "tabular-nums", letterSpacing: "-0.02em" }}>{weeklyXp} XP</p>
       </div>
     );
   }
 
-  // First-time player — needs 100 XP to unlock leagues
+  // First league: it opens once enough XP is earned in a week.
   const progress = Math.min((weeklyXp / MIN_XP_TO_JOIN) * 100, 100);
 
   return (
-    <div className="w-full flex flex-col items-center gap-6 py-4">
-      {/* Shield illustration */}
-      <div className="relative">
-        <svg width="80" height="92" viewBox="0 0 44 50" fill="none">
-          <path
-            d="M22 2L4 10V22C4 34 22 48 22 48C22 48 40 34 40 22V10L22 2Z"
-            fill="#9CA3AF"
-            opacity={0.15}
-          />
-          <path
-            d="M22 2L4 10V22C4 34 22 48 22 48C22 48 40 34 40 22V10L22 2Z"
-            stroke="#9CA3AF"
-            strokeWidth={2.5}
-            strokeLinejoin="round"
-            fill="none"
-          />
-          <text x="22" y="30" textAnchor="middle" fontSize="18" fontWeight="bold" fill="#9CA3AF">?</text>
-        </svg>
-      </div>
-
-      <div className="text-center">
-        <h2 className="text-xl sm:text-2xl font-bold text-brilliant-text mb-2">
-          {t.league.joinLeague}
-        </h2>
-        <p className="text-sm sm:text-base text-brilliant-muted max-w-sm">
-          {tpl(t.league.joinDesc, { min: MIN_XP_TO_JOIN })}
-        </p>
-      </div>
-
-      {/* Progress bar */}
-      <div className="w-full max-w-xs">
-        <div className="flex justify-between text-sm font-semibold mb-2">
+    <div className="flex w-full flex-col">
+      <div className="bg-white p-5" style={CARD}>
+        <h2 className="font-heading text-[1.25rem] font-extrabold leading-tight text-brilliant-text" style={{ letterSpacing: "-0.01em", textWrap: "balance" as never }}>{t.league.joinLeague}</h2>
+        <p className="mt-1.5 text-[0.9375rem] leading-normal text-[#555]">{tpl(t.league.joinDesc, { min: MIN_XP_TO_JOIN })}</p>
+        <div className="mt-4 flex items-baseline justify-between text-[0.9375rem] font-semibold" style={{ fontVariantNumeric: "tabular-nums" }}>
           <span className="text-brilliant-text">{weeklyXp} XP</span>
           <span className="text-brilliant-muted">{MIN_XP_TO_JOIN} XP</span>
         </div>
-        <div className="h-3 bg-[#F0F0F0] rounded-full overflow-hidden">
-          <div
-            className="h-full bg-[#3CC922] rounded-full transition-all duration-500"
-            style={{ width: `${progress}%` }}
-          />
+        <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-[#EDEDF3]" role="progressbar" aria-valuemin={0} aria-valuemax={MIN_XP_TO_JOIN} aria-valuenow={Math.min(weeklyXp, MIN_XP_TO_JOIN)}>
+          <div className="h-full rounded-full bg-[#6967FB] transition-[width] duration-500" style={{ width: `${Math.max(progress, weeklyXp > 0 ? 4 : 0)}%` }} />
         </div>
       </div>
 
-      {/* Tier preview */}
-      <div className="w-full max-w-sm mt-4">
-        <p className="text-xs text-brilliant-muted text-center mb-4">{t.league.the10Leagues}</p>
-        <div className="grid grid-cols-5 gap-3">
-          {LEAGUE_TIERS.map((tier) => (
-            <LeagueTierBadge key={tier} tier={tier as LeagueTier} size="sm" />
-          ))}
-        </div>
+      {/* What is ahead */}
+      <p className="mt-7 text-[0.8125rem] font-semibold text-brilliant-muted">{t.league.the10Leagues}</p>
+      <div className="mt-3 grid grid-cols-5 gap-x-2 gap-y-4">
+        {LEAGUE_TIERS.map((tier) => (
+          <LeagueTierBadge key={tier} tier={tier as LeagueTier} size="sm" />
+        ))}
       </div>
     </div>
   );

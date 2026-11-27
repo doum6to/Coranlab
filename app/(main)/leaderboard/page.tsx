@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 
-import { FeedWrapper } from "@/components/feed-wrapper";
 import {
   getUserProgress,
   getUserSubscription,
@@ -11,7 +10,7 @@ import {
 import { LeagueJoinView } from "@/components/league-join-view";
 import { LeagueLeaderboard } from "@/components/league-leaderboard";
 import { LeagueTiersList } from "@/components/league-tiers-list";
-import { LEAGUE_TIERS, type LeagueTier } from "@/lib/league-utils";
+import { type LeagueTier } from "@/lib/league-utils";
 import { getServerStrings } from "@/lib/i18n/server-t";
 
 const LeaderboardPage = async () => {
@@ -34,34 +33,21 @@ const LeaderboardPage = async () => {
   const isBottomTier = tier === "NIYYA";
 
   return (
-    <div className="flex flex-col px-6">
-      <FeedWrapper>
-        <div className="w-full flex flex-col items-center">
-          <h1 className="text-center font-bold text-brilliant-text text-2xl my-6">
-            {t.leaderboard.title}
-          </h1>
+    <div className="mx-auto w-full max-w-md px-4 pb-8 pt-2">
+      <h1 className="font-heading text-[1.375rem] font-extrabold text-brilliant-text" style={{ letterSpacing: "-0.01em" }}>{t.leaderboard.title}</h1>
 
-          {hasActiveGroup && members.length > 0 ? (
-            <LeagueLeaderboard
-              tier={tier}
-              members={members}
-              isTopTier={isTopTier}
-              isBottomTier={isBottomTier}
-            />
-          ) : (
-            <LeagueJoinView
-              weeklyXp={weeklyXp}
-              isPending={userLeague?.groupId === "PENDING"}
-              pendingTier={(userLeague?.tier ?? "NIYYA") as LeagueTier}
-            />
-          )}
+      <div className="mt-4">
+        {hasActiveGroup && members.length > 0 ? (
+          <LeagueLeaderboard tier={tier} members={members} isTopTier={isTopTier} isBottomTier={isBottomTier} />
+        ) : (
+          <LeagueJoinView weeklyXp={weeklyXp} isPending={userLeague?.groupId === "PENDING"} pendingTier={(userLeague?.tier ?? "NIYYA") as LeagueTier} />
+        )}
+      </div>
 
-          {/* Liste des ligues avec toggle */}
-          <LeagueTiersList
-            currentTier={hasActiveGroup ? tier : null}
-          />
-        </div>
-      </FeedWrapper>
+      {/* Every league, on demand */}
+      <div className="mt-6">
+        <LeagueTiersList currentTier={hasActiveGroup ? tier : null} />
+      </div>
     </div>
   );
 };

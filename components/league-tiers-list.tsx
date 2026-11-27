@@ -25,39 +25,38 @@ export const LeagueTiersList = ({ currentTier }: Props) => {
   return (
     <div className="w-full">
       <button
+        type="button"
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-brilliant-muted hover:text-brilliant-text transition cursor-pointer"
+        aria-expanded={open}
+        className="flex min-h-[48px] w-full select-none items-center justify-center gap-2 rounded-2xl text-[0.9375rem] font-semibold text-[#5452E0] transition-colors active:bg-[#F7F7FF]"
       >
         {t.leagueMore.seeAllLeagues}
         {open ? (
-          <ChevronUp className="h-4 w-4" />
+          <ChevronUp className="h-4 w-4" strokeWidth={2.4} aria-hidden />
         ) : (
-          <ChevronDown className="h-4 w-4" />
+          <ChevronDown className="h-4 w-4" strokeWidth={2.4} aria-hidden />
         )}
       </button>
 
       {open && (
-        <div className="mt-2 rounded-2xl border border-brilliant-border bg-white overflow-hidden">
+        <div className="mt-1 flex flex-col">
           {tiers.map((tier, i) => {
             const isCurrent = currentTier === tier;
             const color = TIER_COLORS[tier];
-            const isLast = i === tiers.length - 1;
 
             return (
               <div
                 key={tier}
-                className={`flex items-center gap-4 px-4 py-3 ${
-                  !isLast ? "border-b border-brilliant-border" : ""
-                } ${isCurrent ? "bg-[#F5F3FF]" : ""}`}
+                className={`flex min-h-[60px] items-center gap-3.5 rounded-2xl px-3 py-2 ${isCurrent ? "bg-[#F0F0FF]" : ""}`}
               >
                 {/* Rank number (10 = top, 1 = bottom) */}
-                <span className="text-xs font-bold text-brilliant-muted w-5 text-center shrink-0">
+                <span className="w-5 shrink-0 text-center text-[0.8125rem] font-bold text-brilliant-muted" style={{ fontVariantNumeric: "tabular-nums" }}>
                   {LEAGUE_TIERS.length - i}
                 </span>
 
                 {/* Shield */}
                 <div className="shrink-0">
-                  <svg width="32" height="37" viewBox="0 0 44 50" fill="none">
+                  <svg width="32" height="37" viewBox="0 0 44 50" fill="none" aria-hidden>
                     <path
                       d="M22 2L4 10V22C4 34 22 48 22 48C22 48 40 34 40 22V10L22 2Z"
                       fill={color}
@@ -85,25 +84,18 @@ export const LeagueTiersList = ({ currentTier }: Props) => {
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold" style={{ color }}>
+                  <p className="text-[0.9375rem] font-bold leading-tight" style={{ color }}>
                     {TIER_LABELS[tier]}
                     {isCurrent && (
-                      <span className="ml-2 text-xs font-semibold text-[#6967FB]">
+                      <span className="ml-2 text-[0.8125rem] font-semibold text-[#5452E0]">
                         {t.leagueMore.yourLeague}
                       </span>
                     )}
                   </p>
-                  <p className="text-xs text-brilliant-muted">
+                  <p className="mt-0.5 text-[0.8125rem] text-[#6B6B76]">
                     {t.leagueMore[`tier${tier}`]}
                   </p>
                 </div>
-
-                {/* Arrow indicator for current */}
-                {isCurrent && (
-                  <div className="shrink-0">
-                    <div className="w-2 h-2 rounded-full bg-[#6967FB]" />
-                  </div>
-                )}
               </div>
             );
           })}
