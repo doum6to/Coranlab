@@ -16,6 +16,7 @@ import { WelcomeTutorial } from "@/components/welcome-tutorial";
 import { AddToHomeTutorial } from "@/components/add-to-home-tutorial";
 import { PremiumNudgeBanner } from "@/components/premium-nudge-banner";
 import { TodayHero, type NextLesson } from "@/components/today-hero";
+import { ReminderCard } from "@/components/reminders";
 
 const LearnPage = async () => {
   const { userId } = await auth();
@@ -87,6 +88,7 @@ const LearnPage = async () => {
       {/* Today's step first; the offer comes after it, never before */}
       <div className="mx-auto mb-8 w-full max-w-md sm:mb-10">
         <TodayHero streakData={streakData} next={next} />
+        {!showTutorial && <div className="px-4 sm:px-0"><ReminderCard streak={streakData.streak} /></div>}
         {!isPro && !showTutorial && (
           <div className="mt-4">
             <PremiumNudgeBanner streak={userProgress?.streak ?? 0} percent={percent} />

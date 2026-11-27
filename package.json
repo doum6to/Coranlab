@@ -58,6 +58,7 @@
     "stripe": "^14.20.0",
     "tailwind-merge": "^2.2.1",
     "tailwindcss-animate": "^1.0.7",
+    "web-push": "^3.6.7",
     "zustand": "^4.5.2"
   },
   "devDependencies": {
@@ -68,6 +69,7 @@
     "@types/pg": "^8.20.0",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/web-push": "^3.6.4",
     "autoprefixer": "^10.0.1",
     "cross-env": "^10.1.0",
     "drizzle-kit": "^0.20.14",

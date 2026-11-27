@@ -54,6 +54,8 @@ export async function updateSession(request: NextRequest) {
     // unsubscribe link is a public GET gated by a signed token.
     request.nextUrl.pathname.startsWith("/api/cron/") ||
     request.nextUrl.pathname.startsWith("/api/leads/") ||
+    // Opt-out link of the reminder e-mails: public, gated by a signed token.
+    request.nextUrl.pathname.startsWith("/api/reminders/") ||
     request.nextUrl.pathname.startsWith("/lire-larabe") ||
     // VIP redemption link for buyers coming from another platform: must be
     // reachable logged-out (the code in ?c= is the gate).

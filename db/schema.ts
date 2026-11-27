@@ -321,3 +321,27 @@ export const courseVideo = pgTable("course_video", {
 }, (t) => ({
   slugIdx: index("course_video_slug").on(t.slug),
 }));
+
+/**
+ * Daily reminders. `reminder_pref` holds each learner's choices and what was last sent (one
+ * row per learner, created on first use; no row means the defaults). `push_subscription` holds
+ * the browsers that accepted notifications. Both are created by the app itself when missing
+ * (see lib/reminders.ts), like `funnel_lead`.
+ */
+export const reminderPref = pgTable("reminder_pref", {
+  userId: text("user_id").primaryKey(),
+  emailOn: boolean("email_on").notNull().default(true),
+  locale: text("locale"),
+  lastEmailDate: text("last_email_date"),
+  lastPushDate: text("last_push_date"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const pushSubscription = pgTable("push_subscription", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  endpoint: text("endpoint").notNull().unique(),
+  p256dh: text("p256dh").notNull(),
+  auth: text("auth").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
