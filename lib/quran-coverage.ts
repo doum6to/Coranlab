@@ -4,6 +4,14 @@ import type { UnitWithLists } from "@/db/queries";
 export const COVERAGE_GOAL = 85;
 
 /**
+ * Whether the figure is shown to learners. Off since 27 November 2026: checked against the
+ * source booklet, the course holds 345 of its 644 words, and the ranges written on each part
+ * (0-50, 50-65, 65-85 %) do not match the booklet's own (41.1, 60.1, 85.2 %), so the figure
+ * overstates. To be switched back on once the missing words are in and the ranges corrected.
+ */
+export const COVERAGE_VISIBLE = false;
+
+/**
  * Roughly how much of the Qur'an's words a learner understands so far, in percent.
  *
  * Each part of the course states the range it covers ("0% à 50% du Coran", then 50 to 65,

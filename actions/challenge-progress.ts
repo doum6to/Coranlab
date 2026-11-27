@@ -6,7 +6,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 
 import db from "@/db/drizzle";
 import { getListsWithLevels, getUserProgress } from "@/db/queries";
-import { quranCoverage } from "@/lib/quran-coverage";
+import { COVERAGE_VISIBLE, quranCoverage } from "@/lib/quran-coverage";
 import { challengeProgress, challenges, userProgress, weeklyXp, streakActivity } from "@/db/schema";
 import { getCurrentWeekStart } from "@/lib/league-utils";
 import { maybeJoinLeague } from "@/actions/league";
@@ -121,7 +121,7 @@ export const finishLesson = async (clientDate?: string): Promise<{ streak: numbe
   // The figure the lesson moved: shown on the end screen. Never worth failing the save for.
   let coverage: number | undefined;
   try {
-    coverage = quranCoverage(await getListsWithLevels());
+    if (COVERAGE_VISIBLE) coverage = quranCoverage(await getListsWithLevels());
   } catch (e) {
     console.error("[lesson] coverage not computed", e);
   }
